@@ -1,0 +1,45 @@
+plugins {
+	id 'org.jetbrains.kotlin.jvm' version '1.6.20-M1'
+}
+
+group = 'org.koitharu'
+version = '1.0'
+
+repositories {
+	mavenCentral()
+	google()
+}
+
+test {
+	useJUnitPlatform()
+}
+
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs += [
+				'-Xopt-in=kotlin.contracts.ExperimentalContracts',
+				'-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
+		]
+	}
+}
+
+compileTestKotlin {
+	kotlinOptions.jvmTarget = '1.8'
+}
+
+dependencies {
+	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+	implementation 'com.squareup.okio:okio:3.0.0'
+	implementation 'org.jsoup:jsoup:1.14.3'
+	implementation 'org.json:json:20211205'
+	implementation 'androidx.collection:collection-ktx:1.2.0'
+
+//	testImplementation 'org.jetbrains.kotlin:kotlin-test'
+	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
+	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
+	testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0'
+	testImplementation 'io.webfolder:quickjs:1.1.0'
+}
