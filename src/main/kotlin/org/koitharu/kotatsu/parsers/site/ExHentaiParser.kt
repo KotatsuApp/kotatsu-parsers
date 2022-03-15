@@ -213,7 +213,7 @@ internal class ExHentaiParser(override val context: MangaLoaderContext) : MangaP
 	override suspend fun getUsername(): String {
 		val doc = context.httpGet("https://forums.$DOMAIN_UNAUTHORIZED/").parseHtml().body()
 		val username = doc.getElementById("userlinks")
-			?.getElementsByAttributeValueContaining("href", "?showuser=")
+			?.getElementsByAttributeValueContaining("href", "showuser=")
 			?.firstOrNull()
 			?.ownText()
 			?: if (doc.getElementById("userlinksguest") != null) {

@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers
 
 import com.koushikdutta.quack.QuackContext
-import okhttp3.CookieJar
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -17,10 +16,10 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		/*Build.MODEL*/ "",
 		/*Build.BRAND*/ "",
 		/*Build.DEVICE*/ "",
-		/*Locale.getDefault().language*/"en",
+		/*Locale.getDefault().language*/ "en",
 	)
 
-	override val cookieJar: CookieJar = InMemoryCookieJar()
+	override val cookieJar = InMemoryCookieJar()
 
 	override val httpClient: OkHttpClient = OkHttpClient.Builder()
 		.cookieJar(cookieJar)
@@ -29,6 +28,10 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		.readTimeout(60, TimeUnit.SECONDS)
 		.writeTimeout(20, TimeUnit.SECONDS)
 		.build()
+
+	init {
+		loadTestCookies()
+	}
 
 	override suspend fun evaluateJs(script: String): String? {
 		return QuackContext.create().use {
@@ -40,12 +43,20 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		return SourceConfigMock()
 	}
 
-	suspend fun doRequest(url: String, builder: Request.Builder.() -> Unit): Response {
+	suspend fun doRequest(url: String, referer: String? = null): Response {
 		val request = Request.Builder()
 			.get()
 			.url(url)
-			.apply(builder)
-			.build()
-		return httpClient.newCall(request).await()
+		if (referer != null) {
+			request.header("Referrer", referer)
+		}
+		return httpClient.newCall(request.build()).await()
+	}
+
+	private fun loadTestCookies() {
+		// https://addons.mozilla.org/ru/firefox/addon/cookies-txt/
+		javaClass.getResourceAsStream("/cookies.txt")?.use {
+			cookieJar.loadFromStream(it)
+		} ?: println("No cookies loaded!")
 	}
 }

@@ -3,6 +3,12 @@ package org.koitharu.kotatsu.parsers
 import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
+import org.koitharu.kotatsu.parsers.util.insertCookie
+import org.koitharu.kotatsu.test_util.component6
+import org.koitharu.kotatsu.test_util.component7
+import java.io.InputStream
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class InMemoryCookieJar : CookieJar {
 
@@ -17,6 +23,27 @@ class InMemoryCookieJar : CookieJar {
 		cookies.forEach {
 			val key = CookieKey(url.host, it.name)
 			cache[key] = it
+		}
+	}
+
+	fun loadFromStream(stream: InputStream) {
+		val reader = stream.bufferedReader()
+		for (line in reader.lineSequence()) {
+			if (line.isBlank() || line.startsWith("# ")) {
+				continue
+			}
+			val (host, includeSubdomains, path, secure, expire, name, value) = line.split(Regex("\\s+"))
+			val domain = host.removePrefix("#HttpOnly_").trimStart('.')
+			val httpOnly = host.startsWith("#HttpOnly_")
+			val cookie = Cookie.Builder()
+			cookie.domain(domain)
+			if (httpOnly) cookie.httpOnly()
+			cookie.path(path)
+			if (secure.lowercase(Locale.ROOT).toBooleanStrict()) cookie.secure()
+			cookie.expiresAt(TimeUnit.SECONDS.toMillis(expire.toLong()))
+			cookie.name(name)
+			cookie.value(value)
+			insertCookie(domain, cookie.build())
 		}
 	}
 

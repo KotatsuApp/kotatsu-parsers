@@ -27,3 +27,17 @@ internal fun <T, K> Collection<T>.isDistinctBy(selector: (T) -> K): Boolean {
 
 internal fun String.isUrlRelative() = matches(PATTERN_URL_RELATIVE)
 internal fun String.isUrlAbsoulte() = matches(PATTERN_URL_ABSOLUTE)
+
+internal inline fun <T, K> Collection<T>.maxDuplicates(selector: (T) -> K): K? {
+	return groupBy(selector).maxByOrNull { it.value.size }?.key
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline operator fun <T> List<T>.component6(): T {
+	return get(5)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+inline operator fun <T> List<T>.component7(): T {
+	return get(6)
+}

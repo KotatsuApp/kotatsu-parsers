@@ -236,7 +236,9 @@ internal open class MangaLibParser(override val context: MangaLoaderContext) : M
 	}
 
 	protected open fun isNsfw(doc: Document): Boolean {
-		val sidebar = doc.body().selectFirst(".media-sidebar") ?: parseFailed("Sidebar not found")
+		val sidebar = doc.body().run {
+			selectFirst(".media-sidebar") ?: selectFirst(".media-info")
+		} ?: parseFailed("Sidebar not found")
 		return sidebar.getElementsContainingOwnText("18+").isNotEmpty()
 	}
 
@@ -257,12 +259,13 @@ internal open class MangaLibParser(override val context: MangaLoaderContext) : M
 			val slug = jo.getString("slug")
 			val url = "/$slug"
 			val covers = jo.getJSONObject("covers")
+			val title = jo.getString("rus_name").ifEmpty { jo.getString("name") }
 			Manga(
 				id = generateUid(url),
 				url = url,
 				publicUrl = "https://$domain/$slug",
-				title = jo.getString("rus_name"),
-				altTitle = jo.getString("name"),
+				title = title,
+				altTitle = jo.getString("name").takeUnless { it == title },
 				author = null,
 				tags = emptySet(),
 				rating = jo.getString("rate_avg")

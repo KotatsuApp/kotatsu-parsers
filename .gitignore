@@ -74,3 +74,5 @@ build/
 .idea/**/vcs.xml
 .idea/**/ktlint.xml
 .idea/codeStyles/
+
+src/test/resources/cookies.txt

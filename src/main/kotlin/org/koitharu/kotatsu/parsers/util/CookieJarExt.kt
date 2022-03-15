@@ -19,6 +19,14 @@ fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
 	)
 }
 
+fun CookieJar.insertCookie(domain: String, cookie: Cookie) {
+	val url = HttpUrl.Builder()
+		.scheme(SCHEME_HTTPS)
+		.host(domain)
+		.build()
+	saveFromResponse(url, listOf(cookie))
+}
+
 fun CookieJar.getCookies(domain: String): List<Cookie> {
 	val url = HttpUrl.Builder()
 		.scheme(SCHEME_HTTPS)

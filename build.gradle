@@ -20,13 +20,17 @@ compileKotlin {
 		jvmTarget = '1.8'
 		freeCompilerArgs += [
 				'-Xopt-in=kotlin.contracts.ExperimentalContracts',
-				'-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
 		]
 	}
 }
 
 compileTestKotlin {
-	kotlinOptions.jvmTarget = '1.8'
+	kotlinOptions {
+		jvmTarget = '1.8'
+		freeCompilerArgs += [
+				'-Xopt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
+		]
+	}
 }
 
 dependencies {

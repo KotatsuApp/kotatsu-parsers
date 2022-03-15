@@ -4,6 +4,7 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
+import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.exception.GraphQLException
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.await
@@ -23,7 +24,7 @@ abstract class MangaLoaderContext {
 		if (headers != null) {
 			request.headers(headers)
 		}
-		return httpClient.newCall(request.build()).await()
+		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
 	suspend fun httpPost(
@@ -37,7 +38,7 @@ abstract class MangaLoaderContext {
 		val request = Request.Builder()
 			.post(body.build())
 			.url(url)
-		return httpClient.newCall(request.build()).await()
+		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
 	suspend fun httpPost(
@@ -56,7 +57,7 @@ abstract class MangaLoaderContext {
 		val request = Request.Builder()
 			.post(body.build())
 			.url(url)
-		return httpClient.newCall(request.build()).await()
+		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
 	suspend fun graphQLQuery(endpoint: String, query: String): JSONObject {
@@ -69,7 +70,7 @@ abstract class MangaLoaderContext {
 		val request = Request.Builder()
 			.post(requestBody)
 			.url(endpoint)
-		val json = httpClient.newCall(request.build()).await().parseJson()
+		val json = httpClient.newCall(request.build()).await().ensureSuccess().parseJson()
 		json.optJSONArray("errors")?.let {
 			if (it.length() != 0) {
 				throw GraphQLException(it)
@@ -87,4 +88,16 @@ abstract class MangaLoaderContext {
 	abstract suspend fun evaluateJs(script: String): String?
 
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
+
+	private fun Response.ensureSuccess() = apply {
+		if (!isSuccessful) {
+			val exception = HttpStatusException(message, code, request.url.toString())
+			runCatching {
+				close()
+			}.onFailure {
+				exception.addSuppressed(it)
+			}
+			throw exception
+		}
+	}
 }

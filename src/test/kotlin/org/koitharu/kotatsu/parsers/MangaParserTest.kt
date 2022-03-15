@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers
 
 import kotlinx.coroutines.test.runTest
+import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -10,7 +12,9 @@ import org.koitharu.kotatsu.parsers.util.mimeType
 import org.koitharu.kotatsu.test_util.isDistinct
 import org.koitharu.kotatsu.test_util.isDistinctBy
 import org.koitharu.kotatsu.test_util.isUrlAbsoulte
+import org.koitharu.kotatsu.test_util.maxDuplicates
 
+@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock()
@@ -20,7 +24,7 @@ internal class MangaParserTest {
 	fun list(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
 		val list = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null)
-		checkMangaList(list)
+		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
 
@@ -31,11 +35,13 @@ internal class MangaParserTest {
 		val subject = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
-		val list = parser.getList(offset = 0, query = subject.title, sortOrder = null, tags = null)
+		val query = subject.title
+		check(query.isNotBlank()) { "Manga title '$query' is blank" }
+		val list = parser.getList(offset = 0, query, sortOrder = null, tags = null)
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
-			"Single subject ${subject.title} not found in search results"
+			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"
 		}
-		checkMangaList(list)
+		checkMangaList(list, "search('$query')")
 		assert(list.all { it.source == source })
 	}
 
@@ -53,8 +59,9 @@ internal class MangaParserTest {
 		assert("" !in titles)
 		assert(tags.all { it.source == source })
 
-		val list = parser.getList(offset = 0, tags = setOf(tags.last()), query = null, sortOrder = null)
-		checkMangaList(list)
+		val tag = tags.last()
+		val list = parser.getList(offset = 0, tags = setOf(tag), query = null, sortOrder = null)
+		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
 
@@ -65,16 +72,28 @@ internal class MangaParserTest {
 		val list = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
-			assert(!chapters.isNullOrEmpty())
-			assert(publicUrl.isUrlAbsoulte())
-			assert(description != null)
-			assert(title.startsWith(manga.title))
+			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
+			assert(publicUrl.isUrlAbsoulte()) { "Manga public url is not absolute: '$publicUrl'" }
+			assert(description != null) { "Detailed description is null" }
+			assert(title.startsWith(manga.title)) {
+				"Titles are mismatch: '$title' and '${manga.title}' for $publicUrl"
+			}
 			assert(this.source == source)
 			val c = checkNotNull(chapters)
-			assert(c.isDistinctBy { it.id })
-			assert(c.isDistinctBy { it.number })
-			assert(c.isDistinctBy { it.name })
+			assert(c.isDistinctBy { it.id }) {
+				"Chapters are not distinct by id: ${c.maxDuplicates { it.id }} for $publicUrl"
+			}
+			assert(c.isDistinctBy { it.number to it.branch }) {
+				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
+			}
+			assert(c.isDistinctBy { it.name to it.branch }) {
+				"Chapters are not distinct by name: ${c.maxDuplicates { it.name to it.branch }} for $publicUrl"
+			}
 			assert(c.all { it.source == source })
+			checkImageRequest(coverUrl, publicUrl)
+			largeCoverUrl?.let {
+				checkImageRequest(it, publicUrl)
+			}
 		}
 	}
 
@@ -95,22 +114,41 @@ internal class MangaParserTest {
 		val pageUrl = parser.getPageUrl(page)
 		assert(pageUrl.isNotEmpty())
 		assert(pageUrl.isUrlAbsoulte())
-		val pageResponse = context.doRequest(pageUrl) {
-			header("Referrer", page.referer)
-		}
-		assert(pageResponse.isSuccessful)
-		assert(pageResponse.mimeType?.startsWith("image/") == true)
+		checkImageRequest(pageUrl, page.referer)
 	}
 
-	private fun checkMangaList(list: List<Manga>) {
-		assert(list.isNotEmpty()) { "Manga list is empty" }
-		assert(list.isDistinctBy { it.id }) { "Manga list contains duplicated ids" }
+	@ParameterizedTest
+	@MangaSources
+	@Disabled
+	fun authorization(source: MangaSource) = runTest {
+		val parser = source.newParser(context)
+		if (parser is MangaParserAuthProvider) {
+			val username = parser.getUsername()
+			assert(username.isNotBlank()) { "Username is blank" }
+			println("Signed in to ${source.name} as $username")
+		}
+	}
+
+	private suspend fun checkMangaList(list: List<Manga>, cause: String) {
+		assert(list.isNotEmpty()) { "Manga list for '$cause' is empty" }
+		assert(list.isDistinctBy { it.id }) { "Manga list for '$cause' contains duplicated ids" }
 		for (item in list) {
 			assert(item.url.isNotEmpty())
 			assert(!item.url.isUrlAbsoulte())
 			assert(item.coverUrl.isUrlAbsoulte())
-			assert(item.title.isNotEmpty())
+			assert(item.title.isNotEmpty()) { "Title for ${item.publicUrl} is empty" }
 			assert(item.publicUrl.isUrlAbsoulte())
+		}
+		val testItem = list.random()
+		checkImageRequest(testItem.coverUrl, testItem.publicUrl)
+	}
+
+	private suspend fun checkImageRequest(url: String, referer: String?) {
+		context.doRequest(url, referer).use {
+			assert(it.isSuccessful) { "Request failed: ${it.code}: ${it.message}" }
+			assert(it.mimeType?.startsWith("image/") == true) {
+				"Wrong response mime type: ${it.mimeType}"
+			}
 		}
 	}
 }
