@@ -1,7 +1,6 @@
 plugins {
 	id 'java-library'
 	id 'org.jetbrains.kotlin.jvm' version '1.6.20-M1'
-	id 'maven-publish'
 }
 
 group = 'org.koitharu'
@@ -28,24 +27,6 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions.jvmTarget = '1.8'
-}
-
-publishing {
-	repositories {
-		maven {
-			name = "GitHubPackages"
-			url = uri("https://maven.pkg.github.com/nv95/kotatsu-parsers")
-			credentials {
-				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
-				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
-			}
-		}
-	}
-	publications {
-		gpr(MavenPublication) {
-			from(components.java)
-		}
-	}
 }
 
 dependencies {
