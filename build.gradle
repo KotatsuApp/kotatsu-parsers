@@ -1,5 +1,7 @@
 plugins {
+	id 'java-library'
 	id 'org.jetbrains.kotlin.jvm' version '1.6.20-M1'
+	id 'maven-publish'
 }
 
 group = 'org.koitharu'
@@ -28,6 +30,24 @@ compileTestKotlin {
 	kotlinOptions.jvmTarget = '1.8'
 }
 
+publishing {
+	repositories {
+		maven {
+			name = "GitHubPackages"
+			url = uri("https://maven.pkg.github.com/nv95/kotatsu-parsers")
+			credentials {
+				username = project.findProperty("gpr.user") ?: System.getenv("USERNAME")
+				password = project.findProperty("gpr.key") ?: System.getenv("TOKEN")
+			}
+		}
+	}
+	publications {
+		gpr(MavenPublication) {
+			from(components.java)
+		}
+	}
+}
+
 dependencies {
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
@@ -36,7 +56,6 @@ dependencies {
 	implementation 'org.json:json:20211205'
 	implementation 'androidx.collection:collection-ktx:1.2.0'
 
-//	testImplementation 'org.jetbrains.kotlin:kotlin-test'
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 	testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
