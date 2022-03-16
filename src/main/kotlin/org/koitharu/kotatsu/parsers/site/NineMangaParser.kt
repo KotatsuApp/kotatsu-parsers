@@ -4,6 +4,7 @@ import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -14,9 +15,11 @@ private const val PAGE_SIZE = 26
 
 internal abstract class NineMangaParser(
 	final override val context: MangaLoaderContext,
-	final override val source: MangaSource,
-	final override val defaultDomain: String,
-) : MangaParser() {
+	source: MangaSource,
+	defaultDomain: String,
+) : MangaParser(source) {
+
+	override val configKeyDomain = ConfigKey.Domain(defaultDomain, null)
 
 	init {
 		context.cookieJar.insertCookies(getDomain(), "ninemanga_template_desk=yes")
@@ -77,8 +80,9 @@ internal abstract class NineMangaParser(
 				title = dd?.selectFirst("a.bookname")?.text()?.toCamelCase().orEmpty(),
 				altTitle = null,
 				coverUrl = node.selectFirst("img")?.absUrl("src").orEmpty(),
-				rating = Manga.NO_RATING,
+				rating = RATING_UNKNOWN,
 				author = null,
+				isNsfw = false,
 				tags = emptySet(),
 				state = null,
 				source = source,

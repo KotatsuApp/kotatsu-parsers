@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -9,11 +10,9 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal class MangaTownParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class MangaTownParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGATOWN) {
 
-	override val source = MangaSource.MANGATOWN
-
-	override val defaultDomain = "www.mangatown.com"
+	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -69,7 +68,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				source = MangaSource.MANGATOWN,
 				altTitle = null,
 				rating = li.selectFirst("p.score")?.selectFirst("b")
-					?.ownText()?.toFloatOrNull()?.div(5f) ?: Manga.NO_RATING,
+					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				author = views.findText { x -> x.startsWith("Author:") }?.substringAfter(':')
 					?.trim(),
 				state = when (status) {
@@ -85,6 +84,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 					)
 				}.orEmpty(),
 				url = href,
+				isNsfw = false,
 				publicUrl = href.inContextOf(a),
 			)
 		}

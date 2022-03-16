@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -10,11 +11,9 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
-internal class DesuMeParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class DesuMeParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.DESUME) {
 
-	override val source = MangaSource.DESUME
-
-	override val defaultDomain = "desu.me"
+	override val configKeyDomain = ConfigKey.Domain("desu.me", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -71,6 +70,9 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 				},
 				rating = jo.getDouble("score").toFloat().coerceIn(0f, 1f),
 				id = generateUid(id),
+				isNsfw = false,
+				tags = emptySet(),
+				author = null,
 				description = jo.getString("description"),
 			)
 		}

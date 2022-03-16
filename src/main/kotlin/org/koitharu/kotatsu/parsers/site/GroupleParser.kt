@@ -14,7 +14,7 @@ private const val PAGE_SIZE = 70
 private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 
-internal abstract class GroupleParser : MangaParser() {
+internal abstract class GroupleParser(source: MangaSource) : MangaParser(source) {
 
 	private val headers = Headers.Builder()
 		.add("User-Agent", "readmangafun")
@@ -91,8 +91,9 @@ internal abstract class GroupleParser : MangaParser() {
 						?.substringBefore(' ')
 						?.toFloatOrNull()
 						?.div(10f)
-				}.getOrNull() ?: Manga.NO_RATING,
+				}.getOrNull() ?: RATING_UNKNOWN,
 				author = tileInfo?.selectFirst("a.person-link")?.text(),
+				isNsfw = false,
 				tags = runCatching {
 					tileInfo?.select("a.element-link")
 						?.mapToSet {

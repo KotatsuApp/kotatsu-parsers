@@ -7,6 +7,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -23,11 +24,11 @@ private const val PAGE_SIZE = 30
 private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
 
-internal class RemangaParser(override val context: MangaLoaderContext) : MangaParser(), MangaParserAuthProvider {
+internal class RemangaParser(
+	override val context: MangaLoaderContext,
+) : MangaParser(MangaSource.REMANGA), MangaParserAuthProvider {
 
-	override val source = MangaSource.REMANGA
-
-	override val defaultDomain = "remanga.org"
+	override val configKeyDomain = ConfigKey.Domain("remanga.org", null)
 	override val authUrl: String
 		get() = "https://${getDomain()}/user/login"
 
@@ -85,10 +86,12 @@ internal class RemangaParser(override val context: MangaLoaderContext) : MangaPa
 				publicUrl = "https://$domain$url",
 				title = jo.getString("rus_name"),
 				altTitle = jo.getString("en_name"),
-				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: Manga.NO_RATING,
+				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				coverUrl = "https://api.$domain${img.getString("mid")}",
 				largeCoverUrl = "https://api.$domain${img.getString("high")}",
 				author = null,
+				isNsfw = false,
+				state = null,
 				tags = jo.optJSONArray("genres")?.mapJSONToSet { g ->
 					MangaTag(
 						title = g.getString("name").toTitleCase(),

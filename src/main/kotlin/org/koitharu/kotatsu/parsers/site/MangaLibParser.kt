@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -17,11 +18,12 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal open class MangaLibParser(override val context: MangaLoaderContext) : MangaParser(), MangaParserAuthProvider {
+internal open class MangaLibParser(
+	override val context: MangaLoaderContext,
+	source: MangaSource = MangaSource.MANGALIB,
+) : MangaParser(source), MangaParserAuthProvider {
 
-	override val defaultDomain = "mangalib.me"
-
-	override val source = MangaSource.MANGALIB
+	override val configKeyDomain = ConfigKey.Domain("mangalib.me", null)
 
 	override val authUrl: String
 		get() = "https://${getDomain()}/login"
@@ -69,11 +71,12 @@ internal open class MangaLibParser(override val context: MangaLoaderContext) : M
 				coverUrl = a.absUrl("data-src"),
 				altTitle = null,
 				author = null,
-				rating = Manga.NO_RATING,
+				rating = RATING_UNKNOWN,
 				url = href,
 				publicUrl = href.inContextOf(a),
 				tags = emptySet(),
 				state = null,
+				isNsfw = false,
 				source = source,
 			)
 		}
@@ -269,8 +272,9 @@ internal open class MangaLibParser(override val context: MangaLoaderContext) : M
 				author = null,
 				tags = emptySet(),
 				rating = jo.getString("rate_avg")
-					.toFloatOrNull()?.div(5f) ?: Manga.NO_RATING,
+					.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				state = null,
+				isNsfw = false,
 				source = source,
 				coverUrl = covers.getString("thumbnail"),
 				largeCoverUrl = covers.getString("default"),

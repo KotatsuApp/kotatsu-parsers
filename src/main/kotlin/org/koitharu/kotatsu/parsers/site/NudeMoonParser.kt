@@ -4,6 +4,7 @@ import androidx.collection.SparseArrayCompat
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,10 +13,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 
-internal class NudeMoonParser(override val context: MangaLoaderContext) : MangaParser(), MangaParserAuthProvider {
+internal class NudeMoonParser(
+	override val context: MangaLoaderContext,
+) : MangaParser(MangaSource.NUDEMOON), MangaParserAuthProvider {
 
-	override val source = MangaSource.NUDEMOON
-	override val defaultDomain = "nude-moon.net"
+	override val configKeyDomain = ConfigKey.Domain("nude-moon.net", null)
 	override val authUrl: String
 		get() = "https://${getDomain()}/index.php"
 
@@ -89,7 +91,7 @@ internal class NudeMoonParser(override val context: MangaLoaderContext) : MangaP
 					}.orEmpty(),
 				source = source,
 				publicUrl = a.absUrl("href"),
-				rating = Manga.NO_RATING,
+				rating = RATING_UNKNOWN,
 				isNsfw = true,
 				description = row.selectFirst("div.description")?.html(),
 				state = null,

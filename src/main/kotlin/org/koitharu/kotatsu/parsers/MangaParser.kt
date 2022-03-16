@@ -1,19 +1,18 @@
 package org.koitharu.kotatsu.parsers
 
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 
-abstract class MangaParser {
+abstract class MangaParser(val source: MangaSource) {
 
 	protected abstract val context: MangaLoaderContext
 
-	abstract val source: MangaSource
-
 	abstract val sortOrders: Set<SortOrder>
 
-	abstract val defaultDomain: String
+	val config by lazy { context.getConfig(source) }
 
-	protected val config by lazy { context.getConfig(source) }
+	protected abstract val configKeyDomain: ConfigKey.Domain
 
 	abstract suspend fun getList(
 		offset: Int,
@@ -32,10 +31,14 @@ abstract class MangaParser {
 
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
 
+	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		keys.add(configKeyDomain)
+	}
+
 	/* Utils */
 
-	protected fun getDomain(): String {
-		return config.getDomain(defaultDomain)
+	fun getDomain(): String {
+		return config[configKeyDomain]
 	}
 
 	protected fun generateUid(url: String): Long {
@@ -60,25 +63,19 @@ abstract class MangaParser {
 
 	protected fun String.withDomain(subdomain: String? = null) = when {
 		this.startsWith("//") -> buildString {
-			append("http")
-			if (config.isSslEnabled(true)) {
-				append('s')
-			}
+			append("https")
 			append(":")
 			append(this@withDomain)
 		}
 		this.startsWith("/") -> buildString {
-			append("http")
-			if (config.isSslEnabled(true)) {
-				append('s')
-			}
+			append("https")
 			append("://")
 			if (subdomain != null) {
 				append(subdomain)
 				append('.')
-				append(config.getDomain(defaultDomain).removePrefix("www."))
+				append(getDomain().removePrefix("www."))
 			} else {
-				append(config.getDomain(defaultDomain))
+				append(getDomain())
 			}
 			append(this@withDomain)
 		}

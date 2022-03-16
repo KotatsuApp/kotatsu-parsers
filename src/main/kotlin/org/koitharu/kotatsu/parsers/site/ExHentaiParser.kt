@@ -4,6 +4,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -14,16 +15,16 @@ import kotlin.math.pow
 private const val DOMAIN_UNAUTHORIZED = "e-hentai.org"
 private const val DOMAIN_AUTHORIZED = "exhentai.org"
 
-internal class ExHentaiParser(override val context: MangaLoaderContext) : MangaParser(), MangaParserAuthProvider {
-
-	override val source = MangaSource.EXHENTAI
+internal class ExHentaiParser(
+	override val context: MangaLoaderContext,
+) : MangaParser(MangaSource.EXHENTAI), MangaParserAuthProvider {
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.NEWEST,
 	)
 
-	override val defaultDomain: String
-		get() = if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED
+	override val configKeyDomain: ConfigKey.Domain
+		get() = ConfigKey.Domain(if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED, null)
 
 	override val authUrl: String
 		get() = "https://${getDomain()}/bounce_login.php"
@@ -118,7 +119,7 @@ internal class ExHentaiParser(override val context: MangaLoaderContext) : MangaP
 				altTitle = null,
 				url = href,
 				publicUrl = a.absUrl("href"),
-				rating = td2.selectFirst("div.ir")?.parseRating() ?: Manga.NO_RATING,
+				rating = td2.selectFirst("div.ir")?.parseRating() ?: RATING_UNKNOWN,
 				isNsfw = true,
 				coverUrl = td1.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = setOfNotNull(mainTag),
@@ -239,7 +240,7 @@ internal class ExHentaiParser(override val context: MangaLoaderContext) : MangaP
 				p1 += 8
 			}
 			(80 - p1) / 80f
-		}.getOrDefault(Manga.NO_RATING)
+		}.getOrDefault(RATING_UNKNOWN)
 	}
 
 	private fun String.cleanupTitle(): String {

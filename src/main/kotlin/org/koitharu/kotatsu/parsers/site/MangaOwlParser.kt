@@ -2,17 +2,16 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAOWL) {
 
-	override val source = MangaSource.MANGAOWL
-
-	override val defaultDomain = "mangaowls.com"
+	override val configKeyDomain = ConfigKey.Domain("mangaowls.com", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -62,8 +61,11 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 						?.text()
 						?.toFloatOrNull()
 						?.div(10f)
-				}.getOrNull() ?: Manga.NO_RATING,
+				}.getOrNull() ?: RATING_UNKNOWN,
 				url = href,
+				isNsfw = false,
+				tags = emptySet(),
+				state = null,
 				publicUrl = href.withDomain(),
 				source = source,
 			)
@@ -79,7 +81,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		val trElement =
 			doc.getElementsByTag("script").find { trRegex.find(it.data()) != null } ?: parseFailed("Oops, tr not found")
 		val tr = trRegex.find(trElement.data())!!.groups[1]!!.value
-		val s = context.encodeBase64(defaultDomain.toByteArray())
+		val s = context.encodeBase64(getDomain().toByteArray())
 		return manga.copy(
 			description = info.selectFirst(".description")?.html(),
 			largeCoverUrl = info.select("img").first()?.let { img ->

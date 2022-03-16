@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal abstract class ChanParser : MangaParser() {
+internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -64,6 +64,9 @@ internal abstract class ChanParser : MangaParser() {
 						)
 					}
 				}.getOrNull().orEmpty(),
+				rating = RATING_UNKNOWN,
+				state = null,
+				isNsfw = false,
 				source = source,
 			)
 		}

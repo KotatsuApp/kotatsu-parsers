@@ -6,6 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.JSONIterator
@@ -22,10 +23,10 @@ import java.util.*
 private const val PAGE_SIZE = 20
 private const val CHAPTERS_LIMIT = 99999
 
-internal class ComickFunParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class ComickFunParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.COMICK_FUN) {
 
-	override val defaultDomain = "comick.fun"
-	override val source = MangaSource.COMICK_FUN
+	override val configKeyDomain = ConfigKey.Domain("comick.fun", null)
+
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,

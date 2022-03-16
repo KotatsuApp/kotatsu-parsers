@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -16,10 +17,9 @@ private const val CONTENT_RATING =
 	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
 
-internal class MangaDexParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class MangaDexParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGADEX) {
 
-	override val source = MangaSource.MANGADEX
-	override val defaultDomain = "mangadex.org"
+	override val configKeyDomain = ConfigKey.Domain("mangadex.org", null)
 
 	override val sortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -86,7 +86,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 				altTitle = attrs.optJSONObject("altTitles")?.selectByLocale(),
 				url = id,
 				publicUrl = "https://$domain/title/$id",
-				rating = Manga.NO_RATING,
+				rating = RATING_UNKNOWN,
 				isNsfw = attrs.getStringOrNull("contentRating") == "erotica",
 				coverUrl = cover?.plus(".256.jpg").orEmpty(),
 				largeCoverUrl = cover,
@@ -114,7 +114,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 		}
 	}
 
-	override suspend fun getDetails(manga: Manga): Manga = coroutineScope<Manga> {
+	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val domain = getDomain()
 		val attrsDeferred = async {
 			context.httpGet(
@@ -169,11 +169,11 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val domain = getDomain()
-		val chapter = context.httpGet("https://api.$domain/at-home/server/${chapter.url}?forcePort443=false")
+		val chapterJson = context.httpGet("https://api.$domain/at-home/server/${chapter.url}?forcePort443=false")
 			.parseJson()
 			.getJSONObject("chapter")
-		val pages = chapter.getJSONArray("data")
-		val prefix = "https://uploads.$domain/data/${chapter.getString("hash")}/"
+		val pages = chapterJson.getJSONArray("data")
+		val prefix = "https://uploads.$domain/data/${chapterJson.getString("hash")}/"
 		val referer = "https://$domain/"
 		return List(pages.length()) { i ->
 			val url = prefix + pages.getString(i)

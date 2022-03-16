@@ -1,8 +1,9 @@
 package org.koitharu.kotatsu.parsers
 
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
+
 internal class SourceConfigMock : MangaSourceConfig {
 
-	override fun getDomain(defaultValue: String): String = defaultValue
-
-	override fun isSslEnabled(defaultValue: Boolean): Boolean = defaultValue
+	override fun <T> get(key: ConfigKey<T>): T = key.defaultValue
 }

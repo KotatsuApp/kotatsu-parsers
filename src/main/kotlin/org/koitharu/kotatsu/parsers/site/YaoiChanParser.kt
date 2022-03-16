@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -8,10 +9,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.relUrl
 
-internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanParser() {
+internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.YAOICHAN) {
 
-	override val source = MangaSource.YAOICHAN
-	override val defaultDomain = "yaoi-chan.me"
+	override val configKeyDomain = ConfigKey.Domain("yaoi-chan.me", null)
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.withDomain()).parseHtml()

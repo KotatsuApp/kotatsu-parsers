@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,11 +12,9 @@ import java.util.*
 
 private const val PAGE_SIZE = 12
 
-internal class MangareadParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class MangareadParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAREAD) {
 
-	override val source = MangaSource.MANGAREAD
-
-	override val defaultDomain = "www.mangaread.org"
+	override val configKeyDomain = ConfigKey.Domain("www.mangaread.org", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -56,6 +55,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 				publicUrl = href.inContextOf(div),
 				coverUrl = div.selectFirst("img")?.absUrl("data-src").orEmpty(),
 				title = summary?.selectFirst("h3")?.text().orEmpty(),
+				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()
 					?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapToSet { a ->
@@ -75,6 +75,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 					else -> null
 				},
 				source = MangaSource.MANGAREAD,
+				isNsfw = false,
 			)
 		}
 	}

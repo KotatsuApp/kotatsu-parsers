@@ -5,17 +5,16 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.stringIterator
 import java.util.*
 
-internal class AnibelParser(override val context: MangaLoaderContext) : MangaParser() {
+internal class AnibelParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.ANIBEL) {
 
-	override val source = MangaSource.ANIBEL
-
-	override val defaultDomain = "anibel.net"
+	override val configKeyDomain = ConfigKey.Domain("anibel.net", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -73,6 +72,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 					.withDomain("cdn") + "?width=200&height=280",
 				altTitle = title.getString("alt").takeUnless(String::isEmpty),
 				author = null,
+				isNsfw = false,
 				rating = jo.getDouble("rating").toFloat() / 10f,
 				url = href,
 				publicUrl = "https://${getDomain()}/$href",
@@ -213,7 +213,8 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 					.withDomain("cdn") + "?width=200&height=280",
 				altTitle = title.getString("en").takeUnless(String::isEmpty),
 				author = null,
-				rating = Manga.NO_RATING,
+				isNsfw = false,
+				rating = RATING_UNKNOWN,
 				url = href,
 				publicUrl = "https://${getDomain()}/$href",
 				tags = emptySet(),

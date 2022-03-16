@@ -32,7 +32,7 @@ class InMemoryCookieJar : CookieJar {
 			if (line.isBlank() || line.startsWith("# ")) {
 				continue
 			}
-			val (host, includeSubdomains, path, secure, expire, name, value) = line.split(Regex("\\s+"))
+			val (host, _, path, secure, expire, name, value) = line.split(Regex("\\s+"))
 			val domain = host.removePrefix("#HttpOnly_").trimStart('.')
 			val httpOnly = host.startsWith("#HttpOnly_")
 			val cookie = Cookie.Builder()

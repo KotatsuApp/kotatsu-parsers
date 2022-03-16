@@ -6,6 +6,7 @@ import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.nio.charset.StandardCharsets
@@ -18,9 +19,7 @@ import javax.crypto.spec.SecretKeySpec
 private const val PAGE_SIZE = 60
 private const val PAGE_SIZE_SEARCH = 20
 
-internal class BatoToParser(override val context: MangaLoaderContext) : MangaParser() {
-
-	override val source = MangaSource.BATOTO
+internal class BatoToParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.BATOTO) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -29,7 +28,10 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val defaultDomain: String = "bato.to"
+	override val configKeyDomain = ConfigKey.Domain(
+		"bato.to",
+		arrayOf("bato.to", "mto.to", "mangatoto.com", "battwo.com", "batotwo.com", "comiko.net", "batotoo.com"),
+	)
 
 	override suspend fun getList(
 		offset: Int,
@@ -193,7 +195,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 				altTitle = div.selectFirst(".item-alias")?.text()?.takeUnless { it == title },
 				url = href,
 				publicUrl = a.absUrl("href"),
-				rating = Manga.NO_RATING,
+				rating = RATING_UNKNOWN,
 				isNsfw = false,
 				coverUrl = div.selectFirst("img[src]")?.absUrl("src").orEmpty(),
 				largeCoverUrl = null,
