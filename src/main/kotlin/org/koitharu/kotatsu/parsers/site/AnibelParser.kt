@@ -41,7 +41,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 			separator = ",",
 			prefix = "genres: [",
 			postfix = "]",
-		) { "\"it.key\"" }.orEmpty()
+		) { "\"${it.key}\"" }.orEmpty()
 		val array = apiCall(
 			"""
 			getMediaList(offset: $offset, limit: 20, mediaType: manga, filters: {$filters}) {
