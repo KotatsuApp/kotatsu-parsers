@@ -129,7 +129,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val domain = getDomain()
-		val doc = context.httpGet("https://$domain/catalog").parseHtml()
+		val doc = context.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")
 			?.select("ul")?.last() ?: throw ParseException("Cannot find root")
 		return root.select("li.sidetag").mapToSet { li ->
