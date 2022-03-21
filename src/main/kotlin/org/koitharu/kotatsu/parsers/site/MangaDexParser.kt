@@ -151,7 +151,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 				}
 				val locale = Locale.forLanguageTag(attrs.getString("translatedLanguage"))
 				val relations = jo.getJSONArray("relationships").associateByKey("type")
-				val number = attrs.optInt("chapter", 0)
+				val number = attrs.getIntOrDefault("chapter", 0)
 				MangaChapter(
 					id = generateUid(id),
 					name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)

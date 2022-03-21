@@ -9,10 +9,7 @@ import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.JSONIterator
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -82,7 +79,7 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 				altTitle = null,
 				url = slug,
 				publicUrl = "https://$domain/comic/$slug",
-				rating = jo.optDouble("rating", -10.0).toFloat() / 10f,
+				rating = jo.getDoubleOrDefault("rating", -10.0).toFloat() / 10f,
 				isNsfw = false,
 				coverUrl = jo.getString("cover_url"),
 				largeCoverUrl = null,

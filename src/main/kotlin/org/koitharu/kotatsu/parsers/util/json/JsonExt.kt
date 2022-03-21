@@ -6,6 +6,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.utils.json.JSONIterator
 import org.koitharu.kotatsu.utils.json.JSONStringIterator
 import org.koitharu.kotatsu.utils.json.JSONValuesIterator
+import java.util.*
 import kotlin.contracts.contract
 
 inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONTo(
@@ -56,13 +57,45 @@ fun JSONObject.getStringOrNull(name: String): String? = opt(name)?.takeUnless {
 	it.isEmpty()
 }
 
-fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean = opt(name)?.takeUnless {
-	it === JSONObject.NULL
-} as? Boolean ?: defaultValue
+fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean {
+	return when (val rawValue = opt(name)) {
+		null, JSONObject.NULL -> defaultValue
+		is Boolean -> rawValue
+		is Number -> rawValue.toInt() != 0
+		is String -> rawValue.lowercase(Locale.ROOT).toBooleanStrictOrNull() ?: defaultValue
+		else -> defaultValue
+	}
+}
 
-fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long = opt(name)?.takeUnless {
-	it === JSONObject.NULL
-} as? Long ?: defaultValue
+fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
+	return when (val rawValue = opt(name)) {
+		null, JSONObject.NULL -> defaultValue
+		is Long -> rawValue
+		is Number -> rawValue.toLong()
+		is String -> rawValue.toLongOrNull() ?: defaultValue
+		else -> defaultValue
+	}
+}
+
+fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
+	return when (val rawValue = opt(name)) {
+		null, JSONObject.NULL -> defaultValue
+		is Int -> rawValue
+		is Number -> rawValue.toInt()
+		is String -> rawValue.toIntOrNull() ?: defaultValue
+		else -> defaultValue
+	}
+}
+
+fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
+	return when (val rawValue = opt(name)) {
+		null, JSONObject.NULL -> defaultValue
+		is Double -> rawValue
+		is Number -> rawValue.toDouble()
+		is String -> rawValue.toDoubleOrNull() ?: defaultValue
+		else -> defaultValue
+	}
+}
 
 fun JSONArray.JSONIterator(): Iterator<JSONObject> = JSONIterator(this)
 
