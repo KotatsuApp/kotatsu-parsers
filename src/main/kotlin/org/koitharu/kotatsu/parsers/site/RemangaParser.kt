@@ -1,13 +1,16 @@
 package org.koitharu.kotatsu.parsers.site
 
 import okhttp3.Headers
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -15,6 +18,7 @@ import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONTo
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import java.net.HttpURLConnection
 import java.net.URLDecoder
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -109,10 +113,12 @@ internal class RemangaParser(
 		val domain = getDomain()
 		val slug = manga.url.find(regexLastUrlPath)
 			?: throw ParseException("Cannot obtain slug from ${manga.url}")
-		val data = context.httpGet(
-			url = "https://api.$domain/api/titles/$slug/",
-			headers = getApiHeaders(),
-		).parseJson()
+		val data = catch401 {
+			context.httpGet(
+				url = "https://api.$domain/api/titles/$slug/",
+				headers = getApiHeaders(),
+			)
+		}.parseJson()
 		val content = try {
 			data.getJSONObject("content")
 		} catch (e: JSONException) {
@@ -166,7 +172,9 @@ internal class RemangaParser(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val referer = "https://${getDomain()}/"
-		val content = context.httpGet(chapter.url.withDomain(subdomain = "api"), getApiHeaders()).parseJson()
+		val content = catch401 {
+			context.httpGet(chapter.url.withDomain(subdomain = "api"), getApiHeaders())
+		}.parseJson()
 			.getJSONObject("content")
 		val pages = content.optJSONArray("pages")
 		if (pages == null) {
@@ -205,10 +213,12 @@ internal class RemangaParser(
 	}
 
 	override suspend fun getUsername(): String {
-		val jo = context.httpGet(
-			url = "https://api.${getDomain()}/api/users/current/",
-			headers = getApiHeaders(),
-		).parseJson()
+		val jo = catch401 {
+			context.httpGet(
+				url = "https://api.${getDomain()}/api/users/current/",
+				headers = getApiHeaders(),
+			)
+		}.parseJson()
 		return jo.getJSONObject("content").getString("username")
 	}
 
@@ -246,10 +256,12 @@ internal class RemangaParser(
 		val result = ArrayList<JSONObject>(100)
 		var page = 1
 		while (true) {
-			val content = context.httpGet(
-				url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=100",
-				headers = getApiHeaders(),
-			).parseJson().getJSONArray("content")
+			val content = catch401 {
+				context.httpGet(
+					url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=100",
+					headers = getApiHeaders(),
+				)
+			}.parseJson().getJSONArray("content")
 			val len = content.length()
 			if (len == 0) {
 				break
@@ -261,5 +273,15 @@ internal class RemangaParser(
 			page++
 		}
 		return result
+	}
+
+	private inline fun catch401(block: () -> Response): Response = try {
+		block()
+	} catch (e: HttpStatusException) {
+		if (e.statusCode == HttpURLConnection.HTTP_UNAUTHORIZED) {
+			throw AuthRequiredException(source)
+		} else {
+			throw e
+		}
 	}
 }
