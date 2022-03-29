@@ -19,6 +19,8 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		SortOrder.UPDATED,
 	)
 
+	private val regexNsfw = Regex("(yaoi)|(yuri)|(smut)|(mature)|(adult)", RegexOption.IGNORE_CASE)
+
 	override suspend fun getList(
 		offset: Int,
 		query: String?,
@@ -82,22 +84,29 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 			doc.getElementsByTag("script").find { trRegex.find(it.data()) != null } ?: parseFailed("Oops, tr not found")
 		val tr = trRegex.find(trElement.data())!!.groups[1]!!.value
 		val s = context.encodeBase64(getDomain().toByteArray())
+		var isNsfw = manga.isNsfw
+		val parsedTags = info.select("div.col-xs-12.col-md-8.single-right-grid-right > p > a[href*=genres]")
+			.mapNotNullToSet {
+				val a = it.selectFirst("a") ?: return@mapNotNullToSet null
+				val name = a.text()
+				if (!isNsfw && isNsfwGenre(name)) {
+					isNsfw = true
+				}
+				MangaTag(
+					title = name.toTitleCase(),
+					key = a.attr("href"),
+					source = source,
+				)
+			}
 		return manga.copy(
 			description = info.selectFirst(".description")?.html(),
 			largeCoverUrl = info.select("img").first()?.let { img ->
 				if (img.hasAttr("data-src")) img.attr("abs:data-src") else img.attr("abs:src")
 			},
+			isNsfw = isNsfw,
 			author = info.selectFirst("p.fexi_header_para a.author_link")?.text(),
 			state = parseStatus(info.select("p.fexi_header_para:contains(status)").first()?.ownText()),
-			tags = manga.tags + info.select("div.col-xs-12.col-md-8.single-right-grid-right > p > a[href*=genres]")
-				.mapNotNull {
-					val a = it.selectFirst("a") ?: return@mapNotNull null
-					MangaTag(
-						title = a.text().toTitleCase(),
-						key = a.attr("href"),
-						source = source,
-					)
-				},
+			tags = manga.tags + parsedTags,
 			chapters = table.select("div.table.table-chapter-list").select("li.list-group-item.chapter_list")
 				.asReversed().mapIndexed { i, li ->
 					val a = li.select("a")
@@ -169,4 +178,6 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 			SortOrder.UPDATED -> "3"
 			else -> "3"
 		}
+
+	private fun isNsfwGenre(name: String): Boolean = regexNsfw.containsMatchIn(name)
 }
