@@ -3,9 +3,6 @@ package org.koitharu.kotatsu.parsers.util.json
 import androidx.collection.ArraySet
 import org.json.JSONArray
 import org.json.JSONObject
-import org.koitharu.kotatsu.utils.json.JSONIterator
-import org.koitharu.kotatsu.utils.json.JSONStringIterator
-import org.koitharu.kotatsu.utils.json.JSONValuesIterator
 import java.util.*
 import kotlin.contracts.contract
 

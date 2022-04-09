@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.utils.json
+package org.koitharu.kotatsu.parsers.util.json
 
 import org.json.JSONObject
 
