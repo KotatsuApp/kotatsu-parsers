@@ -271,13 +271,12 @@ internal open class MangaLibParser(
 				altTitle = jo.getString("name").takeUnless { it == title },
 				author = null,
 				tags = emptySet(),
-				rating = jo.getString("rate_avg")
-					.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+				rating = jo.getString("rate_avg").toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				state = null,
 				isNsfw = false,
 				source = source,
-				coverUrl = covers.getString("thumbnail"),
-				largeCoverUrl = covers.getString("default"),
+				coverUrl = covers.getString("thumbnail").withDomain(),
+				largeCoverUrl = covers.getString("default").withDomain(),
 			)
 		}
 	}
