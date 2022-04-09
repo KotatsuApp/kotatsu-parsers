@@ -91,8 +91,11 @@ abstract class MangaLoaderContext {
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
 	private fun Response.ensureSuccess() = apply {
-		if (!isSuccessful) {
-			val exception = HttpStatusException(message, code, request.url.toString())
+		val exception: Exception? = when (code) { // Catch some error codes, not all
+			in 500..599 -> HttpStatusException(message, code, request.url.toString())
+			else -> null
+		}
+		if (exception != null) {
 			runCatching {
 				close()
 			}.onFailure {
