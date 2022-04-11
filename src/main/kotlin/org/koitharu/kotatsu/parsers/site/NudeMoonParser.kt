@@ -208,7 +208,11 @@ internal class NudeMoonParser(
 			}
 			return result
 		}
-		parseFailed("Cannot find pages list")
+		if (isAuthorized) {
+			parseFailed("Cannot find pages list")
+		} else {
+			throw AuthRequiredException(source)
+		}
 	}
 
 	private fun getSortKey(sortOrder: SortOrder?) =
