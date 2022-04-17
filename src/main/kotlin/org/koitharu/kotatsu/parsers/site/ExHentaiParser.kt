@@ -158,7 +158,7 @@ internal class ExHentaiParser(
 				val count = a.text().toInt()
 				val chapters = ArrayList<MangaChapter>(count)
 				for (i in 1..count) {
-					val url = "${manga.url}?p=$i"
+					val url = "${manga.url}?p=${i - 1}"
 					chapters += MangaChapter(
 						id = generateUid(url),
 						name = "${manga.title} #$i",
@@ -178,7 +178,7 @@ internal class ExHentaiParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = context.httpGet(chapter.url.withDomain()).parseHtml()
 		val root = doc.body().getElementById("gdt") ?: parseFailed("Root not found")
-		return root.select("a").mapNotNull { a ->
+		return root.select("a").map { a ->
 			val url = a.relUrl("href")
 			MangaPage(
 				id = generateUid(url),
