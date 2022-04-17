@@ -13,6 +13,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import java.util.regex.Pattern
 
+private const val MAX_THUMB_INDEX = 20
+
 internal class NudeMoonParser(
 	override val context: MangaLoaderContext,
 ) : MangaParser(MangaSource.NUDEMOON), MangaParserAuthProvider {
@@ -120,7 +122,7 @@ internal class NudeMoonParser(
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					url = manga.url,
+					url = manga.url.replace("--", "-online-"),
 					source = source,
 					number = 1,
 					name = manga.title,
@@ -138,21 +140,30 @@ internal class NudeMoonParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.withDomain()
 		val doc = context.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirst("td.main-body")
-			?: parseFailed("Cannot find root")
-		val readlink = root.selectFirst("table.shoutbox")?.selectFirst("a")?.absUrl("href")
-			?: parseFailed("Cannot obtain read link")
-		val fullPages = getFullPages(readlink)
-		return root.getElementsByAttributeValueMatching("href", pageUrlPatter).mapIndexedNotNull { i, a ->
-			val url = a.relUrl("href")
+		val mangaId = chapter.url.substringAfterLast('/').substringBefore('-').toIntOrNull()
+
+		val script = doc.select("script").firstNotNullOfOrNull {
+			it.html().takeIf { x -> x.contains(" images = new ") }
+		} ?: parseFailed("Cannot find pages list")
+		val pagesRegex = Regex("images\\[(\\d+)].src\\s*=\\s*'([^']+)'", RegexOption.MULTILINE)
+		return pagesRegex.findAll(script).map { match ->
+			val i = match.groupValues[1].toInt()
+			val url = match.groupValues[2]
 			MangaPage(
 				id = generateUid(url),
-				url = fullPages[i] ?: return@mapIndexedNotNull null,
+				url = url,
 				referer = fullUrl,
-				preview = a.selectFirst("img")?.absUrl("src"),
+				preview = if (i <= MAX_THUMB_INDEX && mangaId != null) {
+					val part2 = url.substringBeforeLast('/')
+					val part3 = url.substringAfterLast('/')
+					val part1 = part2.substringBeforeLast('/')
+					"$part1/thumb/$mangaId/thumb_$part3"
+				} else {
+					null
+				},
 				source = source,
 			)
-		}
+		}.toList()
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
