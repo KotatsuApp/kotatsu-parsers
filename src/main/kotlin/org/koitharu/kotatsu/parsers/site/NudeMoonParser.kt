@@ -4,6 +4,7 @@ import androidx.collection.SparseArrayCompat
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -15,6 +16,7 @@ import java.util.regex.Pattern
 
 private const val MAX_THUMB_INDEX = 20
 
+@MangaSourceParser("NUDEMOON", "Nude-Moon", "ru")
 internal class NudeMoonParser(
 	override val context: MangaLoaderContext,
 ) : MangaParser(MangaSource.NUDEMOON), MangaParserAuthProvider {

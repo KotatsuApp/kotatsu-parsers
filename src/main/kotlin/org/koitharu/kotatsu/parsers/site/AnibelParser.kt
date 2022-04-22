@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -12,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.stringIterator
 import java.util.*
 
+@MangaSourceParser("ANIBEL", "Anibel", "be")
 internal class AnibelParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.ANIBEL) {
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net", null)

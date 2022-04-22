@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -9,6 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@MangaSourceParser("MANGAOWL", "MangaOwl", "en")
 internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAOWL) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangaowls.com", null)

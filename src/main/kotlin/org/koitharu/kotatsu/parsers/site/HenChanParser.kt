@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -8,6 +9,7 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 
+@MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
 internal class HenChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.HENCHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentaichan.live", null)

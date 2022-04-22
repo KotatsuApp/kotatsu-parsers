@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,6 +13,7 @@ import java.util.*
 
 private const val PAGE_SIZE = 12
 
+@MangaSourceParser("MANGAREAD", "MangaRead", "en")
 internal class MangareadParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAREAD) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangaread.org", null)

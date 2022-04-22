@@ -6,6 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -20,6 +21,7 @@ import java.util.*
 private const val PAGE_SIZE = 20
 private const val CHAPTERS_LIMIT = 99999
 
+@MangaSourceParser("COMICK_FUN", "ComicK")
 internal class ComickFunParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.COMICK_FUN) {
 
 	override val configKeyDomain = ConfigKey.Domain("comick.fun", null)

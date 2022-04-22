@@ -8,6 +8,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -27,6 +28,7 @@ private const val PAGE_SIZE = 30
 private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
 
+@MangaSourceParser("REMANGA", "Remanga", "ru")
 internal class RemangaParser(
 	override val context: MangaLoaderContext,
 ) : MangaParser(MangaSource.REMANGA), MangaParserAuthProvider {

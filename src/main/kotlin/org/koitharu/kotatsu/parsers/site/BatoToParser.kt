@@ -6,6 +6,7 @@ import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -19,6 +20,7 @@ import javax.crypto.spec.SecretKeySpec
 private const val PAGE_SIZE = 60
 private const val PAGE_SIZE_SEARCH = 20
 
+@MangaSourceParser("BATOTO", "Bato.To")
 internal class BatoToParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.BATOTO) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(

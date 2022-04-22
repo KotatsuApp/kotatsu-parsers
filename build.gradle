@@ -1,15 +1,11 @@
 plugins {
 	id 'java-library'
-	id 'org.jetbrains.kotlin.jvm' version '1.6.20-M1'
+	id 'org.jetbrains.kotlin.jvm'
+	id 'com.google.devtools.ksp'
 }
 
 group = 'org.koitharu'
 version = '1.0'
-
-repositories {
-	mavenCentral()
-	google()
-}
 
 test {
 	useJUnitPlatform()
@@ -33,17 +29,25 @@ compileTestKotlin {
 	}
 }
 
+kotlin {
+	sourceSets {
+		main.kotlin.srcDirs += 'build/generated/ksp/main/kotlin'
+	}
+}
+
 dependencies {
-	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0'
+	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
 	implementation 'com.squareup.okio:okio:3.0.0'
 	implementation 'org.jsoup:jsoup:1.14.3'
 	implementation 'org.json:json:20220320'
 	implementation 'androidx.collection:collection-ktx:1.2.0'
 
+	ksp project(':kotatsu-parsers-ksp')
+
 	testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
 	testImplementation 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 	testImplementation 'org.junit.jupiter:junit-jupiter-params:5.8.2'
-	testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.0'
+	testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.6.1'
 	testImplementation 'io.webfolder:quickjs:1.1.0'
 }

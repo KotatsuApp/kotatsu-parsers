@@ -4,6 +4,7 @@ import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -211,42 +212,49 @@ internal abstract class NineMangaParser(
 		return 0L
 	}
 
+	@MangaSourceParser("NINEMANGA_EN", "NineManga English", "en")
 	class English(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_EN,
 		"www.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_ES", "NineManga Español", "es")
 	class Spanish(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_ES,
 		"es.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_RU", "NineManga Русский", "ru")
 	class Russian(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_RU,
 		"ru.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_DE", "NineManga Deutsch", "de")
 	class Deutsch(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_DE,
 		"de.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_BR", "NineManga Brasil", "pt")
 	class Brazil(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_BR,
 		"br.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_IT", "NineManga Italiano", "it")
 	class Italiano(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_IT,
 		"it.ninemanga.com",
 	)
 
+	@MangaSourceParser("NINEMANGA_FR", "NineManga Français", "fr")
 	class Francais(context: MangaLoaderContext) : NineMangaParser(
 		context,
 		MangaSource.NINEMANGA_FR,

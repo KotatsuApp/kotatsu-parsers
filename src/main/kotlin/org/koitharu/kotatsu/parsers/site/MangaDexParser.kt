@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,6 +18,7 @@ private const val CONTENT_RATING =
 	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
 
+@MangaSourceParser("MANGADEX", "MangaDex")
 internal class MangaDexParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGADEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org", null)

@@ -4,6 +4,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -15,6 +16,7 @@ import kotlin.math.pow
 private const val DOMAIN_UNAUTHORIZED = "e-hentai.org"
 private const val DOMAIN_AUTHORIZED = "exhentai.org"
 
+@MangaSourceParser("EXHENTAI", "ExHentai")
 internal class ExHentaiParser(
 	override val context: MangaLoaderContext,
 ) : MangaParser(MangaSource.EXHENTAI), MangaParserAuthProvider {

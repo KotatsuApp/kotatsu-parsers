@@ -7,6 +7,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -20,7 +21,7 @@ import java.util.*
 
 internal open class MangaLibParser(
 	override val context: MangaLoaderContext,
-	source: MangaSource = MangaSource.MANGALIB,
+	source: MangaSource,
 ) : MangaParser(source), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangalib.me", null)
@@ -280,4 +281,7 @@ internal open class MangaLibParser(
 			)
 		}
 	}
+
+	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
+	class Impl(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.MANGALIB)
 }

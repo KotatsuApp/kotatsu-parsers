@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -11,6 +12,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
+@MangaSourceParser("DESUME", "Desu.me", "ru")
 internal class DesuMeParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.DESUME) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.me", null)
