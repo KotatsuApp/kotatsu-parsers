@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site
 
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -60,7 +61,7 @@ internal abstract class MadaraParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.inContextOf(div),
-				coverUrl = div.selectFirst("img")?.absUrl("data-src").orEmpty(),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = summary?.selectFirst("h3")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()
@@ -106,7 +107,7 @@ internal abstract class MadaraParser(
 			}
 			MangaTag(
 				key = href,
-				title = a.text().toTitleCase(),
+				title = a.ownText().trim().toTitleCase(),
 				source = source,
 			)
 		}
@@ -167,9 +168,7 @@ internal abstract class MadaraParser(
 			?: throw ParseException("Root not found")
 		return root.select("div.page-break").map { div ->
 			val img = div.selectFirst("img") ?: parseFailed("Page image not found")
-			val url = img.relUrl("data-src").ifEmpty {
-				img.relUrl("src")
-			}
+			val url = img.src()?.toRelativeUrl(getDomain()) ?: parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -266,6 +265,12 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	private fun Element.src(): String? {
+		return absUrl("data-src").ifEmpty {
+			absUrl("src")
+		}.takeUnless { it.isEmpty() }
+	}
+
 	private fun createRequestTemplate() =
 		(
 			"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
@@ -312,7 +317,9 @@ internal abstract class MadaraParser(
 		MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
 
 	@MangaSourceParser("MANGA_247", "247MANGA", "en")
-	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com")
+	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com") {
+		override val tagPrefix = "manhwa-genre/"
+	}
 
 	@MangaSourceParser("MANGA_365", "365Manga", "en")
 	class Manga365(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_365, "365manga.com")
