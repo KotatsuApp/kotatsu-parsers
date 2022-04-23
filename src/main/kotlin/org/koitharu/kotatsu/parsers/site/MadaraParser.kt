@@ -13,15 +13,20 @@ import java.util.*
 
 private const val PAGE_SIZE = 12
 
-@MangaSourceParser("MANGAREAD", "MangaRead", "en")
-internal class MangareadParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAREAD) {
+internal abstract class MadaraParser(
+	override val context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+) : MangaParser(source) {
 
-	override val configKeyDomain = ConfigKey.Domain("www.mangaread.org", null)
+	override val configKeyDomain = ConfigKey.Domain(domain, null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 	)
+
+	protected open val tagPrefix = "manga-genre/"
 
 	override suspend fun getList(
 		offset: Int,
@@ -32,7 +37,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 		val tag = when {
 			tags.isNullOrEmpty() -> null
 			tags.size == 1 -> tags.first()
-			else -> throw NotImplementedError("Multiple genres are not supported by this source")
+			else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
 		}
 		val payload = createRequestTemplate()
 		payload["page"] = (offset / PAGE_SIZE.toFloat()).toIntUp().toString()
@@ -64,7 +69,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 					MangaTag(
 						key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 						title = a.text().toTitleCase(),
-						source = MangaSource.MANGAREAD,
+						source = source,
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
@@ -76,7 +81,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 					"Completed" -> MangaState.FINISHED
 					else -> null
 				},
-				source = MangaSource.MANGAREAD,
+				source = source,
 				isNsfw = false,
 			)
 		}
@@ -84,19 +89,25 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = context.httpGet("https://${getDomain()}/manga/").parseHtml()
-		val root = doc.body().selectFirst("header")
-			?.selectFirst("ul.second-menu") ?: parseFailed("Root not found")
-		return root.select("li").mapNotNullToSet { li ->
+		val body = doc.body()
+		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")
+		val root2 = body.selectFirst("div.genres_wrap")?.selectFirst("ul.list-unstyled")
+		if (root1 == null && root2 == null) {
+			parseFailed("Root not found")
+		}
+		val list = root1?.select("li").orEmpty() + root2?.select("li").orEmpty()
+		val keySet = HashSet<String>(list.size)
+		return list.mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			val href = a.attr("href").removeSuffix("/")
-				.substringAfterLast("genres/", "")
-			if (href.isEmpty()) {
+				.substringAfterLast(tagPrefix, "")
+			if (href.isEmpty() || !keySet.add(href)) {
 				return@mapNotNullToSet null
 			}
 			MangaTag(
 				key = href,
 				title = a.text().toTitleCase(),
-				source = MangaSource.MANGAREAD,
+				source = source,
 			)
 		}
 	}
@@ -118,7 +129,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 					MangaTag(
 						key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 						title = a.text().toTitleCase(),
-						source = MangaSource.MANGAREAD,
+						source = source,
 					)
 				} ?: manga.tags,
 			description = root2.selectFirst("div.description-summary")
@@ -140,7 +151,7 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 						dateFormat,
 						li.selectFirst("span.chapter-release-date i")?.text(),
 					),
-					source = MangaSource.MANGAREAD,
+					source = source,
 					scanlator = null,
 					branch = null,
 				)
@@ -164,13 +175,12 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 				url = url,
 				preview = null,
 				referer = fullUrl,
-				source = MangaSource.MANGAREAD,
+				source = source,
 			)
 		}
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-
 		date ?: return 0
 		return when {
 			date.endsWith(" ago", ignoreCase = true) -> {
@@ -257,10 +267,59 @@ internal class MangareadParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	private fun createRequestTemplate() =
-		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
-			.split('&')
+		(
+			"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
+				"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
+				"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
+				"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
+				"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
+			).split('&')
 			.map {
 				val pos = it.indexOf('=')
 				it.substring(0, pos) to it.substring(pos + 1)
 			}.toMutableMap()
+
+	@MangaSourceParser("MANGAREAD", "MangaRead", "en")
+	class MangaRead(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAREAD, "www.mangaread.org") {
+		override val tagPrefix = "genres/"
+	}
+
+	@MangaSourceParser("MANGATX", "MangaTx", "en")
+	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
+
+	@MangaSourceParser("MANGAROCK", "MangaRock", "en")
+	class MangaRock(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROCK, "mangarockteam.com")
+
+	@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
+	class IsekaiScanEu(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu")
+
+	@MangaSourceParser("ISEKAISCAN", "IsekaiScan", "en")
+	class IsekaiScan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.com")
+
+	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
+	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.com")
+
+	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
+	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "topmanhua.com") {
+		override val tagPrefix = "manhua-genre/"
+	}
+
+	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
+	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.com")
+
+	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
+	class MangaManhua(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
+
+	@MangaSourceParser("MANGA_247", "247MANGA", "en")
+	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com")
+
+	@MangaSourceParser("MANGA_365", "365Manga", "en")
+	class Manga365(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_365, "365manga.com")
+
+	@MangaSourceParser("MANGACLASH", "Mangaclash", "en")
+	class Mangaclash(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACLASH, "mangaclash.com")
+
+	@MangaSourceParser("ZINMANGA", "ZINMANGA", "en")
+	class Zinmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ZINMANGA, "zinmanga.com")
 }
