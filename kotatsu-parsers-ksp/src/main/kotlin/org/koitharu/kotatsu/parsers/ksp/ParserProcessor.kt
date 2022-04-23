@@ -92,6 +92,7 @@ class ParserProcessor(
 		factoryWriter?.write(
 			"""
 				MangaSource.LOCAL -> throw NotImplementedError("Local manga parser is not supported")
+				MangaSource.DUMMY -> throw NotImplementedError("Dummy manga parser cannot be instantiated")
 			}.also {
 				require(it.source == this) {
 					"Cannot instantiate manga parser: ${'$'}name mapped to ${'$'}{it.source}"
@@ -101,6 +102,7 @@ class ParserProcessor(
 		)
 		sourcesWriter?.write(
 			"""
+				DUMMY("Dummy", null),
 				;
 			}
 			""".trimIndent(),
