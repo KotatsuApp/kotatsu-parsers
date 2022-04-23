@@ -148,12 +148,15 @@ internal open class MangaLibParser(
 			author = info?.getElementsMatchingOwnText("Автор")?.firstOrNull()
 				?.nextElementSibling()?.text() ?: manga.author,
 			tags = info?.selectFirst("div.media-tags")
-				?.select("a.media-tag-item")?.mapToSet { a ->
-					MangaTag(
-						title = a.text().toTitleCase(),
-						key = a.attr("href").substringAfterLast('='),
-						source = source,
-					)
+				?.select("a.media-tag-item")?.mapNotNullToSet { a ->
+					val href = a.attr("href")
+					if (href.contains("genres")) {
+						MangaTag(
+							title = a.text().toTitleCase(),
+							key = href.substringAfterLast('='),
+							source = source,
+						)
+					} else null
 				} ?: manga.tags,
 			isNsfw = isNsfw(doc),
 			description = info?.selectFirst("div.media-description__text")?.html(),
