@@ -8,5 +8,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 @MangaSourceParser("MINTMANGA", "MintManga", "ru")
 internal class MintMangaParser(override val context: MangaLoaderContext) : GroupleParser(MangaSource.MINTMANGA) {
 
-	override val configKeyDomain = ConfigKey.Domain("mintmanga.live", null)
+	override val configKeyDomain = ConfigKey.Domain(
+		"mintmanga.live",
+		arrayOf("mintmanga.live", "mintmanga.com"),
+	)
 }

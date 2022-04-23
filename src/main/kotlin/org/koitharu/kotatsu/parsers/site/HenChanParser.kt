@@ -12,7 +12,10 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
 internal class HenChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.HENCHAN) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaichan.live", null)
+	override val configKeyDomain = ConfigKey.Domain(
+		"xx.hentaichan.live",
+		arrayOf("xx.hentaichan.live", "hentaichan.live", "hentaichan.pro"),
+	)
 
 	override suspend fun getList(
 		offset: Int,

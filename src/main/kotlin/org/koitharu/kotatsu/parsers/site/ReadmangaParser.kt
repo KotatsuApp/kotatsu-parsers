@@ -8,5 +8,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 @MangaSourceParser("READMANGA_RU", "ReadManga", "ru")
 internal class ReadmangaParser(override val context: MangaLoaderContext) : GroupleParser(MangaSource.READMANGA_RU) {
 
-	override val configKeyDomain = ConfigKey.Domain("readmanga.io", null)
+	override val configKeyDomain = ConfigKey.Domain(
+		"readmanga.io",
+		arrayOf("readmanga.io", "readmanga.live", "readmanga.me"),
+	)
 }
