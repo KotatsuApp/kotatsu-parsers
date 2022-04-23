@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site
 
-import androidx.collection.SparseArrayCompat
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -12,9 +11,8 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.regex.Pattern
 
-private const val MAX_THUMB_INDEX = 20
+private const val MAX_THUMB_INDEX = 19
 
 @MangaSourceParser("NUDEMOON", "Nude-Moon", "ru")
 internal class NudeMoonParser(
@@ -37,8 +35,6 @@ internal class NudeMoonParser(
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
 	)
-
-	private val pageUrlPatter = Pattern.compile(".*\\?page=[0-9]+$")
 
 	init {
 		context.cookieJar.insertCookies(
@@ -146,7 +142,11 @@ internal class NudeMoonParser(
 
 		val script = doc.select("script").firstNotNullOfOrNull {
 			it.html().takeIf { x -> x.contains(" images = new ") }
-		} ?: parseFailed("Cannot find pages list")
+		} ?: if (isAuthorized) {
+			parseFailed("Cannot find pages list")
+		} else {
+			throw AuthRequiredException(source)
+		}
 		val pagesRegex = Regex("images\\[(\\d+)].src\\s*=\\s*'([^']+)'", RegexOption.MULTILINE)
 		return pagesRegex.findAll(script).map { match ->
 			val i = match.groupValues[1].toInt()
@@ -200,32 +200,6 @@ internal class NudeMoonParser(
 					ParseException("Cannot find username")
 				}
 			}
-	}
-
-	private suspend fun getFullPages(url: String): SparseArrayCompat<String> {
-		val scripts = context.httpGet(url).parseHtml().select("script")
-		val regex = "images\\[(\\d+)].src = '([^']+)'".toRegex()
-		for (script in scripts) {
-			val src = script.html()
-			if (src.isEmpty()) {
-				continue
-			}
-			val matches = regex.findAll(src).toList()
-			if (matches.isEmpty()) {
-				continue
-			}
-			val result = SparseArrayCompat<String>(matches.size)
-			matches.forEach { match ->
-				val (index, link) = match.destructured
-				result.append(index.toInt(), link)
-			}
-			return result
-		}
-		if (isAuthorized) {
-			parseFailed("Cannot find pages list")
-		} else {
-			throw AuthRequiredException(source)
-		}
 	}
 
 	private fun getSortKey(sortOrder: SortOrder?) =
