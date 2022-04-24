@@ -289,6 +289,9 @@ internal abstract class MadaraParser(
 		override val tagPrefix = "genres/"
 	}
 
+	@MangaSourceParser("MANGAWEEBS", "MangaWeebs", "en")
+	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in")
+
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
 
