@@ -318,8 +318,26 @@ internal abstract class MadaraParser(
 		override val tagPrefix = "manhua-genre/"
 	}
 
+	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
+	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") 
+
+	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
+	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") 
+
+	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
+	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") 
+
+	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
+	class AllPornComic(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") 
+
 	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
 	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.com")
+
+	@MangaSourceParser("ALLTOPMANGA", "All Top Manga", "en")
+	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com")
+
+	@MangaSourceParser("MANGACV", "Manga Cv", "en")
+	class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com")
 
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
 	class MangaManhua(context: MangaLoaderContext) :
