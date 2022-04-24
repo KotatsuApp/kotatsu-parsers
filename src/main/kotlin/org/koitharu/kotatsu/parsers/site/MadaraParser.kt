@@ -292,6 +292,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
 
+	@MangaSourceParser("MANGATX_OT", "MangaTx (ot)", "en")
+	class MangaTxOt(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX_OT, "manga-tx.com")
+
 	@MangaSourceParser("MANGAROCK", "MangaRock", "en")
 	class MangaRock(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROCK, "mangarockteam.com")
 
@@ -303,6 +306,12 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.com")
+
+	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
+	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
+
+	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
+	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com")
 
 	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
 	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "topmanhua.com") {
