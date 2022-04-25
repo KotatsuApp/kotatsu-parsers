@@ -295,6 +295,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
 
+	@MangaSourceParser("AQUAMANGA", "AquaManga", "en")
+	class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com")
+
 	@MangaSourceParser("MANGATX_OT", "MangaTx (ot)", "en")
 	class MangaTxOt(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX_OT, "manga-tx.com")
 
