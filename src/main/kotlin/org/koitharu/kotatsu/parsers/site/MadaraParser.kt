@@ -336,6 +336,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
 	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.com")
 
+	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
+	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com")
+
 	@MangaSourceParser("ALLTOPMANGA", "All Top Manga", "en")
 	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com")
 
