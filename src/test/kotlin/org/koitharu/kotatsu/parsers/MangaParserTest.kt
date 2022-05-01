@@ -119,6 +119,15 @@ internal class MangaParserTest {
 
 	@ParameterizedTest
 	@MangaSources
+	fun favicon(source: MangaSource) = runTest {
+		val parser = source.newParser(context)
+		val faviconUrl = parser.getFaviconUrl()
+		assert(faviconUrl.isUrlAbsoulte())
+		checkImageRequest(faviconUrl, null)
+	}
+
+	@ParameterizedTest
+	@MangaSources
 	@Disabled
 	fun authorization(source: MangaSource) = runTest {
 		val parser = source.newParser(context)

@@ -202,6 +202,10 @@ internal class NudeMoonParser(
 			}
 	}
 
+	override fun getFaviconUrl(): String {
+		return "https://${getDomain()}/favicon.jpg"
+	}
+
 	private fun getSortKey(sortOrder: SortOrder?) =
 		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
 			SortOrder.POPULARITY -> "views"

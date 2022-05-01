@@ -299,7 +299,12 @@ internal abstract class MadaraParser(
 	class MangaEffect(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAEFFECT, "mangaeffect.com")
 
 	@MangaSourceParser("AQUAMANGA", "AquaManga", "en")
-	class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com")
+	class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2021/03/cropped-cropped-favicon-1-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANGATX_OT", "MangaTx (ot)", "en")
 	class MangaTxOt(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX_OT, "manga-tx.com")
@@ -311,7 +316,12 @@ internal abstract class MadaraParser(
 	class IsekaiScanEu(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu")
 
 	@MangaSourceParser("ISEKAISCAN", "IsekaiScan", "en")
-	class IsekaiScan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.com")
+	class IsekaiScan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2021/10/isekai-scan-02-01-150x150.png"
+		}
+	}
 
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.com")
@@ -320,7 +330,11 @@ internal abstract class MadaraParser(
 	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
 
 	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
-	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com")
+	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com") {
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2021/10/cropped-logo-kool-32x32.jpeg"
+		}
+	}
 
 	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
 	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "topmanhua.com") {
@@ -328,28 +342,55 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
-	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") 
+	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/cropped-sky-tv-1-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
-	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") 
+	class MangaDistrict(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com")
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
-	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") 
+	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net")
 
 	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
-	class AllPornComic(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") 
+	class AllPornComic(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://cdn.${getDomain()}/wp-content/uploads/2019/01/cropped-cropped-pcround-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
 	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.com")
 
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
-	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com")
+	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2017/10/lgoo-treemanga-2-1.jpg"
+		}
+	}
 
 	@MangaSourceParser("ALLTOPMANGA", "All Top Manga", "en")
-	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com")
+	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2021/12/cropped-Screenshot_4-removebg-preview-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANGACV", "Manga Cv", "en")
-	class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com")
+	class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2020/10/cropped-mangaCV-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
 	class MangaManhua(context: MangaLoaderContext) :
