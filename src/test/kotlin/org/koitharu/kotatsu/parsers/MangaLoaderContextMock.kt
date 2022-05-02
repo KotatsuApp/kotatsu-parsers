@@ -25,6 +25,7 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 	override val httpClient: OkHttpClient = OkHttpClient.Builder()
 		.cookieJar(cookieJar)
 		.addInterceptor(UserAgentInterceptor(userAgent))
+		.addInterceptor(CloudFlareInterceptor())
 		.connectTimeout(20, TimeUnit.SECONDS)
 		.readTimeout(60, TimeUnit.SECONDS)
 		.writeTimeout(20, TimeUnit.SECONDS)
@@ -49,7 +50,7 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 			.get()
 			.url(url)
 		if (referer != null) {
-			request.header("Referrer", referer)
+			request.header("Referer", referer)
 		}
 		return httpClient.newCall(request.build()).await()
 	}

@@ -28,6 +28,7 @@ internal abstract class MadaraParser(
 	)
 
 	protected open val tagPrefix = "manga-genre/"
+	protected open val isNsfwSource = false
 
 	override suspend fun getList(
 		offset: Int,
@@ -54,15 +55,14 @@ internal abstract class MadaraParser(
 			payload,
 		).parseHtml()
 		return doc.select("div.row.c-tabs-item__content").map { div ->
-			val href = div.selectFirst("a")?.relUrl("href")
-				?: parseFailed("Link not found")
+			val href = div.selectFirst("a")?.relUrl("href") ?: parseFailed("Link not found")
 			val summary = div.selectFirst(".tab-summary")
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.inContextOf(div),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = summary?.selectFirst("h3")?.text().orEmpty(),
+				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()
 					?.toFloatOrNull()?.div(5f) ?: -1f,
@@ -76,14 +76,14 @@ internal abstract class MadaraParser(
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (
 					summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")
-						?.ownText()?.trim()
+						?.ownText()?.trim()?.lowercase()
 				) {
-					"OnGoing" -> MangaState.ONGOING
-					"Completed" -> MangaState.FINISHED
+					"ongoing" -> MangaState.ONGOING
+					"completed" -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
-				isNsfw = false,
+				isNsfw = isNsfwSource,
 			)
 		}
 	}
@@ -337,7 +337,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
-	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "topmanhua.com") {
+	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "www.topmanhua.com") {
 		override val tagPrefix = "manhua-genre/"
 	}
 
@@ -354,11 +354,16 @@ internal abstract class MadaraParser(
 		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com")
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
-	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net")
+	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
+
+		override val isNsfwSource = true
+	}
 
 	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
 	class AllPornComic(context: MangaLoaderContext) :
 		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
+
+		override val isNsfwSource = true
 
 		override fun getFaviconUrl(): String {
 			return "https://cdn.${getDomain()}/wp-content/uploads/2019/01/cropped-cropped-pcround-32x32.png"

@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
 import org.koitharu.kotatsu.test_util.isDistinct
 import org.koitharu.kotatsu.test_util.isDistinctBy
-import org.koitharu.kotatsu.test_util.isUrlAbsoulte
+import org.koitharu.kotatsu.test_util.isUrlAbsolute
 import org.koitharu.kotatsu.test_util.maxDuplicates
 
 @ExtendWith(AuthCheckExtension::class)
@@ -50,7 +50,7 @@ internal class MangaParserTest {
 	fun tags(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
 		val tags = parser.getTags()
-		assert(tags.isNotEmpty())
+		assert(tags.isNotEmpty()) { "No tags found" }
 		val keys = tags.map { it.key }
 		assert(keys.isDistinct())
 		assert("" !in keys)
@@ -73,8 +73,8 @@ internal class MangaParserTest {
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
-			assert(publicUrl.isUrlAbsoulte()) { "Manga public url is not absolute: '$publicUrl'" }
-			assert(description != null) { "Detailed description is null" }
+			assert(publicUrl.isUrlAbsolute()) { "Manga public url is not absolute: '$publicUrl'" }
+			assert(description != null) { "Detailed description is null: '$publicUrl'" }
 			assert(title.startsWith(manga.title)) {
 				"Titles are mismatch: '$title' and '${manga.title}' for $publicUrl"
 			}
@@ -85,9 +85,6 @@ internal class MangaParserTest {
 			}
 			assert(c.isDistinctBy { it.number to it.branch }) {
 				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
-			}
-			assert(c.isDistinctBy { it.name to it.branch }) {
-				"Chapters are not distinct by name: ${c.maxDuplicates { it.name to it.branch }} for $publicUrl"
 			}
 			assert(c.all { it.source == source })
 			checkImageRequest(coverUrl, publicUrl)
@@ -113,7 +110,7 @@ internal class MangaParserTest {
 		val page = pages.medianOrNull() ?: error("No page")
 		val pageUrl = parser.getPageUrl(page)
 		assert(pageUrl.isNotEmpty())
-		assert(pageUrl.isUrlAbsoulte())
+		assert(pageUrl.isUrlAbsolute())
 		checkImageRequest(pageUrl, page.referer)
 	}
 
@@ -122,7 +119,7 @@ internal class MangaParserTest {
 	fun favicon(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
 		val faviconUrl = parser.getFaviconUrl()
-		assert(faviconUrl.isUrlAbsoulte())
+		assert(faviconUrl.isUrlAbsolute())
 		checkImageRequest(faviconUrl, null)
 	}
 
@@ -142,11 +139,11 @@ internal class MangaParserTest {
 		assert(list.isNotEmpty()) { "Manga list for '$cause' is empty" }
 		assert(list.isDistinctBy { it.id }) { "Manga list for '$cause' contains duplicated ids" }
 		for (item in list) {
-			assert(item.url.isNotEmpty())
-			assert(!item.url.isUrlAbsoulte())
-			assert(item.coverUrl.isUrlAbsoulte()) { "Cover url is not absolute: ${item.coverUrl}" }
+			assert(item.url.isNotEmpty()) { "Url is empty" }
+			assert(!item.url.isUrlAbsolute()) { "Url looks like absolute: ${item.url}" }
+			assert(item.coverUrl.isUrlAbsolute()) { "Cover url is not absolute: ${item.coverUrl}" }
 			assert(item.title.isNotEmpty()) { "Title for ${item.publicUrl} is empty" }
-			assert(item.publicUrl.isUrlAbsoulte())
+			assert(item.publicUrl.isUrlAbsolute())
 		}
 		val testItem = list.random()
 		checkImageRequest(testItem.coverUrl, testItem.publicUrl)
@@ -154,7 +151,7 @@ internal class MangaParserTest {
 
 	private suspend fun checkImageRequest(url: String, referer: String?) {
 		context.doRequest(url, referer).use {
-			assert(it.isSuccessful) { "Request failed: ${it.code}: ${it.message}" }
+			assert(it.isSuccessful) { "Request failed: ${it.code}(${it.message}): $url" }
 			assert(it.mimeType?.startsWith("image/") == true) {
 				"Wrong response mime type: ${it.mimeType}"
 			}
