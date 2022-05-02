@@ -344,14 +344,18 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
 	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
 
+		override val isNsfwSource = true
+
 		override fun getFaviconUrl(): String {
 			return "https://${getDomain()}/wp-content/uploads/cropped-sky-tv-1-32x32.png"
 		}
 	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
-	class MangaDistrict(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com")
+	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com")  {
+
+		override val isNsfwSource = true
+	}
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
 	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
