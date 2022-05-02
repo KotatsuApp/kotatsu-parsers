@@ -120,7 +120,7 @@ internal class NudeMoonParser(
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					url = manga.url.replace("--", "-online-"),
+					url = getReadLink(manga.url),
 					source = source,
 					number = 1,
 					name = manga.title,
@@ -218,5 +218,11 @@ internal class NudeMoonParser(
 		val dateString = substringBetweenFirst("Дата:", "<")?.trim() ?: return 0
 		val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("ru"))
 		return dateFormat.tryParse(dateString)
+	}
+
+	private fun getReadLink(url: String): String {
+		val prefix = url.substringBefore('-', "")
+		val suffix = url.substringAfter('-').trimStart('-')
+		return "$prefix-online-$suffix"
 	}
 }
