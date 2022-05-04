@@ -54,7 +54,7 @@ body:
       description: |
         You can find your Kotatsu version in **Settings → About**.
       placeholder: |
-        Example: "3.2"
+        Example: "3.2.1"
     validations:
       required: true
 
@@ -86,7 +86,7 @@ body:
           required: true
         - label: I have written a short but informative title.
           required: true
-        - label: I have updated the app to version **[3.2](https://github.com/nv95/Kotatsu/releases/latest)**.
+        - label: I have updated the app to version **[3.2.1](https://github.com/nv95/Kotatsu/releases/latest)**.
           required: true
         - label: If this is an issue with the app itself, I should be opening an issue in the [app repository](https://github.com/nv95/Kotatsu/issues/new/choose).
           required: true
