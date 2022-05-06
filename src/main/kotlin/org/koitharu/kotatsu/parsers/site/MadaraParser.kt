@@ -352,7 +352,10 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
-	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com")  {
+	class MangaDistrict(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
+
+		override val tagPrefix = "publication-genre/"
 
 		override val isNsfwSource = true
 	}
@@ -360,12 +363,37 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
 	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
 
+		override val tagPrefix = "hentai-tag/"
+
 		override val isNsfwSource = true
+
+		override suspend fun getTags(): Set<MangaTag> {
+			val doc = context.httpGet("https://${getDomain()}/").parseHtml()
+			val body = doc.body()
+			val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")
+			val list = root1?.select("li").orEmpty()
+			val keySet = HashSet<String>(list.size)
+			return list.mapNotNullToSet { li ->
+				val a = li.selectFirst("a") ?: return@mapNotNullToSet null
+				val href = a.attr("href").removeSuffix("/")
+					.substringAfterLast(tagPrefix, "")
+				if (href.isEmpty() || !keySet.add(href)) {
+					return@mapNotNullToSet null
+				}
+				MangaTag(
+					key = href,
+					title = a.ownText().trim().toTitleCase(),
+					source = source,
+				)
+			}
+		}
 	}
 
 	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
 	class AllPornComic(context: MangaLoaderContext) :
 		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
+
+		override val tagPrefix = "porncomic-genre/"
 
 		override val isNsfwSource = true
 
