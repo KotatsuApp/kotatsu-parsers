@@ -137,10 +137,15 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 		val root = doc.body().getElementById("animeFilter")
 			?.selectFirst(".catalog-genres") ?: throw ParseException("Root not found")
 		return root.select("li").mapToSet {
+			val input = it.selectFirst("input") ?: parseFailed()
 			MangaTag(
 				source = source,
-				key = it.selectFirst("input")?.attr("data-genre") ?: parseFailed(),
-				title = it.selectFirst("label")?.text()?.toTitleCase() ?: parseFailed(),
+				key = input.attr("data-genre-slug").ifEmpty {
+					parseFailed("data-genre-slug is empty")
+				},
+				title = input.attr("data-genre-name").toTitleCase().ifEmpty {
+					parseFailed("data-genre-name is empty")
+				},
 			)
 		}
 	}
