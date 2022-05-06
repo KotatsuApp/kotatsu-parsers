@@ -28,6 +28,16 @@ abstract class MangaLoaderContext {
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
+	suspend fun httpHead(url: String, headers: Headers? = null): Response {
+		val request = Request.Builder()
+			.head()
+			.url(url)
+		if (headers != null) {
+			request.headers(headers)
+		}
+		return httpClient.newCall(request.build()).await().ensureSuccess()
+	}
+
 	suspend fun httpPost(
 		url: String,
 		form: Map<String, String>,

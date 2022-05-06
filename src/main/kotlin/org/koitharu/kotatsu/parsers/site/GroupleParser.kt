@@ -3,10 +3,12 @@ package org.koitharu.kotatsu.parsers.site
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Response
+import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -168,16 +170,19 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 			if (pos == -1) {
 				continue
 			}
-			val json = data.substring(pos).substringAfter('[').substringBeforeLast(']')
-			val matches = Regex("\\[.*?]").findAll(json).toList()
-			val regex = Regex("['\"].*?['\"]")
-			return matches.map { x ->
-				val parts = regex.findAll(x.value).toList()
-				val url = parts[0].value.removeSurrounding('"', '\'') +
-					parts[2].value.removeSurrounding('"', '\'')
+			val json = data.substring(pos).substringAfter('(').substringBefore('\n')
+				.substringBeforeLast(')')
+			val ja = JSONArray("[$json]")
+			val pages = ja.getJSONArray(1)
+			val servers = ja.getJSONArray(4).mapJSON { it.getString("path") }
+			val serversStr = servers.joinToString("|")
+			return (0 until pages.length()).map { i ->
+				val page = pages.getJSONArray(i)
+				val primaryServer = page.getString(0)
+				val url = page.getString(2)
 				MangaPage(
 					id = generateUid(url),
-					url = url,
+					url = "$primaryServer|$serversStr|$url",
 					preview = null,
 					referer = chapter.url,
 					source = source,
@@ -185,6 +190,20 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 			}
 		}
 		throw ParseException("Pages list not found at ${chapter.url}")
+	}
+
+	override suspend fun getPageUrl(page: MangaPage): String {
+		val parts = page.url.split('|')
+		val path = parts.last()
+		val servers = parts.dropLast(1).toSet()
+		val headers = Headers.headersOf("Referer", page.referer)
+		for (server in servers) {
+			val url = server + path
+			if (context.httpHead(url, headers).isSuccessful) {
+				return url
+			}
+		}
+		throw IllegalArgumentException("Cannot find any page url")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
