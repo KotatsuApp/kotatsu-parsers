@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 private const val PAGE_SIZE = 20
+private const val CHAPTERS_PAGE_SIZE = 60
 private const val CONTENT_RATING =
 	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
@@ -123,18 +124,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 				"https://api.$domain/manga/${manga.url}?includes[]=artist&includes[]=author&includes[]=cover_art",
 			).parseJson().getJSONObject("data").getJSONObject("attributes")
 		}
-		val feedDeferred = async {
-			val url = buildString {
-				append("https://api.")
-				append(domain)
-				append("/manga/")
-				append(manga.url)
-				append("/feed")
-				append("?limit=96&includes[]=scanlation_group&order[volume]=asc&order[chapter]=asc&offset=0&")
-				append(CONTENT_RATING)
-			}
-			context.httpGet(url).parseJson().getJSONArray("data")
-		}
+		val feedDeferred = async { loadChapters(manga) }
 		val mangaAttrs = attrsDeferred.await()
 		val feed = feedDeferred.await()
 		// 2022-01-02T00:27:11+00:00
@@ -145,13 +135,13 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 		manga.copy(
 			description = mangaAttrs.getJSONObject("description").selectByLocale()
 				?: manga.description,
-			chapters = feed.mapJSONNotNull { jo ->
+			chapters = feed.mapNotNull { jo ->
 				val id = jo.getString("id")
 				val attrs = jo.getJSONObject("attributes")
 				if (!attrs.isNull("externalUrl")) {
-					return@mapJSONNotNull null
+					return@mapNotNull null
 				}
-				val locale = Locale.forLanguageTag(attrs.getString("translatedLanguage"))
+				val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 				val relations = jo.getJSONArray("relationships").associateByKey("type")
 				val number = attrs.getIntOrDefault("chapter", 0)
 				MangaChapter(
@@ -162,7 +152,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 					url = id,
 					scanlator = relations["scanlation_group"]?.getStringOrNull("name"),
 					uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
-					branch = locale.getDisplayName(locale).toTitleCase(locale),
+					branch = locale?.getDisplayName(locale)?.toTitleCase(locale),
 					source = source,
 				)
 			},
@@ -210,5 +200,32 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			getStringOrNull(locale.toLanguageTag())?.let { return it }
 		}
 		return getStringOrNull(LOCALE_FALLBACK) ?: values().nextOrNull() as? String
+	}
+
+	private suspend fun loadChapters(manga: Manga): List<JSONObject> {
+		val domain = getDomain()
+		val result = ArrayList<JSONObject>()
+		while (true) {
+			val url = buildString {
+				append("https://api.")
+				append(domain)
+				append("/manga/")
+				append(manga.url)
+				append("/feed")
+				append("?limit=")
+				append(CHAPTERS_PAGE_SIZE)
+				append("&includes[]=scanlation_group&order[volume]=asc&order[chapter]=asc&offset=")
+				append(result.size)
+				append('&')
+				append(CONTENT_RATING)
+			}
+			val json = context.httpGet(url).parseJson()
+			val data = json.optJSONArray("data")
+			if (data.isNullOrEmpty()) {
+				break
+			}
+			data.mapJSONTo(result) { it }
+		}
+		return result
 	}
 }
