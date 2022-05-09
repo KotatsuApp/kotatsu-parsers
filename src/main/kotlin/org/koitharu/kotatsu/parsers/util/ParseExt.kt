@@ -80,6 +80,12 @@ fun String.toRelativeUrl(domain: String): String {
 	return replace(Regex("^[^/]{2,6}://${Regex.escape(domain)}+/", RegexOption.IGNORE_CASE), "/")
 }
 
+fun String.toAbsoluteUrl(domain: String): String = when {
+	this.startsWith("//") -> "https:$this"
+	this.startsWith("/") -> "https://$domain$this"
+	else -> this
+}
+
 fun Element.relUrl(attributeKey: String): String {
 	val attr = attr(attributeKey).trim()
 	if (attr.isEmpty()) {

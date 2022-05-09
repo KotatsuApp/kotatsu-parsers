@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
 abstract class MangaParser(val source: MangaSource) {
 
@@ -61,25 +62,12 @@ abstract class MangaParser(val source: MangaSource) {
 		return h
 	}
 
-	protected fun String.withDomain(subdomain: String? = null) = when {
-		this.startsWith("//") -> buildString {
-			append("https")
-			append(":")
-			append(this@withDomain)
+	protected fun String.withDomain(subdomain: String? = null): String {
+		var domain = getDomain()
+		if (subdomain != null) {
+			domain = subdomain + "." + domain.removePrefix("www.")
 		}
-		this.startsWith("/") -> buildString {
-			append("https")
-			append("://")
-			if (subdomain != null) {
-				append(subdomain)
-				append('.')
-				append(getDomain().removePrefix("www."))
-			} else {
-				append(getDomain())
-			}
-			append(this@withDomain)
-		}
-		else -> this
+		return toAbsoluteUrl(domain)
 	}
 
 	protected fun parseFailed(message: String? = null): Nothing {
