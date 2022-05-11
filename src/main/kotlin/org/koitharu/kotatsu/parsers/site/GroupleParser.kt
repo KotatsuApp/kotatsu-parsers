@@ -16,10 +16,10 @@ private const val PAGE_SIZE = 70
 private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 
-internal abstract class GroupleParser(source: MangaSource) : MangaParser(source) {
+internal abstract class GroupleParser(source: MangaSource, userAgent: String) : MangaParser(source) {
 
 	private val headers = Headers.Builder()
-		.add("User-Agent", "readmangafun")
+		.add("User-Agent", userAgent)
 		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
@@ -43,6 +43,7 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 					"q" to query.urlEncoded(),
 					"offset" to (offset upBy PAGE_SIZE_SEARCH).toString(),
 				),
+				headers,
 			)
 			tags.isNullOrEmpty() -> context.httpGet(
 				"https://$domain/list?sortType=${
@@ -166,12 +167,17 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
-			val pos = data.indexOf("rm_h.init")
+			val pos = data.indexOf("rm_h.initReader(")
 			if (pos == -1) {
 				continue
 			}
-			val json = data.substring(pos).substringAfter('(').substringBefore('\n')
+			val json = data.substring(pos)
+				.substringAfter('(')
+				.substringBefore('\n')
 				.substringBeforeLast(')')
+			if (json.isEmpty()) {
+				continue
+			}
 			val ja = JSONArray("[$json]")
 			val pages = ja.getJSONArray(1)
 			val servers = ja.getJSONArray(4).mapJSON { it.getString("path") }
@@ -199,11 +205,12 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 		val headers = Headers.headersOf("Referer", page.referer)
 		for (server in servers) {
 			val url = server + path
-			if (context.httpHead(url, headers).isSuccessful) {
+			if (tryHead(url, headers)) {
 				return url
 			}
 		}
-		throw IllegalArgumentException("Cannot find any page url")
+		val fallbackServer = servers.firstOrNull() ?: parseFailed("Cannot find any page url")
+		return fallbackServer + path
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -263,6 +270,10 @@ internal abstract class GroupleParser(source: MangaSource) : MangaParser(source)
 		payload["s_sale"] = ""
 		payload["years"] = "1900,2099"
 		payload["+"] = "Искать".urlEncoded()
-		return context.httpPost(url, payload)
+		return context.httpPost(url, payload, headers)
 	}
+
+	private suspend fun tryHead(url: String, headers: Headers): Boolean = runCatching {
+		context.httpHead(url, headers).isSuccessful
+	}.getOrDefault(false)
 }

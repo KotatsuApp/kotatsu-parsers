@@ -38,7 +38,7 @@ kotlin {
 dependencies {
 	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.1'
 	implementation 'com.squareup.okhttp3:okhttp:4.9.3'
-	implementation 'com.squareup.okio:okio:3.0.0'
+	implementation 'com.squareup.okio:okio:3.1.0'
 	implementation 'org.jsoup:jsoup:1.14.3'
 	implementation 'org.json:json:20220320'
 	implementation 'androidx.collection:collection-ktx:1.2.0'

@@ -41,6 +41,7 @@ abstract class MangaLoaderContext {
 	suspend fun httpPost(
 		url: String,
 		form: Map<String, String>,
+		headers: Headers? = null,
 	): Response {
 		val body = FormBody.Builder()
 		form.forEach { (k, v) ->
@@ -49,12 +50,16 @@ abstract class MangaLoaderContext {
 		val request = Request.Builder()
 			.post(body.build())
 			.url(url)
+		if (headers != null) {
+			request.headers(headers)
+		}
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
 	suspend fun httpPost(
 		url: String,
 		payload: String,
+		headers: Headers?,
 	): Response {
 		val body = FormBody.Builder()
 		payload.split('&').forEach {
@@ -68,6 +73,9 @@ abstract class MangaLoaderContext {
 		val request = Request.Builder()
 			.post(body.build())
 			.url(url)
+		if (headers != null) {
+			request.headers(headers)
+		}
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
