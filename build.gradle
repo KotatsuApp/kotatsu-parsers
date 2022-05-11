@@ -2,6 +2,7 @@ plugins {
 	id 'java-library'
 	id 'org.jetbrains.kotlin.jvm'
 	id 'com.google.devtools.ksp'
+	id 'maven-publish'
 }
 
 group = 'org.koitharu'
@@ -32,6 +33,16 @@ compileTestKotlin {
 kotlin {
 	sourceSets {
 		main.kotlin.srcDirs += 'build/generated/ksp/main/kotlin'
+	}
+}
+
+afterEvaluate {
+	publishing {
+		publications {
+			mavenJava(MavenPublication) {
+				from components.java
+			}
+		}
 	}
 }
 
