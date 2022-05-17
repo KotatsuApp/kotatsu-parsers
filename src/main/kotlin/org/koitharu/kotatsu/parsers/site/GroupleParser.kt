@@ -15,6 +15,7 @@ import java.util.*
 private const val PAGE_SIZE = 70
 private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
+private const val NOTHING_FOUND = "Ничего не найдено"
 
 internal abstract class GroupleParser(source: MangaSource, userAgent: String) : MangaParser(source) {
 
@@ -65,9 +66,16 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			else -> advancedSearch(domain, tags)
 		}.parseHtml().body()
 		val root = (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults"))
-			?.selectFirst("div.tiles.row") ?: throw ParseException("Cannot find root")
+			?: throw ParseException("Cannot find root")
+		val tiles = root.selectFirst("div.tiles.row") ?: if (
+			root.select(".alert").any { it.ownText() == NOTHING_FOUND }
+		) {
+			return emptyList()
+		} else {
+			parseFailed("No tiles found")
+		}
 		val baseHost = root.baseUri().toHttpUrl().host
-		return root.select("div.tile").mapNotNull { node ->
+		return tiles.select("div.tile").mapNotNull { node ->
 			val imgDiv = node.selectFirst("div.img") ?: return@mapNotNull null
 			val descDiv = node.selectFirst("div.desc") ?: return@mapNotNull null
 			if (descDiv.selectFirst("i.fa-user") != null) {
