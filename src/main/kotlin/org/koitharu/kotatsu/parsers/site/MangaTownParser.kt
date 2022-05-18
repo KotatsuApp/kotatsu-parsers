@@ -58,10 +58,10 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 			?: throw ParseException("Root not found")
 		return root.select("li").mapNotNull { li ->
 			val a = li.selectFirst("a.manga_cover")
-			val href = a?.relUrl("href")
+			val href = a?.attrAsRelativeUrlOrNull("href")
 				?: return@mapNotNull null
 			val views = li.select("p.view")
-			val status = views.findOwnText { x -> x.startsWith("Status:") }
+			val status = views.firstNotNullOfOrNull { it.ownText().takeIf { x -> x.startsWith("Status:") } }
 				?.substringAfter(':')?.trim()?.lowercase(Locale.ROOT)
 			Manga(
 				id = generateUid(href),
@@ -71,7 +71,8 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				altTitle = null,
 				rating = li.selectFirst("p.score")?.selectFirst("b")
 					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				author = views.findText { x -> x.startsWith("Author:") }?.substringAfter(':')
+				author = views.firstNotNullOfOrNull { it.text().takeIf { x -> x.startsWith("Author:") } }
+					?.substringAfter(':')
 					?.trim(),
 				state = when (status) {
 					"ongoing" -> MangaState.ONGOING
@@ -87,7 +88,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				}.orEmpty(),
 				url = href,
 				isNsfw = false,
-				publicUrl = href.inContextOf(a),
+				publicUrl = href.toAbsoluteUrl(a.host ?: getDomain()),
 			)
 		}
 	}
@@ -112,9 +113,10 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 			}.orEmpty(),
 			description = info?.getElementById("show")?.ownText(),
 			chapters = chaptersList?.mapIndexedNotNull { i, li ->
-				val href = li.selectFirst("a")?.relUrl("href")
+				val href = li.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 					?: return@mapIndexedNotNull null
-				val name = li.select("span").filter { it.className().isEmpty() }
+				val name = li.select("span")
+					.filter { x -> x.className().isEmpty() }
 					.joinToString(" - ") { it.text() }.trim()
 				MangaChapter(
 					id = generateUid(href),
@@ -139,8 +141,8 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 		val root = doc.body().selectFirst("div.page_select")
 			?: throw ParseException("Cannot find root")
 		return root.selectFirst("select")?.select("option")?.mapNotNull {
-			val href = it.relUrl("value")
-			if (href.endsWith("featured.html")) {
+			val href = it.attrAsRelativeUrlOrNull("value")
+			if (href == null || href.endsWith("featured.html")) {
 				return@mapNotNull null
 			}
 			MangaPage(
@@ -193,7 +195,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 		val dateFormat = SimpleDateFormat("MMM dd,yyyy", Locale.US)
 		return list.select("li").asReversed().mapIndexedNotNull { i, li ->
 			val a = li.selectFirst("a") ?: return@mapIndexedNotNull null
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			val name = a.selectFirst("span.vol")?.text().orEmpty().ifEmpty {
 				a.ownText()
 			}

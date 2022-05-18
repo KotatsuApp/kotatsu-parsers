@@ -1,3 +1,5 @@
+@file:JvmName("ParseUtils")
+
 package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.Response
@@ -45,6 +47,11 @@ fun Response.parseJsonArray(): JSONArray {
 	}
 }
 
+@Deprecated(
+	message = "",
+	level = DeprecationLevel.ERROR,
+	replaceWith = ReplaceWith("firstNotNullOfOrNull { it.ownText().takeIf(predicate) }"),
+)
 inline fun Elements.findOwnText(predicate: (String) -> Boolean): String? {
 	for (x in this) {
 		val ownText = x.ownText()
@@ -55,6 +62,11 @@ inline fun Elements.findOwnText(predicate: (String) -> Boolean): String? {
 	return null
 }
 
+@Deprecated(
+	message = "",
+	level = DeprecationLevel.ERROR,
+	replaceWith = ReplaceWith("firstNotNullOfOrNull { it.text().takeIf(predicate) }"),
+)
 inline fun Elements.findText(predicate: (String) -> Boolean): String? {
 	for (x in this) {
 		val text = x.text()
@@ -65,6 +77,11 @@ inline fun Elements.findText(predicate: (String) -> Boolean): String? {
 	return null
 }
 
+@Deprecated(
+	message = "Use toAbsoluteUrl() instead",
+	level = DeprecationLevel.ERROR,
+	replaceWith = ReplaceWith("toAbsoluteUrl(node.host)"),
+)
 fun String.inContextOf(node: Node): String {
 	return if (this.isEmpty()) {
 		""
@@ -86,6 +103,11 @@ fun String.toAbsoluteUrl(domain: String): String = when {
 	else -> this
 }
 
+@Deprecated(
+	message = "",
+	level = DeprecationLevel.ERROR,
+	replaceWith = ReplaceWith("attrAsRelativeUrl(attributeKey)"),
+)
 fun Element.relUrl(attributeKey: String): String {
 	val attr = attr(attributeKey).trim()
 	if (attr.isEmpty()) {
@@ -100,11 +122,12 @@ fun Element.relUrl(attributeKey: String): String {
 
 private val REGEX_URL_BASE = Regex("^[^/]{2,6}://[^/]+/", RegexOption.IGNORE_CASE)
 
-fun Element.css(property: String): String? {
-	val regex = Regex("${Regex.escape(property)}\\s*:\\s*[^;]+")
-	val css = attr("style").find(regex) ?: return null
-	return css.substringAfter(':').removeSuffix(';').trim()
-}
+@Deprecated(
+	message = "",
+	level = DeprecationLevel.ERROR,
+	replaceWith = ReplaceWith("styleValueOrNull(property)"),
+)
+fun Element.css(property: String): String? = styleValueOrNull(property)
 
 fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
 	0L

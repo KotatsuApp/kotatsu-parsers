@@ -55,12 +55,13 @@ internal abstract class MadaraParser(
 			payload,
 		).parseHtml()
 		return doc.select("div.row.c-tabs-item__content").map { div ->
-			val href = div.selectFirst("a")?.relUrl("href") ?: parseFailed("Link not found")
+			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
+				?: parseFailed("Link not found")
 			val summary = div.selectFirst(".tab-summary")
 			Manga(
 				id = generateUid(href),
 				url = href,
-				publicUrl = href.inContextOf(div),
+				publicUrl = href.toAbsoluteUrl(div.host ?: getDomain()),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
 				altTitle = null,
@@ -140,12 +141,10 @@ internal abstract class MadaraParser(
 				?.joinToString { it.html() },
 			chapters = root2.select("li").asReversed().mapIndexed { i, li ->
 				val a = li.selectFirst("a")
-				val href = a?.relUrl("href").orEmpty().ifEmpty {
-					parseFailed("Link is missing")
-				}
+				val href = a?.attrAsRelativeUrlOrNull("href") ?: parseFailed("Link is missing")
 				MangaChapter(
 					id = generateUid(href),
-					name = a!!.ownText(),
+					name = a.ownText(),
 					number = i + 1,
 					url = href,
 					uploadDate = parseChapterDate(
@@ -361,7 +360,8 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
-	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
+	class Hentai4Free(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
 
 		override val tagPrefix = "hentai-tag/"
 

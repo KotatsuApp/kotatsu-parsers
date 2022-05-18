@@ -189,7 +189,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 		val root = body.getElementById("series-list") ?: parseFailed("Cannot find root")
 		return root.children().map { div ->
 			val a = div.selectFirst("a") ?: parseFailed()
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			val title = div.selectFirst(".item-title")?.text() ?: parseFailed("Title not found")
 			Manga(
 				id = generateUid(href),
@@ -222,7 +222,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 	private fun Element.parseChapter(index: Int): MangaChapter? {
 		val a = selectFirst("a.chapt") ?: return null
 		val extra = selectFirst(".extra")
-		val href = a.relUrl("href")
+		val href = a.attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
 			name = a.text(),

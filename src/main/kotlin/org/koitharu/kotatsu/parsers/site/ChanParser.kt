@@ -42,11 +42,11 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 		return root.select("div.content_row").mapNotNull { row ->
 			val a = row.selectFirst("div.manga_row1")?.selectFirst("h2")?.selectFirst("a")
 				?: return@mapNotNull null
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
-				publicUrl = href.inContextOf(a),
+				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitle = a.attr("title"),
 				title = a.text().substringAfterLast('(').substringBeforeLast(')'),
 				author = row.getElementsByAttributeValueStarting(
@@ -81,7 +81,8 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			chapters = root.select("table.table_cha tr:gt(1)").reversed().mapIndexedNotNull { i, tr ->
-				val href = tr?.selectFirst("a")?.relUrl("href") ?: return@mapIndexedNotNull null
+				val href = tr?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
+					?: return@mapIndexedNotNull null
 				MangaChapter(
 					id = generateUid(href),
 					name = tr.selectFirst("a")?.text().orEmpty(),

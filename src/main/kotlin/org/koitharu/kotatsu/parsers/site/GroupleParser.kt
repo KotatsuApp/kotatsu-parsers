@@ -81,7 +81,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			if (descDiv.selectFirst("i.fa-user") != null) {
 				return@mapNotNull null // skip author
 			}
-			val href = imgDiv.selectFirst("a")?.attr("href")?.inContextOf(node)
+			val href = imgDiv.selectFirst("a")?.attrAsAbsoluteUrlOrNull("href")
 			if (href == null || href.toHttpUrl().host != baseHost) {
 				return@mapNotNull null // skip external links
 			}
@@ -148,7 +148,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
 				?.select("tr:has(td > a)")?.asReversed()?.mapIndexedNotNull { i, tr ->
 					val a = tr.selectFirst("a") ?: return@mapIndexedNotNull null
-					val href = a.relUrl("href")
+					val href = a.attrAsRelativeUrl("href")
 					var translators = ""
 					val translatorElement = a.attr("title")
 					if (!translatorElement.isNullOrBlank()) {

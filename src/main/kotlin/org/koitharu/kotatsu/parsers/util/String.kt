@@ -1,3 +1,5 @@
+@file:JvmName("StringUtils")
+
 package org.koitharu.kotatsu.parsers.util
 
 import androidx.collection.arraySetOf

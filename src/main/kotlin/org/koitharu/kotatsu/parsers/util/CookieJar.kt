@@ -1,3 +1,5 @@
+@file:JvmName("CookieJarUtils")
+
 package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.Cookie

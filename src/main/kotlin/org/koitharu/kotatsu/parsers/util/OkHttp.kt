@@ -1,3 +1,5 @@
+@file:JvmName("OkHttpUtils")
+
 package org.koitharu.kotatsu.parsers.util
 
 import kotlinx.coroutines.suspendCancellableCoroutine

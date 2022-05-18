@@ -68,7 +68,7 @@ internal class NudeMoonParser(
 		return root.select("table.news_pic2").mapNotNull { row ->
 			val a = row.selectFirst("td.bg_style1")?.selectFirst("a")
 				?: return@mapNotNull null
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			val title = a.selectFirst("h2")?.text().orEmpty()
 			val info = row.selectFirst("td[width=100%]") ?: return@mapNotNull null
 			Manga(

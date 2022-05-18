@@ -65,7 +65,7 @@ internal open class MangaLibParser(
 			?: return emptyList()
 		return items.mapNotNull { card ->
 			val a = card.selectFirst("a.media-card") ?: return@mapNotNull null
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = card.selectFirst("h3")?.text().orEmpty(),
@@ -74,7 +74,7 @@ internal open class MangaLibParser(
 				author = null,
 				rating = RATING_UNKNOWN,
 				url = href,
-				publicUrl = href.inContextOf(a),
+				publicUrl = href.toAbsoluteUrl(a.host ?: getDomain()),
 				tags = emptySet(),
 				state = null,
 				isNsfw = false,

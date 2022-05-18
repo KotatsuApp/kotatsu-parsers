@@ -106,7 +106,7 @@ internal class ExHentaiParser(
 			val (td1, td2) = tr.children()
 			val glink = td2.selectFirst("div.glink") ?: parseFailed("glink not found")
 			val a = glink.parents().select("a").first() ?: parseFailed("link not found")
-			val href = a.relUrl("href")
+			val href = a.attrAsRelativeUrl("href")
 			val tagsDiv = glink.nextElementSibling() ?: parseFailed("tags div not found")
 			val mainTag = td2.selectFirst("div.cn")?.let { div ->
 				MangaTag(
@@ -148,7 +148,7 @@ internal class ExHentaiParser(
 				?.substringAfterLast(' ')
 				?.toFloatOrNull()
 				?.div(5f) ?: manga.rating,
-			largeCoverUrl = cover?.css("background")?.cssUrl(),
+			largeCoverUrl = cover?.styleValueOrNull("background")?.cssUrl(),
 			description = taglist?.select("tr")?.joinToString("<br>") { tr ->
 				val (tc, td) = tr.children()
 				val subtags = td.select("a").joinToString { it.html() }
@@ -181,7 +181,7 @@ internal class ExHentaiParser(
 		val doc = context.httpGet(chapter.url.withDomain()).parseHtml()
 		val root = doc.body().getElementById("gdt") ?: parseFailed("Root not found")
 		return root.select("a").map { a ->
-			val url = a.relUrl("href")
+			val url = a.attrAsRelativeUrl("href")
 			MangaPage(
 				id = generateUid(url),
 				url = url,

@@ -53,7 +53,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		val slides = doc.body().select("ul.slides") ?: parseFailed("An error occurred while parsing")
 		val items = slides.select("div.col-md-2")
 		return items.mapNotNull { item ->
-			val href = item.selectFirst("h6 a")?.relUrl("href") ?: return@mapNotNull null
+			val href = item.selectFirst("h6 a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h6 a")?.text() ?: return@mapNotNull null,
@@ -134,7 +134,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root = doc.body().select("div.item img.owl-lazy") ?: throw ParseException("Root not found")
 		return root.map { div ->
-			val url = div?.relUrl("data-src") ?: parseFailed("Page image not found")
+			val url = div?.attrAsRelativeUrlOrNull("data-src") ?: parseFailed("Page image not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,

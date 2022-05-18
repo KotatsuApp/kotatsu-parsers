@@ -58,7 +58,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 					genres
 					slug
 					mediaType
-          			status
+					status
 				}
 			}
 			""".trimIndent(),
