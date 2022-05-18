@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers
 
 import kotlinx.coroutines.test.runTest
+import okhttp3.HttpUrl
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -121,6 +123,20 @@ internal class MangaParserTest {
 		val faviconUrl = parser.getFaviconUrl()
 		assert(faviconUrl.isUrlAbsolute())
 		checkImageRequest(faviconUrl, null)
+	}
+
+	@ParameterizedTest
+	@MangaSources
+	fun domain(source: MangaSource) = runTest {
+		val parser = source.newParser(context)
+		val defaultDomain = parser.getDomain()
+		val url = HttpUrl.Builder()
+			.host(defaultDomain)
+			.scheme("https")
+			.toString()
+		val response = context.doRequest(url)
+		val realDomain = response.request.url.host
+		assertEquals(defaultDomain, realDomain)
 	}
 
 	@ParameterizedTest
