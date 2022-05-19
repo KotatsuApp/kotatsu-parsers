@@ -25,11 +25,17 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		sortOrder: SortOrder?
 	): List<Manga> {
 		val page = (offset / 24f).toIntUp().inc()
+		val searchPage = (offset / 10f).toIntUp().inc()
 		val url = when {
-			!query.isNullOrEmpty() -> parseFailed("Search currently unavailable") // TODO
+			!query.isNullOrEmpty() -> ("/index.php?do=search" +
+					"&subaction=search" +
+					"&search_start=${searchPage}" +
+					"&full_search=1" +
+					"&story=${query}" +
+					"&titleonly=3").withDomain()
 			tags.isNullOrEmpty() -> "/mangas/page/$page".withDomain()
 			tags.size == 1 -> "${tags.first().key}/page/$page"
-			tags.size > 1 -> throw IllegalArgumentException("Це джерело підтримує вибір тільки одного жанру")
+			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 genre")
 			else -> "/mangas/page/${page}".withDomain()
 		}
 		val doc = context.httpGet(url).parseHtml()
@@ -37,10 +43,12 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
+			val listCover = item.selectFirst("header.card__cover")?.selectFirst("img")?.attrAsAbsoluteUrlOrNull("data-src")
+			val searchCover = item.selectFirst("header.card__cover")?.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src").orEmpty()
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h3.card__title")?.text() ?: return@mapNotNull null,
-				coverUrl = item.selectFirst("header.card__cover")?.selectFirst("img")?.attrAsAbsoluteUrl("data-src").orEmpty(),
+				coverUrl = listCover ?: searchCover,
 				altTitle = null,
 				author = null,
 				rating = runCatching {
