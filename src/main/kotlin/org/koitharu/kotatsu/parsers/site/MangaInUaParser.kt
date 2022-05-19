@@ -7,12 +7,13 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
 class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAINUA) {
 
 	override val sortOrders: Set<SortOrder>
-		get() = emptySet() // Isn't supported
+		get() = Collections.singleton(SortOrder.UPDATED)
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua", null)
 
@@ -27,11 +28,11 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 			!query.isNullOrEmpty() -> parseFailed("Search currently unavailable") // TODO
 			tags.isNullOrEmpty() -> "/mangas/page/$page".withDomain()
 			tags.size == 1 -> "${tags.first().key}/page/$page"
-			tags.size > 1 -> parseFailed("This source supports only 1 tag") // Maybe use string from resources?
+			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 tag")
 			else -> "/mangas/${page}".withDomain()
 		}
 		val doc = context.httpGet(url).parseHtml()
-		val container = doc.body().select("div.container") ?: parseFailed("Container not found")
+		val container = doc.body().getElementById("dle-content") ?: parseFailed("Container not found")
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
@@ -46,20 +47,20 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 						?.text()
 						?.toFloatOrNull()
 						?.div(10F)
-				}.getOrNull() ?: 0.5f,
+				}.getOrNull() ?: RATING_UNKNOWN,
 				url = href,
-				isNsfw = item.selectFirst("ul.card__list")?.select("li")?.last()?.text() == "18+",
+				isNsfw = item.selectFirst("ul.card__list")?.select("li")?.lastOrNull()?.text() == "18+",
 				tags = runCatching {
 					item.selectFirst("div.card__category")?.select("a")?.mapToSet {
 						MangaTag(
 							title = it.ownText(),
-							key = it.attr("href").substringAfterLast('/').urlEncoded(),
+							key = it.attr("href").removeSuffix("/").substringAfterLast('/'),
 							source = source,
 						)
 					}
 				}.getOrNull().orEmpty(),
 				state = null,
-				publicUrl = href.withDomain(),
+				publicUrl = href.toAbsoluteUrl(container.host ?: getDomain()),
 				source = source,
 			)
 		}
@@ -81,7 +82,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 			val a = li.selectFirst("a") ?: throw ParseException("a is null")
 			MangaTag(
 				title = a.ownText(),
-				key = a.attr("href"),
+				key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 				source = source,
 			)
 		}
