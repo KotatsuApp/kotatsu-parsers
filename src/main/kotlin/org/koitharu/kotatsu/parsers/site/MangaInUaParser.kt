@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
@@ -28,8 +29,8 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 			!query.isNullOrEmpty() -> parseFailed("Search currently unavailable") // TODO
 			tags.isNullOrEmpty() -> "/mangas/page/$page".withDomain()
 			tags.size == 1 -> "${tags.first().key}/page/$page"
-			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 tag")
-			else -> "/mangas/${page}".withDomain()
+			tags.size > 1 -> throw IllegalArgumentException("Це джерело підтримує вибір тільки одного жанру")
+			else -> "/mangas/page/${page}".withDomain()
 		}
 		val doc = context.httpGet(url).parseHtml()
 		val container = doc.body().getElementById("dle-content") ?: parseFailed("Container not found")
@@ -54,7 +55,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 					item.selectFirst("div.card__category")?.select("a")?.mapToSet {
 						MangaTag(
 							title = it.ownText(),
-							key = it.attr("href").removeSuffix("/").substringAfterLast('/'),
+							key = it.attr("href").removeSuffix("/"),
 							source = source,
 						)
 					}
@@ -67,11 +68,46 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		TODO("Not yet implemented")
+		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val root =
+			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
+		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
+		return manga.copy(
+			description = root.selectFirst("div.item__full-description")?.text(),
+			largeCoverUrl = root.selectFirst("div.item__full-sidebar--poster")?.selectFirst("img")?.attrAsAbsoluteUrl("src").orEmpty(),
+			chapters = root.select("div.linkstocomics").mapIndexedNotNull { i, item ->
+				val href = item?.selectFirst("a")?.attr("href")
+					?: return@mapIndexedNotNull null
+				MangaChapter(
+					id = generateUid(href),
+					name = item.selectFirst("a")?.text().orEmpty(),
+					number = i + 1,
+					url = href,
+					scanlator = null,
+					branch = null,
+					uploadDate = dateFormat.tryParse(item.selectFirst("div.ltcright")?.text()),
+					source = source,
+				)
+			},
+		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		TODO("Not yet implemented")
+		val fullUrl = chapter.url.withDomain()
+		val doc = context.httpGet(fullUrl).parseHtml()
+		val root = doc.body().getElementById("comics")
+			?: throw ParseException("Root not found")
+		return root.select("ul.xfieldimagegallery").map { ul ->
+			val img = ul.selectFirst("img") ?: parseFailed("Page image not found")
+			val url = img.attrAsAbsoluteUrl("data-src")
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				referer = fullUrl,
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -82,7 +118,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 			val a = li.selectFirst("a") ?: throw ParseException("a is null")
 			MangaTag(
 				title = a.ownText(),
-				key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+				key = a.attr("href").removeSuffix("/"),
 				source = source,
 			)
 		}
