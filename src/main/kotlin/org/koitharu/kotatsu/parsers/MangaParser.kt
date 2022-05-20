@@ -89,6 +89,7 @@ abstract class MangaParser(val source: MangaSource) {
 	 * @see [MangaChapter.id]
 	 * @see [MangaPage.id]
 	 */
+	@InternalParsersApi
 	protected fun generateUid(url: String): Long {
 		var h = 1125899906842597L
 		source.name.forEach { c ->
@@ -107,6 +108,7 @@ abstract class MangaParser(val source: MangaSource) {
 	 * @see [MangaChapter.id]
 	 * @see [MangaPage.id]
 	 */
+	@InternalParsersApi
 	protected fun generateUid(id: Long): Long {
 		var h = 1125899906842597L
 		source.name.forEach { c ->
@@ -127,6 +129,7 @@ abstract class MangaParser(val source: MangaSource) {
 		return toAbsoluteUrl(domain)
 	}
 
+	@InternalParsersApi
 	@Suppress("NOTHING_TO_INLINE")
 	protected inline fun parseFailed(message: String? = null): Nothing {
 		throw ParseException(message, null)

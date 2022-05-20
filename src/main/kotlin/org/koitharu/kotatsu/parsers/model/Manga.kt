@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.model
 
+import org.koitharu.kotatsu.parsers.InternalParsersApi
+
 class Manga(
 	/**
 	 * Unique identifier for manga
@@ -74,7 +76,8 @@ class Manga(
 	val hasRating: Boolean
 		get() = rating in 0f..1f
 
-	internal fun copy(
+	@InternalParsersApi
+	fun copy(
 		title: String = this.title,
 		altTitle: String? = this.altTitle,
 		publicUrl: String = this.publicUrl,

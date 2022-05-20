@@ -16,7 +16,9 @@ compileKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs += [
+				'-opt-in=kotlin.RequiresOptIn',
 				'-opt-in=kotlin.contracts.ExperimentalContracts',
+				'-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi',
 		]
 	}
 }
@@ -25,7 +27,9 @@ compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs += [
+				'-opt-in=kotlin.RequiresOptIn',
 				'-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
+				'-opt-in=org.koitharu.kotatsu.parsers.InternalParsersApi',
 		]
 	}
 }
