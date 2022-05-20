@@ -1,23 +1,76 @@
 package org.koitharu.kotatsu.parsers.model
 
 class Manga(
+	/**
+	 * Unique identifier for manga
+	 */
 	val id: Long,
+	/**
+	 * Manga title, human-readable
+	 */
 	val title: String,
+	/**
+	 * Alternative title (for example on other language), may be null
+	 */
 	val altTitle: String?,
-	val url: String, // relative url for internal use
+	/**
+	 * Relative url to manga (**without** a domain) or any other uri.
+	 * Used principally in parsers
+	 */
+	val url: String,
+	/**
+	 * Absolute url to manga, must be ready to open in browser
+	 */
 	val publicUrl: String,
-	val rating: Float, // normalized value [0..1] or -1
+	/**
+	 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
+	 * @see hasRating
+	 */
+	val rating: Float,
+	/**
+	 * Indicates that manga may contain sensitive information (18+, NSFW)
+	 */
 	val isNsfw: Boolean,
+	/**
+	 * Absolute link to the cover
+	 * @see largeCoverUrl
+	 */
 	val coverUrl: String,
+	/**
+	 * Tags (genres) of the manga
+	 */
 	val tags: Set<MangaTag>,
+	/**
+	 * Manga status (ongoing, finished) or null if unknown
+	 */
 	val state: MangaState?,
+	/**
+	 * Author of the manga, may be null
+	 */
 	val author: String?,
+	/**
+	 * Large cover url (absolute), null if is no large cover
+	 * @see coverUrl
+	 */
 	val largeCoverUrl: String? = null,
-	val description: String? = null, // HTML
+	/**
+	 * Manga description, may be html or null
+	 */
+	val description: String? = null,
+	/**
+	 * List of chapters
+	 */
 	val chapters: List<MangaChapter>? = null,
+	/**
+	 * Manga source
+	 */
 	val source: MangaSource,
 ) {
 
+	/**
+	 * Return if manga has a specified rating
+	 * @see rating
+	 */
 	val hasRating: Boolean
 		get() = rating in 0f..1f
 

@@ -18,6 +18,11 @@ abstract class MangaLoaderContext {
 
 	abstract val cookieJar: CookieJar
 
+	/**
+	 * Do a GET http request to specific url
+	 * @param url
+	 * @param headers an additional headers for request, may be null
+	 */
 	suspend fun httpGet(url: String, headers: Headers? = null): Response {
 		val request = Request.Builder()
 			.get()
@@ -28,6 +33,11 @@ abstract class MangaLoaderContext {
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
+	/**
+	 * Do a HEAD http request to specific url
+	 * @param url
+	 * @param headers an additional headers for request, may be null
+	 */
 	suspend fun httpHead(url: String, headers: Headers? = null): Response {
 		val request = Request.Builder()
 			.head()
@@ -38,6 +48,12 @@ abstract class MangaLoaderContext {
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
+	/**
+	 * Do a POST http request to specific url with `multipart/form-data` payload
+	 * @param url
+	 * @param form payload as key=>value map
+	 * @param headers an additional headers for request, may be null
+	 */
 	suspend fun httpPost(
 		url: String,
 		form: Map<String, String>,
@@ -56,6 +72,12 @@ abstract class MangaLoaderContext {
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
+	/**
+	 * Do a POST http request to specific url with `multipart/form-data` payload
+	 * @param url
+	 * @param payload payload as `key=value` string with `&` separator
+	 * @param headers an additional headers for request, may be null
+	 */
 	suspend fun httpPost(
 		url: String,
 		payload: String,
@@ -79,6 +101,11 @@ abstract class MangaLoaderContext {
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
+	/**
+	 * Do a GraphQL request to specific url
+	 * @param endpoint an url
+	 * @param query GraphQL request payload
+	 */
 	suspend fun graphQLQuery(endpoint: String, query: String): JSONObject {
 		val body = JSONObject()
 		body.put("operationName", null as Any?)
@@ -104,6 +131,11 @@ abstract class MangaLoaderContext {
 
 	open fun getPreferredLocales(): List<Locale> = listOf(Locale.getDefault())
 
+	/**
+	 * Execute JavaScript code and return result
+	 * @param script JavaScript source code
+	 * @return execution result as string, may be null
+	 */
 	abstract suspend fun evaluateJs(script: String): String?
 
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig

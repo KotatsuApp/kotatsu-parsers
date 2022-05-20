@@ -1,3 +1,5 @@
+@file:JvmName("Constants")
+
 package org.koitharu.kotatsu.parsers.model
 
-internal const val RATING_UNKNOWN = -1f
+const val RATING_UNKNOWN = -1f

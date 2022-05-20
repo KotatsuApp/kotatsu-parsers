@@ -4,7 +4,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -103,8 +102,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.withDomain()
 		val doc = context.httpGet(fullUrl).parseHtml()
-		val root = doc.body().getElementById("comics")
-			?: throw ParseException("Root not found")
+		val root = doc.body().getElementById("comics") ?: parseFailed("Root not found")
 		return root.select("ul.xfieldimagegallery").map { ul ->
 			val img = ul.selectFirst("img") ?: parseFailed("Page image not found")
 			val url = img.attrAsAbsoluteUrl("data-src")
@@ -123,7 +121,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		val doc = context.httpGet("https://$domain/mangas").parseHtml()
 		val root = doc.body().getElementById("menu_1")?.selectFirst("div.menu__wrapper") ?: parseFailed("Cannot find root")
 		return root.select("li").mapToSet { li ->
-			val a = li.selectFirst("a") ?: throw ParseException("a is null")
+			val a = li.selectFirst("a") ?: parseFailed("a is null")
 			MangaTag(
 				title = a.ownText(),
 				key = a.attr("href").removeSuffix("/"),

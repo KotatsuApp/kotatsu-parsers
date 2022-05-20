@@ -222,7 +222,7 @@ internal class ExHentaiParser(
 			?: if (doc.getElementById("userlinksguest") != null) {
 				throw AuthRequiredException(source)
 			} else {
-				throw ParseException()
+				throw ParseException(null)
 			}
 		return username
 	}

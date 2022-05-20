@@ -9,15 +9,6 @@ import java.security.MessageDigest
 import java.util.*
 import kotlin.math.min
 
-fun String.longHashCode(): Long {
-	var h = 1125899906842597L
-	val len: Int = this.length
-	for (i in 0 until len) {
-		h = 31 * h + this[i].code
-	}
-	return h
-}
-
 fun String.removeSurrounding(vararg chars: Char): String {
 	if (isEmpty()) {
 		return this

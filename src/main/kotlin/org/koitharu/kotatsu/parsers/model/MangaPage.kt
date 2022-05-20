@@ -1,9 +1,27 @@
 package org.koitharu.kotatsu.parsers.model
 
+import org.koitharu.kotatsu.parsers.MangaParser
+
 class MangaPage(
+	/**
+	 * Unique identifier for manga
+	 */
 	val id: Long,
+	/**
+	 * Relative url to page (**without** a domain) or any other uri.
+	 * Used principally in parsers.
+	 * May contain link to image or html page.
+	 * @see MangaParser.getPageUrl
+	 */
 	val url: String,
+	/**
+	 * Absolute link to the chapter or website home page.
+	 * Used in Referer header
+	 */
 	val referer: String,
+	/**
+	 * Absolute url of the small page image if exists, null otherwise
+	 */
 	val preview: String?,
 	val source: MangaSource,
 ) {

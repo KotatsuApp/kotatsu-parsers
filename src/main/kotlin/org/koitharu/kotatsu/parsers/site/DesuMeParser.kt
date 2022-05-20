@@ -50,8 +50,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 				append(query)
 			}
 		}
-		val json = context.httpGet(url).parseJson().getJSONArray("response")
-			?: throw ParseException("Invalid response")
+		val json = context.httpGet(url).parseJson().getJSONArray("response") ?: parseFailed("Invalid response")
 		val total = json.length()
 		val list = ArrayList<Manga>(total)
 		for (i in 0 until total) {

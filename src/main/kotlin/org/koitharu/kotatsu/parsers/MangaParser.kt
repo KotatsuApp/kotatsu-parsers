@@ -1,20 +1,41 @@
 package org.koitharu.kotatsu.parsers
 
+import androidx.annotation.CallSuper
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import java.util.*
 
 abstract class MangaParser(val source: MangaSource) {
 
 	protected abstract val context: MangaLoaderContext
 
+	/**
+	 * Supported [SortOrder] variants. Must not be empty.
+	 *
+	 * For better performance use [EnumSet] for more than one item.
+	 */
 	abstract val sortOrders: Set<SortOrder>
 
 	val config by lazy { context.getConfig(source) }
 
+	/**
+	 * Provide default domain and available alternatives, if any.
+	 *
+	 * Never hardcode domain in requests, use [getDomain] instead.
+	 */
 	protected abstract val configKeyDomain: ConfigKey.Domain
 
+	/**
+	 * Parse list of manga by specified criteria
+	 *
+	 * @param offset starting from 0 and used for pagination.
+	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
+	 * @param query search query, may be null or empty if no search needed
+	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
+	 * @param sortOrder one of [sortOrders] or null for default value
+	 */
 	abstract suspend fun getList(
 		offset: Int,
 		query: String? = null,
@@ -22,16 +43,35 @@ abstract class MangaParser(val source: MangaSource) {
 		sortOrder: SortOrder? = null,
 	): List<Manga>
 
+	/**
+	 * Parse details for [Manga]: chapters list, description, large cover, etc.
+	 * Must return the same manga, may change any fields excepts id, url and source
+	 * @see Manga.copy
+	 */
 	abstract suspend fun getDetails(manga: Manga): Manga
 
+	/**
+	 * Parse pages list for specified chapter.
+	 * @see MangaPage for details
+	 */
 	abstract suspend fun getPages(chapter: MangaChapter): List<MangaPage>
 
+	/**
+	 * Fetch direct link to the page image.
+	 */
 	open suspend fun getPageUrl(page: MangaPage): String = page.url.withDomain()
 
+	/**
+	 * Fetch available tags (genres) for source
+	 */
 	abstract suspend fun getTags(): Set<MangaTag>
 
+	/**
+	 * Returns direct link to the website favicon
+	 */
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
 
+	@CallSuper
 	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		keys.add(configKeyDomain)
 	}
@@ -42,6 +82,13 @@ abstract class MangaParser(val source: MangaSource) {
 		return config[configKeyDomain]
 	}
 
+	/**
+	 * Create a unique id for [Manga]/[MangaChapter]/[MangaPage].
+	 * @param url must be relative url, without a domain
+	 * @see [Manga.id]
+	 * @see [MangaChapter.id]
+	 * @see [MangaPage.id]
+	 */
 	protected fun generateUid(url: String): Long {
 		var h = 1125899906842597L
 		source.name.forEach { c ->
@@ -53,6 +100,13 @@ abstract class MangaParser(val source: MangaSource) {
 		return h
 	}
 
+	/**
+	 * Create a unique id for [Manga]/[MangaChapter]/[MangaPage].
+	 * @param id an internal identifier
+	 * @see [Manga.id]
+	 * @see [MangaChapter.id]
+	 * @see [MangaPage.id]
+	 */
 	protected fun generateUid(id: Long): Long {
 		var h = 1125899906842597L
 		source.name.forEach { c ->
@@ -62,6 +116,9 @@ abstract class MangaParser(val source: MangaSource) {
 		return h
 	}
 
+	/**
+	 * Convert relative url to an absolute using [getDomain]
+	 */
 	protected fun String.withDomain(subdomain: String? = null): String {
 		var domain = getDomain()
 		if (subdomain != null) {
@@ -70,7 +127,8 @@ abstract class MangaParser(val source: MangaSource) {
 		return toAbsoluteUrl(domain)
 	}
 
-	protected fun parseFailed(message: String? = null): Nothing {
-		throw ParseException(message)
+	@Suppress("NOTHING_TO_INLINE")
+	protected inline fun parseFailed(message: String? = null): Nothing {
+		throw ParseException(message, null)
 	}
 }

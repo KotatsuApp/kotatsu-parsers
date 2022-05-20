@@ -1,12 +1,35 @@
 package org.koitharu.kotatsu.parsers.model
 
 class MangaChapter(
+	/**
+	 * An unique id of chapter
+	 */
 	val id: Long,
+	/**
+	 * User-readable name of chapter
+	 */
 	val name: String,
+	/**
+	 * Chapter number starting from 1
+	 */
 	val number: Int,
+	/**
+	 * Relative url to chapter (**without** a domain) or any other uri.
+	 * Used principally in parsers
+	 */
 	val url: String,
+	/**
+	 * User-readable name of scanlator (releaser) or null if unknown
+	 */
 	val scanlator: String?,
+	/**
+	 * Chapter upload date in milliseconds
+	 */
 	val uploadDate: Long,
+	/**
+	 * User-readable name of branch.
+	 * A branch is a group of chapters that overlap (e.g. different languages)
+	 */
 	val branch: String?,
 	val source: MangaSource,
 ) : Comparable<MangaChapter> {
@@ -44,6 +67,4 @@ class MangaChapter(
 		result = 31 * result + source.hashCode()
 		return result
 	}
-
-
 }

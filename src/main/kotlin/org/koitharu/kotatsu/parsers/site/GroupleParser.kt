@@ -66,7 +66,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			else -> advancedSearch(domain, tags)
 		}.parseHtml().body()
 		val root = (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults"))
-			?: throw ParseException("Cannot find root")
+			?: parseFailed("Cannot find root")
 		val tiles = root.selectFirst("div.tiles.row") ?: if (
 			root.select(".alert").any { it.ownText() == NOTHING_FOUND }
 		) {
@@ -128,7 +128,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.withDomain(), headers).parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
-			?: throw ParseException("Cannot find root")
+			?: parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
 		return manga.copy(
@@ -203,7 +203,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 				)
 			}
 		}
-		throw ParseException("Pages list not found at ${chapter.url}")
+		parseFailed("Pages list not found at ${chapter.url}")
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {

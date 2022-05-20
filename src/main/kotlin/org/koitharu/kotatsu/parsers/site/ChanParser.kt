@@ -125,7 +125,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 				)
 			}
 		}
-		throw ParseException("Pages list not found at ${chapter.url}")
+		parseFailed("Pages list not found at ${chapter.url}")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
