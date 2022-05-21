@@ -95,7 +95,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 				publicUrl = href,
 				title = title,
 				altTitle = descDiv.selectFirst("h4")?.text(),
-				coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original").orEmpty(),
+				coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
 				rating = runCatching {
 					node.selectFirst("div.rating")
 						?.attr("title")
