@@ -38,7 +38,7 @@ internal abstract class NineMangaParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
 		val url = buildString {

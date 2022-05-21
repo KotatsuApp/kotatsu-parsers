@@ -30,7 +30,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
 			return if (offset == 0) {

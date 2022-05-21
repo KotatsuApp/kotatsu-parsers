@@ -39,7 +39,7 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val url = buildString {

@@ -39,7 +39,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
 			return search(offset, query)
@@ -52,7 +52,6 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 			append(getDomain())
 			append("/browse?sort=")
 			when (sortOrder) {
-				null,
 				SortOrder.UPDATED,
 				-> append("update.za")
 				SortOrder.POPULARITY -> append("views_a.za")

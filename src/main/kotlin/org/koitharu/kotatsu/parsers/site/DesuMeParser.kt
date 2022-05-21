@@ -28,7 +28,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		if (query != null && offset != 0) {
 			return emptyList()
@@ -149,7 +149,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 		}
 	}
 
-	private fun getSortKey(sortOrder: SortOrder?) =
+	private fun getSortKey(sortOrder: SortOrder) =
 		when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "name"
 			SortOrder.POPULARITY -> "popular"

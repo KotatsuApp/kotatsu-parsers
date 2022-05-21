@@ -23,7 +23,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val page = (offset / 24f).toIntUp().inc()
 		val searchPage = (offset / 10f).toIntUp().inc()

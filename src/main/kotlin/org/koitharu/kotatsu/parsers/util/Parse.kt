@@ -105,13 +105,22 @@ fun String.toRelativeUrl(domain: String): String {
 }
 
 /**
- * Convert url to absolute with specified [domain]
+ * Convert url to absolute with specified domain
  * @return an absolute url with [domain] if this is relative
  */
 fun String.toAbsoluteUrl(domain: String): String = when {
 	this.startsWith("//") -> "https:$this"
-	this.startsWith("/") -> "https://$domain$this"
+	this.startsWith('/') -> "https://$domain$this"
 	else -> this
+}
+
+/**
+ * Convert url to absolute with specified domain and subdomain
+ * @return an absolute url with [subdomain].[domain] if this is relative
+ */
+fun String.toAbsoluteUrl(domain: String, subdomain: String): String {
+	if (!this.startsWith('/')) return this
+	return toAbsoluteUrl(subdomain + "." + domain.removePrefix("www."))
 }
 
 @Deprecated(

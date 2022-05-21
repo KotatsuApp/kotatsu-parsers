@@ -5,7 +5,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Response
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -34,7 +33,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val doc = when {
@@ -48,17 +47,13 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			)
 			tags.isNullOrEmpty() -> context.httpGet(
 				"https://$domain/list?sortType=${
-				getSortKey(
-					sortOrder,
-				)
+				getSortKey(sortOrder)
 				}&offset=${offset upBy PAGE_SIZE}",
 				headers,
 			)
 			tags.size == 1 -> context.httpGet(
 				"https://$domain/list/genre/${tags.first().key}?sortType=${
-				getSortKey(
-					sortOrder,
-				)
+				getSortKey(sortOrder)
 				}&offset=${offset upBy PAGE_SIZE}",
 				headers,
 			)
@@ -234,14 +229,13 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 		}
 	}
 
-	private fun getSortKey(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getSortKey(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "name"
 			SortOrder.POPULARITY -> "rate"
 			SortOrder.UPDATED -> "updated"
 			SortOrder.NEWEST -> "created"
 			SortOrder.RATING -> "votes"
-			null -> "updated"
 		}
 
 	private suspend fun advancedSearch(domain: String, tags: Set<MangaTag>): Response {

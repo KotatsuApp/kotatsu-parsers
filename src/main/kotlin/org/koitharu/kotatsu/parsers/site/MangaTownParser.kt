@@ -29,7 +29,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val sortKey = when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "?name.az"

@@ -48,7 +48,7 @@ internal class NudeMoonParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val url = when {
@@ -206,8 +206,8 @@ internal class NudeMoonParser(
 		return "https://${getDomain()}/favicon.jpg"
 	}
 
-	private fun getSortKey(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getSortKey(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.POPULARITY -> "views"
 			SortOrder.NEWEST -> "date"
 			SortOrder.RATING -> "like"

@@ -34,7 +34,7 @@ internal abstract class MadaraParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = when {
 			tags.isNullOrEmpty() -> null

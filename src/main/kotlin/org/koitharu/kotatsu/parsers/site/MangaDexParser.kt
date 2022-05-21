@@ -35,7 +35,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val url = buildString {
@@ -60,7 +60,6 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			append("&order")
 			append(
 				when (sortOrder) {
-					null,
 					SortOrder.UPDATED,
 					-> "[latestUploadedChapter]=desc"
 					SortOrder.ALPHABETICAL -> "[title]=asc"

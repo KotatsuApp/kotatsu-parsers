@@ -57,7 +57,7 @@ internal class RemangaParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		copyCookies()
 		val domain = getDomain()

@@ -21,7 +21,7 @@ internal class HenChanParser(override val context: MangaLoaderContext) : ChanPar
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		return super.getList(offset, query, tags, sortOrder).map {
 			it.copy(

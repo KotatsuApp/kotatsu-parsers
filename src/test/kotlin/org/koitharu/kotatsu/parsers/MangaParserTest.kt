@@ -25,7 +25,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun list(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -34,12 +34,12 @@ internal class MangaParserTest {
 	@MangaSources
 	fun search(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val subject = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
+		val subject = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
-		val list = parser.getList(offset = 0, query, sortOrder = null, tags = null)
+		val list = parser.getList(0, query)
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
 			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"
 		}
@@ -62,7 +62,7 @@ internal class MangaParserTest {
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.getList(offset = 0, tags = setOf(tag), query = null, sortOrder = null)
+		val list = parser.getList(offset = 0, tags = setOf(tag), sortOrder = null)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
@@ -71,7 +71,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
@@ -100,7 +100,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, query = null, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null")
 		val pages = parser.getPages(chapter)

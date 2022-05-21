@@ -73,8 +73,6 @@ class ParserProcessor(
 			"""
 				package org.koitharu.kotatsu.parsers.model
 				
-				import org.koitharu.kotatsu.parsers.model.MangaSource
-				
 				enum class MangaSource(
 					val title: String,
 					val locale: String?,

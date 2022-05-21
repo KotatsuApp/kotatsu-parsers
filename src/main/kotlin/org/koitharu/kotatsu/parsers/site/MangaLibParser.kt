@@ -41,7 +41,7 @@ internal open class MangaLibParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
 			return if (offset == 0) search(query) else emptyList()

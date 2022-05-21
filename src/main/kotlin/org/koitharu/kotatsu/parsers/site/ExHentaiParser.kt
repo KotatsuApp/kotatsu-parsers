@@ -61,7 +61,7 @@ internal class ExHentaiParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val page = (offset / 25f).toIntUp()
 		var search = query?.urlEncoded().orEmpty()

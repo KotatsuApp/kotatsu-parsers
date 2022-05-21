@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
-abstract class MangaParser(val source: MangaSource) {
+abstract class MangaParser @InternalParsersApi constructor(val source: MangaSource) {
 
 	protected abstract val context: MangaLoaderContext
 
@@ -28,6 +28,15 @@ abstract class MangaParser(val source: MangaSource) {
 	protected abstract val configKeyDomain: ConfigKey.Domain
 
 	/**
+	 * Used as fallback if value of `sortOrder` passed to [getList] is null
+	 */
+	protected open val defaultSortOrder: SortOrder
+		get() {
+			val supported = sortOrders
+			return SortOrder.values().first { it in supported }
+		}
+
+	/**
 	 * Parse list of manga by specified criteria
 	 *
 	 * @param offset starting from 0 and used for pagination.
@@ -36,12 +45,35 @@ abstract class MangaParser(val source: MangaSource) {
 	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
 	 * @param sortOrder one of [sortOrders] or null for default value
 	 */
+	@InternalParsersApi
 	abstract suspend fun getList(
 		offset: Int,
-		query: String? = null,
-		tags: Set<MangaTag>? = null,
-		sortOrder: SortOrder? = null,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
 	): List<Manga>
+
+	/**
+	 * Parse list of manga with search by text query
+	 *
+	 * @param offset starting from 0 and used for pagination.
+	 * @param query search query
+	 */
+	suspend fun getList(offset: Int, query: String): List<Manga> {
+		return getList(offset, query, null, defaultSortOrder)
+	}
+
+	/**
+	 * Parse list of manga by specified criteria
+	 *
+	 * @param offset starting from 0 and used for pagination.
+	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
+	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
+	 * @param sortOrder one of [sortOrders] or null for default value
+	 */
+	suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
+		return getList(offset, null, tags, sortOrder ?: defaultSortOrder)
+	}
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.
@@ -121,12 +153,29 @@ abstract class MangaParser(val source: MangaSource) {
 	/**
 	 * Convert relative url to an absolute using [getDomain]
 	 */
-	protected fun String.withDomain(subdomain: String? = null): String {
-		var domain = getDomain()
-		if (subdomain != null) {
-			domain = subdomain + "." + domain.removePrefix("www.")
-		}
-		return toAbsoluteUrl(domain)
+	@Deprecated(
+		message = "Use toAbsoluteUrl() instead",
+		replaceWith = ReplaceWith(
+			"toAbsoluteUrl(getDomain(), subdomain)",
+			"org.koitharu.kotatsu.parsers.util.toAbsoluteUrl",
+		),
+	)
+	protected fun String.withDomain(subdomain: String): String {
+		return toAbsoluteUrl(getDomain(), subdomain)
+	}
+
+	/**
+	 * Convert relative url to an absolute using [getDomain]
+	 */
+	@Deprecated(
+		message = "Use toAbsoluteUrl() instead",
+		replaceWith = ReplaceWith(
+			"toAbsoluteUrl(getDomain())",
+			"org.koitharu.kotatsu.parsers.util.toAbsoluteUrl",
+		),
+	)
+	protected fun String.withDomain(): String {
+		return toAbsoluteUrl(getDomain())
 	}
 
 	@InternalParsersApi

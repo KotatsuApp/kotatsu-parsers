@@ -27,7 +27,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val page = (offset / 36f).toIntUp().inc()
 		val link = buildString {
@@ -165,16 +165,16 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		}
 	}
 
-	private fun getSortKey(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getSortKey(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.POPULARITY -> "popular"
 			SortOrder.NEWEST -> "new_release"
 			SortOrder.UPDATED -> "lastest"
 			else -> "lastest"
 		}
 
-	private fun getAlternativeSortKey(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getAlternativeSortKey(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.POPULARITY -> "0"
 			SortOrder.NEWEST -> "2"
 			SortOrder.UPDATED -> "3"

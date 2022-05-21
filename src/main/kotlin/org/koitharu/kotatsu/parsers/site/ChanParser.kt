@@ -19,7 +19,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
-		sortOrder: SortOrder?,
+		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val url = when {
@@ -143,16 +143,16 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 		}
 	}
 
-	private fun getSortKey(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getSortKey(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "catalog"
 			SortOrder.POPULARITY -> "mostfavorites"
 			SortOrder.NEWEST -> "manga/new"
 			else -> "mostfavorites"
 		}
 
-	private fun getSortKey2(sortOrder: SortOrder?) =
-		when (sortOrder ?: sortOrders.minByOrNull { it.ordinal }) {
+	private fun getSortKey2(sortOrder: SortOrder) =
+		when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "abcasc"
 			SortOrder.POPULARITY -> "favdesc"
 			SortOrder.NEWEST -> "datedesc"
