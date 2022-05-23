@@ -70,7 +70,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 				isNsfw = false,
 				tags = emptySet(),
 				state = null,
-				publicUrl = href.withDomain(),
+				publicUrl = href.toAbsoluteUrl(getDomain()),
 				source = source,
 			)
 		}
@@ -130,7 +130,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root = doc.body().select("div.item img.owl-lazy") ?: throw ParseException("Root not found")
 		return root.map { div ->

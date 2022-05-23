@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
 internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.YAOICHAN) {
@@ -16,7 +17,7 @@ internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanPa
 	override val configKeyDomain = ConfigKey.Domain("yaoi-chan.me", null)
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root =
 			doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
 		return manga.copy(

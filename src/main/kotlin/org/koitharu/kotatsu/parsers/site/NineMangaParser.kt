@@ -94,7 +94,7 @@ internal abstract class NineMangaParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(
-			manga.url.withDomain() + "?waring=1",
+			manga.url.toAbsoluteUrl(getDomain()) + "?waring=1",
 			headers,
 		).parseHtml()
 		val root = doc.body().selectFirst("div.manga")
@@ -134,13 +134,13 @@ internal abstract class NineMangaParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.withDomain(), headers).parseHtml()
+		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
 		return doc.body().getElementById("page")?.select("option")?.map { option ->
 			val url = option.attr("value")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = chapter.url.withDomain(),
+				referer = chapter.url.toAbsoluteUrl(getDomain()),
 				preview = null,
 				source = source,
 			)
@@ -148,7 +148,7 @@ internal abstract class NineMangaParser(
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = context.httpGet(page.url.withDomain(), headers).parseHtml()
+		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
 		val root = doc.body()
 		return root.selectFirst("a.pic_download")?.absUrl("href")
 			?: throw ParseException("Page image not found")

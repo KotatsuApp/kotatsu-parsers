@@ -73,7 +73,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root =
 			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -98,7 +98,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {

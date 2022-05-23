@@ -84,7 +84,7 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val fullUrl = manga.url.withDomain()
+		val fullUrl = manga.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet("$fullUrl?section=info").parseHtml()
 		val root = doc.body().getElementById("main-page") ?: throw ParseException("Root not found")
 		val title = root.selectFirst("div.media-header__wrap")?.children()
@@ -165,7 +165,7 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		if (doc.location().endsWith("/register")) {
 			throw AuthRequiredException(source)
@@ -279,8 +279,8 @@ internal open class MangaLibParser(
 				state = null,
 				isNsfw = false,
 				source = source,
-				coverUrl = covers.getString("thumbnail").withDomain(),
-				largeCoverUrl = covers.getString("default").withDomain(),
+				coverUrl = covers.getString("thumbnail").toAbsoluteUrl(domain),
+				largeCoverUrl = covers.getString("default").toAbsoluteUrl(domain),
 			)
 		}
 	}

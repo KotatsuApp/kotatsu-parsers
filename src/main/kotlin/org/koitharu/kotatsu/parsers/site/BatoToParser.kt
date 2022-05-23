@@ -69,7 +69,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = context.httpGet(manga.url.withDomain()).parseHtml()
+		val root = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 			.getElementById("mainer") ?: parseFailed("Cannot find root")
 		val details = root.selectFirst(".detail-set") ?: parseFailed("Cannot find detail-set")
 		val attrs = details.selectFirst(".attr-main")?.select(".attr-item")?.associate {
@@ -100,7 +100,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val scripts = context.httpGet(fullUrl).parseHtml().select("script")
 		for (script in scripts) {
 			val scriptSrc = script.html()

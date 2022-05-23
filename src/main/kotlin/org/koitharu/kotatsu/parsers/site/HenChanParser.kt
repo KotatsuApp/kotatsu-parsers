@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
@@ -32,7 +33,7 @@ internal class HenChanParser(override val context: MangaLoaderContext) : ChanPar
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root =
 			doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
 		val readLink = manga.url.replace("manga", "online")

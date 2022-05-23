@@ -100,7 +100,7 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val body = context.httpGet(manga.url.withDomain()).parseHtml().body()
+		val body = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml().body()
 		val root = body.selectFirst("table.shoutbox")
 			?: parseFailed("Cannot find root")
 		val info = root.select("div.tbl2")
@@ -136,7 +136,7 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val mangaId = chapter.url.substringAfterLast('/').substringBefore('-').toIntOrNull()
 

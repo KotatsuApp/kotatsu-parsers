@@ -81,7 +81,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val url = manga.url.withDomain()
+		val url = manga.url.toAbsoluteUrl(getDomain())
 		val json = context.httpGet(url).parseJson().getJSONObject("response")
 			?: throw ParseException("Invalid response")
 		val baseChapterUrl = manga.url + "/chapter/"
@@ -116,7 +116,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val json = context.httpGet(fullUrl)
 			.parseJson()
 			.getJSONObject("response") ?: throw ParseException("Invalid response")

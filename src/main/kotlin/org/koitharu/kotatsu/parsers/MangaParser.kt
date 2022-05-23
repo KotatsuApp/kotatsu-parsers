@@ -91,7 +91,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	/**
 	 * Fetch direct link to the page image.
 	 */
-	open suspend fun getPageUrl(page: MangaPage): String = page.url.withDomain()
+	open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(getDomain())
 
 	/**
 	 * Fetch available tags (genres) for source

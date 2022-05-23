@@ -121,7 +121,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain(), headers).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
 			?: parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
@@ -166,7 +166,7 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.withDomain() + "?mtr=1", headers).parseHtml()
+		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain()) + "?mtr=1", headers).parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()

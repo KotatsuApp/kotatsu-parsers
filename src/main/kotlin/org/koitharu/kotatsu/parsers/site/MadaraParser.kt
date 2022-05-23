@@ -115,7 +115,7 @@ internal abstract class MadaraParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val fullUrl = manga.url.withDomain()
+		val fullUrl = manga.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirst("div.profile-manga")
 			?.selectFirst("div.summary_content")
@@ -160,7 +160,7 @@ internal abstract class MadaraParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirst("div.main-col-inner")
 			?.selectFirst("div.reading-content")

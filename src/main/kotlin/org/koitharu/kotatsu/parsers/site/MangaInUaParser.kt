@@ -35,11 +35,11 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 					"&full_search=1" +
 					"&story=$query" +
 					"&titleonly=3"
-				).withDomain()
-			tags.isNullOrEmpty() -> "/mangas/page/$page".withDomain()
+				).toAbsoluteUrl(getDomain())
+			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
 			tags.size == 1 -> "${tags.first().key}/page/$page"
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 genre")
-			else -> "/mangas/page/$page".withDomain()
+			else -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
 		}
 		val doc = context.httpGet(url).parseHtml()
 		val container = doc.body().getElementById("dle-content") ?: parseFailed("Container not found")
@@ -77,7 +77,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root =
 			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
@@ -118,7 +118,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.withDomain()
+		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root =
 			doc.body().getElementById("comics")?.selectFirst("ul.xfieldimagegallery") ?: parseFailed("Root not found")

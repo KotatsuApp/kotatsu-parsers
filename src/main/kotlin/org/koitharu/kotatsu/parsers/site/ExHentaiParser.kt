@@ -134,7 +134,7 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.withDomain()).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root = doc.body().selectFirst("div.gm") ?: parseFailed("Cannot find root")
 		val cover = root.getElementById("gd1")?.children()?.first()
 		val title = root.getElementById("gd2")
@@ -178,7 +178,7 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.withDomain()).parseHtml()
+		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root = doc.body().getElementById("gdt") ?: parseFailed("Root not found")
 		return root.select("a").map { a ->
 			val url = a.attrAsRelativeUrl("href")
@@ -193,7 +193,7 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = context.httpGet(page.url.withDomain()).parseHtml()
+		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain())).parseHtml()
 		return doc.body().getElementById("img")?.absUrl("src")
 			?: parseFailed("Image not found")
 	}
