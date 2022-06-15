@@ -94,6 +94,16 @@ fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
 	}
 }
 
+fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Float {
+	return when (val rawValue = opt(name)) {
+		null, JSONObject.NULL -> defaultValue
+		is Float -> rawValue
+		is Number -> rawValue.toFloat()
+		is String -> rawValue.toFloatOrNull() ?: defaultValue
+		else -> defaultValue
+	}
+}
+
 fun JSONArray.JSONIterator(): Iterator<JSONObject> = JSONIterator(this)
 
 fun JSONArray.stringIterator(): Iterator<String> = JSONStringIterator(this)

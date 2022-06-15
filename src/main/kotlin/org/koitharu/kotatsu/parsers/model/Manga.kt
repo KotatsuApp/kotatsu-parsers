@@ -76,6 +76,10 @@ class Manga(
 	val hasRating: Boolean
 		get() = rating in 0f..1f
 
+	fun getChapters(branch: String?): List<MangaChapter>? {
+		return chapters?.filter { x -> x.branch == branch }
+	}
+
 	@InternalParsersApi
 	fun copy(
 		title: String = this.title,
