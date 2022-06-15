@@ -323,7 +323,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
-	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.com")
+	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.io")
 
 	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
 	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
@@ -403,7 +403,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
-	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.com")
+	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.me")
 
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
 	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {

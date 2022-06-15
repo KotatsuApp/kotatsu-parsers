@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers
 
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
-import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
@@ -135,8 +134,12 @@ internal class MangaParserTest {
 			.scheme("https")
 			.toString()
 		val response = context.doRequest(url)
-		val realDomain = response.request.url.topPrivateDomain()
-		assertEquals(defaultDomain, realDomain)
+		val realUrl = response.request.url
+		val realDomain = realUrl.topPrivateDomain()
+		val realHost = realUrl.host
+		assert(defaultDomain == realHost || defaultDomain == realDomain) {
+			"Domain mismatch:\nRequired:\t\t\t$defaultDomain\nActual:\t\t\t$realDomain\nHost:\t\t\t$realHost"
+		}
 	}
 
 	@ParameterizedTest
