@@ -72,7 +72,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 				id = generateUid(mediaId),
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
-					.toAbsoluteUrl(getDomain(), "cdn") + "?width=200&height=280",
+					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
 				altTitle = title.getString("alt").takeUnless(String::isEmpty),
 				author = null,
 				isNsfw = false,
@@ -112,7 +112,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 		).getJSONObject("media")
 		val title = details.getJSONObject("title")
 		val poster = details.getString("poster").removePrefix("/cdn")
-			.toAbsoluteUrl(getDomain(), "cdn")
+			.toAbsoluteUrl(getDomain("cdn"))
 		val chapters = apiCall(
 			"""
 			chapters(mediaId: "${details.getString("mediaId")}") {
@@ -213,7 +213,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 				id = generateUid(mediaId),
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
-					.toAbsoluteUrl(getDomain(), "cdn") + "?width=200&height=280",
+					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
 				altTitle = title.getString("en").takeUnless(String::isEmpty),
 				author = null,
 				isNsfw = false,

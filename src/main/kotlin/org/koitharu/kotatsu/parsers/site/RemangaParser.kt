@@ -171,7 +171,7 @@ internal class RemangaParser(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val referer = "https://${getDomain()}/"
-		val content = context.httpGet(chapter.url.toAbsoluteUrl(getDomain(), "api"), getApiHeaders())
+		val content = context.httpGet(chapter.url.toAbsoluteUrl(getDomain("api")), getApiHeaders())
 			.handle401()
 			.parseJson()
 			.getJSONObject("content")

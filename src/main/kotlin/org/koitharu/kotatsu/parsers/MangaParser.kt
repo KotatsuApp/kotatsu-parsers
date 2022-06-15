@@ -114,6 +114,11 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 		return config[configKeyDomain]
 	}
 
+	fun getDomain(subdomain: String): String {
+		val domain = getDomain()
+		return subdomain + "." + domain.removePrefix("www.")
+	}
+
 	/**
 	 * Create a unique id for [Manga]/[MangaChapter]/[MangaPage].
 	 * @param url must be relative url, without a domain
@@ -148,34 +153,6 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 		}
 		h = 31 * h + id
 		return h
-	}
-
-	/**
-	 * Convert relative url to an absolute using [getDomain]
-	 */
-	@Deprecated(
-		message = "Use toAbsoluteUrl() instead",
-		replaceWith = ReplaceWith(
-			"toAbsoluteUrl(getDomain(), subdomain)",
-			"org.koitharu.kotatsu.parsers.util.toAbsoluteUrl",
-		),
-	)
-	protected fun String.withDomain(subdomain: String): String {
-		return toAbsoluteUrl(getDomain(), subdomain)
-	}
-
-	/**
-	 * Convert relative url to an absolute using [getDomain]
-	 */
-	@Deprecated(
-		message = "Use toAbsoluteUrl() instead",
-		replaceWith = ReplaceWith(
-			"toAbsoluteUrl(getDomain())",
-			"org.koitharu.kotatsu.parsers.util.toAbsoluteUrl",
-		),
-	)
-	protected fun String.withDomain(): String {
-		return toAbsoluteUrl(getDomain())
 	}
 
 	@InternalParsersApi

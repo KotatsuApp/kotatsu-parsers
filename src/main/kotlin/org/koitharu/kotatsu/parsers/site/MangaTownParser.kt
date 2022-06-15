@@ -190,7 +190,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	private suspend fun bypassLicensedChapters(manga: Manga): List<MangaChapter> {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain(), "m")).parseHtml()
+		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain("m"))).parseHtml()
 		val list = doc.body().selectFirst("ul.detail-ch-list") ?: return emptyList()
 		val dateFormat = SimpleDateFormat("MMM dd,yyyy", Locale.US)
 		return list.select("li").asReversed().mapIndexedNotNull { i, li ->
