@@ -11,6 +11,13 @@ fun <T> MutableCollection<T>.replaceWith(subject: Iterable<T>) {
 	addAll(subject)
 }
 
+fun <T, C : MutableCollection<in T>> Iterable<Iterable<T>>.flattenTo(destination: C): C {
+	for (element in this) {
+		destination.addAll(element)
+	}
+	return destination
+}
+
 fun <T> List<T>.medianOrNull(): T? = when {
 	isEmpty() -> null
 	else -> get((size / 2).coerceIn(indices))

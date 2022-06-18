@@ -4,6 +4,8 @@ package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Element
+import org.jsoup.select.Selector
+import org.koitharu.kotatsu.parsers.exception.ParseException
 
 val Element.host: String?
 	get() {
@@ -86,4 +88,16 @@ fun Element.styleValueOrNull(property: String): String? {
 	val regex = Regex("${Regex.escape(property)}\\s*:\\s*[^;]+")
 	val css = attr("style").find(regex) ?: return null
 	return css.substringAfter(':').removeSuffix(';').trim()
+}
+
+fun Element.selectFirstOrThrow(cssQuery: String): Element {
+	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"")
+}
+
+fun Element.requireElementById(id: String): Element {
+	return getElementById(id) ?: throw ParseException("Cannot find \"#$id\"")
+}
+
+fun Element.selectLast(cssQuery: String): Element? {
+	return select(cssQuery).lastOrNull()
 }
