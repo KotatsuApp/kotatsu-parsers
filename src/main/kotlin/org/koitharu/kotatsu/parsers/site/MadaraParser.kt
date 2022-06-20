@@ -341,8 +341,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("X2MANGA", "X2Manga", "en")
-	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com") {
-	}
+	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
 	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
