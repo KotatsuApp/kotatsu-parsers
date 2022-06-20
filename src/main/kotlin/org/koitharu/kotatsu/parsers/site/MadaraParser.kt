@@ -288,8 +288,8 @@ internal abstract class MadaraParser(
 		override val tagPrefix = "genres/"
 	}
 
-	@MangaSourceParser("MANGAWEEBS", "MangaWeebs", "en")
-	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in")
+	@MangaSourceParser("READMANWHA", "ReadManwha", "en")
+	class ReadManwha(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANWHA, "readmanwha.net")
 
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
@@ -339,6 +339,9 @@ internal abstract class MadaraParser(
 	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "www.topmanhua.com") {
 		override val tagPrefix = "manhua-genre/"
 	}
+
+	@MangaSourceParser("X2MANGA", "X2Manga", "en")
+	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
 	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
