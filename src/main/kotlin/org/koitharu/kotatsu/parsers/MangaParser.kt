@@ -45,6 +45,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
 	 * @param sortOrder one of [sortOrders] or null for default value
 	 */
+	@JvmSynthetic
 	@InternalParsersApi
 	abstract suspend fun getList(
 		offset: Int,
@@ -156,8 +157,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	}
 
 	@InternalParsersApi
-	@Suppress("NOTHING_TO_INLINE")
-	protected inline fun parseFailed(message: String? = null): Nothing {
+	protected fun parseFailed(message: String? = null): Nothing {
 		throw ParseException(message, null)
 	}
 }

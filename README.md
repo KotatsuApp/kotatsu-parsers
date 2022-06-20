@@ -8,19 +8,42 @@ Library that provides manga sources.
 
 1. Add it in your root build.gradle at the end of repositories:
 
-```groovy
-allprojects {
-	repositories {
-		...
-		maven { url 'https://jitpack.io' }
+	```groovy
+	allprojects {
+	    repositories {
+		    ...
+		    maven { url 'https://jitpack.io' }
+	    }
 	}
-}
-```
+	```
 
-2. Add the dependency
+2. Add the dependency 
 
-```groovy
-dependencies {
-	implementation 'com.github.nv95:kotatsu-parsers:master-SNAPSHOT'
-}
-```
+	For Java/Kotlin project:
+    ```groovy
+    dependencies {
+        implementation("com.github.nv95:kotatsu-parsers:$parsers_version")
+    }
+    ```
+	
+    For Android project:
+    ```groovy
+    dependencies {
+        implementation("com.github.nv95:kotatsu-parsers:$parsers_version") {
+            exclude group: 'org.json', module: 'json'
+        }
+    }
+    ```
+   
+	See for versions at [JitPack](https://jitpack.io/#nv95/kotatsu-parsers) 
+	
+3. Usage in code
+
+	```kotlin
+	val parser = MangaSource.MANGADEX.newParser(mangaLoaderContext)
+	```
+ 
+	`mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.
+    See [Android](https://github.com/nv95/Kotatsu/blob/devel/app/src/main/java/org/koitharu/kotatsu/core/parser/MangaLoaderContextImpl.kt) and [Non-Android](https://github.com/nv95/kotatsu-dl/blob/master/src/main/kotlin/org/koitharu/kotatsu_dl/env/MangaLoaderContextImpl.kt) implementation examples.
+
+	Note that the `MangaSource.LOCAL` and `MangaSource.DUMMY` parsers cannot be instantiated.
