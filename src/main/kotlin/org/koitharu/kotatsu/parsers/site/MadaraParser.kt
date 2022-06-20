@@ -342,7 +342,6 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("X2MANGA", "X2Manga", "en")
 	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com") {
-                override val tagPrefix = "manga-genre/"
 	}
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
