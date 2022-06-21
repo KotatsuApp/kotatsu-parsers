@@ -81,14 +81,16 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		val root =
 			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
-		val chaptersRoot = root.selectFirst(".linkstocomics")
+		val chapterNodes = root.selectFirstOrThrow(".linkstocomics")
+			.select(".ltcitems")
+			.filterNot { x -> x.selectFirst(".foruserreadedbar") != null }
 		var prevChapterName: String? = null
 		var i = 0
 		return manga.copy(
 			description = root.selectFirst("div.item__full-description")?.text(),
 			largeCoverUrl = root.selectFirst("div.item__full-sidebar--poster")?.selectFirst("img")
 				?.attrAsAbsoluteUrlOrNull("src"),
-			chapters = chaptersRoot?.select("div.ltcitems")?.mapNotNull { item ->
+			chapters = chapterNodes.mapNotNull { item ->
 				val href = item?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 					?: return@mapNotNull null
 				val isAlternative = item.styleValueOrNull("background") != null
@@ -113,7 +115,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 					uploadDate = dateFormat.tryParse(item.selectFirst("div.ltcright")?.text()),
 					source = source,
 				)
-			}.orEmpty(),
+			},
 		)
 	}
 
