@@ -340,7 +340,7 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
 	class IsekaiScanEu(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu")
 
-	@MangaSourceParser("FREEMANGA", "FreeManga, "en")
+	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
 	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
 
 	@MangaSourceParser("ISEKAISCAN", "IsekaiScan", "en")
