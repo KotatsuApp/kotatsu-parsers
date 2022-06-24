@@ -377,8 +377,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
-	class MangaDistrict(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
+	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
 
 		override val tagPrefix = "publication-genre/"
 
@@ -386,8 +385,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
-	class Hentai4Free(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
+	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
 
 		override val tagPrefix = "hentai-tag/"
 
@@ -416,8 +414,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
-	class AllPornComic(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
+	class AllPornComic(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
 
 		override val tagPrefix = "porncomic-genre/"
 
@@ -429,8 +426,13 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("CAT_300", "Cat300", "th")
-	class Cat300(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.CAT_300, "cat300.com") {
+	class Cat300(context: MangaLoaderContext) : MadaraParser(context, MangaSource.CAT_300, "cat300.com") {
+
+		override val isNsfwSource = true
+	}
+
+	@MangaSourceParser("BIBIMANGA", "BibiManga", "en")
+	class BibiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.BIBIMANGA, "bibimanga.com") {
 
 		override val isNsfwSource = true
 	}
