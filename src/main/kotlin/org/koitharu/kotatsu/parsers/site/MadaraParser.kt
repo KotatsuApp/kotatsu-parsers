@@ -422,6 +422,13 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	@MangaSourceParser("CAT_300", "Cat300", "th")
+	class Cat300(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.CAT_300, "cat300.com") {
+
+		override val isNsfwSource = true
+	}
+
 	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
 	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.me")
 
