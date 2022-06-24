@@ -296,7 +296,7 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("KINGMANGA", "KingManga", "en")
 	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com")
 
-	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "jp")
+	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
 	class MangahaTachi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")
 
 	@MangaSourceParser("PIANMANGA", "PianManga", "en")
