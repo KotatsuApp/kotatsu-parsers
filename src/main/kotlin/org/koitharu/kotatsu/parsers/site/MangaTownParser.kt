@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("MANGATOWN", "MangaTown", "en")
 internal class MangaTownParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGATOWN) {
 
-	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com", null)
+	override val configKeyDomain = ConfigKey.Domain("qwerty", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
