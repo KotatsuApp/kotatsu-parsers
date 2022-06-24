@@ -351,6 +351,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.io")
 
+	@MangaSourceParser("READMANHWA", "ReadManhwa", "en")
+	class ReadManhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANHWA, "readmanhwa.info")
+
 	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
 	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
 
