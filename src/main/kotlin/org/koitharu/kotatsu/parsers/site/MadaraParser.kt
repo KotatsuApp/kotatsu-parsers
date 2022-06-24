@@ -108,7 +108,9 @@ internal abstract class MadaraParser(
 			}
 			MangaTag(
 				key = href,
-				title = a.ownText().trim().toTitleCase(),
+				title = a.ownText().trim().ifEmpty {
+					a.selectFirst(".menu-image-title")?.text()?.trim() ?: return@mapNotNullToSet null
+				}.toTitleCase(),
 				source = source,
 			)
 		}
