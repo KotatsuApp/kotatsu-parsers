@@ -494,6 +494,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
 	class MangaManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
 
+	@MangaSourceParser("MANGA_ISEKAI", "Manga Isekai", "en")
+	class MangaIsekai(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_ISEKAI, "mangaisekai.com")
+
 	@MangaSourceParser("MANGA_247", "247MANGA", "en")
 	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com") {
 		override val tagPrefix = "manhwa-genre/"
