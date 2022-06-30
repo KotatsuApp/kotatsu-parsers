@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<title>{{ testSuite.name }}</title>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
+		  integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
+			integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
+			crossorigin="anonymous"></script>
+	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
+</head>
+<body class="py-4">
+<div class="container">
+	<h1 class="h2">{{ testSuite.name }}</h1>
+	<div class="progress mt-4">
+		<div class="progress-bar bg-success" role="progressbar" style="width: {{ success_percent }}%">
+			{{ success }} ({{ success_percent }}%)
+		</div>
+		<div class="progress-bar bg-danger" role="progressbar" style="width: {{ fail_percent }}%">
+			{{ testSuite.failures }} ({{ fail_percent }}%)
+		</div>
+		<div class="progress-bar bg-danger" role="progressbar" style="width: {{ error_percent }}%">
+			{{ testSuite.errors }} ({{ error_percent }}%)
+		</div>
+	</div>
+	<div class="table-responsive mt-4">
+		<table class="table table-hover">
+			<thead>
+			<tr>
+				<th scope="col">Source</th>
+				{% for test in tests %}
+				<th scope="col" style="min-width: 5em;">{{ test }}</th>
+				{% endfor %}
+			</tr>
+			</thead>
+			{% for name, cases in results %}
+			<tr>
+				<th scope="row">{{ name }}</th>
+				{% for test in tests %}
+				{% set case = cases[test] %}
+				{% if case.failure == null %}
+				<td class="table-success text-center">
+					<i data-feather="check"></i>
+				</td>
+				{% else %}
+					{% if case.failure.type == 'java.lang.AssertionError' %}
+					<td class="table-warning text-center" style="cursor: pointer;"
+						data-bs-toggle="modal" data-bs-target="#failure_{{ case.hashCode }}">
+						<i data-feather="alert-triangle"></i>
+					</td>
+					{% else %}
+					<td class="table-danger text-center" style="cursor: pointer;"
+						data-bs-toggle="modal" data-bs-target="#failure_{{ case.hashCode }}">
+						<i data-feather="x"></i>
+					</td>
+					{% endif %}
+				<!--suppress HtmlUnknownTag -->
+				<div class="modal fade" id="failure_{{ case.hashCode }}" tabindex="-1">
+					<div class="modal-dialog modal-lg modal-dialog-scrollable">
+						<div class="modal-content">
+							<div class="modal-header">
+								<h5 class="modal-title">{{ case.testName }} failed</h5>
+								<button type="button" class="btn-close" data-bs-dismiss="modal"
+										aria-label="Close"></button>
+							</div>
+							<div class="modal-body font-monospace lh-sm bg-light" style="font-size: 0.7em;">
+								{{ case.failure.textHtml()|raw }}
+							</div>
+							<div class="modal-footer">
+								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+							</div>
+						</div>
+					</div>
+				</div>
+				{% endif %}
+				{% endfor %}
+			</tr>
+			{% endfor %}
+		</table>
+	</div>
+</div>
+<script>
+	feather.replace()
+
+
+
+</script>
+</body>
+</html>
