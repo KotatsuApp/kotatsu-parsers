@@ -47,7 +47,7 @@ body:
           required: true
         - label: I have written a title with source name.
           required: true
-        - label: I have updated the app to version **[3.3.1](https://github.com/KotatsuApp/Kotatsu/releases/latest)**.
+        - label: I have updated the app to version **[3.3.2](https://github.com/KotatsuApp/Kotatsu/releases/latest)**.
           required: true
         - label: I have checked that the source does not already exist on the app.
           required: true
