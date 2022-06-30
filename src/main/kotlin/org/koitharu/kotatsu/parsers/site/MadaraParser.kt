@@ -296,17 +296,11 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("KINGMANGA", "KingManga", "en")
 	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com")
 
-	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
-	class MangahaTachi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")
-
 	@MangaSourceParser("PIANMANGA", "PianManga", "en")
 	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.com")
 
 	@MangaSourceParser("MANGAROSIE", "MangaRosie", "en")
 	class MangaRosie(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROSIE, "mangarosie.me")
-
-	@MangaSourceParser("READMANWHA", "ReadManwha", "en")
-	class ReadManwha(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANWHA, "readmanwha.net")
 
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
@@ -331,14 +325,8 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("HARIMANGA", "HariManga", "en")
 	class HariManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com")
 
-	@MangaSourceParser("KISSMANGA", "KissManga", "en")
-	class KissManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KISSMANGA, "kissmanga.in")
-
 	@MangaSourceParser("MANGAROCK", "MangaRock", "en")
 	class MangaRock(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROCK, "mangarockteam.com")
-
-	@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
-	class IsekaiScanEu(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu")
 
 	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
 	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
@@ -353,15 +341,6 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.io")
-
-	@MangaSourceParser("READMANHWA", "ReadManhwa", "en")
-	class ReadManhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANHWA, "readmanhwa.info")
-
-	@MangaSourceParser("NEATMANGA", "NeatManga", "en")
-	class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmanga.com")
-
-	@MangaSourceParser("MANGAKIK", "MangaKik", "en")
-	class MangaKik(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAKIK, "mangakik.net")
 
 	@MangaSourceParser("MANHWACLAN", "ManhwaClan", "en")
 	class ManhwaClan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWACLAN, "manhwaclan.com")
@@ -381,23 +360,11 @@ internal abstract class MadaraParser(
 		override val tagPrefix = "manhua-genre/"
 	}
 
-	@MangaSourceParser("X2MANGA", "X2Manga", "en")
-	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
-
 	@MangaSourceParser("VINLOAD", "VinLoad", "en")
 	class VinLoad(context: MangaLoaderContext) : MadaraParser(context, MangaSource.VINLOAD, "vinload.com")
 
-	@MangaSourceParser("S2MANGA", "S2Manga", "en")
-	class S2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.S2MANGA, "s2manga.com")
-
-	@MangaSourceParser("SIXMANGA", "SixManga", "th")
-	class SixManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SIXMANGA, "www.sixmanga.com")
-
 	@MangaSourceParser("MANGASCO", "MangaSco", "en")
 	class MangaSco(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGASCO, "mangasco.com")
-
-	@MangaSourceParser("MANHWA", "Manhwa", "en")
-	class Manhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA, "manhwa.pics")
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
 	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
@@ -460,12 +427,6 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("CAT_300", "Cat300", "th")
 	class Cat300(context: MangaLoaderContext) : MadaraParser(context, MangaSource.CAT_300, "cat300.com") {
-
-		override val isNsfwSource = true
-	}
-
-	@MangaSourceParser("DOKIMORI", "DokiMori", "th")
-	class DokiMori(context: MangaLoaderContext) : MadaraParser(context, MangaSource.DOKIMORI, "www.dokimori.com") {
 
 		override val isNsfwSource = true
 	}
