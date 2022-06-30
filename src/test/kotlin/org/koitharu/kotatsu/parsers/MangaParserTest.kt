@@ -15,12 +15,13 @@ import org.koitharu.kotatsu.test_util.isDistinctBy
 import org.koitharu.kotatsu.test_util.isUrlAbsolute
 import org.koitharu.kotatsu.test_util.maxDuplicates
 
+
 @ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock()
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
 	fun list(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -29,7 +30,7 @@ internal class MangaParserTest {
 		assert(list.all { it.source == source })
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|search|{0}")
 	@MangaSources
 	fun search(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -46,7 +47,7 @@ internal class MangaParserTest {
 		assert(list.all { it.source == source })
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|tags|{0}")
 	@MangaSources
 	fun tags(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -66,7 +67,7 @@ internal class MangaParserTest {
 		assert(list.all { it.source == source })
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|details|{0}")
 	@MangaSources
 	fun details(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -95,7 +96,7 @@ internal class MangaParserTest {
 		}
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|pages|{0}")
 	@MangaSources
 	fun pages(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -115,7 +116,7 @@ internal class MangaParserTest {
 		checkImageRequest(pageUrl, page.referer)
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|favicon|{0}")
 	@MangaSources
 	fun favicon(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -124,7 +125,7 @@ internal class MangaParserTest {
 		checkImageRequest(faviconUrl, null)
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|domain|{0}")
 	@MangaSources
 	fun domain(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
@@ -142,7 +143,7 @@ internal class MangaParserTest {
 		}
 	}
 
-	@ParameterizedTest
+	@ParameterizedTest(name = "{index}|authorization|{0}")
 	@MangaSources
 	@Disabled
 	fun authorization(source: MangaSource) = runTest {

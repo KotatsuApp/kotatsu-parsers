@@ -19,8 +19,9 @@ jobs:
           java-version: '11'
           distribution: 'temurin'
           cache: 'gradle'
-      - run: ./gradlew :test --tests "org.koitharu.kotatsu.parsers.MangaParserTest"
+      - run: ./gradlew :test --tests "org.koitharu.kotatsu.parsers.MangaParserTest" || true
+      - run: ./gradlew generateTestsReport
       - uses: actions/upload-artifact@v3
         with:
           name: Report
-          path: build/reports/tests/test
+          path: build/test-results-html/TEST-org.koitharu.kotatsu.parsers.MangaParserTest.htm
