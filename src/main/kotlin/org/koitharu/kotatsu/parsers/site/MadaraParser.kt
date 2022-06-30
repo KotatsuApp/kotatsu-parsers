@@ -348,6 +348,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
 	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
 
+	@MangaSourceParser("MANGATITANS", "MangaTitans", "th")
+	class MangaTitans(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATITANS, "manga-titans.com")
+
 	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
 	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com") {
 		override fun getFaviconUrl(): String {
