@@ -20,6 +20,9 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 
 	val config by lazy { context.getConfig(source) }
 
+	val sourceLocale: Locale?
+		get() = source.locale?.let { Locale(it) }
+
 	/**
 	 * Provide default domain and available alternatives, if any.
 	 *
@@ -159,5 +162,14 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	@InternalParsersApi
 	protected fun parseFailed(message: String? = null): Nothing {
 		throw ParseException(message, null)
+	}
+
+	@InternalParsersApi
+	protected fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? {
+		return when {
+			isNullOrEmpty() -> null
+			size == 1 -> first()
+			else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
+		}
 	}
 }

@@ -101,3 +101,7 @@ fun Element.requireElementById(id: String): Element {
 fun Element.selectLast(cssQuery: String): Element? {
 	return select(cssQuery).lastOrNull()
 }
+
+fun Element.selectLastOrThrow(cssQuery: String): Element {
+	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"")
+}

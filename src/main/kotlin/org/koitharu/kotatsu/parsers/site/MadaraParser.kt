@@ -36,11 +36,7 @@ internal abstract class MadaraParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val tag = when {
-			tags.isNullOrEmpty() -> null
-			tags.size == 1 -> tags.first()
-			else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
-		}
+		val tag = tags.oneOrThrowIfMany()
 		val payload = createRequestTemplate()
 		payload["page"] = (offset / PAGE_SIZE.toFloat()).toIntUp().toString()
 		payload["vars[meta_key]"] = when (sortOrder) {
