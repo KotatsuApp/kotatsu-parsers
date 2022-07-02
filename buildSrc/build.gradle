@@ -6,7 +6,8 @@ repositories {
 }
 
 dependencies {
+	implementation gradleApi()
 	implementation 'org.simpleframework:simple-xml:2.7.1'
 	implementation 'com.soywiz.korlibs.korte:korte-jvm:3.0.0-Beta5'
-	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.2'
+	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.3'
 }
