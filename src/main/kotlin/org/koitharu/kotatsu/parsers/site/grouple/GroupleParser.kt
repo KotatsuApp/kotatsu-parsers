@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.grouple
 
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -23,17 +23,17 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.POPULARITY,
-		SortOrder.NEWEST,
-		SortOrder.RATING,
-	)
+        SortOrder.UPDATED,
+        SortOrder.POPULARITY,
+        SortOrder.NEWEST,
+        SortOrder.RATING,
+    )
 
 	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
+        offset: Int,
+        query: String?,
+        tags: Set<MangaTag>?,
+        sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = getDomain()
 		val doc = when {
@@ -84,39 +84,40 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 				?: return@mapNotNull null
 			val tileInfo = descDiv.selectFirst("div.tile-info")
 			val relUrl = href.toRelativeUrl(baseHost)
-			Manga(
-				id = generateUid(relUrl),
-				url = relUrl,
-				publicUrl = href,
-				title = title,
-				altTitle = descDiv.selectFirst("h4")?.text(),
-				coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
-				rating = runCatching {
-					node.selectFirst("div.rating")
-						?.attr("title")
-						?.substringBefore(' ')
-						?.toFloatOrNull()
-						?.div(10f)
-				}.getOrNull() ?: RATING_UNKNOWN,
-				author = tileInfo?.selectFirst("a.person-link")?.text(),
-				isNsfw = false,
-				tags = runCatching {
-					tileInfo?.select("a.element-link")
-						?.mapToSet {
-							MangaTag(
-								title = it.text().toTitleCase(),
-								key = it.attr("href").substringAfterLast('/'),
-								source = source,
-							)
-						}
-				}.getOrNull().orEmpty(),
-				state = when {
-					node.selectFirst("div.tags")
-						?.selectFirst("span.mangaCompleted") != null -> MangaState.FINISHED
-					else -> null
-				},
-				source = source,
-			)
+            Manga(
+                id = generateUid(relUrl),
+                url = relUrl,
+                publicUrl = href,
+                title = title,
+                altTitle = descDiv.selectFirst("h4")?.text(),
+                coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
+                rating = runCatching {
+                    node.selectFirst("div.rating")
+                        ?.attr("title")
+                        ?.substringBefore(' ')
+                        ?.toFloatOrNull()
+                        ?.div(10f)
+                }.getOrNull() ?: RATING_UNKNOWN,
+                author = tileInfo?.selectFirst("a.person-link")?.text(),
+                isNsfw = false,
+                tags = runCatching {
+                    tileInfo?.select("a.element-link")
+                        ?.mapToSet {
+                            MangaTag(
+                                title = it.text().toTitleCase(),
+                                key = it.attr("href").substringAfterLast('/'),
+                                source = source,
+                            )
+                        }
+                }.getOrNull().orEmpty(),
+                state = when {
+                    node.selectFirst("div.tags")
+                        ?.selectFirst("span.mangaCompleted") != null -> MangaState.FINISHED
+
+                    else -> null
+                },
+                source = source,
+            )
 		}
 	}
 
@@ -133,11 +134,11 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 			tags = manga.tags + root.select("div.subject-meta").select("span.elem_genre ")
 				.mapNotNull {
 					val a = it.selectFirst("a.element-link") ?: return@mapNotNull null
-					MangaTag(
-						title = a.text().toTitleCase(),
-						key = a.attr("href").substringAfterLast('/'),
-						source = source,
-					)
+                    MangaTag(
+                        title = a.text().toTitleCase(),
+                        key = a.attr("href").substringAfterLast('/'),
+                        source = source,
+                    )
 				},
 			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
@@ -151,16 +152,16 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 							.replace("(Переводчик),", "&")
 							.removeSuffix(" (Переводчик)")
 					}
-					MangaChapter(
-						id = generateUid(href),
-						name = tr.selectFirst("a")?.text().orEmpty().removePrefix(manga.title).trim(),
-						number = i + 1,
-						url = href,
-						uploadDate = dateFormat.tryParse(tr.selectFirst("td.d-none")?.text()),
-						scanlator = translators,
-						source = source,
-						branch = null,
-					)
+                    MangaChapter(
+                        id = generateUid(href),
+                        name = tr.selectFirst("a")?.text().orEmpty().removePrefix(manga.title).trim(),
+                        number = i + 1,
+                        url = href,
+                        uploadDate = dateFormat.tryParse(tr.selectFirst("td.d-none")?.text()),
+                        scanlator = translators,
+                        source = source,
+                        branch = null,
+                    )
 				},
 		)
 	}
@@ -189,13 +190,13 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 				val page = pages.getJSONArray(i)
 				val primaryServer = page.getString(0)
 				val url = page.getString(2)
-				MangaPage(
-					id = generateUid(url),
-					url = "$primaryServer|$serversStr|$url",
-					preview = null,
-					referer = chapter.url,
-					source = source,
-				)
+                MangaPage(
+                    id = generateUid(url),
+                    url = "$primaryServer|$serversStr|$url",
+                    preview = null,
+                    referer = chapter.url,
+                    source = source,
+                )
 			}
 		}
 		parseFailed("Pages list not found at ${chapter.url}")
@@ -221,11 +222,11 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
 			?.selectFirst("table.table") ?: parseFailed("Cannot find root")
 		return root.select("a.element-link").mapToSet { a ->
-			MangaTag(
-				title = a.text().toTitleCase(),
-				key = a.attr("href").substringAfterLast('/'),
-				source = source,
-			)
+            MangaTag(
+                title = a.text().toTitleCase(),
+                key = a.attr("href").substringAfterLast('/'),
+                source = source,
+            )
 		}
 	}
 

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.multichan
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -14,8 +14,8 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 internal class HenChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.HENCHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
-		"xxx.hentaichan.live",
-		arrayOf("xxx.hentaichan.live", "xx.hentaichan.live", "hentaichan.live", "hentaichan.pro"),
+		"y.hentaichan.live",
+		arrayOf("y.hentaichan.live", "xxx.hentaichan.live", "xx.hentaichan.live", "hentaichan.live", "hentaichan.pro"),
 	)
 
 	override suspend fun getList(
@@ -34,8 +34,7 @@ internal class HenChanParser(override val context: MangaLoaderContext) : ChanPar
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root =
-			doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
+		val root = doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
 		val readLink = manga.url.replace("manga", "online")
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),

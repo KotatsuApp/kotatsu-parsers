@@ -1,19 +1,27 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.multichan
 
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
+internal abstract class ChanParser(source: MangaSource) : MangaParser(source), MangaParserAuthProvider {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
 	)
+
+	override val authUrl: String
+		get() = "https://${getDomain()}"
+
+	override val isAuthorized: Boolean
+		get() = context.cookieJar.getCookies(getDomain()).any { it.name == "dle_user_id" }
 
 	override suspend fun getList(
 		offset: Int,
@@ -29,11 +37,13 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 				}
 				"https://$domain/?do=search&subaction=search&story=${query.urlEncoded()}"
 			}
+
 			!tags.isNullOrEmpty() -> tags.joinToString(
 				prefix = "https://$domain/tags/",
 				postfix = "&n=${getSortKey2(sortOrder)}?offset=$offset",
 				separator = "+",
 			) { tag -> tag.key }
+
 			else -> "https://$domain/${getSortKey(sortOrder)}?offset=$offset"
 		}
 		val doc = context.httpGet(url).parseHtml()
@@ -141,6 +151,14 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source) {
 				source = source,
 			)
 		}
+	}
+
+	override suspend fun getUsername(): String {
+		val doc = context.httpGet("https://${getDomain()}").parseHtml().body()
+		val root = doc.requireElementById("top_user")
+		val a = root.getElementsByAttributeValueContaining("href", "/user/").firstOrNull()
+			?: throw AuthRequiredException(source)
+		return a.attr("href").removeSuffix('/').substringAfterLast('/')
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =
