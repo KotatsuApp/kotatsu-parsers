@@ -74,7 +74,7 @@ class Manga(
 	 * @see rating
 	 */
 	val hasRating: Boolean
-		get() = rating in 0f..1f
+		get() = rating > 0f && rating <= 1f
 
 	fun getChapters(branch: String?): List<MangaChapter>? {
 		return chapters?.filter { x -> x.branch == branch }
