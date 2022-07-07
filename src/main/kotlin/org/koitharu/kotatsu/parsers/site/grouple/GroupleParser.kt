@@ -18,8 +18,11 @@ private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 private const val NOTHING_FOUND = "Ничего не найдено"
 
-internal abstract class GroupleParser(source: MangaSource, userAgent: String) : MangaParser(source),
-	MangaParserAuthProvider {
+internal abstract class GroupleParser(
+	source: MangaSource,
+	userAgent: String,
+	private val siteId: Int,
+) : MangaParser(source), MangaParserAuthProvider {
 
 	private val headers = Headers.Builder()
 		.add("User-Agent", userAgent)
@@ -33,7 +36,10 @@ internal abstract class GroupleParser(source: MangaSource, userAgent: String) : 
 	)
 
 	override val authUrl: String
-		get() = "https://grouple.co/internal/auth/login"
+		get() {
+			val targetUri = "https://${getDomain()}/".urlEncoded()
+			return "https://grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
+		}
 
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(getDomain()).any { it.name == "gwt" }

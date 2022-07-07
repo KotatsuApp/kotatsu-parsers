@@ -7,8 +7,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 
 @MangaSourceParser("SELFMANGA", "SelfManga", "ru")
 internal class SelfMangaParser(
-    override val context: MangaLoaderContext,
-) : GroupleParser(MangaSource.SELFMANGA, "selfmangafun") {
+	override val context: MangaLoaderContext,
+) : GroupleParser(MangaSource.SELFMANGA, "selfmangafun", 3) {
 
 	override val configKeyDomain = ConfigKey.Domain("selfmanga.live", null)
 }
