@@ -171,7 +171,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	)
 
 	@MangaSourceParser("MANGAOWLS", "MangaOwls", "en")
-	class MangaOwls(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "mangaowls.xyz") {
+	class MangaOwls(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com") {
 
 		override fun getFaviconUrl() = "http://${getDomain()}/frontend/images/favico.png"
 	}
