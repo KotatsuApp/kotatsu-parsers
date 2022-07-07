@@ -158,6 +158,7 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
+			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
 			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
 				?.select("tr:has(td > a)")?.asReversed()?.mapIndexedNotNull { i, tr ->
