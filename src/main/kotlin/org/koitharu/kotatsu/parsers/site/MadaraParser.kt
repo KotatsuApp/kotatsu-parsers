@@ -506,6 +506,11 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
 	class MangaManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
 
+        @MangaSourceParser("DOKIMORI", "DokiMori", "th")
+	class DokiMori(context: MangaLoaderContext) : MadaraParser(context, MangaSource.DOKIMORI, "www.dokimori.com") {
+		override val isNsfwSource = true
+	}
+
 	@MangaSourceParser("MANGA_ISEKAI", "Manga Isekai", "en")
 	class MangaIsekai(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_ISEKAI, "mangaisekai.com")
 
