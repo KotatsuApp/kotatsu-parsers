@@ -8,8 +8,6 @@ import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.await
 import java.util.concurrent.TimeUnit
-import javax.net.ssl.HostnameVerifier
-import javax.net.ssl.SSLSession
 
 internal class MangaLoaderContextMock : MangaLoaderContext() {
 
@@ -28,7 +26,6 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		.cookieJar(cookieJar)
 		.addInterceptor(UserAgentInterceptor(userAgent))
 		.addInterceptor(CloudFlareInterceptor())
-		.hostnameVerifier(ConsumeAllVerifier())
 		.connectTimeout(20, TimeUnit.SECONDS)
 		.readTimeout(60, TimeUnit.SECONDS)
 		.writeTimeout(20, TimeUnit.SECONDS)
@@ -63,11 +60,5 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		javaClass.getResourceAsStream("/cookies.txt")?.use {
 			cookieJar.loadFromStream(it)
 		} ?: println("No cookies loaded!")
-	}
-
-	private class ConsumeAllVerifier : HostnameVerifier {
-		override fun verify(hostname: String?, session: SSLSession?): Boolean {
-			return true
-		}
 	}
 }

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.madara
 
 import androidx.collection.arraySetOf
 import org.jsoup.nodes.Element
@@ -64,7 +64,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 					.firstOrNull()?.tableValue()?.text()?.trim(),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				coverUrl = img.attrAsAbsoluteUrl("src"),
+				coverUrl = img.src().orEmpty(),
 				author = postContent.getElementsContainingOwnText("Author")
 					.firstOrNull()?.tableValue()?.text()?.trim(),
 				state = postContent.getElementsContainingOwnText("Status")
@@ -147,6 +147,12 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 		return tags.any { it.key in nsfwTags }
 	}
 
+	private fun Element.src(): String? {
+		return absUrl("data-src").ifEmpty {
+			absUrl("src")
+		}.takeUnless { it.isEmpty() }
+	}
+
 	private fun Element.tableValue(): Element {
 		for (p in parents()) {
 			val children = p.children()
@@ -170,7 +176,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 		source = source,
 	)
 
-	@MangaSourceParser("MANGAOWLS", "MangaOwls", "en")
+	@MangaSourceParser("MANGAOWLS", "BeautyManga", "en")
 	class MangaOwls(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com") {
 
 		override fun getFaviconUrl() = "http://${getDomain()}/frontend/images/favico.png"
