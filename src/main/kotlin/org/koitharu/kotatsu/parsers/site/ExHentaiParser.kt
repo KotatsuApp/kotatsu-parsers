@@ -158,7 +158,7 @@ internal class ExHentaiParser(
 				a.text().toIntOrNull() != null
 			}?.let { a ->
 				val count = a.text().toInt()
-				val chapters = ArrayList<MangaChapter>(count)
+				val chapters = ChaptersListBuilder(count)
 				for (i in 1..count) {
 					val url = "${manga.url}?p=${i - 1}"
 					chapters += MangaChapter(
@@ -172,7 +172,7 @@ internal class ExHentaiParser(
 						branch = null,
 					)
 				}
-				chapters
+				chapters.toList()
 			},
 		)
 	}

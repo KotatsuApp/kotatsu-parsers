@@ -50,6 +50,7 @@ internal abstract class NineMangaParser(
 					append(query.urlEncoded())
 					append("&page=")
 				}
+
 				!tags.isNullOrEmpty() -> {
 					append("/search/?category_id=")
 					for (tag in tags) {
@@ -58,6 +59,7 @@ internal abstract class NineMangaParser(
 					}
 					append("&page=")
 				}
+
 				else -> {
 					append("/category/index_")
 				}
@@ -115,7 +117,7 @@ internal abstract class NineMangaParser(
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()
 				?.html()?.substringAfter("</b>"),
 			chapters = root.selectFirst("div.chapterbox")?.select("ul.sub_vol_ul > li")
-				?.asReversed()?.mapIndexed { i, li ->
+				?.asReversed()?.mapChapters { i, li ->
 					val a = li.selectFirst("a.chapter_list_a")
 					val href = a?.attrAsRelativeUrlOrNull("href")
 						?.replace("%20", " ") ?: parseFailed("Link not found")

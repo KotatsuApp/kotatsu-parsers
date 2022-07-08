@@ -45,6 +45,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				}
 				"/search?name=${query.urlEncoded()}".toAbsoluteUrl(getDomain())
 			}
+
 			tags.isNullOrEmpty() -> "/directory/$page.htm$sortKey".toAbsoluteUrl(getDomain())
 			tags.size == 1 -> "/directory/${tags.first().key}/$page.htm$sortKey".toAbsoluteUrl(getDomain())
 			else -> tags.joinToString(
@@ -112,9 +113,9 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				)
 			}.orEmpty(),
 			description = info?.getElementById("show")?.ownText(),
-			chapters = chaptersList?.mapIndexedNotNull { i, li ->
+			chapters = chaptersList?.mapChapters { i, li ->
 				val href = li.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-					?: return@mapIndexedNotNull null
+					?: return@mapChapters null
 				val name = li.select("span")
 					.filter { x -> x.className().isEmpty() }
 					.joinToString(" - ") { it.text() }.trim()

@@ -92,7 +92,7 @@ internal open class MangaLibParser(
 		val chaptersDoc = context.httpGet("$fullUrl?section=chapters").parseHtml()
 		val scripts = chaptersDoc.select("script")
 		val dateFormat = SimpleDateFormat("yyy-MM-dd", Locale.US)
-		var chapters: ArrayList<MangaChapter>? = null
+		var chapters: ChaptersListBuilder? = null
 		scripts@ for (script in scripts) {
 			val raw = script.html().lines()
 			for (line in raw) {
@@ -100,7 +100,7 @@ internal open class MangaLibParser(
 					val json = JSONObject(line.substringAfter('=').substringBeforeLast(';'))
 					val list = json.getJSONObject("chapters").getJSONArray("list")
 					val total = list.length()
-					chapters = ArrayList(total)
+					chapters = ChaptersListBuilder(total)
 					for (i in 0 until total) {
 						val item = list.getJSONObject(i)
 						val chapterId = item.getLong("chapter_id")
@@ -111,7 +111,6 @@ internal open class MangaLibParser(
 							append(item.getInt("chapter_volume"))
 							append("/c")
 							append(item.getString("chapter_number"))
-							@Suppress("BlockingMethodInNonBlockingContext") // lint issue
 							append('/')
 							append(item.optString("chapter_string"))
 						}
@@ -160,7 +159,7 @@ internal open class MangaLibParser(
 				} ?: manga.tags,
 			isNsfw = isNsfw(doc),
 			description = info?.selectFirst("div.media-description__text")?.html(),
-			chapters = chapters,
+			chapters = chapters?.toList(),
 		)
 	}
 

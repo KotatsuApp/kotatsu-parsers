@@ -38,12 +38,14 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 					append("/search/$page?search=")
 					append(query.urlEncoded())
 				}
+
 				!tags.isNullOrEmpty() -> {
 					for (tag in tags) {
 						append(tag.key)
 					}
 					append("/$page?type=${getAlternativeSortKey(sortOrder)}")
 				}
+
 				else -> {
 					append("/${getSortKey(sortOrder)}/$page")
 				}
@@ -110,7 +112,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 			state = parseStatus(info.select("p.fexi_header_para:contains(status)").first()?.ownText()),
 			tags = manga.tags + parsedTags,
 			chapters = table.select("div.table.table-chapter-list").select("li.list-group-item.chapter_list")
-				.asReversed().mapIndexed { i, li ->
+				.asReversed().mapChapters { i, li ->
 					val a = li.select("a")
 					val href = a.attr("data-href").ifEmpty {
 						parseFailed("Link is missing")

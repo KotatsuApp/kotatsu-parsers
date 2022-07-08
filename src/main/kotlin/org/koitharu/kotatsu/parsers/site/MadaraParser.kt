@@ -137,7 +137,7 @@ internal abstract class MadaraParser(
 				?.select("p")
 				?.filterNot { it.ownText().startsWith("A brief description") }
 				?.joinToString { it.html() },
-			chapters = root2.select("li").asReversed().mapIndexed { i, li ->
+			chapters = root2.select("li").asReversed().mapChapters { i, li ->
 				val a = li.selectFirst("a")
 				val href = a?.attrAsRelativeUrlOrNull("href") ?: parseFailed("Link is missing")
 				MangaChapter(
@@ -200,6 +200,7 @@ internal abstract class MadaraParser(
 					set(Calendar.MILLISECOND, 0)
 				}.timeInMillis
 			}
+
 			date.startsWith("today", ignoreCase = true) -> {
 				Calendar.getInstance().apply {
 					set(Calendar.HOUR_OF_DAY, 0)
@@ -208,6 +209,7 @@ internal abstract class MadaraParser(
 					set(Calendar.MILLISECOND, 0)
 				}.timeInMillis
 			}
+
 			date.contains(Regex("""\d(st|nd|rd|th)""")) -> {
 				// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 				date.split(" ").map {
@@ -219,6 +221,7 @@ internal abstract class MadaraParser(
 				}
 					.let { dateFormat.tryParse(it.joinToString(" ")) }
 			}
+
 			else -> dateFormat.tryParse(date)
 		}
 	}
@@ -238,24 +241,28 @@ internal abstract class MadaraParser(
 				"dia",
 				"day",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
 			WordSet("jam", "saat", "heure", "hora", "hour").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
 					-number,
 				)
 			}.timeInMillis
+
 			WordSet("menit", "dakika", "min", "minute", "minuto").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
 					-number,
 				)
 			}.timeInMillis
+
 			WordSet("detik", "segundo", "second").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.SECOND,
 					-number,
 				)
 			}.timeInMillis
+
 			WordSet("month").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
 			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
@@ -270,12 +277,12 @@ internal abstract class MadaraParser(
 
 	private fun createRequestTemplate() =
 		(
-			"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
-				"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
-				"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
-				"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
-				"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
-			).split('&')
+				"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
+						"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
+						"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
+						"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
+						"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
+				).split('&')
 			.map {
 				val pos = it.indexOf('=')
 				it.substring(0, pos) to it.substring(pos + 1)
@@ -293,7 +300,8 @@ internal abstract class MadaraParser(
 	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com")
 
 	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
-	class MangahaTachi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")
+	class MangahaTachi(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")
 
 	@MangaSourceParser("PIANMANGA", "PianManga", "en")
 	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.com")
@@ -400,7 +408,8 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
-	class MangaDistrict(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
+	class MangaDistrict(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
 
 		override val tagPrefix = "publication-genre/"
 
@@ -408,7 +417,8 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
-	class Hentai4Free(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
+	class Hentai4Free(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
 
 		override val tagPrefix = "hentai-tag/"
 
@@ -437,7 +447,8 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
-	class AllPornComic(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
+	class AllPornComic(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com") {
 
 		override val tagPrefix = "porncomic-genre/"
 
@@ -488,7 +499,8 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
-	class MangaManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
+	class MangaManhua(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online")
 
 	@MangaSourceParser("MANGA_247", "247MANGA", "en")
 	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com") {

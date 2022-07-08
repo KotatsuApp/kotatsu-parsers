@@ -141,7 +141,7 @@ internal class RemangaParser(
 					source = MangaSource.REMANGA,
 				)
 			},
-			chapters = chapters.mapIndexed { i, jo ->
+			chapters = chapters.mapChapters { i, jo ->
 				val id = jo.getLong("id")
 				val name = jo.getString("name").toTitleCase(Locale.ROOT)
 				val publishers = jo.optJSONArray("publishers")

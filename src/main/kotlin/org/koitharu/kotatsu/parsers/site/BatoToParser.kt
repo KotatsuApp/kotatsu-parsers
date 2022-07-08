@@ -54,6 +54,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 			when (sortOrder) {
 				SortOrder.UPDATED,
 				-> append("update.za")
+
 				SortOrder.POPULARITY -> append("views_a.za")
 				SortOrder.NEWEST -> append("create.za")
 				SortOrder.ALPHABETICAL -> append("title.az")
@@ -93,7 +94,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 				?.selectFirst(".main")
 				?.children()
 				?.reversed()
-				?.mapIndexedNotNull { i, div ->
+				?.mapChapters { i, div ->
 					div.parseChapter(i)
 				}.orEmpty(),
 		)

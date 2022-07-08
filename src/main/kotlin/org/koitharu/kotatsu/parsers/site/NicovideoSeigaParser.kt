@@ -47,7 +47,9 @@ class NicovideoSeigaParser(override val context: MangaLoaderContext) :
 		val url = when {
 			!query.isNullOrEmpty() -> return if (offset == 0) getSearchList(query, page) else emptyList()
 			tags.isNullOrEmpty() -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
-			tags.size == 1 -> "https://$domain/manga/list?category=${tags.first().key}&page=$page&sort=${getSortKey(sortOrder)}"
+			tags.size == 1 -> "https://$domain/manga/list?category=${tags.first().key}&page=$page" +
+					"&sort=${getSortKey(sortOrder)}"
+
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 category")
 			else -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
 		}
@@ -55,7 +57,8 @@ class NicovideoSeigaParser(override val context: MangaLoaderContext) :
 		val comicList = doc.body().select("#comic_list > ul > li") ?: parseFailed("Container not found")
 		val items = comicList.select("div > .description > div > div")
 		return items.mapNotNull { item ->
-			val href = item.selectFirst(".comic_icon > div > a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
+			val href =
+				item.selectFirst(".comic_icon > div > a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
 			val statusText = item.selectFirst(".mg_description_header > .mg_icon > .content_status > span")?.text()
 			Manga(
 				id = generateUid(href),
@@ -92,15 +95,17 @@ class NicovideoSeigaParser(override val context: MangaLoaderContext) :
 			.text()
 		return manga.copy(
 			description = contents.selectFirst("div.mg_work_detail > div > div.row > div.description_text")?.html(),
-			largeCoverUrl = contents.selectFirst("div.primaries > div.main_visual > a > img")?.attrAsAbsoluteUrlOrNull("src"),
+			largeCoverUrl = contents.selectFirst("div.primaries > div.main_visual > a > img")
+				?.attrAsAbsoluteUrlOrNull("src"),
 			state = when (statusText) {
 				STATUS_ONGOING -> MangaState.ONGOING
 				STATUS_FINISHED -> MangaState.FINISHED
 				else -> null
 			},
 			isNsfw = contents.select(".icon_adult").isNotEmpty(),
-			chapters = contents.select("#episode_list > ul > li").mapIndexedNotNull { i, li ->
-				val href = li.selectFirst("div > div.description > div.title > a")?.attrAsRelativeUrl("href") ?: parseFailed()
+			chapters = contents.select("#episode_list > ul > li").mapChapters { i, li ->
+				val href = li.selectFirst("div > div.description > div.title > a")
+					?.attrAsRelativeUrl("href") ?: parseFailed()
 				MangaChapter(
 					id = generateUid(href),
 					name = li.select("div > div.description > div.title > a").text(),
@@ -151,7 +156,8 @@ class NicovideoSeigaParser(override val context: MangaLoaderContext) :
 		val doc = context.httpGet("https://$domain/manga/search/?q=$query&page=$page&sort=score").parseHtml()
 		val root = doc.body().select(".search_result__item")
 		return root.mapNotNull { item ->
-			val href = item.selectFirst(".search_result__item__thumbnail > a")?.attrAsRelativeUrl("href") ?: parseFailed()
+			val href = item.selectFirst(".search_result__item__thumbnail > a")
+				?.attrAsRelativeUrl("href") ?: parseFailed()
 			Manga(
 				id = generateUid(href),
 				url = href,

@@ -29,13 +29,14 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		val searchPage = (offset / 10f).toIntUp().inc()
 		val url = when {
 			!query.isNullOrEmpty() -> (
-				"/index.php?do=search" +
-					"&subaction=search" +
-					"&search_start=$searchPage" +
-					"&full_search=1" +
-					"&story=$query" +
-					"&titleonly=3"
-				).toAbsoluteUrl(getDomain())
+					"/index.php?do=search" +
+							"&subaction=search" +
+							"&search_start=$searchPage" +
+							"&full_search=1" +
+							"&story=$query" +
+							"&titleonly=3"
+					).toAbsoluteUrl(getDomain())
+
 			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
 			tags.size == 1 -> "${tags.first().key}/page/$page"
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 genre")
@@ -90,16 +91,16 @@ class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(Ma
 			description = root.selectFirst("div.item__full-description")?.text(),
 			largeCoverUrl = root.selectFirst("div.item__full-sidebar--poster")?.selectFirst("img")
 				?.attrAsAbsoluteUrlOrNull("src"),
-			chapters = chapterNodes.mapNotNull { item ->
+			chapters = chapterNodes.mapChapters { _, item ->
 				val href = item?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-					?: return@mapNotNull null
+					?: return@mapChapters null
 				val isAlternative = item.styleValueOrNull("background") != null
 				val name = item.selectFirst("a")?.text().orEmpty()
 				if (!isAlternative) i++
 				MangaChapter(
 					id = generateUid(href),
 					name = if (isAlternative) {
-						prevChapterName ?: return@mapNotNull null
+						prevChapterName ?: return@mapChapters null
 					} else {
 						prevChapterName = name
 						name

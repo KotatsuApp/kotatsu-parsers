@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
@@ -25,7 +26,7 @@ internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanPa
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			chapters = root.select("table.table_cha").flatMap { table ->
 				table.select("div.manga")
-			}.mapNotNull { it.selectFirst("a") }.reversed().mapIndexed { i, a ->
+			}.mapNotNull { it.selectFirst("a") }.reversed().mapChapters { i, a ->
 				val href = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
