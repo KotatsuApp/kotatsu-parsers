@@ -297,7 +297,12 @@ internal abstract class MadaraParser(
 	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in")
 
 	@MangaSourceParser("KINGMANGA", "KingManga", "en")
-	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com")
+	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/uploads/2022/05/cropped-logo-king-02-03-32x32.png"
+		}
+	}
 
 	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
 	class MangahaTachi(context: MangaLoaderContext) :
@@ -330,7 +335,12 @@ internal abstract class MadaraParser(
 	class MangaTxOt(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX_OT, "manga-tx.com")
 
 	@MangaSourceParser("MANGALEK", "MangaLek", "ar")
-	class MangaLek(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGALEK, "mangalek.com")
+	class MangaLek(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGALEK, "mangalek.com") {
+
+		override fun getFaviconUrl(): String {
+			return "https://${getDomain()}/wp-content/logo192.png"
+		}
+	}
 
 	@MangaSourceParser("HARIMANGA", "HariManga", "en")
 	class HariManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com")

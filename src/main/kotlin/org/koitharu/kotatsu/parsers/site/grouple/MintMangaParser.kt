@@ -14,4 +14,8 @@ internal class MintMangaParser(
 		"mintmanga.live",
 		arrayOf("mintmanga.live", "mintmanga.com"),
 	)
+
+	override fun getFaviconUrl(): String {
+		return "https://resmm.rmr.rocks/static/apple-touch-icon-8fff291039c140493adb0c7ba81065ad.png"
+	}
 }
