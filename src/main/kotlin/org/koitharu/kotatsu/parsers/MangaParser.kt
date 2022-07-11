@@ -4,6 +4,7 @@ import androidx.annotation.CallSuper
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.FaviconParser
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
@@ -105,7 +106,15 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	/**
 	 * Returns direct link to the website favicon
 	 */
+	@Deprecated(
+		message = "Use parseFavicons() to get multiple favicons with different size",
+		replaceWith = ReplaceWith("parseFavicons()"),
+	)
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
+
+	suspend fun parseFavicons(): Favicons {
+		return FaviconParser(context, getDomain()).parseFavicons()
+	}
 
 	@CallSuper
 	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

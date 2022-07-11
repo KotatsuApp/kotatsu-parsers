@@ -120,9 +120,16 @@ internal class MangaParserTest {
 	@MangaSources
 	fun favicon(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val faviconUrl = parser.getFaviconUrl()
-		assert(faviconUrl.isUrlAbsolute())
-		checkImageRequest(faviconUrl, null)
+		val favicons = parser.parseFavicons()
+		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
+		assert(favicons.isNotEmpty())
+		favicons.forEach {
+			assert(it.url.isUrlAbsolute()) { "Favicon url is not absolute: ${it.url}" }
+			assert(it.type in types) { "Unknown icon type: ${it.type}" }
+		}
+		val favicon = favicons.find(24)
+		checkNotNull(favicon)
+		checkImageRequest(favicon.url, favicons.referer)
 	}
 
 	@ParameterizedTest(name = "{index}|domain|{0}")
