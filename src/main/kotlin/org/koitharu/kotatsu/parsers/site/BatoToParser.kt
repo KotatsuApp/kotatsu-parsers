@@ -105,7 +105,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 		val scripts = context.httpGet(fullUrl).parseHtml().select("script")
 		for (script in scripts) {
 			val scriptSrc = script.html()
-			val p = scriptSrc.indexOf("const images =")
+			val p = scriptSrc.indexOf("const imgHttpLis =")
 			if (p == -1) continue
 			val start = scriptSrc.indexOf('[', p)
 			val end = scriptSrc.indexOf(';', start)
@@ -113,19 +113,19 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 				continue
 			}
 			val images = JSONArray(scriptSrc.substring(start, end))
-			val batoJs = scriptSrc.substringBetweenFirst("batojs =", ";")?.trim(' ', '"', '\n')
-				?: parseFailed("Cannot find batojs")
-			val server = scriptSrc.substringBetweenFirst("server =", ";")?.trim(' ', '"', '\n')
-				?: parseFailed("Cannot find server")
-			val password = context.evaluateJs(batoJs)?.removeSurrounding('"')
-				?: parseFailed("Cannot evaluate batojs")
-			val serverDecrypted = decryptAES(server, password).removeSurrounding('"')
+			val batoPass = scriptSrc.substringBetweenFirst("batoPass =", ";")?.trim(' ', '"', '\n')
+				?: parseFailed("Cannot find batoPass")
+			val batoWord = scriptSrc.substringBetweenFirst("batoWord =", ";")?.trim(' ', '"', '\n')
+				?: parseFailed("Cannot find batoWord")
+			val password = context.evaluateJs(batoPass)?.removeSurrounding('"')
+				?: parseFailed("Cannot evaluate batoPass")
+			val args = JSONArray(decryptAES(batoWord, password))
 			val result = ArrayList<MangaPage>(images.length())
 			repeat(images.length()) { i ->
 				val url = images.getString(i)
 				result += MangaPage(
 					id = generateUid(url),
-					url = if (url.startsWith("http")) url else "$serverDecrypted$url",
+					url = url + "?" + args.getString(i),
 					referer = fullUrl,
 					preview = null,
 					source = source,
