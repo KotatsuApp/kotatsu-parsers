@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -10,16 +11,31 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.isDistinct
-import org.koitharu.kotatsu.test_util.isDistinctBy
-import org.koitharu.kotatsu.test_util.isUrlAbsolute
-import org.koitharu.kotatsu.test_util.maxDuplicates
+import org.koitharu.kotatsu.test_util.*
 
 
 @ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock()
+
+	@Test
+	fun singleTest() = runTest {
+		val manga = mangaOf(MangaSource.MANGALIB, "https://mangalib.me/dorohedoro")
+		val parser = manga.source.newParser(context)
+		val details = parser.getDetails(manga)
+		val chapter = details.chapters!!.first()
+		val pages = parser.getPages(chapter)
+
+		assert(pages.isNotEmpty())
+		assert(pages.isDistinctBy { it.id })
+
+		val page = pages.medianOrNull() ?: error("No page")
+		val pageUrl = parser.getPageUrl(page)
+		assert(pageUrl.isNotEmpty())
+		assert(pageUrl.isUrlAbsolute())
+		checkImageRequest(pageUrl, page.referer)
+	}
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources

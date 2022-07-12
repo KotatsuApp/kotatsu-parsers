@@ -166,7 +166,7 @@ internal open class MangaLibParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
-		if (doc.location().endsWith("/register")) {
+		if (doc.location().substringBefore('?').endsWith("/register")) {
 			throw AuthRequiredException(source)
 		}
 		val scripts = doc.head().select("script")
