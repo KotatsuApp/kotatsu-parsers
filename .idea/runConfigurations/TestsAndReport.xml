@@ -1,0 +1,7 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="TestsAndReport" type="CompoundRunConfigurationType">
+    <toRun name="MangaParserTest" type="GradleRunConfiguration" />
+    <toRun name="kotatsu-parsers [generateTestsReport]" type="GradleRunConfiguration" />
+    <method v="2" />
+  </configuration>
+</component>

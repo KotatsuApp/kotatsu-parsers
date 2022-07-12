@@ -26,7 +26,7 @@ internal abstract class NineMangaParser(
 		context.cookieJar.insertCookies(getDomain(), "ninemanga_template_desk=yes")
 	}
 
-	private val headers = Headers.Builder()
+	override val headers = Headers.Builder()
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
 		.build()
 
@@ -169,10 +169,6 @@ internal abstract class NineMangaParser(
 				source = source,
 			)
 		} ?: parseFailed("Root not found")
-	}
-
-	override suspend fun parseFavicons(): Favicons {
-		return FaviconParser(context, getDomain()).addHeaders(headers).parseFavicons()
 	}
 
 	private fun parseStatus(status: String) = when {

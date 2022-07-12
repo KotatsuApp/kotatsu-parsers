@@ -141,7 +141,7 @@ internal class MangaParserTest {
 			.host(defaultDomain)
 			.scheme("https")
 			.toString()
-		val response = context.doRequest(url)
+		val response = context.doRequest(url, extraHeaders = parser.headers)
 		val realUrl = response.request.url
 		val realDomain = realUrl.topPrivateDomain()
 		val realHost = realUrl.host

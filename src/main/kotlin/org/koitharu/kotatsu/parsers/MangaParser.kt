@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
+import androidx.annotation.VisibleForTesting
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -30,6 +32,9 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 * Never hardcode domain in requests, use [getDomain] instead.
 	 */
 	protected abstract val configKeyDomain: ConfigKey.Domain
+
+	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+	internal open val headers: Headers? = null
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
@@ -113,7 +118,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
 
 	open suspend fun parseFavicons(): Favicons {
-		return FaviconParser(context, getDomain()).parseFavicons()
+		return FaviconParser(context, getDomain(), headers).parseFavicons()
 	}
 
 	@CallSuper
