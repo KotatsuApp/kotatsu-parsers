@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.util
 
+import okhttp3.Headers
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Favicon
@@ -8,9 +9,16 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 
 class FaviconParser(private val context: MangaLoaderContext, private val domain: String) {
 
+	private val headers = Headers.Builder()
+
+	fun addHeaders(headers: Headers): FaviconParser {
+		this.headers.addAll(headers)
+		return this
+	}
+
 	suspend fun parseFavicons(): Favicons {
 		val url = "https://$domain"
-		val doc = context.httpGet(url).parseHtml()
+		val doc = context.httpGet(url, headers.build()).parseHtml()
 		val result = HashSet<Favicon>()
 		val manifestLink = doc.getElementsByAttributeValue("rel", "manifest").firstOrNull()
 			?.attrAsAbsoluteUrlOrNull("href")
@@ -51,7 +59,7 @@ class FaviconParser(private val context: MangaLoaderContext, private val domain:
 	}
 
 	private suspend fun parseManifest(url: String): List<Favicon> {
-		val json = context.httpGet(url).parseJson()
+		val json = context.httpGet(url, headers.build()).parseJson()
 		val icons = json.getJSONArray("icons")
 		return icons.mapJSON { jo ->
 			Favicon(

@@ -112,7 +112,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	)
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
 
-	suspend fun parseFavicons(): Favicons {
+	open suspend fun parseFavicons(): Favicons {
 		return FaviconParser(context, getDomain()).parseFavicons()
 	}
 

@@ -171,6 +171,10 @@ internal abstract class NineMangaParser(
 		} ?: parseFailed("Root not found")
 	}
 
+	override suspend fun parseFavicons(): Favicons {
+		return FaviconParser(context, getDomain()).addHeaders(headers).parseFavicons()
+	}
+
 	private fun parseStatus(status: String) = when {
 		status.contains("Ongoing") -> MangaState.ONGOING
 		status.contains("Completed") -> MangaState.FINISHED
