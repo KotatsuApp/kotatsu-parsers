@@ -11,7 +11,7 @@ internal class ReadmangaParser(
 ) : GroupleParser(MangaSource.READMANGA_RU, "readmangafun", 1) {
 
 	override val configKeyDomain = ConfigKey.Domain(
-		"readmanga.io",
+		"readmanga.live",
 		arrayOf("readmanga.io", "readmanga.live", "readmanga.me"),
 	)
 

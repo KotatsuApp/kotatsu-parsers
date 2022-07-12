@@ -9,10 +9,7 @@ import okhttp3.HttpUrl
 private const val SCHEME_HTTPS = "https"
 
 fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
-	val url = HttpUrl.Builder()
-		.scheme(SCHEME_HTTPS)
-		.host(domain)
-		.build()
+	val url = safeUrlOf(domain) ?: return
 	saveFromResponse(
 		url,
 		cookies.mapNotNull {
@@ -22,18 +19,12 @@ fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
 }
 
 fun CookieJar.insertCookie(domain: String, cookie: Cookie) {
-	val url = HttpUrl.Builder()
-		.scheme(SCHEME_HTTPS)
-		.host(domain)
-		.build()
+	val url = safeUrlOf(domain) ?: return
 	saveFromResponse(url, listOf(cookie))
 }
 
 fun CookieJar.getCookies(domain: String): List<Cookie> {
-	val url = HttpUrl.Builder()
-		.scheme(SCHEME_HTTPS)
-		.host(domain)
-		.build()
+	val url = safeUrlOf(domain) ?: return emptyList()
 	return loadForRequest(url)
 }
 
@@ -47,4 +38,13 @@ fun CookieJar.copyCookies(oldDomain: String, newDomain: String, names: Array<Str
 	}
 	url.host(newDomain)
 	saveFromResponse(url.build(), cookies)
+}
+
+private fun safeUrlOf(domain: String): HttpUrl? = try {
+	HttpUrl.Builder()
+		.scheme(SCHEME_HTTPS)
+		.host(domain)
+		.build()
+} catch (_: IllegalArgumentException) {
+	null
 }
