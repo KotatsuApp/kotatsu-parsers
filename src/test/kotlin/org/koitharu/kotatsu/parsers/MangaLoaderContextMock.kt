@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
 import com.koushikdutta.quack.QuackContext
+import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -45,10 +46,13 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		return SourceConfigMock()
 	}
 
-	suspend fun doRequest(url: String, referer: String? = null): Response {
+	suspend fun doRequest(url: String, referer: String? = null, extraHeaders: Headers? = null): Response {
 		val request = Request.Builder()
 			.get()
 			.url(url)
+		if (extraHeaders != null) {
+			request.headers(extraHeaders)
+		}
 		if (referer != null) {
 			request.header("Referer", referer)
 		}

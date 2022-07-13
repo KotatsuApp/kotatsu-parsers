@@ -26,7 +26,7 @@ internal abstract class NineMangaParser(
 		context.cookieJar.insertCookies(getDomain(), "ninemanga_template_desk=yes")
 	}
 
-	private val headers = Headers.Builder()
+	override val headers = Headers.Builder()
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
 		.build()
 

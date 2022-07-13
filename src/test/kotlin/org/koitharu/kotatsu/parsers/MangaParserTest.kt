@@ -136,9 +136,16 @@ internal class MangaParserTest {
 	@MangaSources
 	fun favicon(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val faviconUrl = parser.getFaviconUrl()
-		assert(faviconUrl.isUrlAbsolute())
-		checkImageRequest(faviconUrl, null)
+		val favicons = parser.getFavicons()
+		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
+		assert(favicons.isNotEmpty())
+		favicons.forEach {
+			assert(it.url.isUrlAbsolute()) { "Favicon url is not absolute: ${it.url}" }
+			assert(it.type in types) { "Unknown icon type: ${it.type}" }
+		}
+		val favicon = favicons.find(24)
+		checkNotNull(favicon)
+		checkImageRequest(favicon.url, favicons.referer)
 	}
 
 	@ParameterizedTest(name = "{index}|domain|{0}")
@@ -150,7 +157,7 @@ internal class MangaParserTest {
 			.host(defaultDomain)
 			.scheme("https")
 			.toString()
-		val response = context.doRequest(url)
+		val response = context.doRequest(url, extraHeaders = parser.headers)
 		val realUrl = response.request.url
 		val realDomain = realUrl.topPrivateDomain()
 		val realHost = realUrl.host

@@ -24,7 +24,7 @@ internal abstract class GroupleParser(
 	private val siteId: Int,
 ) : MangaParser(source), MangaParserAuthProvider {
 
-	private val headers = Headers.Builder()
+	override val headers = Headers.Builder()
 		.add("User-Agent", userAgent)
 		.build()
 

@@ -1,9 +1,12 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
+import androidx.annotation.VisibleForTesting
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.FaviconParser
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
@@ -29,6 +32,9 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 * Never hardcode domain in requests, use [getDomain] instead.
 	 */
 	protected abstract val configKeyDomain: ConfigKey.Domain
+
+	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+	internal open val headers: Headers? = null
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
@@ -105,7 +111,18 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	/**
 	 * Returns direct link to the website favicon
 	 */
+	@Deprecated(
+		message = "Use parseFavicons() to get multiple favicons with different size",
+		replaceWith = ReplaceWith("parseFavicons()"),
+	)
 	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
+
+	/**
+	 * Parse favicons from the main page of the source`s website
+	 */
+	open suspend fun getFavicons(): Favicons {
+		return FaviconParser(context, getDomain(), headers).parseFavicons()
+	}
 
 	@CallSuper
 	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
