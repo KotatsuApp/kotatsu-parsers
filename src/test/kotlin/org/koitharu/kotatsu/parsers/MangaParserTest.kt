@@ -120,7 +120,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun favicon(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val favicons = parser.parseFavicons()
+		val favicons = parser.getFavicons()
 		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
 		assert(favicons.isNotEmpty())
 		favicons.forEach {
