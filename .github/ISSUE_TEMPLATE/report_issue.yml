@@ -25,27 +25,7 @@ body:
           2. Second step
           3. Issue here
     validations:
-      required: true
-
-  - type: textarea
-    id: expected-behavior
-    attributes:
-      label: Expected behavior
-      placeholder: |
-        Example:
-          "This should happen..."
-    validations:
-      required: true
-
-  - type: textarea
-    id: actual-behavior
-    attributes:
-      label: Actual behavior
-      placeholder: |
-        Example:
-          "This happened instead..."
-    validations:
-      required: true
+      required: false
 
   - type: input
     id: kotatsu-version
@@ -54,7 +34,7 @@ body:
       description: |
         You can find your Kotatsu version in **Settings → About**.
       placeholder: |
-        Example: "3.3.1"
+        Example: "3.3"
     validations:
       required: true
 
@@ -67,7 +47,7 @@ body:
       placeholder: |
         Example: "Android 12"
     validations:
-      required: true
+      required: false
 
   - type: textarea
     id: other-details
@@ -80,15 +60,6 @@ body:
     id: acknowledgements
     attributes:
       label: Acknowledgements
-      description: Your issue will be closed if you haven't done these steps.
       options:
         - label: I have searched the existing issues and this is a new ticket, **NOT** a duplicate or related to another open issue.
-          required: true
-        - label: I have written a short but informative title.
-          required: true
-        - label: I have updated the app to version **[3.3.1](https://github.com/KotatsuApp/Kotatsu/releases/latest)**.
-          required: true
-        - label: If this is an issue with the app itself, I should be opening an issue in the [app repository](https://github.com/KotatsuApp/Kotatsu/issues/new/choose).
-          required: true
-        - label: I will fill out all of the requested information in this form.
           required: true
