@@ -90,6 +90,7 @@ fun Element.styleValueOrNull(property: String): String? {
 	return css.substringAfter(':').removeSuffix(';').trim()
 }
 
+@Deprecated("Now implemented in Jsoup", ReplaceWith("expectFirst(cssQuery)"))
 fun Element.selectFirstOrThrow(cssQuery: String): Element {
 	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"")
 }
