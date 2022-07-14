@@ -6,8 +6,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NHENTAI", "N-Hentai")
-class NHentaiParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.NHENTAI) {
+class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser(MangaSource.NHENTAI, pageSize = 25) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("nhentai.net", null)
@@ -23,17 +23,16 @@ class NHentaiParser(override val context: MangaLoaderContext) : MangaParser(Mang
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST, SortOrder.POPULARITY)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
-			return getList(offset, buildQuery(tags), emptySet(), sortOrder)
+			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
 		}
 		val domain = getDomain()
-		val page = (offset / 25) + 1
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -101,7 +100,7 @@ class NHentaiParser(override val context: MangaLoaderContext) : MangaParser(Mang
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = context.httpGet(
-			url = manga.url.toAbsoluteUrl(getDomain())
+			url = manga.url.toAbsoluteUrl(getDomain()),
 		).parseHtml().body().requireElementById("bigcontainer")
 		val img = root.requireElementById("cover").selectFirstOrThrow("img")
 		val tagContainers = root.requireElementById("tags").select(".tag-container")
@@ -126,12 +125,12 @@ class NHentaiParser(override val context: MangaLoaderContext) : MangaParser(Mang
 					uploadDate = dateFormat.tryParse(
 						tagContainers.find { x -> x.ownText() == "Uploaded:" }
 							?.selectFirst("time")
-							?.attr("datetime")
+							?.attr("datetime"),
 					),
 					branch = null,
 					source = source,
-				)
-			)
+				),
+			),
 		)
 	}
 

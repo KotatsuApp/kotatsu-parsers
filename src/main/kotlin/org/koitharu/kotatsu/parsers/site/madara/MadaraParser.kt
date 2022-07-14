@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.madara
 
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,13 +12,11 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val PAGE_SIZE = 12
-
 internal abstract class MadaraParser(
 	override val context: MangaLoaderContext,
 	source: MangaSource,
 	domain: String,
-) : MangaParser(source) {
+) : PagedMangaParser(source, pageSize = 12) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain, null)
 
@@ -30,22 +28,27 @@ internal abstract class MadaraParser(
 	protected open val tagPrefix = "manga-genre/"
 	protected open val isNsfwSource = false
 
-	override suspend fun getList(
-		offset: Int,
+	init {
+		paginator.firstPage = 0
+		searchPaginator.firstPage = 0
+	}
+
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
 		val payload = createRequestTemplate()
-		payload["page"] = (offset / PAGE_SIZE.toFloat()).toIntUp().toString()
+		payload["page"] = page.toString()
 		payload["vars[meta_key]"] = when (sortOrder) {
 			SortOrder.POPULARITY -> "_wp_manga_views"
 			SortOrder.UPDATED -> "_latest_update"
 			else -> "_wp_manga_views"
 		}
 		payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
-		payload["vars[s]"] = query.orEmpty()
+		payload["vars[s]"] = query?.urlEncoded().orEmpty()
 		val doc = context.httpPost(
 			"https://${getDomain()}/wp-admin/admin-ajax.php",
 			payload,

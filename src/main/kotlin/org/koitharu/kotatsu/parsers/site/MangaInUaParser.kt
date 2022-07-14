@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -12,26 +12,28 @@ import java.util.*
 private const val DEF_BRANCH_NAME = "Основний переклад"
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
-class MangaInUaParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAINUA) {
+class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaParser(
+	source = MangaSource.MANGAINUA,
+	pageSize = 24,
+	searchPageSize = 10,
+) {
 
 	override val sortOrders: Set<SortOrder>
 		get() = Collections.singleton(SortOrder.UPDATED)
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua", null)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val page = (offset / 24f).toIntUp().inc()
-		val searchPage = (offset / 10f).toIntUp().inc()
 		val url = when {
 			!query.isNullOrEmpty() -> (
 					"/index.php?do=search" +
 							"&subaction=search" +
-							"&search_start=$searchPage" +
+							"&search_start=$page" +
 							"&full_search=1" +
 							"&story=$query" +
 							"&titleonly=3"

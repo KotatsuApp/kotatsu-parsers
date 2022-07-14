@@ -69,7 +69,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 * @param offset starting from 0 and used for pagination.
 	 * @param query search query
 	 */
-	suspend fun getList(offset: Int, query: String): List<Manga> {
+	open suspend fun getList(offset: Int, query: String): List<Manga> {
 		return getList(offset, query, null, defaultSortOrder)
 	}
 
@@ -81,7 +81,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
 	 * @param sortOrder one of [sortOrders] or null for default value
 	 */
-	suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
+	open suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
 		return getList(offset, null, tags, sortOrder ?: defaultSortOrder)
 	}
 

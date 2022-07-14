@@ -4,8 +4,8 @@ import androidx.collection.arraySetOf
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -16,9 +16,8 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	override val context: MangaLoaderContext,
 	source: MangaSource,
 	domain: String,
-) : MangaParser(source) {
+) : PagedMangaParser(source, pageSize = 22) {
 
-	protected open val pageSize = 22
 	protected open val tagPrefix = "/mangas/"
 	protected open val nsfwTags = arraySetOf("yaoi", "yuri", "mature")
 
@@ -26,9 +25,12 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 
 	override val configKeyDomain = ConfigKey.Domain(domain, null)
 
-	@InternalParsersApi
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
-		val page = (offset / pageSize.toFloat()).toIntUp()
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
 		val domain = getDomain()
 		val url = buildString {
 			append("https://")

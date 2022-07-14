@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
 @MangaSourceParser("DESUME", "Desu.me", "ru")
-internal class DesuMeParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.DESUME) {
+internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMangaParser(MangaSource.DESUME, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.me", null)
 
@@ -24,13 +24,13 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 		SortOrder.ALPHABETICAL,
 	)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		if (query != null && offset != 0) {
+		if (query != null && page != searchPaginator.firstPage) {
 			return emptyList()
 		}
 		val domain = getDomain()
@@ -40,7 +40,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : MangaPar
 			append("/manga/api/?limit=20&order=")
 			append(getSortKey(sortOrder))
 			append("&page=")
-			append((offset / 20) + 1)
+			append(page)
 			if (!tags.isNullOrEmpty()) {
 				append("&genres=")
 				appendAll(tags, ",") { it.key }

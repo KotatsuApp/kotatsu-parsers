@@ -2,9 +2,9 @@ package org.koitharu.kotatsu.parsers.site
 
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -19,7 +19,7 @@ private const val DOMAIN_AUTHORIZED = "exhentai.org"
 @MangaSourceParser("EXHENTAI", "ExHentai")
 internal class ExHentaiParser(
 	override val context: MangaLoaderContext,
-) : MangaParser(MangaSource.EXHENTAI), MangaParserAuthProvider {
+) : PagedMangaParser(MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.NEWEST,
@@ -57,13 +57,12 @@ internal class ExHentaiParser(
 		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
 	}
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val page = (offset / 25f).toIntUp()
 		var search = query?.urlEncoded().orEmpty()
 		val url = buildString {
 			append("https://")
@@ -98,7 +97,7 @@ internal class ExHentaiParser(
 				parseFailed("Cannot find root")
 			} else {
 				updateDm = true
-				return getList(offset, query, tags, sortOrder)
+				return getListPage(page, query, tags, sortOrder)
 			}
 		updateDm = false
 		return root.children().mapNotNull { tr ->

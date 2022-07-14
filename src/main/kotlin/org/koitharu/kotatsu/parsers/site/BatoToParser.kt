@@ -5,8 +5,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,11 +17,12 @@ import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
-private const val PAGE_SIZE = 60
-private const val PAGE_SIZE_SEARCH = 20
-
 @MangaSourceParser("BATOTO", "Bato.To")
-internal class BatoToParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.BATOTO) {
+internal class BatoToParser(override val context: MangaLoaderContext) : PagedMangaParser(
+	source = MangaSource.BATOTO,
+	pageSize = 60,
+	searchPageSize = 20,
+) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -35,17 +36,15 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 		arrayOf("bato.to", "mto.to", "mangatoto.com", "battwo.com", "batotwo.com", "comiko.net", "batotoo.com"),
 	)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
-			return search(offset, query)
+			return search(page, query)
 		}
-		val page = (offset / PAGE_SIZE) + 1
-
 		@Suppress("NON_EXHAUSTIVE_WHEN_STATEMENT")
 		val url = buildString {
 			append("https://")
@@ -159,8 +158,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : MangaPar
 
 	override fun getFaviconUrl(): String = "https://styles.amarkcdn.com/img/batoto/favicon.ico?v0"
 
-	private suspend fun search(offset: Int, query: String): List<Manga> {
-		val page = (offset / PAGE_SIZE_SEARCH) + 1
+	private suspend fun search(page: Int, query: String): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(getDomain())

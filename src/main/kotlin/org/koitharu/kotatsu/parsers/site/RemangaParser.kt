@@ -6,9 +6,9 @@ import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -31,7 +31,7 @@ private const val STATUS_FINISHED = 0
 @MangaSourceParser("REMANGA", "Remanga", "ru")
 internal class RemangaParser(
 	override val context: MangaLoaderContext,
-) : MangaParser(MangaSource.REMANGA), MangaParserAuthProvider {
+) : PagedMangaParser(MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("remanga.org", null)
 	override val authUrl: String
@@ -53,8 +53,8 @@ internal class RemangaParser(
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
@@ -77,7 +77,7 @@ internal class RemangaParser(
 		}
 		urlBuilder
 			.append("&page=")
-			.append((offset / PAGE_SIZE) + 1)
+			.append(page)
 			.append("&count=")
 			.append(PAGE_SIZE)
 		val content = context.httpGet(urlBuilder.toString(), getApiHeaders()).parseJson()

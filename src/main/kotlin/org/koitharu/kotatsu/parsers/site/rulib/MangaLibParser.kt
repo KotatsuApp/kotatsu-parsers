@@ -5,9 +5,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -22,7 +22,7 @@ import java.util.*
 internal open class MangaLibParser(
 	override val context: MangaLoaderContext,
 	source: MangaSource,
-) : MangaParser(source), MangaParserAuthProvider {
+) : PagedMangaParser(source, pageSize = 60), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangalib.me", null)
 
@@ -37,16 +37,15 @@ internal open class MangaLibParser(
 		SortOrder.NEWEST,
 	)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
-			return if (offset == 0) search(query) else emptyList()
+			return if (page == searchPaginator.firstPage) search(query) else emptyList()
 		}
-		val page = (offset / 60f).toIntUp()
 		val url = buildString {
 			append("https://")
 			append(getDomain())

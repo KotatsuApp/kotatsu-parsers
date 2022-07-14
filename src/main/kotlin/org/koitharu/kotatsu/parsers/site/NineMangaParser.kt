@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,13 +12,11 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val PAGE_SIZE = 26
-
 internal abstract class NineMangaParser(
 	final override val context: MangaLoaderContext,
 	source: MangaSource,
 	defaultDomain: String,
-) : MangaParser(source) {
+) : PagedMangaParser(source, pageSize = 26) {
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain, null)
 
@@ -34,13 +32,12 @@ internal abstract class NineMangaParser(
 		SortOrder.POPULARITY,
 	)
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
 		val url = buildString {
 			append("https://")
 			append(getDomain())
