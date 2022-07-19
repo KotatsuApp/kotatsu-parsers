@@ -66,8 +66,8 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 				}
 			}
 		}
-		val root = context.httpGet(url).parseHtml().body().getElementById("content")
-			?.selectLast("div.index-container") ?: parseFailed("Root not found")
+		val root = context.httpGet(url).parseHtml().body().requireElementById("content")
+			.selectLastOrThrow("div.index-container")
 		val regexBrackets = Regex("\\[[^]]+]|\\([^)]+\\)")
 		val regexSpaces = Regex("\\s+")
 		return root.select(".gallery").map { div ->

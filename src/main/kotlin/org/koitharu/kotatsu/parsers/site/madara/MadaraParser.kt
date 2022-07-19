@@ -55,7 +55,7 @@ internal abstract class MadaraParser(
 		).parseHtml()
 		return doc.select("div.row.c-tabs-item__content").map { div ->
 			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-				?: parseFailed("Link not found")
+				?: div.parseFailed("Link not found")
 			val summary = div.selectFirst(".tab-summary")
 			Manga(
 				id = generateUid(href),
@@ -94,7 +94,7 @@ internal abstract class MadaraParser(
 		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")
 		val root2 = body.selectFirst("div.genres_wrap")?.selectFirst("ul.list-unstyled")
 		if (root1 == null && root2 == null) {
-			parseFailed("Root not found")
+			doc.parseFailed("Root not found")
 		}
 		val list = root1?.select("li").orEmpty() + root2?.select("li").orEmpty()
 		val keySet = HashSet<String>(list.size)
@@ -121,10 +121,10 @@ internal abstract class MadaraParser(
 		val root = doc.body().selectFirst("div.profile-manga")
 			?.selectFirst("div.summary_content")
 			?.selectFirst("div.post-content")
-			?: throw ParseException("Root not found")
+			?: throw ParseException("Root not found", fullUrl)
 		val root2 = doc.body().selectFirst("div.content-area")
 			?.selectFirst("div.c-page")
-			?: throw ParseException("Root2 not found")
+			?: throw ParseException("Root2 not found", fullUrl)
 		val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
 		return manga.copy(
 			tags = root.selectFirst("div.genres-content")?.select("a")
@@ -142,7 +142,7 @@ internal abstract class MadaraParser(
 				?.joinToString { it.html() },
 			chapters = root2.select("li").asReversed().mapChapters { i, li ->
 				val a = li.selectFirst("a")
-				val href = a?.attrAsRelativeUrlOrNull("href") ?: parseFailed("Link is missing")
+				val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 				MangaChapter(
 					id = generateUid(href),
 					name = a.ownText(),
@@ -165,10 +165,10 @@ internal abstract class MadaraParser(
 		val doc = context.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirst("div.main-col-inner")
 			?.selectFirst("div.reading-content")
-			?: throw ParseException("Root not found")
+			?: throw ParseException("Root not found", fullUrl)
 		return root.select("div.page-break").map { div ->
-			val img = div.selectFirst("img") ?: parseFailed("Page image not found")
-			val url = img.src()?.toRelativeUrl(getDomain()) ?: parseFailed("Image src not found")
+			val img = div.selectFirst("img") ?: div.parseFailed("Page image not found")
+			val url = img.src()?.toRelativeUrl(getDomain()) ?: div.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,

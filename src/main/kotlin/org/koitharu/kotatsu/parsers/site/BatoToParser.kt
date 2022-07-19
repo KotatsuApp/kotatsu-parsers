@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.nio.charset.StandardCharsets
@@ -70,8 +71,8 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-			.getElementById("mainer") ?: parseFailed("Cannot find root")
-		val details = root.selectFirst(".detail-set") ?: parseFailed("Cannot find detail-set")
+			.requireElementById("mainer")
+		val details = root.selectFirstOrThrow(".detail-set")
 		val attrs = details.selectFirst(".attr-main")?.select(".attr-item")?.associate {
 			it.child(0).text().trim() to it.child(1)
 		}.orEmpty()
@@ -113,11 +114,11 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 			}
 			val images = JSONArray(scriptSrc.substring(start, end))
 			val batoPass = scriptSrc.substringBetweenFirst("batoPass =", ";")?.trim(' ', '"', '\n')
-				?: parseFailed("Cannot find batoPass")
+				?: script.parseFailed("Cannot find batoPass")
 			val batoWord = scriptSrc.substringBetweenFirst("batoWord =", ";")?.trim(' ', '"', '\n')
-				?: parseFailed("Cannot find batoWord")
+				?: script.parseFailed("Cannot find batoWord")
 			val password = context.evaluateJs(batoPass)?.removeSurrounding('"')
-				?: parseFailed("Cannot evaluate batoPass")
+				?: script.parseFailed("Cannot evaluate batoPass")
 			val args = JSONArray(decryptAES(batoWord, password))
 			val result = ArrayList<MangaPage>(images.length())
 			repeat(images.length()) { i ->
@@ -132,13 +133,13 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 			}
 			return result
 		}
-		parseFailed("Cannot find images list")
+		throw ParseException("Cannot find images list", fullUrl)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val scripts = context.httpGet(
 			"https://${getDomain()}/browse",
-		).parseHtml().select("script")
+		).parseHtml().selectOrThrow("script")
 		for (script in scripts) {
 			val genres = script.html().substringBetweenFirst("const _genres =", ";") ?: continue
 			val jo = JSONObject(genres)
@@ -153,7 +154,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 			}
 			return result
 		}
-		parseFailed("Cannot find gernes list")
+		throw ParseException("Cannot find gernes list", scripts[0].baseUri())
 	}
 
 	override fun getFaviconUrl(): String = "https://styles.amarkcdn.com/img/batoto/favicon.ico?v0"
@@ -173,7 +174,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 	private fun getActivePage(body: Element): Int = body.select("nav ul.pagination > li.page-item.active")
 		.lastOrNull()
 		?.text()
-		?.toIntOrNull() ?: parseFailed("Cannot determine current page")
+		?.toIntOrNull() ?: body.parseFailed("Cannot determine current page")
 
 	private suspend fun parseList(url: String, page: Int): List<Manga> {
 		val body = context.httpGet(url).parseHtml().body()
@@ -184,11 +185,11 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 		if (activePage != page) {
 			return emptyList()
 		}
-		val root = body.getElementById("series-list") ?: parseFailed("Cannot find root")
+		val root = body.requireElementById("series-list")
 		return root.children().map { div ->
-			val a = div.selectFirst("a") ?: parseFailed()
+			val a = div.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val title = div.selectFirst(".item-title")?.text() ?: parseFailed("Title not found")
+			val title = div.selectFirstOrThrow(".item-title").text()
 			Manga(
 				id = generateUid(href),
 				title = title,

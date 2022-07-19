@@ -4,6 +4,7 @@ package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Element
+import org.jsoup.select.Elements
 import org.jsoup.select.Selector
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
@@ -90,13 +91,21 @@ fun Element.styleValueOrNull(property: String): String? {
 	return css.substringAfter(':').removeSuffix(';').trim()
 }
 
-@Deprecated("Now implemented in Jsoup", ReplaceWith("expectFirst(cssQuery)"))
+/**
+ * Like a `expectFirst` but with detailed error message
+ */
 fun Element.selectFirstOrThrow(cssQuery: String): Element {
-	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"")
+	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
+}
+
+fun Element.selectOrThrow(cssQuery: String): Elements {
+	return Selector.select(cssQuery, this).ifEmpty {
+		throw ParseException("Empty result for \"$cssQuery\"", baseUri())
+	}
 }
 
 fun Element.requireElementById(id: String): Element {
-	return getElementById(id) ?: throw ParseException("Cannot find \"#$id\"")
+	return getElementById(id) ?: throw ParseException("Cannot find \"#$id\"", baseUri())
 }
 
 fun Element.selectLast(cssQuery: String): Element? {
@@ -104,5 +113,5 @@ fun Element.selectLast(cssQuery: String): Element? {
 }
 
 fun Element.selectLastOrThrow(cssQuery: String): Element {
-	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"")
+	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
 }

@@ -7,6 +7,7 @@ import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -79,13 +80,13 @@ internal abstract class GroupleParser(
 			else -> advancedSearch(domain, tags)
 		}.parseHtml().body()
 		val root = (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults"))
-			?: parseFailed("Cannot find root")
+			?: doc.parseFailed("Cannot find root")
 		val tiles = root.selectFirst("div.tiles.row") ?: if (
 			root.select(".alert").any { it.ownText() == NOTHING_FOUND }
 		) {
 			return emptyList()
 		} else {
-			parseFailed("No tiles found")
+			doc.parseFailed("No tiles found")
 		}
 		val baseHost = root.baseUri().toHttpUrl().host
 		return tiles.select("div.tile").mapNotNull { node ->
@@ -142,7 +143,7 @@ internal abstract class GroupleParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
-			?: parseFailed("Cannot find root")
+			?: doc.parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
 		return manga.copy(
@@ -218,7 +219,7 @@ internal abstract class GroupleParser(
 				)
 			}
 		}
-		parseFailed("Pages list not found at ${chapter.url}")
+		doc.parseFailed("Pages list not found at ${chapter.url}")
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
@@ -232,14 +233,14 @@ internal abstract class GroupleParser(
 				return url
 			}
 		}
-		val fallbackServer = servers.firstOrNull() ?: parseFailed("Cannot find any page url")
+		val fallbackServer = servers.firstOrNull() ?: throw ParseException("Cannot find any page url", page.url)
 		return fallbackServer + path
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = context.httpGet("https://${getDomain()}/list/genres/sort_name", headers).parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
-			?.selectFirst("table.table") ?: parseFailed("Cannot find root")
+			?.selectFirst("table.table") ?: doc.parseFailed("Cannot find root")
 		return root.select("a.element-link").mapToSet { a ->
 			MangaTag(
 				title = a.text().toTitleCase(),
@@ -254,7 +255,7 @@ internal abstract class GroupleParser(
 		val element = root.selectFirst("img.user-avatar") ?: throw AuthRequiredException(source)
 		val res = element.parent()?.text()
 		return if (res.isNullOrEmpty()) {
-			parseFailed("Cannot find username")
+			root.parseFailed("Cannot find username")
 		} else res
 	}
 
@@ -273,21 +274,21 @@ internal abstract class GroupleParser(
 		val tagsIndex = context.httpGet(url, headers).parseHtml()
 			.body().selectFirst("form.search-form")
 			?.select("div.form-group")
-			?.get(1) ?: parseFailed("Genres filter element not found")
+			?.get(1) ?: throw ParseException("Genres filter element not found", url)
 		val tagNames = tags.map { it.title.lowercase() }
 		val payload = HashMap<String, String>()
 		var foundGenres = 0
 		tagsIndex.select("li.property").forEach { li ->
 			val name = li.text().trim().lowercase()
 			val id = li.selectFirst("input")?.id()
-				?: parseFailed("Id for tag $name not found")
+				?: li.parseFailed("Id for tag $name not found")
 			payload[id] = if (name in tagNames) {
 				foundGenres++
 				"in"
 			} else ""
 		}
 		if (foundGenres != tags.size) {
-			parseFailed("Some genres are not found")
+			tagsIndex.parseFailed("Some genres are not found")
 		}
 		// Step 2: advanced search
 		payload["q"] = ""

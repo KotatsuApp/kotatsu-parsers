@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -66,11 +65,11 @@ internal abstract class NineMangaParser(
 		}
 		val doc = context.httpGet(url, headers).parseHtml()
 		val root = doc.body().selectFirst("ul.direlist")
-			?: throw ParseException("Cannot find root")
+			?: doc.parseFailed("Cannot find root")
 		val baseHost = root.baseUri().toHttpUrl().host
 		return root.select("li").map { node ->
 			val href = node.selectFirst("a")?.absUrl("href")
-				?: parseFailed("Link not found")
+				?: node.parseFailed("Link not found")
 			val relUrl = href.toRelativeUrl(baseHost)
 			val dd = node.selectFirst("dd")
 			Manga(
@@ -96,10 +95,8 @@ internal abstract class NineMangaParser(
 			manga.url.toAbsoluteUrl(getDomain()) + "?waring=1",
 			headers,
 		).parseHtml()
-		val root = doc.body().selectFirst("div.manga")
-			?: throw ParseException("Cannot find root")
-		val infoRoot = root.selectFirst("div.bookintro")
-			?: throw ParseException("Cannot find info")
+		val root = doc.body().selectFirstOrThrow("div.manga")
+		val infoRoot = root.selectFirstOrThrow("div.bookintro")
 		return manga.copy(
 			tags = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()
 				?.select("a")?.mapToSet { a ->
@@ -117,7 +114,7 @@ internal abstract class NineMangaParser(
 				?.asReversed()?.mapChapters { i, li ->
 					val a = li.selectFirst("a.chapter_list_a")
 					val href = a?.attrAsRelativeUrlOrNull("href")
-						?.replace("%20", " ") ?: parseFailed("Link not found")
+						?.replace("%20", " ") ?: li.parseFailed("Link not found")
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
@@ -143,14 +140,14 @@ internal abstract class NineMangaParser(
 				preview = null,
 				source = source,
 			)
-		} ?: throw ParseException("Pages list not found at ${chapter.url}")
+		} ?: doc.parseFailed("Pages list not found")
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
 		val root = doc.body()
 		return root.selectFirst("a.pic_download")?.absUrl("href")
-			?: throw ParseException("Page image not found")
+			?: doc.parseFailed("Page image not found")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -165,7 +162,7 @@ internal abstract class NineMangaParser(
 				key = cateId,
 				source = source,
 			)
-		} ?: parseFailed("Root not found")
+		} ?: doc.parseFailed("Root not found")
 	}
 
 	private fun parseStatus(status: String) = when {

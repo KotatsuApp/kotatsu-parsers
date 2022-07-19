@@ -3,14 +3,10 @@ package org.koitharu.kotatsu.parsers.site.multichan
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
 internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.YAOICHAN) {
@@ -19,8 +15,7 @@ internal class YaoiChanParser(override val context: MangaLoaderContext) : ChanPa
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root =
-			doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
+		val root = doc.body().requireElementById("dle-content")
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),

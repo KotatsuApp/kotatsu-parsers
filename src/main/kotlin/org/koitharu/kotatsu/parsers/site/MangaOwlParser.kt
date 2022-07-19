@@ -4,7 +4,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -52,7 +51,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 			}
 		}
 		val doc = context.httpGet(link).parseHtml()
-		val slides = doc.body().select("ul.slides") ?: parseFailed("An error occurred while parsing")
+		val slides = doc.body().selectOrThrow("ul.slides")
 		val items = slides.select("div.col-md-2")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("h6 a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
@@ -80,12 +79,12 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.publicUrl).parseHtml()
-		val info = doc.body().selectFirst("div.single_detail") ?: parseFailed("An error occurred while parsing")
-		val table = doc.body().selectFirst("div.single-grid-right") ?: parseFailed("An error occurred while parsing")
+		val info = doc.body().selectFirstOrThrow("div.single_detail")
+		val table = doc.body().selectFirstOrThrow("div.single-grid-right")
 		val dateFormat = SimpleDateFormat("MM/dd/yyyy", Locale.US)
 		val trRegex = "window\\['tr'] = '([^']*)';".toRegex(RegexOption.IGNORE_CASE)
-		val trElement =
-			doc.getElementsByTag("script").find { trRegex.find(it.data()) != null } ?: parseFailed("Oops, tr not found")
+		val trElement = doc.getElementsByTag("script").find { trRegex.find(it.data()) != null }
+			?: doc.parseFailed("Oops, tr not found")
 		val tr = trRegex.find(trElement.data())!!.groups[1]!!.value
 		val s = context.encodeBase64(getDomain().toByteArray())
 		var isNsfw = manga.isNsfw
@@ -115,7 +114,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 				.asReversed().mapChapters { i, li ->
 					val a = li.select("a")
 					val href = a.attr("data-href").ifEmpty {
-						parseFailed("Link is missing")
+						li.parseFailed("Link is missing")
 					}
 					MangaChapter(
 						id = generateUid(href),
@@ -134,9 +133,9 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
-		val root = doc.body().select("div.item img.owl-lazy") ?: throw ParseException("Root not found")
+		val root = doc.body().selectOrThrow("div.item img.owl-lazy")
 		return root.map { div ->
-			val url = div?.attrAsRelativeUrlOrNull("data-src") ?: parseFailed("Page image not found")
+			val url = div?.attrAsRelativeUrlOrNull("data-src") ?: doc.parseFailed("Page image not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -158,7 +157,7 @@ internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaP
 		val doc = context.httpGet("https://${getDomain()}/").parseHtml()
 		val root = doc.body().select("ul.dropdown-menu.multi-column.columns-3").select("li")
 		return root.mapToSet { p ->
-			val a = p.selectFirst("a") ?: parseFailed("a is null")
+			val a = p.selectFirstOrThrow("a")
 			MangaTag(
 				title = a.text().toTitleCase(),
 				key = a.attr("href"),

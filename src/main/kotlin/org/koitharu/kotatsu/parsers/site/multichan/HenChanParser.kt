@@ -3,12 +3,8 @@ package org.koitharu.kotatsu.parsers.site.multichan
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
 internal class HenChanParser(override val context: MangaLoaderContext) : ChanParser(MangaSource.HENCHAN) {
@@ -34,13 +30,13 @@ internal class HenChanParser(override val context: MangaLoaderContext) : ChanPar
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root = doc.body().getElementById("dle-content") ?: throw ParseException("Cannot find root")
+		val root = doc.body().requireElementById("dle-content")
 		val readLink = manga.url.replace("manga", "online")
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			tags = root.selectFirst("div.sidetags")?.select("li.sidetag")?.mapToSet {
-				val a = it.children().last() ?: parseFailed("Invalid tag")
+				val a = it.children().last() ?: doc.parseFailed("Invalid tag")
 				MangaTag(
 					title = a.text().toTitleCase(),
 					key = a.attr("href").substringAfterLast('/'),

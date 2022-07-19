@@ -59,7 +59,7 @@ internal open class MangaLibParser(
 			}
 		}
 		val doc = context.httpGet(url).parseHtml()
-		val root = doc.body().getElementById("manga-list") ?: throw ParseException("Root not found")
+		val root = doc.body().getElementById("manga-list") ?: doc.parseFailed("Root not found")
 		val items = root.selectFirst("div.media-cards-grid")?.select("div.media-card-wrap")
 			?: return emptyList()
 		return items.mapNotNull { card ->
@@ -85,7 +85,7 @@ internal open class MangaLibParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val fullUrl = manga.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet("$fullUrl?section=info").parseHtml()
-		val root = doc.body().getElementById("main-page") ?: throw ParseException("Root not found")
+		val root = doc.body().getElementById("main-page") ?: throw ParseException("Root not found", fullUrl)
 		val title = root.selectFirst("div.media-header__wrap")?.children()
 		val info = root.selectFirst("div.media-content")
 		val chaptersDoc = context.httpGet("$fullUrl?section=chapters").parseHtml()
@@ -169,7 +169,7 @@ internal open class MangaLibParser(
 			throw AuthRequiredException(source)
 		}
 		val scripts = doc.head().select("script")
-		val pg = (doc.body().getElementById("pg")?.html() ?: parseFailed("Element #pg not found"))
+		val pg = (doc.body().getElementById("pg")?.html() ?: doc.parseFailed("Element #pg not found"))
 			.substringAfter('=')
 			.substringBeforeLast(';')
 		val pages = JSONArray(pg)
@@ -199,7 +199,7 @@ internal open class MangaLibParser(
 				}
 			}
 		}
-		throw ParseException("Script with info not found")
+		throw ParseException("Script with info not found", fullUrl)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -222,7 +222,7 @@ internal open class MangaLibParser(
 				return result
 			}
 		}
-		throw ParseException("Script with genres not found")
+		throw ParseException("Script with genres not found", url)
 	}
 
 	override val isAuthorized: Boolean
@@ -237,13 +237,13 @@ internal open class MangaLibParser(
 		if (body.baseUri().endsWith("/login")) {
 			throw AuthRequiredException(source)
 		}
-		return body.selectFirst(".profile-user__username")?.text() ?: parseFailed("Cannot find username")
+		return body.selectFirst(".profile-user__username")?.text() ?: body.parseFailed("Cannot find username")
 	}
 
 	protected open fun isNsfw(doc: Document): Boolean {
 		val sidebar = doc.body().run {
 			selectFirst(".media-sidebar") ?: selectFirst(".media-info")
-		} ?: parseFailed("Sidebar not found")
+		} ?: doc.parseFailed("Sidebar not found")
 		return sidebar.getElementsContainingOwnText("18+").isNotEmpty()
 	}
 

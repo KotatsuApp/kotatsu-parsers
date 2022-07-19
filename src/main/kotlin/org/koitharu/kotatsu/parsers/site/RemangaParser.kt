@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -113,7 +114,7 @@ internal class RemangaParser(
 		copyCookies()
 		val domain = getDomain()
 		val slug = manga.url.find(regexLastUrlPath)
-			?: throw ParseException("Cannot obtain slug from ${manga.url}")
+			?: throw ParseException("Cannot obtain slug from ${manga.url}", manga.publicUrl)
 		val data = context.httpGet(
 			url = "https://api.$domain/api/titles/$slug/",
 			headers = getApiHeaders(),
@@ -121,10 +122,10 @@ internal class RemangaParser(
 		val content = try {
 			data.getJSONObject("content")
 		} catch (e: JSONException) {
-			throw ParseException(data.optString("msg"), e)
+			throw ParseException(data.optString("msg"), manga.publicUrl, e)
 		}
 		val branchId = content.getJSONArray("branches").optJSONObject(0)
-			?.getLong("id") ?: throw ParseException("No branches found")
+			?.getLong("id") ?: throw ParseException("No branches found", manga.publicUrl)
 		val chapters = grabChapters(domain, branchId)
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
 		return manga.copy(
@@ -182,9 +183,9 @@ internal class RemangaParser(
 			}
 			if (pubDate != null && pubDate > System.currentTimeMillis()) {
 				val at = SimpleDateFormat.getDateInstance(DateFormat.LONG).format(Date(pubDate))
-				parseFailed("Глава станет доступной $at")
+				throw ContentUnavailableException("Глава станет доступной $at")
 			} else {
-				parseFailed("Глава недоступна")
+				throw ContentUnavailableException("Глава недоступна")
 			}
 		}
 		val result = ArrayList<MangaPage>(pages.length())
@@ -192,7 +193,7 @@ internal class RemangaParser(
 			when (val item = pages.get(i)) {
 				is JSONObject -> result += parsePage(item, referer)
 				is JSONArray -> item.mapJSONTo(result) { parsePage(it, referer) }
-				else -> throw ParseException("Unknown json item $item")
+				else -> throw ParseException("Unknown json item $item", chapter.url)
 			}
 		}
 		return result

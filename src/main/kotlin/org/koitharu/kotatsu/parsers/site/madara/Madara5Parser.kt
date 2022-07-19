@@ -89,7 +89,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 			?.getElementsByAttributeValueContaining("href", tagPrefix)
 			?.mapToSet { a -> a.asMangaTag() } ?: manga.tags
 		val mangaId = root.getElementById("manga-chapters-holder")?.attr("data-id")?.toLongOrNull()
-			?: parseFailed("Cannot find mangaId")
+			?: root.parseFailed("Cannot find mangaId")
 		return manga.copy(
 			description = (root.selectFirst(".detail-content")
 				?: root.selectFirstOrThrow(".description-summary")).html(),
@@ -106,7 +106,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
-		val arrayData = doc.getElementById("arraydata") ?: parseFailed("#arraydata not found")
+		val arrayData = doc.getElementById("arraydata") ?: doc.parseFailed("#arraydata not found")
 		return arrayData.html().split(',').map { url ->
 			MangaPage(
 				id = generateUid(url),

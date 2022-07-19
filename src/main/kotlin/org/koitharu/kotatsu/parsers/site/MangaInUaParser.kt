@@ -45,7 +45,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 			else -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
 		}
 		val doc = context.httpGet(url).parseHtml()
-		val container = doc.body().getElementById("dle-content") ?: parseFailed("Container not found")
+		val container = doc.body().requireElementById("dle-content")
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
@@ -81,8 +81,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root =
-			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
+		val root = doc.body().requireElementById("dle-content")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
 		val chapterNodes = root.selectFirstOrThrow(".linkstocomics")
 			.select(".ltcitems")
@@ -125,10 +124,9 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
-		val root =
-			doc.body().getElementById("comics")?.selectFirst("ul.xfieldimagegallery") ?: parseFailed("Root not found")
+		val root = doc.body().requireElementById("comics").selectFirstOrThrow("ul.xfieldimagegallery")
 		return root.select("li").map { ul ->
-			val img = ul.selectFirst("img") ?: parseFailed("Page image not found")
+			val img = ul.selectFirstOrThrow("img")
 			val url = img.attrAsAbsoluteUrl("data-src")
 			MangaPage(
 				id = generateUid(url),
@@ -143,8 +141,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 	override suspend fun getTags(): Set<MangaTag> {
 		val domain = getDomain()
 		val doc = context.httpGet("https://$domain/mangas").parseHtml()
-		val root =
-			doc.body().getElementById("menu_1")?.selectFirst("div.menu__wrapper") ?: parseFailed("Cannot find root")
+		val root = doc.body().requireElementById("menu_1").selectFirstOrThrow("div.menu__wrapper")
 		return root.select("li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			MangaTag(

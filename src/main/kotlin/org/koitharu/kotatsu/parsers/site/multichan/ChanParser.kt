@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.multichan
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -48,7 +47,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 		}
 		val doc = context.httpGet(url).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
-			?: parseFailed("Cannot find root")
+			?: doc.parseFailed("Cannot find root")
 		return root.select("div.content_row").mapNotNull { row ->
 			val a = row.selectFirst("div.manga_row1")?.selectFirst("h2")?.selectFirst("a")
 				?: return@mapNotNull null
@@ -84,8 +83,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root =
-			doc.body().getElementById("dle-content") ?: parseFailed("Cannot find root")
+		val root = doc.body().getElementById("dle-content") ?: doc.parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
@@ -135,16 +133,16 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 				)
 			}
 		}
-		parseFailed("Pages list not found at ${chapter.url}")
+		doc.parseFailed("Pages list not found at ${chapter.url}")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val domain = getDomain()
 		val doc = context.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")
-			?.select("ul")?.last() ?: throw ParseException("Cannot find root")
+			?.select("ul")?.last() ?: doc.parseFailed("Cannot find root")
 		return root.select("li.sidetag").mapToSet { li ->
-			val a = li.children().last() ?: throw ParseException("a is null")
+			val a = li.children().lastOrNull() ?: li.parseFailed("a is null")
 			MangaTag(
 				title = a.text().toTagName(),
 				key = a.attr("href").substringAfterLast('/'),

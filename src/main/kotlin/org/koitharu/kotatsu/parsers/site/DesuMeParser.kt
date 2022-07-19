@@ -50,7 +50,8 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 				append(query)
 			}
 		}
-		val json = context.httpGet(url).parseJson().getJSONArray("response") ?: parseFailed("Invalid response")
+		val json = context.httpGet(url).parseJson().getJSONArray("response")
+			?: throw ParseException("Invalid response", url)
 		val total = json.length()
 		val list = ArrayList<Manga>(total)
 		for (i in 0 until total) {
@@ -83,7 +84,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 	override suspend fun getDetails(manga: Manga): Manga {
 		val url = manga.url.toAbsoluteUrl(getDomain())
 		val json = context.httpGet(url).parseJson().getJSONObject("response")
-			?: throw ParseException("Invalid response")
+			?: throw ParseException("Invalid response", url)
 		val baseChapterUrl = manga.url + "/chapter/"
 		val chaptersList = json.getJSONObject("chapters").getJSONArray("list")
 		val totalChapters = chaptersList.length()
@@ -119,7 +120,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
 		val json = context.httpGet(fullUrl)
 			.parseJson()
-			.getJSONObject("response") ?: throw ParseException("Invalid response")
+			.getJSONObject("response") ?: throw ParseException("Invalid response", fullUrl)
 		return json.getJSONObject("pages").getJSONArray("list").mapJSON { jo ->
 			MangaPage(
 				id = generateUid(jo.getLong("id")),
@@ -133,17 +134,17 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = context.httpGet("https://${getDomain()}/manga/").parseHtml()
-		val root = doc.body().getElementById("animeFilter")
-			?.selectFirst(".catalog-genres") ?: throw ParseException("Root not found")
+		val root = doc.body().requireElementById("animeFilter")
+			.selectFirstOrThrow(".catalog-genres")
 		return root.select("li").mapToSet {
-			val input = it.selectFirst("input") ?: parseFailed()
+			val input = it.selectFirstOrThrow("input")
 			MangaTag(
 				source = source,
 				key = input.attr("data-genre-slug").ifEmpty {
-					parseFailed("data-genre-slug is empty")
+					it.parseFailed("data-genre-slug is empty")
 				},
 				title = input.attr("data-genre-name").toTitleCase().ifEmpty {
-					parseFailed("data-genre-name is empty")
+					it.parseFailed("data-genre-name is empty")
 				},
 			)
 		}

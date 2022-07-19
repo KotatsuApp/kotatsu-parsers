@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers
 import androidx.annotation.CallSuper
 import androidx.annotation.VisibleForTesting
 import okhttp3.Headers
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -177,8 +178,8 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	}
 
 	@InternalParsersApi
-	protected fun parseFailed(message: String? = null): Nothing {
-		throw ParseException(message, null)
+	protected fun Element.parseFailed(message: String? = null): Nothing {
+		throw ParseException(message, ownerDocument()?.location() ?: baseUri(), null)
 	}
 
 	@InternalParsersApi
