@@ -116,7 +116,7 @@ internal class RemangaParser(
 		val slug = manga.url.find(regexLastUrlPath)
 			?: throw ParseException("Cannot obtain slug from ${manga.url}", manga.publicUrl)
 		val data = context.httpGet(
-			url = "https://api.$domain/api/titles/$slug/",
+			url = "https://api.$domain/api/titles$slug/",
 			headers = getApiHeaders(),
 		).handle401().parseJson()
 		val content = try {
