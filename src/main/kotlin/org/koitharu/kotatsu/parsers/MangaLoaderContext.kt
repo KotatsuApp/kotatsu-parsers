@@ -7,6 +7,7 @@ import org.json.JSONObject
 import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.exception.GraphQLException
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.parseJson
@@ -140,12 +141,10 @@ abstract class MangaLoaderContext {
 
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
-	private fun Response.ensureSuccess() = apply {
+	private fun Response.ensureSuccess(): Response {
 		val exception: Exception? = when (code) { // Catch some error codes, not all
-			404,
-			in 500..599,
-			-> HttpStatusException(message, code, request.url.toString())
-
+			404 -> NotFoundException(message, request.url.toString())
+			in 500..599 -> HttpStatusException(message, code, request.url.toString())
 			else -> null
 		}
 		if (exception != null) {
@@ -156,5 +155,6 @@ abstract class MangaLoaderContext {
 			}
 			throw exception
 		}
+		return this
 	}
 }
