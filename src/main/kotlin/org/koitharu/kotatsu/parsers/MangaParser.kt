@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers
 import androidx.annotation.CallSuper
 import androidx.annotation.VisibleForTesting
 import okhttp3.Headers
+import okhttp3.HttpUrl
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -139,6 +140,12 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	fun getDomain(subdomain: String): String {
 		val domain = getDomain()
 		return subdomain + "." + domain.removePrefix("www.")
+	}
+
+	fun urlBuilder(): HttpUrl.Builder {
+		return HttpUrl.Builder()
+			.scheme("https")
+			.host(getDomain())
 	}
 
 	/**

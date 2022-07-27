@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
 import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
@@ -24,7 +25,7 @@ abstract class MangaLoaderContext {
 	 * @param url
 	 * @param headers an additional headers for request, may be null
 	 */
-	suspend fun httpGet(url: String, headers: Headers? = null): Response {
+	suspend fun httpGet(url: HttpUrl, headers: Headers? = null): Response {
 		val request = Request.Builder()
 			.get()
 			.url(url)
@@ -33,6 +34,11 @@ abstract class MangaLoaderContext {
 		}
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
+
+	suspend fun httpGet(url: String, headers: Headers? = null): Response {
+		return httpGet(url.toHttpUrl(), headers)
+	}
+
 
 	/**
 	 * Do a HEAD http request to specific url
