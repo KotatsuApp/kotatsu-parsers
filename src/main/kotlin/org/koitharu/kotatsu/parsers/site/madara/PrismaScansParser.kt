@@ -12,20 +12,20 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.util.*
 
-@MangaSourceParser("MANGAS_ORIGINES", "Mangas Origines", "fr")
-internal class MangasOriginesParser(context: MangaLoaderContext) :
-	Madara6Parser(context, MangaSource.MANGAS_ORIGINES, "mangas-origines.fr") {
+@MangaSourceParser("PRISMA_SCANS", "Prisma Scans", "pt")
+internal class PrismaScansParser(context: MangaLoaderContext) :
+	Madara6Parser(context, MangaSource.PRISMA_SCANS, "prismascans.net") {
 
-	override val tagPrefix = "catalogues-genre/"
+	override val tagPrefix = "manga-genre/"
 
 	override fun getFaviconUrl(): String {
-		return "https://${getDomain()}/wp-content/uploads/2020/11/Mangas-150x150.png"
+		return "https://${getDomain()}/wp-content/uploads/2022/07/cropped-branca-1-192x192.png"
 	}
 
 	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
 		val root = body.selectFirstOrThrow(".site-content")
 		val postContent = root.selectFirstOrThrow(".post-content")
-		val tags = postContent.getElementsContainingOwnText("Genre")
+		val tags = postContent.getElementsContainingOwnText("Gênero")
 			.firstOrNull()?.tableValue()
 			?.getElementsByAttributeValueContaining("href", tagPrefix)
 			?.mapToSet { a -> a.asMangaTag() } ?: manga.tags
@@ -33,11 +33,12 @@ internal class MangasOriginesParser(context: MangaLoaderContext) :
 			largeCoverUrl = root.selectFirst("picture")
 				?.selectFirst("img[data-src]")
 				?.attrAsAbsoluteUrlOrNull("data-src"),
-			description = (root.selectFirst(".detail-content")
-				?: root.selectFirstOrThrow(".manga-excerpt")).html(),
-			author = postContent.getElementsContainingOwnText("Auteur")
+			description = root.selectFirstOrThrow(".description-summary").firstElementChild()?.html(),
+			author = postContent.getElementsContainingOwnText("Artista")
 				.firstOrNull()?.tableValue()?.text()?.trim(),
-			state = postContent.getElementsContainingOwnText("STATUS")
+			altTitle = postContent.getElementsContainingOwnText("Título Alternativo")
+				.firstOrNull()?.tableValue()?.text()?.trim(),
+			state = postContent.getElementsContainingOwnText("Status")
 				.firstOrNull()?.tableValue()?.text()?.asMangaState(),
 			tags = tags,
 			isNsfw = body.hasClass("adult-content"),
@@ -45,10 +46,10 @@ internal class MangasOriginesParser(context: MangaLoaderContext) :
 		)
 	}
 
-	override fun String.asMangaState() = when (trim().lowercase(Locale.FRANCE)) {
-		"en cours" -> MangaState.ONGOING
-		"abandonné",
-		"terminé",
+	override fun String.asMangaState() = when (trim().lowercase(sourceLocale ?: Locale.ROOT)) {
+		"em lançamento" -> MangaState.ONGOING
+		"completo",
+		"cancelado",
 		-> MangaState.FINISHED
 
 		else -> null
