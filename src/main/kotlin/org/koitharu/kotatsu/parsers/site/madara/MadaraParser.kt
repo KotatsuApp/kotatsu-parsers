@@ -179,7 +179,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		date ?: return 0
 		return when {
 			date.endsWith(" ago", ignoreCase = true) -> {
