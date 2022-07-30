@@ -18,6 +18,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	domain: String,
 ) : PagedMangaParser(source, pageSize = 22) {
 
+	protected open val datePattern = "MMMM dd, HH:mm"
 	protected open val tagPrefix = "/mangas/"
 	protected open val nsfwTags = arraySetOf("yaoi", "yuri", "mature")
 
@@ -125,7 +126,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	}
 
 	private suspend fun loadChapters(mangaId: Long): List<MangaChapter> {
-		val dateFormat = SimpleDateFormat("MMMM dd, HH:mm", sourceLocale ?: Locale.US)
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.US)
 		val doc = context.httpGet("https://${getDomain()}/ajax-list-chapter?mangaID=$mangaId").parseHtml()
 		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
 			val a = li.selectFirstOrThrow("a")

@@ -15,6 +15,8 @@ internal abstract class Madara6Parser(
 	domain: String,
 ) : MadaraParser(context, source, domain) {
 
+	override val datePattern: String = "dd MMMM yyyy"
+
 	override suspend fun getDetails(manga: Manga): Manga {
 		return coroutineScope {
 			val chapters = async { loadChapters(manga.url) }
@@ -44,7 +46,7 @@ internal abstract class Madara6Parser(
 
 	protected open suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
 		val url = mangaUrl.toAbsoluteUrl(getDomain()).removeSuffix('/') + "/ajax/chapters/"
-		val dateFormat = SimpleDateFormat("dd MMMM yyyy", sourceLocale ?: Locale.ROOT)
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.ROOT)
 		val doc = context.httpPost(url, emptyMap()).parseHtml()
 		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
 			val a = li.selectFirstOrThrow("a")
