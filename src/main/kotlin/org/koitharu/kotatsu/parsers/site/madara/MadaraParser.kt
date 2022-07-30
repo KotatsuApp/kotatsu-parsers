@@ -27,6 +27,7 @@ internal abstract class MadaraParser(
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val isNsfwSource = false
+	protected open val datePattern = "MMMM dd, yyyy"
 
 	init {
 		paginator.firstPage = 0
@@ -125,7 +126,7 @@ internal abstract class MadaraParser(
 		val root2 = doc.body().selectFirst("div.content-area")
 			?.selectFirst("div.c-page")
 			?: throw ParseException("Root2 not found", fullUrl)
-		val dateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.US)
+		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
 		return manga.copy(
 			tags = root.selectFirst("div.genres-content")?.select("a")
 				?.mapNotNullToSet { a ->
@@ -179,7 +180,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		date ?: return 0
 		return when {
 			date.endsWith(" ago", ignoreCase = true) -> {
