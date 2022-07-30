@@ -3,10 +3,7 @@ package org.koitharu.kotatsu.parsers.site.madara
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
@@ -45,6 +42,10 @@ internal class TatakaeScansParser(context: MangaLoaderContext) :
 		"em lançamento" -> MangaState.ONGOING
 
 		else -> null
+	}
+
+	override fun getFaviconUrl(): String {
+		return "https://${getDomain()}/wp-content/uploads/2022/07/cropped-favicon-180x180.png"
 	}
 
 }
