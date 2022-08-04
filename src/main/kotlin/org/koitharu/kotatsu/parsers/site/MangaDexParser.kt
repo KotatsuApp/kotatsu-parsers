@@ -247,7 +247,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 		val json = context.httpGet(url).parseJson()
 		if (json.getString("result") == "ok") {
 			return Chapters(
-				data = json.optJSONArray("data")?.filterIsInstance<JSONObject>().orEmpty(),
+				data = json.optJSONArray("data")?.toJSONList().orEmpty(),
 				total = json.getInt("total"),
 			)
 		} else {

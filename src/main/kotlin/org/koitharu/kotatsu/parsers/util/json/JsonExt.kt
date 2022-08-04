@@ -137,3 +137,7 @@ fun JSONArray?.isNullOrEmpty(): Boolean {
 
 	return this == null || this.length() == 0
 }
+
+fun JSONArray.toJSONList(): List<JSONObject> {
+	return List(length()) { i -> getJSONObject(i) }
+}
