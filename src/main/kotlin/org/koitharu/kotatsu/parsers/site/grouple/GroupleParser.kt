@@ -111,11 +111,10 @@ internal abstract class GroupleParser(
 				altTitle = descDiv.selectFirst("h4")?.text(),
 				coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
 				rating = runCatching {
-					node.selectFirst("div.rating")
+					node.selectFirst(".compact-rate")
 						?.attr("title")
-						?.substringBefore(' ')
 						?.toFloatOrNull()
-						?.div(10f)
+						?.div(5f)
 				}.getOrNull() ?: RATING_UNKNOWN,
 				author = tileInfo?.selectFirst("a.person-link")?.text(),
 				isNsfw = false,
