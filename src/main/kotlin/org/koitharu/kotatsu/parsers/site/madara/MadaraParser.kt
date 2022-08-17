@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.madara
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -116,9 +119,10 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	override suspend fun getDetails(manga: Manga): Manga {
+	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(getDomain())
 		val doc = context.httpGet(fullUrl).parseHtml()
+		val chaptersDeferred = async { getChapters(manga, doc) }
 		val root = doc.body().selectFirst("div.profile-manga")
 			?.selectFirst("div.summary_content")
 			?.selectFirst("div.post-content")
@@ -126,8 +130,7 @@ internal abstract class MadaraParser(
 		val root2 = doc.body().selectFirst("div.content-area")
 			?.selectFirst("div.c-page")
 			?: throw ParseException("Root2 not found", fullUrl)
-		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
-		return manga.copy(
+		manga.copy(
 			tags = root.selectFirst("div.genres-content")?.select("a")
 				?.mapNotNullToSet { a ->
 					MangaTag(
@@ -141,24 +144,31 @@ internal abstract class MadaraParser(
 				?.select("p")
 				?.filterNot { it.ownText().startsWith("A brief description") }
 				?.joinToString { it.html() },
-			chapters = root2.select("li").asReversed().mapChapters { i, li ->
-				val a = li.selectFirst("a")
-				val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-				MangaChapter(
-					id = generateUid(href),
-					name = a.ownText(),
-					number = i + 1,
-					url = href,
-					uploadDate = parseChapterDate(
-						dateFormat,
-						li.selectFirst("span.chapter-release-date i")?.text(),
-					),
-					source = source,
-					scanlator = null,
-					branch = null,
-				)
-			},
+			chapters = chaptersDeferred.await(),
 		)
+	}
+
+	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+		val root2 = doc.body().selectFirstOrThrow("div.content-area")
+			.selectFirstOrThrow("div.c-page")
+		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
+		return root2.select("li").asReversed().mapChapters { i, li ->
+			val a = li.selectFirst("a")
+			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			MangaChapter(
+				id = generateUid(href),
+				name = a.ownText(),
+				number = i + 1,
+				url = href,
+				uploadDate = parseChapterDate(
+					dateFormat,
+					li.selectFirst("span.chapter-release-date i")?.text(),
+				),
+				source = source,
+				scanlator = null,
+				branch = null,
+			)
+		}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
@@ -180,7 +190,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		date ?: return 0
 		return when {
 			date.endsWith(" ago", ignoreCase = true) -> {
@@ -354,9 +364,6 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("MANGAROCK", "MangaRock", "en")
 	class MangaRock(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROCK, "mangarockteam.com")
-
-	@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
-	class IsekaiScanEu(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu")
 
 	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
 	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
