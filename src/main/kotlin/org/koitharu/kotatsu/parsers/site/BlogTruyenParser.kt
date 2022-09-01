@@ -25,8 +25,6 @@ class BlogTruyenParser(override val context: MangaLoaderContext): MangaParser(Ma
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
 	private var cacheTags: ArrayMap<String, MangaTag>? = null
 
-	override fun getFaviconUrl() = "https://${getDomain()}/Content/themes/img/favicon.ico"
-
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val descriptionElement = doc.selectFirstOrThrow("div.description")
