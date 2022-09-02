@@ -76,7 +76,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 		return chapterList.asReversed().mapChapters { index, element ->
 			val titleElement = element.selectFirst("span.title > a") ?: return@mapChapters null
 			val name = titleElement.text()
-			val relativeUrl = titleElement.attr("href")
+			val relativeUrl = titleElement.attrAsRelativeUrl("href")
 			val id = relativeUrl.substringAfter('/').substringBefore('/')
 			val uploadDate = dateFormat.tryParse(element.select("span.publishedDate").text())
 			MangaChapter(
@@ -100,7 +100,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	): List<Manga> {
 		return when {
 			!query.isNullOrEmpty() -> {
-				val searchUrl = "https://${getDomain()}/timkiem/nangcao/1/0/-1/-1?txt=$query&p=$page"
+				val searchUrl = "https://${getDomain()}/timkiem/nangcao/1/0/-1/-1?txt=${query.urlEncoded()}&p=$page"
 				val searchContent = context.httpGet(searchUrl).parseHtml()
 					.selectFirst("section.list-manga-bycate > div.list")
 				parseMangaList(searchContent)
@@ -124,7 +124,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 
 		return listElements.mapNotNull {
 			val linkTag = it.selectFirst("div.fl-l > a") ?: return@mapNotNull null
-			val relativeUrl = linkTag.attr("href")
+			val relativeUrl = linkTag.attrAsRelativeUrl("href")
 			val tagMap = getOrCreateTagMap()
 			val tags = it.select("footer > div.category > a").mapNotNullToSet { a ->
 				tagMap[a.text()]
@@ -154,7 +154,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 		return listElement.select("span.tiptip[data-tiptip]").mapNotNull {
 			val mangaInfo = listElement.getElementById(it.attr("data-tiptip")) ?: return@mapNotNull null
 			val a = it.selectFirst("a") ?: return@mapNotNull null
-			val relativeUrl = a.attr("href")
+			val relativeUrl = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(relativeUrl),
 				title = a.text(),
@@ -162,7 +162,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(getDomain()),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.attr("src").orEmpty(),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.absUrl("src").orEmpty(),
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -180,7 +180,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 		val pages = ArrayList<MangaPage>()
 		val referer = chapter.url.toAbsoluteUrl(getDomain())
 		doc.select("#content > img").forEach { img ->
-			val url = img.attr("src")
+			val url = img.attrAsRelativeUrl("src")
 			pages.add(
 				MangaPage(
 					id = generateImageId(pages.lastIndex),
