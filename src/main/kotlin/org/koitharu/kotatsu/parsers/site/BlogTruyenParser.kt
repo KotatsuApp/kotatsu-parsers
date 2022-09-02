@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArrayMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -24,6 +26,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
+	private val mutex = Mutex()
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
 	private var cacheTags: ArrayMap<String, MangaTag>? = null
 
@@ -225,8 +228,8 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	}
 
 
-	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> {
-		cacheTags?.let { return it }
+	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
+		cacheTags?.let { return@withLock it }
 		val doc = context.httpGet("/timkiem/nangcao".toAbsoluteUrl(getDomain())).parseHtml()
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
@@ -240,6 +243,6 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 		}
 
 		cacheTags = tagMap
-		return tagMap
+		tagMap
 	}
 }
