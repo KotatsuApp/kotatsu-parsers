@@ -108,7 +108,10 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 			append("https://")
 			append(getDomain())
 			if (isSearching) {
-				append("/tim-truyen?keyword=$query&page=$page")
+				append("/tim-truyen?keyword=)
+				append(query.urlEncoded())
+				append("&page=")
+				append(page)
 			} else {
 				val tagQuery = tags.orEmpty().joinToString(",") { it.key }
 				append("/tim-truyen-nang-cao?genres=$tagQuery")
@@ -134,7 +137,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 			.select("div.item")
 		return itemsElements.mapNotNull { item ->
 			val tooltipElement = item.selectFirst("div.box_tootip") ?: return@mapNotNull null
-			val absUrl = item.selectFirst("div.image > a")?.attr("href") ?: return@mapNotNull null
+			val absUrl = item.selectFirst("div.image > a")?.attrAsAbsoluteUrlOrNull("href") ?: return@mapNotNull null
 			val slug = absUrl.substringAfterLast('/')
 			val mangaState = when (tooltipElement.selectFirst("div.message_main > p:contains(Tình trạng)")?.ownText()) {
 				"Đang tiến hành" -> MangaState.ONGOING
@@ -170,7 +173,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		val pageElements = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
 			.select("div.reading-detail.box_doc > div img")
 		return pageElements.map { element ->
-			val url = element.absUrl("data-original")
+			val url = element.attrAsAbsoluteUrl("data-original")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
