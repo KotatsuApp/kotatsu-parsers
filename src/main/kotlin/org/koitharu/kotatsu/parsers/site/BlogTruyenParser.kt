@@ -5,8 +5,8 @@ import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -15,7 +15,9 @@ import java.util.*
 import kotlin.collections.HashSet
 
 @MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
-class BlogTruyenParser(override val context: MangaLoaderContext): MangaParser(MangaSource.BLOGTRUYEN) {
+class BlogTruyenParser(override val context: MangaLoaderContext) :
+	PagedMangaParser(MangaSource.BLOGTRUYEN, pageSize = 20) {
+
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyen.vn", null)
 
@@ -32,7 +34,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext): MangaParser(Ma
 			.selectFirst("p:contains(Trạng thái) > span.color-red")
 			?.text()
 
-		val state = when(statusText) {
+		val state = when (statusText) {
 			"Đang tiến hành" -> MangaState.ONGOING
 			"Đã hoàn thành" -> MangaState.FINISHED
 			else -> null
@@ -90,13 +92,12 @@ class BlogTruyenParser(override val context: MangaLoaderContext): MangaParser(Ma
 		}
 	}
 
-	override suspend fun getList(
-		offset: Int,
+	override suspend fun getListPage(
+		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val page = (offset / 20f).toIntUp() + 1
 		return when {
 			!query.isNullOrEmpty() -> {
 				val searchUrl = "https://${getDomain()}/timkiem/nangcao/1/0/-1/-1?txt=$query&p=$page"
@@ -226,7 +227,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext): MangaParser(Ma
 
 	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> {
 		cacheTags?.let { return it }
-		val doc = context.httpGet("https://${getDomain()}/timkiem/nangcao").parseHtml()
+		val doc = context.httpGet("/timkiem/nangcao".toAbsoluteUrl(getDomain())).parseHtml()
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
 		for (tag in tagItems) {
