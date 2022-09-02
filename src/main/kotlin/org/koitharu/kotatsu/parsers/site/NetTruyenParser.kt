@@ -2,10 +2,7 @@ package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
-import org.koitharu.kotatsu.parsers.InternalParsersApi
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
@@ -14,7 +11,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
-class NetTruyenParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.NETTRUYEN) {
+class NetTruyenParser(override val context: MangaLoaderContext) :
+	PagedMangaParser(MangaSource.NETTRUYEN, pageSize = 36) {
+
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("www.nettruyenme.com", null)
 
@@ -98,10 +97,12 @@ class NetTruyenParser(override val context: MangaLoaderContext) : MangaParser(Ma
 		return calendar.time.time
 	}
 
-
-	@InternalParsersApi
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
-		val page = (offset / 36f).toIntUp() + 1
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
 		val isSearching = !query.isNullOrEmpty()
 		val url = buildString {
 			append("https://")
