@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
@@ -20,6 +22,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.RATING)
 
+	private val mutex = Mutex()
 	private val dateFormat = SimpleDateFormat("dd/MM/yy", Locale.US)
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 
@@ -66,10 +69,10 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 			return 0L
 		}
 
-		val timeWords = listOf("giây", "phút", "giờ", "ngày")
+		val timeWords = arrayOf("giây", "phút", "giờ", "ngày")
 		val calendar = Calendar.getInstance()
 		val timeArr = timeText.split(' ')
-		if (timeText.containsAny(timeWords)) {
+		if (WordSet(*timeWords).anyWordIn(timeText)) {
 			val timeSuffix = timeArr.getOrNull(1)
 			val timeDiff = timeArr.getOrNull(0)?.toIntOrNull() ?: return 0L
 			when (timeSuffix) {
@@ -108,8 +111,8 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 			append("https://")
 			append(getDomain())
 			if (isSearching) {
-				append("/tim-truyen?keyword=)
-				append(query.urlEncoded())
+				append("/tim-truyen?keyword=")
+				append(query!!.urlEncoded())
 				append("&page=")
 				append(page)
 			} else {
@@ -194,8 +197,8 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		return tagSet
 	}
 
-	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> {
-		tagCache?.let { return it }
+	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
 		val doc = context.httpGet("/tim-truyen-nang-cao".toAbsoluteUrl(getDomain())).parseHtml()
 		val tagItems = doc.select("div.genre-item")
 		val result = ArrayMap<String, MangaTag>(tagItems.size)
@@ -205,7 +208,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 			result[title] = MangaTag(title = title, key = key, source = source)
 		}
 		tagCache = result
-		return result
+		result
 	}
 
 	private fun getSortOrderKey(sortOrder: SortOrder) = when (sortOrder) {
@@ -215,7 +218,4 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		SortOrder.RATING -> 20
 		else -> throw IllegalArgumentException("Sort order ${sortOrder.name} not supported")
 	}
-
-	private fun String.containsAny(items: List<String>) = items.any { this.contains(it, ignoreCase = true) }
-
 }
