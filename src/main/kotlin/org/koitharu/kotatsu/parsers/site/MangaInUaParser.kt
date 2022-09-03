@@ -83,9 +83,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
 		val root = doc.body().requireElementById("dle-content")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
-		val chapterNodes = root.selectFirstOrThrow(".linkstocomics")
-			.select(".ltcitems")
-			.filterNot { x -> x.selectFirst(".foruserreadedbar") != null }
+		val chapterNodes = root.selectFirstOrThrow(".linkstocomics").select(".ltcitems")
 		var prevChapterName: String? = null
 		var i = 0
 		return manga.copy(
