@@ -318,6 +318,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	@Deprecated("Not working, unknown reason, maybe shutdown or domain expired")
 	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
 	class MangahaTachi(context: MangaLoaderContext) :
 		MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")

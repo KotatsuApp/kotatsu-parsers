@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Deprecated("Permanently shutdown")
 @MangaSourceParser("MANGAOWL", "MangaOwl", "en")
 internal class MangaOwlParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGAOWL) {
 
