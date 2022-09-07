@@ -15,10 +15,7 @@ import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONTo
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.net.HttpURLConnection
 import java.net.URLDecoder
 import java.text.DateFormat
@@ -143,6 +140,9 @@ internal class RemangaParser(
 				)
 			},
 			chapters = chapters.mapChapters { i, jo ->
+				if (jo.getBooleanOrDefault("is_paid", false)) {
+					return@mapChapters null
+				}
 				val id = jo.getLong("id")
 				val name = jo.getString("name").toTitleCase(Locale.ROOT)
 				val publishers = jo.optJSONArray("publishers")
