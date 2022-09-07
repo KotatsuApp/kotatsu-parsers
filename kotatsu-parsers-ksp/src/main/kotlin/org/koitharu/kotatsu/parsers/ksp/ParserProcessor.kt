@@ -69,6 +69,7 @@ class ParserProcessor(
 
 				import org.koitharu.kotatsu.parsers.model.MangaSource
 				
+				@Suppress("DEPRECATION")
 				fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
 				
 			""".trimIndent(),
@@ -121,6 +122,7 @@ class ParserProcessor(
 				logger.error("Only non-abstract can be annotated with @MangaSourceParser", classDeclaration)
 			}
 			val annotation = classDeclaration.annotations.single { it.shortName.asString() == "MangaSourceParser" }
+			val deprecation = classDeclaration.annotations.singleOrNull { it.shortName.asString() == "Deprecated" }
 			val name = annotation.arguments.single { it.name?.asString() == "name" }.value as String
 			val title = annotation.arguments.single { it.name?.asString() == "title" }.value as String
 			val locale = annotation.arguments.single { it.name?.asString() == "locale" }.value as String
@@ -142,11 +144,15 @@ class ParserProcessor(
 					classDeclaration,
 				)
 			}
-
 			val className = classDeclaration.qualifiedName?.asString()
 			factoryWriter?.write("\tMangaSource.$name -> $className(context)\n")
+			val deprecationString = if (deprecation != null) {
+				val reason = deprecation.arguments
+					.find { it.name?.asString() == "message" }?.value?.toString() ?: "Unknown reason"
+				"@Deprecated(\"$reason\") "
+			} else ""
 			val localeComment = localeTitle?.toTitleCase(localeObj)?.let { " /* $it */" }.orEmpty()
-			sourcesWriter?.write("\t$name(\"$title\", $localeString$localeComment),\n")
+			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment),\n")
 		}
 	}
 }
