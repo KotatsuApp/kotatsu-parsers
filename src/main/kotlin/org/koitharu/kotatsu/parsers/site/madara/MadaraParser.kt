@@ -151,7 +151,7 @@ internal abstract class MadaraParser(
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 			.selectFirstOrThrow("div.c-page")
-		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.US)
 		return root2.select("li").asReversed().mapChapters { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
@@ -305,10 +305,13 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGAREAD", "MangaRead", "en")
 	class MangaRead(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAREAD, "www.mangaread.org") {
 		override val tagPrefix = "genres/"
+		override val datePattern = "dd.MM.yyyy"
 	}
 
 	@MangaSourceParser("MANGAWEEBS", "MangaWeebs", "en")
-	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in")
+	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in") {
+		override val datePattern = "dd MMMM HH:mm"
+	}
 
 	@MangaSourceParser("KINGMANGA", "KingManga", "en")
 	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com") {
@@ -327,7 +330,7 @@ internal abstract class MadaraParser(
 	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.com")
 
 	@MangaSourceParser("MANGAROSIE", "MangaRosie", "en")
-	class MangaRosie(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROSIE, "mangarosie.me")
+	class MangaRosie(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROSIE, "mangarosie.love")
 
 	@MangaSourceParser("READMANWHA", "ReadManwha", "en")
 	class ReadManwha(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANWHA, "readmanwha.net")
@@ -336,7 +339,9 @@ internal abstract class MadaraParser(
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
 
 	@MangaSourceParser("MANGAEFFECT", "MangaEffect", "en")
-	class MangaEffect(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAEFFECT, "mangaeffect.com")
+	class MangaEffect(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAEFFECT, "mangaeffect.com") {
+		override val datePattern = "dd.MM.yyyy"
+	}
 
 	@MangaSourceParser("AQUAMANGA", "AquaManga", "en")
 	class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com") {
@@ -358,7 +363,9 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("HARIMANGA", "HariManga", "en")
-	class HariManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com")
+	class HariManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com") {
+		override val datePattern = "MM/dd/yyyy"
+	}
 
 	@MangaSourceParser("KISSMANGA", "KissManga", "en")
 	class KissManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KISSMANGA, "kissmanga.in")
@@ -393,7 +400,9 @@ internal abstract class MadaraParser(
 	class ManhwaClan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWACLAN, "manhwaclan.com")
 
 	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
-	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com")
+	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com") {
+		override val tagPrefix = "manhwa-genre/"
+	}
 
 	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
 	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com") {
@@ -405,6 +414,7 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
 	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "www.topmanhua.com") {
 		override val tagPrefix = "manhua-genre/"
+		override val datePattern = "MM/dd/yyyy"
 	}
 
 	@MangaSourceParser("X2MANGA", "X2Manga", "en")
@@ -499,6 +509,8 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
 	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {
 
+		override val datePattern = "MM/dd/yyyy"
+
 		override fun getFaviconUrl(): String {
 			return "https://${getDomain()}/wp-content/uploads/2017/10/lgoo-treemanga-2-1.jpg"
 		}
@@ -533,7 +545,9 @@ internal abstract class MadaraParser(
 	class Manga365(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_365, "365manga.com")
 
 	@MangaSourceParser("MANGACLASH", "Mangaclash", "en")
-	class Mangaclash(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACLASH, "mangaclash.com")
+	class Mangaclash(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACLASH, "mangaclash.com") {
+		override val datePattern = "MM/dd/yyyy"
+	}
 
 	@MangaSourceParser("ZINMANGA", "ZINMANGA", "en")
 	class Zinmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ZINMANGA, "zinmanga.com")

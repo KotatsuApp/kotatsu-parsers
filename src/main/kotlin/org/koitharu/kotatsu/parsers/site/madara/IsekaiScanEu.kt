@@ -14,6 +14,8 @@ import java.util.*
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu") {
 
+	override val datePattern = "MM/dd/yyyy"
+
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val mangaId = doc.body().requireElementById("manga-chapters-holder").attr("data-id")
 		val ul = context.httpPost(

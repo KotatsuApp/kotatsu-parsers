@@ -38,7 +38,7 @@ internal class MangaParserTest {
 		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
 		val intersection = page1.intersect(page2.toSet())
 		assert(intersection.isEmpty()) {
-			"Pages are intersected: " + intersection.joinToString { it.publicUrl }
+			"Pages are intersected by " + intersection.size
 		}
 	}
 

@@ -101,7 +101,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 					url = href,
 					scanlator = div.selectLast("a")?.text()?.takeUnless { it == title },
 					uploadDate = dateFormat.tryParse(
-						a.nextElementSibling()?.text()?.removeSurrounding('(', ')'),
+						a.nextElementSibling()?.text()?.removeSurrounding("(", ")"),
 					),
 					branch = null,
 					source = source,
