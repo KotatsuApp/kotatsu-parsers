@@ -68,10 +68,13 @@ fun String.toAbsoluteUrl(domain: String): String = when {
 }
 
 fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
+	assert(false) { "Date string is null or empty" }
 	0L
 } else {
 	runCatching {
 		parse(str)?.time ?: 0L
+	}.onFailure {
+		assert(false) { "Cannot parse date $str: ${it.message}" }
 	}.getOrDefault(0L)
 }
 
