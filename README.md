@@ -4,7 +4,7 @@ Library that provides manga sources.
 
 [![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![Kotlin](https://img.shields.io/github/languages/top/KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
 
-### Usage
+## Usage
 
 1. Add it in your root build.gradle at the end of repositories:
 
@@ -49,3 +49,12 @@ Library that provides manga sources.
    implementation examples.
 
    Note that the `MangaSource.LOCAL` and `MangaSource.DUMMY` parsers cannot be instantiated.
+
+## Contribution
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for the guidelines.
+
+## DMCA disclaimer
+
+The developers of this application does not have any affiliation with the content available in the app. It is collecting
+from the sources freely available through any web browser.
