@@ -139,7 +139,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			Locale.ROOT,
 		)
 		manga.copy(
-			description = mangaAttrs.getJSONObject("description").selectByLocale()
+			description = mangaAttrs.optJSONObject("description")?.selectByLocale()
 				?: manga.description,
 			chapters = feed.mapChapters { _, jo ->
 				val id = jo.getString("id")
