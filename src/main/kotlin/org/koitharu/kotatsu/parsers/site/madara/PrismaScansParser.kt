@@ -17,6 +17,7 @@ internal class PrismaScansParser(context: MangaLoaderContext) :
 	Madara6Parser(context, MangaSource.PRISMA_SCANS, "prismascans.net") {
 
 	override val tagPrefix = "manga-genre/"
+	override val datePattern = "MMM dd, yyyy"
 
 	override fun getFaviconUrl(): String {
 		return "https://${getDomain()}/wp-content/uploads/2022/07/cropped-branca-1-192x192.png"
@@ -33,7 +34,7 @@ internal class PrismaScansParser(context: MangaLoaderContext) :
 			largeCoverUrl = root.selectFirst("picture")
 				?.selectFirst("img[data-src]")
 				?.attrAsAbsoluteUrlOrNull("data-src"),
-			description = root.selectFirstOrThrow(".description-summary").firstElementChild()?.html(),
+			description = root.selectFirstOrThrow(".manga-excerpt").firstElementChild()?.html(),
 			author = postContent.getElementsContainingOwnText("Artista")
 				.firstOrNull()?.tableValue()?.text()?.trim(),
 			altTitle = postContent.getElementsContainingOwnText("Título Alternativo")

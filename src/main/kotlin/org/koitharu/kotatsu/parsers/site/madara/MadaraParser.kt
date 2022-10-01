@@ -284,9 +284,10 @@ internal abstract class MadaraParser(
 	}
 
 	private fun Element.src(): String? {
-		return absUrl("data-src").ifEmpty {
-			absUrl("src")
-		}.takeUnless { it.isEmpty() }
+		var result = absUrl("data-src")
+		if (result.isEmpty()) result = absUrl("data-cfsrc")
+		if (result.isEmpty()) result = absUrl("src")
+		return if (result.isEmpty()) null else result
 	}
 
 	private fun createRequestTemplate() =
