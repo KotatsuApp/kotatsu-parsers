@@ -25,7 +25,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 
 	val config by lazy { context.getConfig(source) }
 
-	val sourceLocale: Locale?
+	open val sourceLocale: Locale?
 		get() = source.locale?.let { Locale(it) }
 
 	/**
