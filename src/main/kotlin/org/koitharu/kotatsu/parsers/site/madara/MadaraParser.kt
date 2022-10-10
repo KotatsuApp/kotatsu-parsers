@@ -322,10 +322,12 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	@Deprecated("Not working, unknown reason, maybe shutdown or domain expired")
 	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
 	class MangahaTachi(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com")
+		MadaraParser(context, MangaSource.MANGAHATACHI, "mangahatachi.com") {
+
+		override val sourceLocale: Locale = Locale.ENGLISH
+	}
 
 	@MangaSourceParser("PIANMANGA", "PianManga", "en")
 	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.com")
@@ -407,6 +409,7 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
 	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com") {
+		override val datePattern: String = "MM/dd"
 		override fun getFaviconUrl(): String {
 			return "https://${getDomain()}/wp-content/uploads/2021/10/cropped-logo-kool-32x32.jpeg"
 		}
