@@ -52,6 +52,7 @@ internal class MangaParserTest {
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
 		val list = parser.getList(0, query)
+		assert(list.isNotEmpty()) { "Empty search results by \"$query\"" }
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
 			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"
 		}

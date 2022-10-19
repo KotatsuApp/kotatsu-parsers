@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
@@ -17,20 +16,6 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 @MangaSourceParser("MANGALINK_AR", "Mangalink", "ar")
 internal class MangalinkParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGALINK_AR, "mangalink.online") {
-
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val res = super.getListPage(page, query, tags, sortOrder)
-		val oldDomain = getDomain()
-		val newDomain = "cdn.$oldDomain"
-		return res.map { x ->
-			x.copy(coverUrl = x.coverUrl.replace(oldDomain, newDomain))
-		}
-	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(getDomain())

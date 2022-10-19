@@ -57,10 +57,12 @@ internal abstract class MadaraParser(
 			"https://${getDomain()}/wp-admin/admin-ajax.php",
 			payload,
 		).parseHtml()
-		return doc.select("div.row.c-tabs-item__content").map { div ->
+		return doc.select("div.row.c-tabs-item__content").ifEmpty {
+			doc.select("div.page-item-detail.manga")
+		}.map { div ->
 			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 				?: div.parseFailed("Link not found")
-			val summary = div.selectFirst(".tab-summary")
+			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -423,9 +425,6 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("X2MANGA", "X2Manga", "en")
 	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
-
-	@MangaSourceParser("VINLOAD", "VinLoad", "en")
-	class VinLoad(context: MangaLoaderContext) : MadaraParser(context, MangaSource.VINLOAD, "vinload.com")
 
 	@MangaSourceParser("S2MANGA", "S2Manga", "en")
 	class S2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.S2MANGA, "s2manga.com")
