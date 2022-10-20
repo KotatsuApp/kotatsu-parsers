@@ -20,6 +20,7 @@ private const val PAGE_SIZE = 20
 private const val CHAPTERS_FIRST_PAGE_SIZE = 120
 private const val CHAPTERS_MAX_PAGE_SIZE = 500
 private const val CHAPTERS_PARALLELISM = 3
+private const val CHAPTERS_MAX_COUNT = 10_000 // strange api behavior, looks like a bug
 private const val CONTENT_RATING =
 	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
@@ -214,7 +215,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			return firstPage.data
 		}
 		val tail = coroutineScope {
-			val leftCount = firstPage.total - firstPage.size
+			val leftCount = firstPage.total.coerceAtMost(CHAPTERS_MAX_COUNT) - firstPage.size
 			val pages = (leftCount / CHAPTERS_MAX_PAGE_SIZE.toFloat()).toIntUp()
 			val dispatcher = Dispatchers.Default.limitedParallelism(CHAPTERS_PARALLELISM)
 			List(pages) { page ->
@@ -231,6 +232,11 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	private suspend fun loadChapters(mangaId: String, offset: Int, limit: Int): Chapters {
+		val limitedLimit = when {
+			offset >= CHAPTERS_MAX_COUNT -> return Chapters(emptyList(), CHAPTERS_MAX_COUNT)
+			offset + limit > CHAPTERS_MAX_COUNT -> CHAPTERS_MAX_COUNT - offset
+			else -> limit
+		}
 		val url = buildString {
 			append("https://api.")
 			append(getDomain())
@@ -238,7 +244,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			append(mangaId)
 			append("/feed")
 			append("?limit=")
-			append(limit)
+			append(limitedLimit)
 			append("&includes[]=scanlation_group&order[volume]=asc&order[chapter]=asc&offset=")
 			append(offset)
 			append('&')
