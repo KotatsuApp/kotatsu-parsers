@@ -67,7 +67,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
-			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.attrAsAbsoluteUrlOrNull("src"),
+			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.imageUrl(),
 			state = state,
 			rating = rating ?: RATING_UNKNOWN,
 			isNsfw = doc.getElementById("warningCategory") != null
@@ -140,7 +140,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				description = it.selectFirst("p.al-j.break.line-height-15")?.text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(getDomain()),
-				coverUrl = linkTag.selectLast("img")?.attr("src").orEmpty(),
+				coverUrl = linkTag.selectLast("img")?.imageUrl().orEmpty(),
 				source = source,
 				tags = tags,
 				isNsfw = false,
@@ -165,7 +165,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(getDomain()),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.absUrl("src").orEmpty(),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.imageUrl().orEmpty(),
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -183,11 +183,10 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 		val pages = ArrayList<MangaPage>()
 		val referer = chapter.url.toAbsoluteUrl(getDomain())
 		doc.select("#content > img").forEach { img ->
-			val url = img.attrAsRelativeUrl("src")
 			pages.add(
 				MangaPage(
-					id = generateImageId(pages.lastIndex),
-					url = url,
+					id = generateImageId(pages.size),
+					url = img.imageUrl(),
 					referer = referer,
 					preview = null,
 					source = source,
@@ -204,7 +203,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				val imageUrl = imageArr.getJSONObject(i).getString("url")
 				pages.add(
 					MangaPage(
-						id = generateImageId(pages.lastIndex),
+						id = generateImageId(pages.size),
 						url = imageUrl,
 						referer = referer,
 						preview = null,
@@ -244,5 +243,11 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 
 		cacheTags = tagMap
 		tagMap
+	}
+
+	private fun Element.imageUrl(): String {
+		return attrAsAbsoluteUrlOrNull("src")
+			?: attrAsAbsoluteUrlOrNull("data-cfsrc")
+			?: ""
 	}
 }
