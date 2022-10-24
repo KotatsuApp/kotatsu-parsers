@@ -106,14 +106,14 @@ class Manhwa18Parser(override val context: MangaLoaderContext) : PagedMangaParse
 		}
 
 		val sortType = if (sortOrder == SortOrder.ALPHABETICAL) "ASC" else "DESC"
-		val tagQuery = tags.orEmpty().joinToString(",") { it.key }
+		val tagQuery = tags?.joinToString(",") { it.key }.orEmpty()
 		val url = buildString {
 			append("https://")
 			append(getDomain())
 			append("/manga-list.html?listType=pagination&page=")
 			append(page)
 			append("&artist=&author=&group=&m_status=&name=")
-			append(query.orEmpty())
+			append(query?.urlEncoded().orEmpty())
 			append("&genre=$tagQuery")
 			append("&ungenre=")
 			append("&sort=")
@@ -167,7 +167,7 @@ class Manhwa18Parser(override val context: MangaLoaderContext) : PagedMangaParse
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		return context.httpGet("https://${getDomain()}/").parseHtml().selectFirst(".genres-menu")
+		return context.httpGet("https://${getDomain()}/").parseHtml().selectFirstOrThrow(".genres-menu")
 			?.select("a.genres-item").orEmpty()
 			.mapToSet {
 				MangaTag(
