@@ -45,7 +45,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 			else -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
 		}
 		val doc = context.httpGet(url).parseHtml()
-		val container = doc.body().requireElementById("dle-content")
+		val container = doc.body().requireElementById("site-content")
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
@@ -81,7 +81,7 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root = doc.body().requireElementById("dle-content")
+		val root = doc.body().requireElementById("site-content")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
 		val chapterNodes = root.selectFirstOrThrow(".linkstocomics").select(".ltcitems")
 		var prevChapterName: String? = null
