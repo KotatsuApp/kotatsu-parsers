@@ -202,8 +202,8 @@ internal abstract class GroupleParser(
 				continue
 			}
 			val ja = JSONArray("[$json]")
-			val pages = ja.getJSONArray(1)
-			val servers = ja.getJSONArray(4).mapJSON { it.getString("path") }
+			val pages = ja.getJSONArray(0)
+			val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
 			val serversStr = servers.joinToString("|")
 			return (0 until pages.length()).map { i ->
 				val page = pages.getJSONArray(i)
