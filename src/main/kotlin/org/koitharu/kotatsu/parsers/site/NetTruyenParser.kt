@@ -17,7 +17,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 	PagedMangaParser(MangaSource.NETTRUYEN, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("www.nettruyenme.com", null)
+		get() = ConfigKey.Domain("nettruyenin.com", null)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.RATING)
