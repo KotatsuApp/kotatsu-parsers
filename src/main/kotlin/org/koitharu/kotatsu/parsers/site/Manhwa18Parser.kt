@@ -83,12 +83,13 @@ class Manhwa18Parser(override val context: MangaLoaderContext) : PagedMangaParse
 			"minute", "minutes" -> Calendar.MINUTE
 			"hour", "hours" -> Calendar.HOUR
 			"day", "days" -> Calendar.DAY_OF_YEAR
+			"week", "weeks" -> Calendar.WEEK_OF_YEAR
 			"month", "months" -> Calendar.MONTH
 			"year", "years" -> Calendar.YEAR
 			else -> return 0
 		}
 		val cal = Calendar.getInstance()
-		cal.add(timeUnit, timeAmount)
+		cal.add(timeUnit, -timeAmount)
 		return cal.time.time
 	}
 
@@ -168,7 +169,7 @@ class Manhwa18Parser(override val context: MangaLoaderContext) : PagedMangaParse
 
 	override suspend fun getTags(): Set<MangaTag> {
 		return context.httpGet("https://${getDomain()}/").parseHtml().selectFirstOrThrow(".genres-menu")
-			?.select("a.genres-item").orEmpty()
+			.select("a.genres-item").orEmpty()
 			.mapToSet {
 				MangaTag(
 					title = it.text(),
