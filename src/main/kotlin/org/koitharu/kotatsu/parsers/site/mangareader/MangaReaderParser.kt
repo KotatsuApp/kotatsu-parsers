@@ -199,7 +199,7 @@ internal abstract class MangaReaderParser(
 		return getOrCreateTagMap().values.toSet()
 	}
 
-	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
 
@@ -210,11 +210,12 @@ internal abstract class MangaReaderParser(
 
 			tagMap[el.text()] = MangaTag(
 				title = el.text(),
-				key = el.selectFirst(".genre-item")?.attr("value") ?: continue,
+				key = el.selectFirst("input")?.attr("value") ?: continue,
 				source = source
 			)
 		}
 
+		tagCache = tagMap
 		return@withLock tagMap
 	}
 
@@ -312,6 +313,41 @@ internal abstract class MangaReaderParser(
 			}
 
 			return super.parseInfoList(docs, manga, chapters).copy(state = mangaState)
+		}
+	}
+
+	@MangaSourceParser("WESTMANGA", "Westmanga", "id")
+	class WestmangaParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.WESTMANGA, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("westmanga.info", null)
+
+		override val listUrl: String
+			get() = "/manga"
+		override val tableMode: Boolean
+			get() = true
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
+	}
+
+	@MangaSourceParser("TEMPESTFANSUB", "Tempestfansub", "tr")
+	class TempestfansubParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.TEMPESTFANSUB, pageSize = 40, searchPageSize = 40) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("manga.tempestfansub.com", null)
+
+		override val listUrl: String get() = "/manga"
+		override val tableMode: Boolean get() = true
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr", "TR"))
+
+		override suspend fun parseInfoTable(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Artist)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+				isNsfw = docs.selectFirst(".postbody .alr") != null,
+			)
 		}
 	}
 }
