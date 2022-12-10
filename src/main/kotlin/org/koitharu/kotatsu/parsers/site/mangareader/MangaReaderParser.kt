@@ -37,7 +37,7 @@ internal abstract class MangaReaderParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val chapters = docs.select("#chapterlist > ul > li").mapChapters { index, element ->
+		val chapters = docs.select("#chapterlist > ul > li").reversed().mapChapters { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
