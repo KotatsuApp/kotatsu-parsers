@@ -350,4 +350,13 @@ internal abstract class MangaReaderParser(
 			)
 		}
 	}
+
+	@MangaSourceParser("MANHWADESU", "ManhwaDesu", "id")
+	class ManhwadesuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANHWADESU, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("manhwadesu.org", null)
+
+		override val listUrl: String get() = "/komik"
+		override val tableMode: Boolean get() = false
+	}
 }
