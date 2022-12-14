@@ -37,7 +37,7 @@ internal abstract class MangaReaderParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val chapters = docs.select("#chapterlist > ul > li").mapChapters { index, element ->
+		val chapters = docs.select("#chapterlist > ul > li").reversed().mapChapters { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
@@ -349,5 +349,14 @@ internal abstract class MangaReaderParser(
 				isNsfw = docs.selectFirst(".postbody .alr") != null,
 			)
 		}
+	}
+
+	@MangaSourceParser("MANHWADESU", "ManhwaDesu", "id")
+	class ManhwadesuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANHWADESU, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("manhwadesu.org", null)
+
+		override val listUrl: String get() = "/komik"
+		override val tableMode: Boolean get() = false
 	}
 }
