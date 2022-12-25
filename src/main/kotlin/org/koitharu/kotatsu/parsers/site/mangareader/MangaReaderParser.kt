@@ -359,4 +359,28 @@ internal abstract class MangaReaderParser(
 		override val listUrl: String get() = "/komik"
 		override val tableMode: Boolean get() = false
 	}
+
+	@MangaSourceParser("MANGATALE", "MangaTale", "id")
+	class MangaTaleParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGATALE, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("mangatale.co", null)
+
+		override val listUrl: String get() = "/manga"
+		override val tableMode: Boolean get() = false
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+				isNsfw = docs.selectFirst(".postbody .alr") != null,
+			)
+		}
+	}
 }
