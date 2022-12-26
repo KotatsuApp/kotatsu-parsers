@@ -36,6 +36,8 @@ internal class MangaParserTest {
 		val parser = source.newParser(context)
 		val page1 = parser.getList(0, sortOrder = null, tags = null)
 		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
+		assert(page1.isNotEmpty()) { "Page 1 is empty" }
+		assert(page2.isNotEmpty()) { "Page 2 is empty" }
 		val intersection = page1.intersect(page2.toSet())
 		assert(intersection.isEmpty()) {
 			"Pages are intersected by " + intersection.size

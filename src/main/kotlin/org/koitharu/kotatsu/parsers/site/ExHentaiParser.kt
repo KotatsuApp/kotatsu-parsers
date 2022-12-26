@@ -105,7 +105,7 @@ internal class ExHentaiParser(
 				return getListPage(page, query, tags, sortOrder)
 			}
 		updateDm = false
-		nextPages[page + 1] = getNextTimestamp(root)
+		nextPages[page + 1] = getNextTimestamp(body)
 		return root.children().mapNotNull { tr ->
 			if (tr.childrenSize() != 2) return@mapNotNull null
 			val (td1, td2) = tr.children()
