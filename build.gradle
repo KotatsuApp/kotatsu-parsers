@@ -1,5 +1,3 @@
-import tasks.ReportGenerateTask
-
 plugins {
 	id 'java-library'
 	id 'org.jetbrains.kotlin.jvm'
@@ -70,4 +68,4 @@ dependencies {
 	testImplementation 'io.webfolder:quickjs:1.1.0'
 }
 
-task generateTestsReport(type: ReportGenerateTask)
+tasks.register('generateTestsReport')

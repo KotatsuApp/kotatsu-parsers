@@ -140,7 +140,10 @@ internal class RemangaParser(
 				)
 			},
 			chapters = chapters.mapChapters { i, jo ->
-				if (jo.getBooleanOrDefault("is_paid", false)) {
+				if (
+					jo.getBooleanOrDefault("is_paid", false) &&
+					!jo.getBooleanOrDefault("is_bought", false)
+				) {
 					return@mapChapters null
 				}
 				val id = jo.getLong("id")
