@@ -383,4 +383,28 @@ internal abstract class MangaReaderParser(
 			)
 		}
 	}
+
+	@MangaSourceParser("TEMPEST", "Tempest Manga", "tr")
+	class TempestParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.TEMPEST, pageSize = 30, searchPageSize = 30) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("manga.tempestfansub.com", null)
+
+		override val listUrl: String get() = "/manga"
+		override val tableMode: Boolean get() = false
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("tr"))
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Yapımcı)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+				isNsfw = docs.selectFirst(".postbody .alr") != null,
+			)
+		}
+	}
 }
