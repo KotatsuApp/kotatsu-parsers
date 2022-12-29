@@ -431,4 +431,16 @@ internal abstract class MangaReaderParser(
 			)
 		}
 	}
+
+	@MangaSourceParser("KOMIKTAP", "KomikTap", "id")
+	class KomikTapParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.KOMIKTAP, pageSize = 15, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("92.87.6.124", null)
+
+		override val listUrl: String
+			get() = "/manga"
+		override val tableMode: Boolean
+			get() = true
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
+	}
 }
