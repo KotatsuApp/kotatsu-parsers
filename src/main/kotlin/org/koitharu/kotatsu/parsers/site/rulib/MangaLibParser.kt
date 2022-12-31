@@ -110,8 +110,10 @@ internal open class MangaLibParser(
 							append(item.getInt("chapter_volume"))
 							append("/c")
 							append(item.getString("chapter_number"))
-							append('/')
-							append(item.optString("chapter_string"))
+							if (isAuthorized) {
+								append("?ui=")
+								append(getUID())
+							}
 						}
 						val nameChapter = item.getStringOrNull("chapter_name")
 						val volume = item.getInt("chapter_volume")
@@ -233,11 +235,25 @@ internal open class MangaLibParser(
 		}
 
 	override suspend fun getUsername(): String {
-		val body = context.httpGet("https://${getDomain()}/messages").parseHtml().body()
+		val body = context.httpGet("https://${LibConst.LIB_SOCIAL_LINK}/messages").parseHtml().body()
 		if (body.baseUri().endsWith("/login")) {
 			throw AuthRequiredException(source)
 		}
 		return body.selectFirst(".profile-user__username")?.text() ?: body.parseFailed("Cannot find username")
+	}
+
+	private suspend fun getUID(): String {
+		val url = "https://${getDomain()}/news/polzovatelskoe-soglasenie"
+		val body = context.httpGet(url).parseHtml().body()
+		val scripts = body.select("script")
+		for (script in scripts) {
+			val raw = script.html().trim()
+			if (raw.startsWith("window.__DATA")) {
+				val json = JSONObject(raw.substringAfter('=').substringBeforeLast(';'))
+				return json.getJSONObject("user").getInt("id").toString()
+			}
+		}
+		throw AuthRequiredException(source)
 	}
 
 	protected open fun isNsfw(doc: Document): Boolean {
@@ -285,4 +301,10 @@ internal open class MangaLibParser(
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
 	class Impl(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.MANGALIB)
+
+	object LibConst {
+
+		val LIB_SOCIAL_LINK = "lib.social"
+
+	}
 }
