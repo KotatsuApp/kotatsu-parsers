@@ -98,6 +98,7 @@ internal open class MangaLibParser(
 				if (line.startsWith("window.__DATA__")) {
 					val json = JSONObject(line.substringAfter('=').substringBeforeLast(';'))
 					val list = json.getJSONObject("chapters").getJSONArray("list")
+					val id = json.optJSONObject("user")?.getLong("id")?.toString() ?: "not"
 					val total = list.length()
 					chapters = ChaptersListBuilder(total)
 					for (i in 0 until total) {
@@ -105,14 +106,20 @@ internal open class MangaLibParser(
 						val chapterId = item.getLong("chapter_id")
 						val scanlator = item.getStringOrNull("username")
 						val url = buildString {
-							append(manga.url)
-							append("/v")
-							append(item.getInt("chapter_volume"))
-							append("/c")
-							append(item.getString("chapter_number"))
 							if (isAuthorized) {
+								append(manga.url)
+								append("/v")
+								append(item.getInt("chapter_volume"))
+								append("/c")
+								append(item.getString("chapter_number"))
 								append("?ui=")
-								append(getUID())
+								append(id)
+							} else {
+								append(manga.url)
+								append("/v")
+								append(item.getInt("chapter_volume"))
+								append("/c")
+								append(item.getString("chapter_number"))
 							}
 						}
 						val nameChapter = item.getStringOrNull("chapter_name")
@@ -240,20 +247,6 @@ internal open class MangaLibParser(
 			throw AuthRequiredException(source)
 		}
 		return body.selectFirst(".profile-user__username")?.text() ?: body.parseFailed("Cannot find username")
-	}
-
-	private suspend fun getUID(): String {
-		val url = "https://${getDomain()}/news/polzovatelskoe-soglasenie"
-		val body = context.httpGet(url).parseHtml().body()
-		val scripts = body.select("script")
-		for (script in scripts) {
-			val raw = script.html().trim()
-			if (raw.startsWith("window.__DATA")) {
-				val json = JSONObject(raw.substringAfter('=').substringBeforeLast(';'))
-				return json.getJSONObject("user").getInt("id").toString()
-			}
-		}
-		throw AuthRequiredException(source)
 	}
 
 	protected open fun isNsfw(doc: Document): Boolean {
