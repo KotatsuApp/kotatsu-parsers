@@ -58,8 +58,8 @@ internal class ExHentaiParser(
 	init {
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
 		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
+		paginator.firstPage = 0
 	}
-
 
 	override suspend fun getListPage(
 		page: Int,
@@ -68,11 +68,16 @@ internal class ExHentaiParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		var search = query?.urlEncoded().orEmpty()
+		val next = nextPages.get(page, 0L)
+		if (page > 0 && next == 0L) {
+			assert(false) { "Page timestamp not found" }
+			return emptyList()
+		}
 		val url = buildString {
 			append("https://")
 			append(getDomain())
 			append("/?next=")
-			append(nextPages.get(page, 0L))
+			append(next)
 			if (!tags.isNullOrEmpty()) {
 				var fCats = 0
 				for (tag in tags) {

@@ -1,3 +1,5 @@
+import tasks.ReportGenerateTask
+
 plugins {
 	id 'java-library'
 	id 'org.jetbrains.kotlin.jvm'
@@ -68,4 +70,5 @@ dependencies {
 	testImplementation 'io.webfolder:quickjs:1.1.0'
 }
 
-tasks.register('generateTestsReport')
+//noinspection ConfigurationAvoidance
+task generateTestsReport(type: ReportGenerateTask)

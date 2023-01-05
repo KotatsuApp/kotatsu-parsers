@@ -51,6 +51,22 @@
 				data-bs-toggle="modal" style="cursor: pointer;">
 				<i data-feather="alert-triangle"></i>
 			</td>
+			{% elseif case.failure.type == 'java.net.SocketTimeoutException' or case.failure.type ==
+			'java.net.UnknownHostException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="power"></i>
+			</td>
+			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.exception.CloudFlareProtectedException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="shield"></i>
+			</td>
+			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.exception.AuthRequiredException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="user-x"></i>
+			</td>
 			{% else %}
 			<td class="table-danger text-center" data-bs-target="#failure_{{ case.hashCode }}"
 				data-bs-toggle="modal" style="cursor: pointer;">
@@ -83,6 +99,21 @@
 </div>
 <script>
 	feather.replace()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
