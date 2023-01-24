@@ -10,4 +10,8 @@ sealed class ConfigKey<T>(
 		override val defaultValue: String,
 		val presetValues: Array<String>?,
 	) : ConfigKey<String>("domain")
+
+	class ShowSuspiciousContent(
+		override val defaultValue: Boolean,
+	) : ConfigKey<Boolean>("show_suspicious")
 }

@@ -37,6 +37,7 @@ internal class ExHentaiParser(
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
 	private var updateDm = false
 	private val nextPages = SparseArrayCompat<Long>()
+	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(true)
 
 	override val isAuthorized: Boolean
 		get() {
@@ -98,7 +99,10 @@ internal class ExHentaiParser(
 			if (updateDm) {
 				append("&inline_set=dm_e")
 			}
-			append("&advsearch=1&f_sh=on")
+			append("&advsearch=1")
+			if (config[suspiciousContentKey]) {
+				append("&f_sh=on")
+			}
 		}
 		val body = context.httpGet(url).parseHtml().body()
 		val root = body.selectFirst("table.itg")
@@ -233,6 +237,11 @@ internal class ExHentaiParser(
 				doc.parseFailed()
 			}
 		return username
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(suspiciousContentKey)
 	}
 
 	private fun isAuthorized(domain: String): Boolean {
