@@ -162,7 +162,7 @@ internal abstract class GroupleParser(
 			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
 				?.select("tr:has(td > a)")?.asReversed()?.mapChapters { i, tr ->
-					val a = tr.selectFirst("a") ?: return@mapChapters null
+					val a = tr.selectFirst("a.chapter-link") ?: return@mapChapters null
 					val href = a.attrAsRelativeUrl("href")
 					var translators = ""
 					val translatorElement = a.attr("title")
@@ -176,7 +176,7 @@ internal abstract class GroupleParser(
 						name = tr.selectFirst("a")?.text().orEmpty().removePrefix(manga.title).trim(),
 						number = i + 1,
 						url = href,
-						uploadDate = dateFormat.tryParse(tr.selectFirst("td.d-none")?.text()),
+						uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
 						scanlator = translators,
 						source = source,
 						branch = null,
