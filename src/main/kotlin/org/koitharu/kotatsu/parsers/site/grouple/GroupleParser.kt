@@ -306,7 +306,7 @@ internal abstract class GroupleParser(
 		return context.httpPost(url, payload, headers)
 	}
 
-	private suspend fun tryHead(url: String, headers: Headers): Boolean = runCatching {
+	private suspend fun tryHead(url: String, headers: Headers): Boolean = runCatchingCancellable {
 		context.httpHead(url, headers).isSuccessful
 	}.getOrDefault(false)
 

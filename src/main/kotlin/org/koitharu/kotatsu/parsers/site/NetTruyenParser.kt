@@ -4,7 +4,9 @@ import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
@@ -89,6 +91,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 					val currentYear = calendar.get(Calendar.YEAR).toString().takeLast(2)
 					"$relativeDate/$currentYear"
 				}
+
 				3 -> relativeDate
 				else -> return 0L
 			}
@@ -124,7 +127,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		}
 
 		val response = if (isSearching) {
-			val result = runCatching { context.httpGet(url) }
+			val result = runCatchingCancellable { context.httpGet(url) }
 			val exception = result.exceptionOrNull()
 			if (exception is NotFoundException) {
 				return emptyList()
