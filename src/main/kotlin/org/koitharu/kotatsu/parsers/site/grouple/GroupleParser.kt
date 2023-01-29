@@ -192,7 +192,7 @@ internal abstract class GroupleParser(
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
-			val pos = data.indexOf("rm_h.initReader(")
+			val pos = data.indexOf("rm_h.readerInit( 0,")
 			if (pos == -1) {
 				continue
 			}
@@ -204,7 +204,7 @@ internal abstract class GroupleParser(
 				continue
 			}
 			val ja = JSONArray("[$json]")
-			val pages = ja.getJSONArray(0)
+			val pages = ja.getJSONArray(1)
 			val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
 			val serversStr = servers.joinToString("|")
 			return (0 until pages.length()).map { i ->
