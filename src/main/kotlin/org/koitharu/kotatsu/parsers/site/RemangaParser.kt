@@ -31,6 +31,10 @@ internal class RemangaParser(
 	override val context: MangaLoaderContext,
 ) : PagedMangaParser(MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
+	override val headers = Headers.Builder()
+		.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
+		.build()
+
 	override val configKeyDomain = ConfigKey.Domain("remanga.org", null)
 	override val authUrl: String
 		get() = "https://${getDomain()}/user/login"
