@@ -471,4 +471,17 @@ internal abstract class MangaReaderParser(
 			)
 		}
 	}
+
+	@MangaSourceParser("MANGASUSU", "Mangasusu", "id")
+	class MangasusuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("92.84.132.251", null)
+
+		override val listUrl: String
+			get() = "/project"
+		override val tableMode: Boolean
+			get() = true
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+	}
 }
