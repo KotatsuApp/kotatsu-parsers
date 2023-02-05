@@ -447,13 +447,13 @@ internal abstract class MangaReaderParser(
 		}
 	}
 
-	@MangaSourceParser("MANGASUSU", "Mangasusu", "id")
-	class MangasusuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
+	@MangaSourceParser("COSMICSCANS", "CosmicScans", "en")
+	class CosmicScansParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.COSMICSCANS, pageSize = 15, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("194.233.87.209", null)
+			get() = ConfigKey.Domain("cosmicscans.com", null)
 
 		override val listUrl: String
-			get() = "/project"
+			get() = "/manga"
 		override val tableMode: Boolean
 			get() = true
 
