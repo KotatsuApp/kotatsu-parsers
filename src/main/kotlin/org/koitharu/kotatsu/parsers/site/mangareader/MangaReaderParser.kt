@@ -447,10 +447,35 @@ internal abstract class MangaReaderParser(
 		}
 	}
 
+	@MangaSourceParser("COSMICSCANS", "CosmicScans", "en")
+	class CosmicScansParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.COSMICSCANS, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("cosmicscans.com", null)
+
+		override val listUrl: String
+			get() = "/manga"
+		override val tableMode: Boolean
+			get() = false
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+			)
+		}
+	}
+
 	@MangaSourceParser("MANGASUSU", "Mangasusu", "id")
 	class MangasusuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("194.233.87.209", null)
+			get() = ConfigKey.Domain("92.84.132.251", null)
 
 		override val listUrl: String
 			get() = "/project"
