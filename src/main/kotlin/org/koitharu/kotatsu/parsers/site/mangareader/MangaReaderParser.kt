@@ -468,7 +468,6 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
