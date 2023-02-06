@@ -415,9 +415,6 @@ internal abstract class MadaraParser(
 		override val datePattern = "MM/dd/yyyy"
 	}
 
-	@MangaSourceParser("X2MANGA", "X2Manga", "en")
-	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
-
 	@MangaSourceParser("S2MANGA", "S2Manga", "en")
 	class S2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.S2MANGA, "s2manga.com")
 
