@@ -316,14 +316,6 @@ internal abstract class MadaraParser(
 		override val datePattern = "dd MMMM HH:mm"
 	}
 
-	@MangaSourceParser("KINGMANGA", "KingManga", "en")
-	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2022/05/cropped-logo-king-02-03-32x32.png"
-		}
-	}
-
 	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
 	class MangahaTachi(context: MangaLoaderContext) :
 		MadaraParser(context, MangaSource.MANGAHATACHI, "hachimanga.com") {
