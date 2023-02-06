@@ -273,7 +273,7 @@ internal abstract class MangaReaderParser(
 	@MangaSourceParser("MANHWALIST", "Manhwalist", "id")
 	class ManhwalistParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANHWALIST, pageSize = 24, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwalist.com", null)
+			get() = ConfigKey.Domain("manhwalist.in", null)
 
 		override val listUrl: String = "/manga"
 		override val tableMode: Boolean get() = false
