@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
-import androidx.annotation.VisibleForTesting
 import okhttp3.Headers
 import okhttp3.HttpUrl
 import org.jsoup.nodes.Element
@@ -35,8 +34,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	 */
 	protected abstract val configKeyDomain: ConfigKey.Domain
 
-	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-	internal open val headers: Headers? = null
+	open val headers: Headers? = null
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
