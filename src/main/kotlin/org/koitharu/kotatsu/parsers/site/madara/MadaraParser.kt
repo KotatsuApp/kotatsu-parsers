@@ -506,9 +506,6 @@ internal abstract class MadaraParser(
 		override val isNsfwSource = true
 	}
 
-	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
-	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.me")
-
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
 	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {
 
