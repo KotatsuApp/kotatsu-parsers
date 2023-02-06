@@ -236,19 +236,6 @@ internal abstract class MangaReaderParser(
 			get() = false
 	}
 
-	@MangaSourceParser("HEROXIA", "Heroxia", "id")
-	class HeroxiaParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.HEROXIA, pageSize = 25, searchPageSize = 10) {
-		override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("heroxia.com", null)
-
-		override val tableMode: Boolean
-			get() = true
-		override val listUrl: String
-			get() = "/manga"
-		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-	}
-
-
 	@MangaSourceParser("SEKAIKOMIK", "Sekaikomik", "id")
 	class SekaikomikParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.SEKAIKOMIK, pageSize = 20, searchPageSize = 100) {
 		override val configKeyDomain: ConfigKey.Domain
