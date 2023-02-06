@@ -233,7 +233,7 @@ internal class RemangaParser(
 		} ?: return null
 		val jo = JSONObject(URLDecoder.decode(userCookie.value, Charsets.UTF_8.name()))
 		val accessToken = jo.getStringOrNull("access_token") ?: return null
-		return Headers.headersOf("authorization", "bearer $accessToken")
+		return headers.newBuilder().add("authorization", "bearer $accessToken").build()
 	}
 
 	private fun copyCookies() {
