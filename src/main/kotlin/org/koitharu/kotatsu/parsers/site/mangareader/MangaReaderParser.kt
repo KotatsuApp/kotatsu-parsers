@@ -484,4 +484,17 @@ internal abstract class MangaReaderParser(
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 	}
+
+	@MangaSourceParser("KOMIKMANGA", "KomikManga", "id")
+	class KomikMangaParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.KOMIKMANGA, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("komikmanga.xyz", null)
+
+		override val listUrl: String
+			get() = "/project"
+		override val tableMode: Boolean
+			get() = true
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+	}
 }
