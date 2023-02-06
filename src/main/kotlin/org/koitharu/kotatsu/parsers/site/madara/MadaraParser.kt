@@ -388,7 +388,7 @@ internal abstract class MadaraParser(
 	class ReadManhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANHWA, "readmanhwa.info")
 
 	@MangaSourceParser("NEATMANGA", "NeatManga", "en")
-	class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmanga.com")
+	class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmangas.com")
 
 	@MangaSourceParser("MANHWACLAN", "ManhwaClan", "en")
 	class ManhwaClan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWACLAN, "manhwaclan.com")
