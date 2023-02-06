@@ -227,12 +227,12 @@ internal class RemangaParser(
 		return jo.getJSONObject("content").getString("username")
 	}
 
-	private fun getApiHeaders(): Headers? {
+	private fun getApiHeaders(): Headers {
 		val userCookie = context.cookieJar.getCookies(getDomain()).find {
 			it.name == "user"
-		} ?: return null
+		} ?: return headers
 		val jo = JSONObject(URLDecoder.decode(userCookie.value, Charsets.UTF_8.name()))
-		val accessToken = jo.getStringOrNull("access_token") ?: return null
+		val accessToken = jo.getStringOrNull("access_token") ?: return headers
 		return headers.newBuilder().add("authorization", "bearer $accessToken").build()
 	}
 
