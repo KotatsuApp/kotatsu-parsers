@@ -373,14 +373,6 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
 	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
 
-	@MangaSourceParser("ISEKAISCAN", "IsekaiScan", "en")
-	class IsekaiScan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2021/10/isekai-scan-02-01-150x150.png"
-		}
-	}
-
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.io")
 
