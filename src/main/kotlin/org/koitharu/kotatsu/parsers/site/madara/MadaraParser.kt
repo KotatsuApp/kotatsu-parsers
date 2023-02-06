@@ -519,14 +519,6 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	@MangaSourceParser("ALLTOPMANGA", "All Top Manga", "en")
-	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2021/12/cropped-Screenshot_4-removebg-preview-32x32.png"
-		}
-	}
-
 	@MangaSourceParser("MANGACV", "Manga Cv", "en")
 	class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com") {
 
