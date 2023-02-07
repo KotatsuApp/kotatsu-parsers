@@ -316,9 +316,9 @@ internal abstract class MadaraParser(
 		override val datePattern = "dd MMMM HH:mm"
 	}
 
-	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
-	class MangahaTachi(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGAHATACHI, "hachimanga.com") {
+	@MangaSourceParser("HachiManga", "HACHIMANGA", "ja")
+	class HachiManga(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
 
 		override val sourceLocale: Locale = Locale.ENGLISH
 	}
