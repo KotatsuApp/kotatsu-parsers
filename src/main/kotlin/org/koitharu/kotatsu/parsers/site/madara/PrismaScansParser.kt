@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.util.*
@@ -19,10 +18,6 @@ internal class PrismaScansParser(context: MangaLoaderContext) :
 
     override val tagPrefix = "manga-genre/"
     override val datePattern = "MMM dd, yyyy"
-
-    override fun getFaviconUrl(): String {
-        return "https://${domain}/wp-content/uploads/2022/07/cropped-branca-1-192x192.png"
-    }
 
     override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
         val root = body.selectFirstOrThrow(".site-content")

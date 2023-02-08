@@ -158,8 +158,6 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
         throw ParseException("Cannot find gernes list", scripts[0].baseUri())
     }
 
-    override fun getFaviconUrl(): String = "https://styles.amarkcdn.com/img/batoto/favicon.ico?v0"
-
     private suspend fun search(page: Int, query: String): List<Manga> {
         val url = buildString {
             append("https://")

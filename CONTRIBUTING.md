@@ -59,13 +59,13 @@ All functions in `MangaParser` class are documented. Pay attention to some pecul
 - `sortOrders` set should not be empty. If your source is not support sorting, specify one most relevance value.
 - If you cannot obtain direct links to pages images inside `getPages` method, it is ok to use an intermediate url
   as `Page.url` and fetch a direct link at `getPageUrl` function.
-- `getFaviconUrl` function is deprecated, but Kotatsu application before v4 still use it, so it is recommended to
-  override it too.
 - You can use _asserts_ to check some optional fields. For example. `Manga.author` field is not required, but if your
   source provide such information, add `assert(it != null)`. This will not have any effect on production but help to
   find issues during unit testing.
 - If your source website (or it's api) uses pages for pagination instead of offset you should extend `PagedMangaParser`
   instead of `MangaParser`.
+- Your parser may also implement the `Interceptor` interface for additional manipulation of all network requests and/or
+  responses, including image loading.
 
 ## Development process
 

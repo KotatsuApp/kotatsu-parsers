@@ -21,10 +21,6 @@ internal class CloneMangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
     override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org", null)
 
-    override fun getFaviconUrl(): String {
-        return "https://pbs.twimg.com/profile_images/458758466346029056/Ys93EANp_400x400.png"
-    }
-
     override suspend fun getListPage(
         page: Int,
         query: String?,

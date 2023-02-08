@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.util.*
@@ -18,10 +17,6 @@ internal class MangasOriginesParser(context: MangaLoaderContext) :
     Madara6Parser(context, MangaSource.MANGAS_ORIGINES, "mangas-origines.fr") {
 
     override val tagPrefix = "catalogues-genre/"
-
-    override fun getFaviconUrl(): String {
-        return "https://${domain}/wp-content/uploads/2020/11/Mangas-150x150.png"
-    }
 
     override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
         val root = body.selectFirstOrThrow(".site-content")

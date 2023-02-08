@@ -15,7 +15,4 @@ internal class ReadmangaParser(
         arrayOf("readmanga.io", "readmanga.live", "readmanga.me"),
     )
 
-    override fun getFaviconUrl(): String {
-        return "https://resrm.rmr.rocks/static/apple-touch-icon-3162037c9df9f28dca0f9a4092cb0f65.png"
-    }
 }

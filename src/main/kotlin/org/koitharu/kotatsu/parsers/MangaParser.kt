@@ -113,15 +113,6 @@ abstract class MangaParser @InternalParsersApi constructor(
     abstract suspend fun getTags(): Set<MangaTag>
 
     /**
-     * Returns direct link to the website favicon
-     */
-    @Deprecated(
-        message = "Use parseFavicons() to get multiple favicons with different size",
-        replaceWith = ReplaceWith("parseFavicons()"),
-    )
-    open fun getFaviconUrl() = "https://${domain}/favicon.ico"
-
-    /**
      * Parse favicons from the main page of the source`s website
      */
     open suspend fun getFavicons(): Favicons {

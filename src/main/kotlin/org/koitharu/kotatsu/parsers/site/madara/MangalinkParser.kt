@@ -43,6 +43,4 @@ internal class MangalinkParser(context: MangaLoaderContext) :
         )
     }
 
-    override fun getFaviconUrl(): String =
-        "https://cdn.${domain}/wp-content/uploads/2020/05/cropped-mangalink-180x180.jpg"
 }

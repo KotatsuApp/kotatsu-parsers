@@ -26,10 +26,6 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
         SortOrder.NEWEST,
     )
 
-    override fun getFaviconUrl(): String {
-        return "https://cdn.${domain}/favicons/favicon.png"
-    }
-
     override suspend fun getList(
         offset: Int,
         query: String?,

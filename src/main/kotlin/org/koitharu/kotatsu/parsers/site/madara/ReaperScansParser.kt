@@ -83,6 +83,4 @@ internal class ReaperScansParser(context: MangaLoaderContext) :
         }
     }
 
-    override fun getFaviconUrl(): String =
-        "https://wuz.${domain}/wp-content/uploads/2022/03/20063242/cropped-ms-icon-310x310-2-192x192.png"
 }

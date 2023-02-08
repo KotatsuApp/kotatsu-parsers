@@ -316,7 +316,7 @@ internal abstract class MadaraParser(
         override val datePattern = "dd MMMM HH:mm"
     }
 
-    @MangaSourceParser("HachiManga", "HACHIMANGA", "ja")
+    @MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
     class HachiManga(context: MangaLoaderContext) :
         MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
 
@@ -340,17 +340,11 @@ internal abstract class MadaraParser(
     @MangaSourceParser("AQUAMANGA", "AquaManga", "en")
     class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com") {
 
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/uploads/2021/03/cropped-cropped-favicon-1-32x32.png"
-        }
     }
 
     @MangaSourceParser("MANGALEK", "MangaLek", "ar")
     class MangaLek(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGALEK, "mangalek.com") {
 
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/logo192.png"
-        }
     }
 
     @MangaSourceParser("HARIMANGA", "HariManga", "en")
@@ -384,9 +378,6 @@ internal abstract class MadaraParser(
     @MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
     class ManhwaKool(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWAKOOL, "manhwakool.com") {
         override val datePattern: String = "MM/dd"
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/uploads/2021/10/cropped-logo-kool-32x32.jpeg"
-        }
     }
 
     @MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
@@ -403,9 +394,6 @@ internal abstract class MadaraParser(
 
         override val isNsfwSource = true
 
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/uploads/cropped-sky-tv-1-32x32.png"
-        }
     }
 
     @MangaSourceParser("BAKAMAN", "BakaMan", "th")
@@ -461,9 +449,6 @@ internal abstract class MadaraParser(
 
         override val isNsfwSource = true
 
-        override fun getFaviconUrl(): String {
-            return "https://cdn.$domain/wp-content/uploads/2019/01/cropped-cropped-pcround-32x32.png"
-        }
     }
 
     @MangaSourceParser("CAT_300", "Cat300", "th")
@@ -483,17 +468,11 @@ internal abstract class MadaraParser(
 
         override val datePattern = "MM/dd/yyyy"
 
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/uploads/2017/10/lgoo-treemanga-2-1.jpg"
-        }
     }
 
     @MangaSourceParser("MANGACV", "Manga Cv", "en")
     class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com") {
 
-        override fun getFaviconUrl(): String {
-            return "https://$domain/wp-content/uploads/2020/10/cropped-mangaCV-32x32.png"
-        }
     }
 
     @MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
