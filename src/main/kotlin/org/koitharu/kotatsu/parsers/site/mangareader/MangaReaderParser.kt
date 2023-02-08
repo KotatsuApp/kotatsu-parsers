@@ -504,7 +504,7 @@ internal abstract class MangaReaderParser(
     class MangasusuParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
         override val configKeyDomain: ConfigKey.Domain
-            get() = ConfigKey.Domain("92.84.132.251", null)
+            get() = ConfigKey.Domain("mangasusu.co.in", null)
 
         override val listUrl: String
             get() = "/project"
@@ -526,6 +526,19 @@ internal abstract class MangaReaderParser(
             get() = true
 
         override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
+    }
+
+    @MangaSourceParser("KOMIKLAB", "KomikLab", "id")
+    class KomikLabParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.KOMIKLAB, pageSize = 20, searchPageSize = 10) {
+    override val configKeyDomain: ConfigKey.Domain
+	get() = ConfigKey.Domain("komiklab.com", null)
+
+    override val listUrl: String
+	get() = "/manga"
+    override val tableMode: Boolean
+	get() = true
+
+    override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
     }
 
     @MangaSourceParser("KOMIKMANGA", "KomikManga", "id")
