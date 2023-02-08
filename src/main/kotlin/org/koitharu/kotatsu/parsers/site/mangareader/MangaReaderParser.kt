@@ -236,19 +236,6 @@ internal abstract class MangaReaderParser(
 			get() = false
 	}
 
-	@MangaSourceParser("HEROXIA", "Heroxia", "id")
-	class HeroxiaParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.HEROXIA, pageSize = 25, searchPageSize = 10) {
-		override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("heroxia.com", null)
-
-		override val tableMode: Boolean
-			get() = true
-		override val listUrl: String
-			get() = "/manga"
-		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-	}
-
-
 	@MangaSourceParser("SEKAIKOMIK", "Sekaikomik", "id")
 	class SekaikomikParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.SEKAIKOMIK, pageSize = 20, searchPageSize = 100) {
 		override val configKeyDomain: ConfigKey.Domain
@@ -273,7 +260,7 @@ internal abstract class MangaReaderParser(
 	@MangaSourceParser("MANHWALIST", "Manhwalist", "id")
 	class ManhwalistParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANHWALIST, pageSize = 24, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwalist.com", null)
+			get() = ConfigKey.Domain("manhwalist.in", null)
 
 		override val listUrl: String = "/manga"
 		override val tableMode: Boolean get() = false
@@ -364,6 +351,30 @@ internal abstract class MangaReaderParser(
 	class MangaTaleParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGATALE, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("mangatale.co", null)
+
+		override val listUrl: String get() = "/manga"
+		override val tableMode: Boolean get() = false
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+				isNsfw = docs.selectFirst(".postbody .alr") != null,
+			)
+		}
+	}
+
+        @MangaSourceParser("DRAGONTRANSLATION", "DragonTranslation", "es")
+        class DragonTranslationParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.DRAGONTRANSLATION, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("dragontranslation.com", null)
 
 		override val listUrl: String get() = "/manga"
 		override val tableMode: Boolean get() = false
@@ -476,6 +487,32 @@ internal abstract class MangaReaderParser(
 	class MangasusuParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("92.84.132.251", null)
+
+		override val listUrl: String
+			get() = "/project"
+		override val tableMode: Boolean
+			get() = true
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+	}
+
+	@MangaSourceParser("KOMIKINDO", "KomikIndo", "id")
+	class KomikIndoParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.KOMIKINDO, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("komikindo.co", null)
+
+		override val listUrl: String
+			get() = "/project"
+		override val tableMode: Boolean
+			get() = true
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
+	}
+
+	@MangaSourceParser("KOMIKMANGA", "KomikManga", "id")
+	class KomikMangaParser(override val context: MangaLoaderContext) : MangaReaderParser(MangaSource.KOMIKMANGA, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("komikmanga.xyz", null)
 
 		override val listUrl: String
 			get() = "/project"

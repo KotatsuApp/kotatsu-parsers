@@ -316,29 +316,18 @@ internal abstract class MadaraParser(
 		override val datePattern = "dd MMMM HH:mm"
 	}
 
-	@MangaSourceParser("KINGMANGA", "KingManga", "en")
-	class KingManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KINGMANGA, "king-manga.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2022/05/cropped-logo-king-02-03-32x32.png"
-		}
-	}
-
-	@MangaSourceParser("MANGAHATACHI", "MangahaTachi", "ja")
-	class MangahaTachi(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGAHATACHI, "hachimanga.com") {
+	@MangaSourceParser("HachiManga", "HACHIMANGA", "ja")
+	class HachiManga(context: MangaLoaderContext) :
+		MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
 
 		override val sourceLocale: Locale = Locale.ENGLISH
 	}
 
 	@MangaSourceParser("PIANMANGA", "PianManga", "en")
-	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.com")
+	class PianManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.PIANMANGA, "pianmanga.me")
 
 	@MangaSourceParser("MANGAROSIE", "MangaRosie", "en")
-	class MangaRosie(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROSIE, "mangarosie.love")
-
-	@MangaSourceParser("READMANWHA", "ReadManwha", "en")
-	class ReadManwha(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANWHA, "readmanwha.net")
+	class MangaRosie(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROSIE, "mangarosie.in")
 
 	@MangaSourceParser("MANGATX", "MangaTx", "en")
 	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
@@ -355,9 +344,6 @@ internal abstract class MadaraParser(
 			return "https://${getDomain()}/wp-content/uploads/2021/03/cropped-cropped-favicon-1-32x32.png"
 		}
 	}
-
-	@MangaSourceParser("MANGATX_OT", "MangaTx (ot)", "en")
-	class MangaTxOt(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX_OT, "manga-tx.com")
 
 	@MangaSourceParser("MANGALEK", "MangaLek", "ar")
 	class MangaLek(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGALEK, "mangalek.com") {
@@ -381,25 +367,11 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
 	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
 
-	@MangaSourceParser("ISEKAISCAN", "IsekaiScan", "en")
-	class IsekaiScan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2021/10/isekai-scan-02-01-150x150.png"
-		}
-	}
-
 	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
 	class MangaKomi(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_KOMI, "mangakomi.io")
 
-	@MangaSourceParser("READMANHWA", "ReadManhwa", "en")
-	class ReadManhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.READMANHWA, "readmanhwa.info")
-
 	@MangaSourceParser("NEATMANGA", "NeatManga", "en")
-	class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmanga.com")
-
-	@MangaSourceParser("MANGAKIK", "MangaKik", "en")
-	class MangaKik(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAKIK, "mangakik.net")
+	class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmangas.com")
 
 	@MangaSourceParser("MANHWACLAN", "ManhwaClan", "en")
 	class ManhwaClan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWACLAN, "manhwaclan.com")
@@ -423,14 +395,8 @@ internal abstract class MadaraParser(
 		override val datePattern = "MM/dd/yyyy"
 	}
 
-	@MangaSourceParser("X2MANGA", "X2Manga", "en")
-	class X2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.X2MANGA, "x2manga.com")
-
 	@MangaSourceParser("S2MANGA", "S2Manga", "en")
 	class S2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.S2MANGA, "s2manga.com")
-
-	@MangaSourceParser("MANHWA", "Manhwa", "en")
-	class Manhwa(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA, "manhwa.pics")
 
 	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
 	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
@@ -440,6 +406,12 @@ internal abstract class MadaraParser(
 		override fun getFaviconUrl(): String {
 			return "https://${getDomain()}/wp-content/uploads/cropped-sky-tv-1-32x32.png"
 		}
+	}
+
+	@MangaSourceParser("BAKAMAN", "BakaMan", "th")
+	class BakaMan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.BAKAMAN, "bakaman.net") {
+
+		override val isNsfwSource = true
 	}
 
 	@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
@@ -506,9 +478,6 @@ internal abstract class MadaraParser(
 		override val isNsfwSource = true
 	}
 
-	@MangaSourceParser("MANHWA_CHILL", "Manhwa Chill", "en")
-	class ManhwaChill(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANHWA_CHILL, "manhwachill.me")
-
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
 	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {
 
@@ -516,14 +485,6 @@ internal abstract class MadaraParser(
 
 		override fun getFaviconUrl(): String {
 			return "https://${getDomain()}/wp-content/uploads/2017/10/lgoo-treemanga-2-1.jpg"
-		}
-	}
-
-	@MangaSourceParser("ALLTOPMANGA", "All Top Manga", "en")
-	class AllTopManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ALLTOPMANGA, "alltopmanga.com") {
-
-		override fun getFaviconUrl(): String {
-			return "https://${getDomain()}/wp-content/uploads/2021/12/cropped-Screenshot_4-removebg-preview-32x32.png"
 		}
 	}
 
