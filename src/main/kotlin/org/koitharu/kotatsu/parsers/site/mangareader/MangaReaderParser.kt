@@ -500,6 +500,28 @@ internal abstract class MangaReaderParser(
         }
     }
 
+    @MangaSourceParser("KOMIKDEWASA", "KomikDewasa", "id")
+    class KomikDewasaParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.KOMIKDEWASA, pageSize = 20, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("komikdewasa.club", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = false
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+
+        override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+            val infoElement = docs.selectFirst("div.infox")
+            return manga.copy(
+                chapters = chapters,
+                description = infoElement?.selectFirst("div.entry-content")?.html(),
+            )
+        }
+    }
+
     @MangaSourceParser("MANGASUSU", "Mangasusu", "id")
     class MangasusuParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
