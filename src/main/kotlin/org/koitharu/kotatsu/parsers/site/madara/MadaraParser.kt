@@ -317,8 +317,7 @@ internal abstract class MadaraParser(
     }
 
     @MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
-    class HachiManga(context: MangaLoaderContext) :
-        MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
+    class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
 
         override val sourceLocale: Locale = Locale.ENGLISH
     }
@@ -474,6 +473,14 @@ internal abstract class MadaraParser(
     class MangaCv(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGACV, "mangacv.com") {
 
     }
+
+    @MangaSourceParser("TOONILY", "Toonily", "en")
+    class Toonily(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOONILY, "toonily.com") {
+
+         override val tagPrefix = "webtoon-genre/"
+
+         override val isNsfwSource = true
+	}
 
     @MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
     class MangaManhua(context: MangaLoaderContext) :
