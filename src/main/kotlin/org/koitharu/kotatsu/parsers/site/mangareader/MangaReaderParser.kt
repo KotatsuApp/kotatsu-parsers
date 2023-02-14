@@ -488,6 +488,30 @@ internal abstract class MangaReaderParser(
         }
     }
 
+    @MangaSourceParser("TOONHUNTER", "Toon Hunter", "th")
+    class ToonHunterParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.TOONHUNTER, pageSize = 20, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("toonhunter.com", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = false
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+
+        override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+            val infoElement = docs.selectFirst("div.infox")
+            return manga.copy(
+                chapters = chapters,
+                description = infoElement?.selectFirst("div.entry-content")?.html(),
+                author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+                isNsfw = docs.selectFirst(".postbody .alr") != null,
+            )
+        }
+    }
+
     @MangaSourceParser("COSMICSCANS", "CosmicScans", "en")
     class CosmicScansParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.COSMICSCANS, pageSize = 20, searchPageSize = 10) {
