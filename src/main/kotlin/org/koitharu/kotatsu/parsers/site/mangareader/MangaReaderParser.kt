@@ -447,6 +447,20 @@ internal abstract class MangaReaderParser(
         override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
     }
 
+    @MangaSourceParser("KUMAPOI", "KumaPoi", "id")
+    class KumaPoiParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.KUMAPOI, pageSize = 15, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("kumapoi.me", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = true
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+    }
+
     @MangaSourceParser("ASURASCANS", "Asura Scans", "en")
     class AsuraScansParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.ASURASCANS, pageSize = 20, searchPageSize = 10) {
