@@ -515,8 +515,8 @@ internal abstract class MangaReaderParser(
     }
 
     @MangaSourceParser("KOMIKLOKAL", "KomikLokal", "id")
-    class CosmicScansParser(context: MangaLoaderContext) :
-        KomikLokalParser(context, MangaSource.KOMIKLOKAL, pageSize = 20, searchPageSize = 10) {
+    class KomikLokalParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.KOMIKLOKAL, pageSize = 20, searchPageSize = 10) {
         override val configKeyDomain: ConfigKey.Domain
             get() = ConfigKey.Domain("komiklokal.pics", null)
 
