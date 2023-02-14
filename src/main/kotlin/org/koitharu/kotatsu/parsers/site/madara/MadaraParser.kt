@@ -405,7 +405,16 @@ internal abstract class MadaraParser(
     class MangaDistrict(context: MangaLoaderContext) :
         MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
 
-        override val tagPrefix = "publication-genre/"
+        override val tagPrefix = "read-scan/"
+
+        override val isNsfwSource = true
+    }
+
+    @MangaSourceParser("HENTAI20", "Hentai20", "en")
+    class Hentai20(context: MangaLoaderContext) :
+        MadaraParser(context, MangaSource.HENTAI20, "hentai20.io") {
+
+        override val tagPrefix = "manga-genre/"
 
         override val isNsfwSource = true
     }
@@ -414,7 +423,7 @@ internal abstract class MadaraParser(
     class Hentai4Free(context: MangaLoaderContext) :
         MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
 
-        override val tagPrefix = "hentai-tag/"
+        override val tagPrefix = "hentai-genre/"
 
         override val isNsfwSource = true
 
