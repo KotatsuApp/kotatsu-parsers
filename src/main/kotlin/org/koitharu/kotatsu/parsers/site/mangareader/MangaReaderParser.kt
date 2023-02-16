@@ -447,6 +447,20 @@ internal abstract class MangaReaderParser(
         override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
     }
 
+    @MangaSourceParser("KUMAPOI", "KumaPoi", "id")
+    class KumaPoiParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.KUMAPOI, pageSize = 15, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("kumapoi.me", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = true
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+    }
+
     @MangaSourceParser("ASURASCANS", "Asura Scans", "en")
     class AsuraScansParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.ASURASCANS, pageSize = 20, searchPageSize = 10) {
@@ -474,6 +488,30 @@ internal abstract class MangaReaderParser(
         }
     }
 
+    @MangaSourceParser("TOONHUNTER", "Toon Hunter", "th")
+    class ToonHunterParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.TOONHUNTER, pageSize = 20, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("toonhunter.com", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = false
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+
+        override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+            val infoElement = docs.selectFirst("div.infox")
+            return manga.copy(
+                chapters = chapters,
+                description = infoElement?.selectFirst("div.entry-content")?.html(),
+                author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+                isNsfw = docs.selectFirst(".postbody .alr") != null,
+            )
+        }
+    }
+
     @MangaSourceParser("COSMICSCANS", "CosmicScans", "en")
     class CosmicScansParser(context: MangaLoaderContext) :
         MangaReaderParser(context, MangaSource.COSMICSCANS, pageSize = 20, searchPageSize = 10) {
@@ -493,6 +531,30 @@ internal abstract class MangaReaderParser(
                 chapters = chapters,
                 description = infoElement?.selectFirst("div.entry-content")?.html(),
                 author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
+                tags = infoElement?.select(".wd-full .mgen > a")
+                    ?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+                    .orEmpty(),
+            )
+        }
+    }
+
+    @MangaSourceParser("KOMIKLOKAL", "KomikLokal", "id")
+    class KomikLokalParser(context: MangaLoaderContext) :
+        MangaReaderParser(context, MangaSource.KOMIKLOKAL, pageSize = 20, searchPageSize = 10) {
+        override val configKeyDomain: ConfigKey.Domain
+            get() = ConfigKey.Domain("komiklokal.pics", null)
+
+        override val listUrl: String
+            get() = "/manga"
+        override val tableMode: Boolean
+            get() = false
+
+        override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+
+        override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+            val infoElement = docs.selectFirst("div.infox")
+            return manga.copy(
+                chapters = chapters,
                 tags = infoElement?.select(".wd-full .mgen > a")
                     ?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
                     .orEmpty(),
