@@ -25,7 +25,6 @@ private const val NOTHING_FOUND = "Ничего не найдено"
 internal abstract class GroupleParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
-	userAgent: String,
 	private val siteId: Int,
 ) : MangaParser(context, source), MangaParserAuthProvider {
 
@@ -33,7 +32,10 @@ internal abstract class GroupleParser(
 	private var cachedPagesServer: String? = null
 
 	override val headers = Headers.Builder()
-		.add("User-Agent", userAgent)
+		.add(
+			"User-Agent",
+			"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
+		)
 		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
