@@ -35,7 +35,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
     override val configKeyDomain = ConfigKey.Domain(
         "bato.to",
-        arrayOf("bato.to", "mto.to", "mangatoto.com", "battwo.com", "batotwo.com", "comiko.net", "batotoo.com"),
+        arrayOf("bato.to", "mto.to", "hto.to", "mangatoto.com", "battwo.com", "batotwo.com", "comiko.net", "batotoo.com"),
     )
 
     override suspend fun getListPage(
