@@ -14,4 +14,8 @@ sealed class ConfigKey<T>(
 	class ShowSuspiciousContent(
 		override val defaultValue: Boolean,
 	) : ConfigKey<Boolean>("show_suspicious")
+
+	class UserAgent(
+		override val defaultValue: String,
+	) : ConfigKey<String>("user_agent")
 }

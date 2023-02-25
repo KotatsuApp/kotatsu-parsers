@@ -5,10 +5,12 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Response
+import okhttp3.internal.headersContentLength
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -21,6 +23,7 @@ private const val PAGE_SIZE = 70
 private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 private const val NOTHING_FOUND = "Ничего не найдено"
+private const val MIN_IMAGE_SIZE = 1024L
 
 internal abstract class GroupleParser(
 	context: MangaLoaderContext,
@@ -31,12 +34,14 @@ internal abstract class GroupleParser(
 	@Volatile
 	private var cachedPagesServer: String? = null
 
-	override val headers = Headers.Builder()
-		.add(
-			"User-Agent",
-			"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
-		)
-		.build()
+	private val userAgentKey = ConfigKey.UserAgent(
+		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
+	)
+
+	override val headers: Headers
+		get() = Headers.Builder()
+			.add("User-Agent", config[userAgentKey])
+			.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -237,15 +242,23 @@ internal abstract class GroupleParser(
 		if (cachedServer != null && cachedServer in servers && tryHead(cachedServer + path)) {
 			return cachedServer + path
 		}
-		val server = coroutineScope {
-			servers.map { server ->
-				async {
-					if (tryHead(server + path)) server else null
-				}
-			}.awaitFirst { it != null }
+		if (servers.isEmpty()) {
+			throw ParseException("No servers found for page", page.url)
 		}
-		cachedPagesServer = server
-		return checkNotNull(server + path)
+		val server = try {
+			coroutineScope {
+				servers.map { server ->
+					async {
+						if (tryHead(server + path)) server else null
+					}
+				}.awaitFirst { it != null }
+			}.also {
+				cachedPagesServer = it
+			}
+		} catch (e: NoSuchElementException) {
+			servers.random()
+		}
+		return checkNotNull(server) + path
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -316,8 +329,9 @@ internal abstract class GroupleParser(
 		return webClient.httpPost(url, payload)
 	}
 
-	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
-		webClient.httpHead(url).isSuccessful
+	suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
+		val response = webClient.httpHead(url)
+		response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
 	}.getOrDefault(false)
 
 	private fun Response.checkAuthRequired(): Response {
