@@ -283,6 +283,11 @@ internal abstract class GroupleParser(
 		} else res
 	}
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	private fun getSortKey(sortOrder: SortOrder) =
 		when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "name"
