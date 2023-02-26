@@ -43,7 +43,7 @@ This library provides manga sources.
    val parser = MangaSource.MANGADEX.newParser(mangaLoaderContext)
    ```
 
-   `mangaLoaderContext` is an implementation of the MangaLoaderContext class.
+   `mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.
     See examples of [Android](https://github.com/KotatsuApp/Kotatsu/blob/devel/app/src/main/java/org/koitharu/kotatsu/core/parser/MangaLoaderContextImpl.kt)
     and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/main/kotlin/org/koitharu/kotatsu_dl/env/MangaLoaderContextImpl.kt)
     implementation.
