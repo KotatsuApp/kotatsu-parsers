@@ -32,7 +32,7 @@ fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { i
  */
 fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
 	val attr = attr(attributeKey).trim()
-	if (attr.isEmpty()) {
+	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
 	if (attr.startsWith("/")) {
@@ -63,7 +63,7 @@ fun Element.attrAsRelativeUrl(attributeKey: String): String {
  */
 fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
 	val attr = attr(attributeKey).trim()
-	if (attr.isEmpty()) {
+	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
 	return (baseUri().toHttpUrlOrNull()?.newBuilder(attr) ?: return null).toString()

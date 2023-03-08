@@ -5,16 +5,15 @@ import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NEATMANGA", "NeatManga", "en")
 internal class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmangas.com") {
+
+	override val datePattern = "dd MMMM yyyy"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chaptersDeferred = async { getChapters(manga) }
@@ -69,6 +68,28 @@ internal class NeatManga(context: MangaLoaderContext) : MadaraParser(context, Ma
 				source = source,
 				scanlator = null,
 				branch = null,
+			)
+		}
+	}
+
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val root = doc.body().selectFirst("div.main-col-inner")
+			?.selectFirst("div.reading-content")
+			?: throw ParseException("Root not found", fullUrl)
+		return root.select("div.page-break").mapNotNull { div ->
+			val img = div.selectFirst("img")
+			if (img == null || img.attr("id").isNullOrEmpty()) {
+				return@mapNotNull null
+			}
+			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				referer = fullUrl,
+				source = source,
 			)
 		}
 	}

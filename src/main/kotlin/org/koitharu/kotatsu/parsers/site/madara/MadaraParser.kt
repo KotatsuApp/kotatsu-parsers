@@ -153,7 +153,7 @@ internal abstract class MadaraParser(
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 			.selectFirstOrThrow("div.c-page")
-		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.US)
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return root2.select("li").asReversed().mapChapters { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
@@ -285,11 +285,11 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	private fun Element.src(): String? {
+	protected fun Element.src(): String? {
 		var result = absUrl("data-src")
 		if (result.isEmpty()) result = absUrl("data-cfsrc")
 		if (result.isEmpty()) result = absUrl("src")
-		return if (result.isEmpty()) null else result
+		return result.ifEmpty { null }
 	}
 
 	private fun createRequestTemplate() =

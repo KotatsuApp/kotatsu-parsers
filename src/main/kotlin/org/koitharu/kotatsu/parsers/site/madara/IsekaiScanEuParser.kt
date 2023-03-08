@@ -6,13 +6,14 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
+@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu") {
+	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.to") {
 
 	override val datePattern = "MM/dd/yyyy"
 
@@ -41,6 +42,31 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 				source = source,
 				scanlator = null,
 				branch = null,
+			)
+		}
+	}
+
+	override suspend fun getTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/mangax/").parseHtml()
+		val body = doc.body()
+		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")
+		val root2 = body.selectFirst("div.genres_wrap")?.selectFirst("ul.list-unstyled")
+		if (root1 == null && root2 == null) {
+			doc.parseFailed("Root not found")
+		}
+		val list = root1?.select("li").orEmpty() + root2?.select("li").orEmpty()
+		val keySet = HashSet<String>(list.size)
+		return list.mapNotNullToSet { li ->
+			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
+			val href = a.attr("href").removeSuffix("/")
+				.substringAfterLast(tagPrefix, "")
+			if (href.isEmpty() || !keySet.add(href)) {
+				return@mapNotNullToSet null
+			}
+			MangaTag(
+				key = href,
+				title = a.ownText().toTitleCase(Locale.ENGLISH),
+				source = source,
 			)
 		}
 	}
