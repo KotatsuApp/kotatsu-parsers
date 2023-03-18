@@ -67,4 +67,8 @@ class MangaChapter(
 		result = 31 * result + source.hashCode()
 		return result
 	}
+
+	override fun toString(): String {
+		return "MangaChapter($id - #$number [$url] - $source)"
+	}
 }

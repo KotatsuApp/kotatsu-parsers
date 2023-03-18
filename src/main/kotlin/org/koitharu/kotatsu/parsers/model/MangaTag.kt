@@ -34,4 +34,8 @@ class MangaTag(
 		result = 31 * result + source.hashCode()
 		return result
 	}
+
+	override fun toString(): String {
+		return "MangaTag($key \"$title\" - $source)"
+	}
 }
