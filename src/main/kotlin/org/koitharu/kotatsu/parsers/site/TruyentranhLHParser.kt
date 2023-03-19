@@ -124,7 +124,6 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 			MangaPage(
 				id = generateUid(imageUrl),
 				url = imageUrl,
-				referer = url,
 				preview = null,
 				source = source,
 			)

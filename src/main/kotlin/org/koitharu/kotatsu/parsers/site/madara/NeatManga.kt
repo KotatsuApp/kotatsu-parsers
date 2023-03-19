@@ -88,7 +88,6 @@ internal class NeatManga(context: MangaLoaderContext) : MadaraParser(context, Ma
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				referer = fullUrl,
 				source = source,
 			)
 		}

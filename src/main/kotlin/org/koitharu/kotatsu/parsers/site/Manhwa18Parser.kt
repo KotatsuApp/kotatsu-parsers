@@ -165,7 +165,6 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = chapterUrl,
 				preview = null,
 				source = MangaSource.MANHWA18,
 			)

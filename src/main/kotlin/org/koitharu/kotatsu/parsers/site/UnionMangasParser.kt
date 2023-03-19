@@ -122,7 +122,6 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 			MangaPage(
 				id = generateUid(href),
 				url = href,
-				referer = fullUrl,
 				preview = null,
 				source = source,
 			)

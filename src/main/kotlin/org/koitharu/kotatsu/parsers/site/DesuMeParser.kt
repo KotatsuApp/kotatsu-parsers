@@ -135,7 +135,6 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		return json.getJSONObject("pages").getJSONArray("list").mapJSON { jo ->
 			MangaPage(
 				id = generateUid(jo.getLong("id")),
-				referer = fullUrl,
 				preview = null,
 				source = chapter.source,
 				url = jo.getString("img"),

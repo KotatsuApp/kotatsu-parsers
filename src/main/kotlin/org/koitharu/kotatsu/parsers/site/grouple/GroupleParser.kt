@@ -226,7 +226,6 @@ internal abstract class GroupleParser(
 					id = generateUid(url),
 					url = "$primaryServer|$serversStr|$url",
 					preview = null,
-					referer = chapter.url,
 					source = source,
 				)
 			}

@@ -90,7 +90,6 @@ internal class CloneMangaParser(context: MangaLoaderContext) : PagedMangaParser(
 			MangaPage(
 				id = generateUid(imgUrl),
 				url = imgUrl,
-				referer = imgUrl,
 				preview = null,
 				source = source,
 			),

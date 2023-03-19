@@ -112,7 +112,6 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = fullUrl,
 				preview = null,
 				source = source,
 			)
@@ -180,7 +179,5 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	)
 
 	@MangaSourceParser("MANGAOWLS", "BeautyManga", "en")
-	class BeautyManga(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com") {
-
-	}
+	class BeautyManga(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com")
 }

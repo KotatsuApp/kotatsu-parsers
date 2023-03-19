@@ -186,7 +186,6 @@ internal abstract class MadaraParser(
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				referer = fullUrl,
 				source = source,
 			)
 		}

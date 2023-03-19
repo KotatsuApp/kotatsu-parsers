@@ -187,7 +187,6 @@ internal abstract class MangaReaderParser(
 				MangaPage(
 					id = generateUid(images.getString(i)),
 					url = images.getString(i),
-					referer = chapterUrl,
 					preview = null,
 					source = source,
 				),
