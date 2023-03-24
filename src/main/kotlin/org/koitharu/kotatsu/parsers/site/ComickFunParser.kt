@@ -45,7 +45,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		val url = buildString {
 			append("https://api.")
 			append(domain)
-			append("/search?tachiyomi=true")
+			append("/v1.0/search?tachiyomi=true")
 			if (!query.isNullOrEmpty()) {
 				if (offset > 0) {
 					return emptyList()
@@ -118,7 +118,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 				)
 			},
 			author = jo.getJSONArray("artists").optJSONObject(0)?.getString("name"),
-			chapters = getChapters(comic.getLong("id")),
+			chapters = getChapters(comic.getString("hid")),
 		)
 	}
 
@@ -164,9 +164,9 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		return tags
 	}
 
-	private suspend fun getChapters(id: Long): List<MangaChapter> {
+	private suspend fun getChapters(hid: String): List<MangaChapter> {
 		val ja = webClient.httpGet(
-			url = "https://api.${domain}/comic/$id/chapter?tachiyomi=true&limit=$CHAPTERS_LIMIT",
+			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
 		val counters = HashMap<Locale, Int>()
