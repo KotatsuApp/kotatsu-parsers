@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.madara
 
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -18,6 +19,9 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 	override val datePattern = "MM/dd/yyyy"
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+		doc.selectFirst("ul.version-chap")?.let {
+			return parseChapters(it)
+		}
 		val mangaId = doc.body().requireElementById("manga-chapters-holder").attr("data-id")
 		val ul = webClient.httpPost(
 			"https://${domain}/wp-admin/admin-ajax.php",
@@ -26,24 +30,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 				"manga" to mangaId,
 			),
 		).parseHtml().body().selectFirstOrThrow("ul")
-		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
-		return ul.select("li").asReversed().mapChapters { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			MangaChapter(
-				id = generateUid(href),
-				name = a.ownText(),
-				number = i + 1,
-				url = href,
-				uploadDate = parseChapterDate(
-					dateFormat,
-					li.selectFirst("span.chapter-release-date i")?.text(),
-				),
-				source = source,
-				scanlator = null,
-				branch = null,
-			)
-		}
+		return parseChapters(ul)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -67,6 +54,27 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 				key = href,
 				title = a.ownText().toTitleCase(Locale.ENGLISH),
 				source = source,
+			)
+		}
+	}
+
+	private fun parseChapters(ul: Element): List<MangaChapter> {
+		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
+		return ul.select("li").mapChapters { i, li ->
+			val a = li.selectFirst("a")
+			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			MangaChapter(
+				id = generateUid(href),
+				name = a.ownText(),
+				number = i + 1,
+				url = href,
+				uploadDate = parseChapterDate(
+					dateFormat,
+					li.selectFirst("span.chapter-release-date i")?.text(),
+				),
+				source = source,
+				scanlator = null,
+				branch = null,
 			)
 		}
 	}
