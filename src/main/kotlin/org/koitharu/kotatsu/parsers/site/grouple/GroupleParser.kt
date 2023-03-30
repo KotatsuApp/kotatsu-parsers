@@ -4,6 +4,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.headersContentLength
 import org.json.JSONArray
@@ -24,12 +25,13 @@ private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 private const val NOTHING_FOUND = "Ничего не найдено"
 private const val MIN_IMAGE_SIZE = 1024L
+private const val HEADER_ACCEPT = "Accept"
 
 internal abstract class GroupleParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
 	private val siteId: Int,
-) : MangaParser(context, source), MangaParserAuthProvider {
+) : MangaParser(context, source), MangaParserAuthProvider, Interceptor {
 
 	@Volatile
 	private var cachedPagesServer: String? = null
@@ -280,6 +282,23 @@ internal abstract class GroupleParser(
 		return if (res.isNullOrEmpty()) {
 			root.parseFailed("Cannot find username")
 		} else res
+	}
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val request = chain.request()
+		if (!request.header(HEADER_ACCEPT).isNullOrEmpty()) {
+			return chain.proceed(request)
+		}
+		val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast('.', "")?.lowercase(Locale.ROOT)
+		return if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp") {
+			chain.proceed(
+				request.newBuilder()
+					.header(HEADER_ACCEPT, "image/webp,image/png;q=0.9,image/jpeg,*/*;q=0.8")
+					.build(),
+			)
+		} else {
+			chain.proceed(request)
+		}
 	}
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
