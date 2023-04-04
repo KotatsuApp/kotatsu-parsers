@@ -60,7 +60,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 
 	private fun parseChapters(ul: Element): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
-		return ul.select("li").mapChapters { i, li ->
+		return ul.select("li").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(
