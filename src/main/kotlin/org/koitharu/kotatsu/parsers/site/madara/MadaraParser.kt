@@ -390,7 +390,7 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("BAKAMAN", "BakaMan", "th")
 	class BakaMan(context: MangaLoaderContext) : MadaraParser(context, MangaSource.BAKAMAN, "bakaman.net") {
 
-		override val isNsfwSource = true
+		override val isNsfwSource = false
 	}
 
 	@MangaSourceParser("HENTAI20", "Hentai20", "en")
@@ -421,7 +421,7 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("BIBIMANGA", "BibiManga", "en")
 	class BibiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.BIBIMANGA, "bibimanga.com") {
 
-		override val isNsfwSource = true
+		override val isNsfwSource = false
 	}
 
 	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
@@ -439,7 +439,7 @@ internal abstract class MadaraParser(
 
 		override val tagPrefix = "webtoon-genre/"
 
-		override val isNsfwSource = true
+		override val isNsfwSource = false
 	}
 
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
