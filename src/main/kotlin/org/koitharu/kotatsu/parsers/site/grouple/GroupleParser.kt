@@ -240,8 +240,8 @@ internal abstract class GroupleParser(
 		val path = parts.last()
 		val servers = parts.dropLast(1).toSet()
 		val cachedServer = cachedPagesServer
-		if (cachedServer != null && cachedServer in servers && tryHead(cachedServer + path)) {
-			return cachedServer + path
+		if (cachedServer != null && cachedServer in servers && tryHead(concatUrl(cachedServer, path))) {
+			return concatUrl(cachedServer, path)
 		}
 		if (servers.isEmpty()) {
 			throw ParseException("No servers found for page", page.url)
@@ -250,7 +250,8 @@ internal abstract class GroupleParser(
 			coroutineScope {
 				servers.map { server ->
 					async {
-						if (tryHead(server + path)) server else null
+						val host = server.trim().ifEmpty { "https://$domain/" }
+						if (tryHead(concatUrl(host, path))) host else null
 					}
 				}.awaitFirst { it != null }
 			}.also {
@@ -259,7 +260,7 @@ internal abstract class GroupleParser(
 		} catch (e: NoSuchElementException) {
 			servers.random()
 		}
-		return checkNotNull(server) + path
+		return concatUrl(checkNotNull(server), path)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -352,7 +353,7 @@ internal abstract class GroupleParser(
 		return webClient.httpPost(url, payload)
 	}
 
-	suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
+	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
 		val response = webClient.httpHead(url)
 		response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
 	}.getOrDefault(false)

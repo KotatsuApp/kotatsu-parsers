@@ -67,6 +67,16 @@ fun String.toAbsoluteUrl(domain: String): String = when {
 	else -> this
 }
 
+fun concatUrl(host: String, path: String): String {
+	val hostWithSlash = host.endsWith('/')
+	val pathWithSlash = path.startsWith('/')
+	return when {
+		hostWithSlash && pathWithSlash -> host + path.drop(1)
+		!hostWithSlash && !pathWithSlash -> "$host/$path"
+		else -> host + path
+	}
+}
+
 fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
 	assert(false) { "Date string is null or empty" }
 	0L
