@@ -72,10 +72,10 @@ internal abstract class MadaraParser(
 				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()
 					?.toFloatOrNull()?.div(5f) ?: -1f,
-				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapToSet { a ->
+				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
 					MangaTag(
-						key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-						title = a.text().toTitleCase(),
+						key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+						title = a.text().ifEmpty { return@mapNotNullToSet null }.toTitleCase(),
 						source = source,
 					)
 				}.orEmpty(),
