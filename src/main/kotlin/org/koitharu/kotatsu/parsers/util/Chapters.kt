@@ -4,19 +4,17 @@ import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 @InternalParsersApi
-inline fun <T> Iterable<T>.mapChapters(
+inline fun <T> List<T>.mapChapters(
 	reversed: Boolean = false,
 	transform: (index: Int, T) -> MangaChapter?,
 ): List<MangaChapter> {
 	val builder = ChaptersListBuilder(collectionSize())
 	var index = 0
-	for (item in this) {
+	val elements = if (reversed) this.asReversed() else this
+	for (item in elements) {
 		if (builder.add(transform(index, item))) {
 			index++
 		}
-	}
-	if (reversed) {
-		builder.reverse()
 	}
 	return builder.toList()
 }

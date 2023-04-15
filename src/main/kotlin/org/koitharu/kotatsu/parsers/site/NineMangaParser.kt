@@ -110,7 +110,7 @@ internal abstract class NineMangaParser(
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()
 				?.html()?.substringAfter("</b>"),
 			chapters = root.selectFirst("div.chapterbox")?.select("ul.sub_vol_ul > li")
-				?.asReversed()?.mapChapters { i, li ->
+				?.mapChapters(reversed = true) { i, li ->
 					val a = li.selectFirst("a.chapter_list_a")
 					val href = a?.attrAsRelativeUrlOrNull("href")
 						?.replace("%20", " ") ?: li.parseFailed("Link not found")

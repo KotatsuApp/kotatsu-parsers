@@ -127,7 +127,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	private suspend fun loadChapters(mangaId: Long): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val doc = webClient.httpGet("https://${domain}/ajax-list-chapter?mangaID=$mangaId").parseHtml()
-		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
+		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(

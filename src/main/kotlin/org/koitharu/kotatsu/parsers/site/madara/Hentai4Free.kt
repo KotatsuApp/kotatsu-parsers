@@ -48,7 +48,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 		).parseHtml()
 		val ul = doc2.body().selectFirstOrThrow("ul")
 		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
-		return ul.select("li").asReversed().mapChapters { i, li ->
+		return ul.select("li").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(

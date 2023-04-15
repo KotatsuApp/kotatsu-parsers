@@ -53,7 +53,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 			state = state,
 			rating = rating ?: RATING_UNKNOWN,
 			description = infoHeaderEl?.selectFirst(".series-summary .summary-content")?.html(),
-			chapters = docs.select("ul.list-chapters.at-series > a").reversed().mapChapters { index, element ->
+			chapters = docs.select("ul.list-chapters.at-series > a").mapChapters(reversed = true) { index, element ->
 				MangaChapter(
 					id = generateUid(element.attrAsRelativeUrl("href")),
 					name = element.selectFirst(".chapter-name")?.text()?.trim().orEmpty(),

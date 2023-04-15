@@ -47,7 +47,7 @@ internal abstract class Madara6Parser(
 		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
-		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
+		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(

@@ -75,7 +75,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 
 	private fun parseChapterList(doc: Document): List<MangaChapter> {
 		val chapterList = doc.select("#list-chapters > p")
-		return chapterList.asReversed().mapChapters { index, element ->
+		return chapterList.mapChapters(reversed = true) { index, element ->
 			val titleElement = element.selectFirst("span.title > a") ?: return@mapChapters null
 			val name = titleElement.text()
 			val relativeUrl = titleElement.attrAsRelativeUrl("href")

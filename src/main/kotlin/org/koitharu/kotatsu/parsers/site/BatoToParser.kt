@@ -103,8 +103,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			chapters = root.selectFirst(".episode-list")
 				?.selectFirst(".main")
 				?.children()
-				?.reversed()
-				?.mapChapters { i, div ->
+				?.mapChapters(reversed = true) { i, div ->
 					div.parseChapter(i)
 				}.orEmpty(),
 		)

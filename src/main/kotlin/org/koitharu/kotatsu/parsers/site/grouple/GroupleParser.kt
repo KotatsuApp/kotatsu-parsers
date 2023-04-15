@@ -174,7 +174,7 @@ internal abstract class GroupleParser(
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
 			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
-				?.select("tr:has(td > a)")?.asReversed()?.mapChapters { i, tr ->
+				?.select("tr:has(td > a)")?.mapChapters(reversed = true) { i, tr ->
 					val a = tr.selectFirst("a.chapter-link") ?: return@mapChapters null
 					val href = a.attrAsRelativeUrl("href")
 					var translators = ""

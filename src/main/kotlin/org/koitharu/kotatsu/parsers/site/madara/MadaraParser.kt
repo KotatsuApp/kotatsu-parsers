@@ -154,7 +154,7 @@ internal abstract class MadaraParser(
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 			.selectFirstOrThrow("div.c-page")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select("li").asReversed().mapChapters { i, li ->
+		return root2.select("li").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(

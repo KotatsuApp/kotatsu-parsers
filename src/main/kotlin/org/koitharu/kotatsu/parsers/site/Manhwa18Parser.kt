@@ -56,7 +56,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),
 			state = state,
-			chapters = docs.select(".card-body > .list-chapters > a").asReversed().mapChapters { index, element ->
+			chapters = docs.select(".card-body > .list-chapters > a").mapChapters(reversed = true) { index, element ->
 				// attrAsRelativeUrl only return page url without the '/'
 				val chapterUrl = element.attrAsAbsoluteUrlOrNull("href")?.toRelativeUrl(domain)
 					?: return@mapChapters null

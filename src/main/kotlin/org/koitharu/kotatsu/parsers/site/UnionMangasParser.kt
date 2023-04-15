@@ -90,7 +90,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 				it.toMangaTag()
 			} ?: manga.tags,
 			isNsfw = root.selectFirst(".alert-danger")?.html()?.contains("18 anos") == true,
-			chapters = root.select("div.row.capitulos").asReversed().mapChapters { i, div ->
+			chapters = root.select("div.row.capitulos").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
 				val title = a.text()

@@ -92,7 +92,7 @@ internal abstract class ChanParser(
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
-			chapters = root.select("table.table_cha tr:gt(1)").reversed().mapChapters { i, tr ->
+			chapters = root.select("table.table_cha tr:gt(1)").mapChapters(reversed = true) { i, tr ->
 				val href = tr?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 					?: return@mapChapters null
 				MangaChapter(

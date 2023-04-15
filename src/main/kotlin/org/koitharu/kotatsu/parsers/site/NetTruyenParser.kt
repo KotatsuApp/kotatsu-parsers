@@ -35,7 +35,7 @@ class NetTruyenParser(context: MangaLoaderContext) :
 			?.toFloatOrNull() ?: 0f
 
 		val chapterElements = doc.getElementById("nt_listchapter")?.select("ul > li") ?: doc.parseFailed()
-		val chapters = chapterElements.asReversed().mapChapters { index, element ->
+		val chapters = chapterElements.mapChapters(reversed = true) { index, element ->
 			val a = element.selectFirst("div.chapter > a") ?: return@mapChapters null
 			val relativeUrl = a.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 			val timeText = element.selectFirst("div.col-xs-4.text-center.no-wrap.small")?.text()
