@@ -316,7 +316,7 @@ internal abstract class MadaraParser(
 	}
 
 	@MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
-	class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachimanga.com") {
+	class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachiraw.com") {
 
 		override val sourceLocale: Locale = Locale.ENGLISH
 	}

@@ -231,7 +231,7 @@ internal abstract class MangaReaderParser(
 	class ManhwaLandParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANHWALAND, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwaland.guru", null)
+			get() = ConfigKey.Domain("manhwaland.us", arrayOf("manhwaland.us", "manhwaland.guru"))
 
 		override val listUrl: String
 			get() = "/series"
@@ -353,7 +353,7 @@ internal abstract class MangaReaderParser(
 	class ManhwadesuParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANHWADESU, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwadesu.org", null)
+			get() = ConfigKey.Domain("manhwadesu.pro", arrayOf("manhwadesu.pro", "manhwadesu.org"))
 
 		override val listUrl: String get() = "/komik"
 		override val tableMode: Boolean get() = false
@@ -593,7 +593,7 @@ internal abstract class MangaReaderParser(
 	class KomikDewasaParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKDEWASA, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikdewasa.info", null)
+			get() = ConfigKey.Domain("komikdewasa.us", arrayOf("komikdewasa.us", "komikdewasa.info"))
 
 		override val listUrl: String
 			get() = "/manga"
