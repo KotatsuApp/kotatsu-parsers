@@ -2,7 +2,7 @@
 
 This library provides manga sources.
 
-[![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![Kotlin](https://img.shields.io/github/languages/top/KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
+[![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![Kotlin](https://img.shields.io/github/languages/top/KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Telegram](https://img.shields.io/badge/chat-telegram-60ACFF)](https://t.me/kotatsuapp) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
 
 ## Usage
 
@@ -44,9 +44,10 @@ This library provides manga sources.
    ```
 
    `mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.
-    See examples of [Android](https://github.com/KotatsuApp/Kotatsu/blob/devel/app/src/main/java/org/koitharu/kotatsu/core/parser/MangaLoaderContextImpl.kt)
-    and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/main/kotlin/org/koitharu/kotatsu_dl/env/MangaLoaderContextImpl.kt)
-    implementation.
+   See examples
+   of [Android](https://github.com/KotatsuApp/Kotatsu/blob/devel/app/src/main/java/org/koitharu/kotatsu/core/parser/MangaLoaderContextImpl.kt)
+   and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/main/kotlin/org/koitharu/kotatsu_dl/env/MangaLoaderContextImpl.kt)
+   implementation.
 
    Note that the `MangaSource.LOCAL` and `MangaSource.DUMMY` parsers cannot be instantiated.
 
@@ -56,4 +57,5 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for the guidelines.
 
 ## DMCA disclaimer
 
-The developers of this application have no affiliation with the content available in the app. It is collected from sources freely available through any web browser.
+The developers of this application have no affiliation with the content available in the app. It is collected from
+sources freely available through any web browser.

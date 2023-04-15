@@ -87,4 +87,5 @@ It is recommended to run unit tests before submitting a PR.
 
 ## Help
 
-If you need a help or have some questions, ask a community in our [Discord server](https://discord.gg/NNJ5RgVBC5).
+If you need a help or have some questions, ask a community in our [Telegram chat](https://t.me/kotatsuapp)
+or [Discord server](https://discord.gg/NNJ5RgVBC5).
