@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.core.parser
 
+import androidx.collection.ArraySet
 import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -26,6 +27,7 @@ import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.parseJsonArray
 import org.koitharu.kotatsu.parsers.util.removeSuffix
 import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
@@ -36,14 +38,15 @@ private const val PAGE_SIZE = 20
 @MangaSourceParser("HONEYMANGA", "Honey Manga", "uk")
 class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HONEYMANGA, PAGE_SIZE), Interceptor {
 
-	private val urlApi = "https://data.api.$domain"
-	private val mangaApi = "$urlApi/v2/manga/cursor-list"
-	private val chapterApi = "$urlApi/v2/chapter/cursor-list"
-	private val genresListApi = "$urlApi/genres-tags/genres-list"
-	private val framesApi = "$urlApi/chapter/frames"
+	private val urlApi get() = "https://data.api.$domain"
+	private val mangaApi get() = "$urlApi/v2/manga/cursor-list"
+	private val chapterApi get() = "$urlApi/v2/chapter/cursor-list"
+	private val genresListApi get() = "$urlApi/genres-tags/genres-list"
+	private val framesApi get() = "$urlApi/chapter/frames"
 	private val searchApi = "https://search.api.$domain/api/v1/title/search-matching?query="
 
 	private val imageStorageUrl = "https://manga-storage.fra1.digitaloceanspaces.com/public-resources"
+
 	override val headers
 		get() = Headers.Builder()
 			.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
@@ -98,12 +101,10 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		sortOrder: SortOrder
 	): List<Manga> {
 		val body = JSONObject()
-		var content: JSONArray? = null
-		content = if (!query.isNullOrEmpty()) {
-			if((query.length < 3) || (page > 1)) return emptyList()
-			body.put("query", query)
-			webClient.httpGet(searchApi + query).parseJsonArray()
-		} else {
+		var content: JSONArray = JSONArray()
+
+		// Popular/Newest
+		content = if (query.isNullOrEmpty()) {
 			body.put("page", page)
 			body.put("pageSize", PAGE_SIZE)
 			body.put("filters", JSONArray())
@@ -112,8 +113,12 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 			sort.put("sortOrder", "DESC")
 			body.put("sort", sort)
 			webClient.httpPost(mangaApi, body).parseJson().getJSONArray("data")
+		// Search
+		} else {
+			if((query.length < 3) || (page > 1)) return emptyList()
+			webClient.httpGet(searchApi + query.urlEncoded()).parseJsonArray()
 		}
-		return content!!.mapJSON { jo ->
+		return content.mapJSON { jo ->
 			val id = jo.getString("id")
 			val posterUrl = jo.getString("posterUrl")
 			Manga(
@@ -125,7 +130,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfw(jo.getStringOrNull("adult")),
 				coverUrl = getCoverUrl(posterUrl, 256),
-				tags = getTags(jo.optJSONArray("genresAndTags")!!),
+				tags = getTitleTags(jo.optJSONArray("genresAndTags")),
 				state = when (jo.getStringOrNull("titleStatus")) {
 					"Онгоінг" -> MangaState.ONGOING
 					"Завершено" -> MangaState.FINISHED
@@ -145,13 +150,10 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		body.put("chapterId", chapter.url)
 
 		val content = webClient.httpPost(framesApi, body).parseJson().getJSONObject("resourceIds")
-		val mangaPage = mutableListOf<MangaPage>()
-		(0 until content.length()).forEach { i ->
+		return List(content.length()) { i ->
 			val item = content.get(i.toString()).toString()
-
-			mangaPage.add(MangaPage(id = generateUid(item), "$imageStorageUrl/$item", getCoverUrl(item, 256), source))
+			MangaPage(id = generateUid(item), "$imageStorageUrl/$item", getCoverUrl(item, 256), source)
 		}
-		return mangaPage
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -187,8 +189,14 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		return "https://$domain/_next/image?url=https%3A%2F%2Fmanga-storage.fra1.digitaloceanspaces.com%2Fpublic-resources%2F$id&w=$w&q=75"
 	}
 
-	private fun getTags(jsonTags: JSONArray): Set<MangaTag>  {
-		val tagsSet = mutableListOf<MangaTag>()
+	private fun getSortKey(order: SortOrder?) = when (order) {
+		SortOrder.POPULARITY -> "likes"
+		SortOrder.NEWEST -> "lastUpdated"
+		else -> "likes"
+	}
+
+	private fun getTitleTags(jsonTags: JSONArray): Set<MangaTag>  {
+		val tagsSet = ArraySet<MangaTag>(jsonTags.length())
 		(0 until jsonTags.length()).forEach { i ->
 			val item = jsonTags.get(i)
 
@@ -196,11 +204,5 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		}
 
 		return tagsSet.toSet()
-	}
-
-	private fun getSortKey(order: SortOrder?) = when (order) {
-		SortOrder.POPULARITY -> "likes"
-		SortOrder.NEWEST -> "lastUpdated"
-		else -> "likes"
 	}
 }
