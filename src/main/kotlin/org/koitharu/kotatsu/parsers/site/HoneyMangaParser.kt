@@ -115,7 +115,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 			webClient.httpPost(mangaApi, body).parseJson().getJSONArray("data")
 		// Search
 		} else {
-			if((query.length < 3) || (page > 1)) return emptyList()
+			if((query.length < 3) || (page > 1)) throw IllegalArgumentException("Запит має містити щонайменше 3 символи / The query must contain at least 3 characters")
 			webClient.httpGet(searchApi + query.urlEncoded()).parseJsonArray()
 		}
 		return content.mapJSON { jo ->
