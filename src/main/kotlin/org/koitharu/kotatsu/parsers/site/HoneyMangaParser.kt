@@ -43,7 +43,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	private val chapterApi get() = "$urlApi/v2/chapter/cursor-list"
 	private val genresListApi get() = "$urlApi/genres-tags/genres-list"
 	private val framesApi get() = "$urlApi/chapter/frames"
-	private val searchApi = "https://search.api.$domain/api/v1/title/search-matching?query="
+	private val searchApi get() = "https://search.api.$domain/api/v1/title/search-matching?query="
 
 	private val imageStorageUrl = "https://manga-storage.fra1.digitaloceanspaces.com/public-resources"
 
@@ -173,7 +173,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		val newRequest = if (request.header("Content-Encoding") != null) {
-			request.newBuilder().removeHeader("CommonHeaders.CONTENT_ENCODING").build()
+			request.newBuilder().removeHeader("Content-Encoding").build()
 		} else {
 			request
 		}
