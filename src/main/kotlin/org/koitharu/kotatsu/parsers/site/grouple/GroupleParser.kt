@@ -240,7 +240,7 @@ internal abstract class GroupleParser(
 		val path = parts.last()
 		val servers = parts.dropLast(1).toSet()
 		val cachedServer = cachedPagesServer
-		if (cachedServer != null && cachedServer in servers && tryHead(concatUrl(cachedServer, path))) {
+		if (!cachedServer.isNullOrEmpty() && cachedServer in servers && tryHead(concatUrl(cachedServer, path))) {
 			return concatUrl(cachedServer, path)
 		}
 		if (servers.isEmpty()) {
@@ -260,7 +260,7 @@ internal abstract class GroupleParser(
 		} catch (e: NoSuchElementException) {
 			servers.random()
 		}
-		return concatUrl(checkNotNull(server), path)
+		return concatUrl(checkNotNull(server).ifEmpty { "https://$domain/" }, path)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
