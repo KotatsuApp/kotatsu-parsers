@@ -5,11 +5,13 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.jsoup.HttpStatusException
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.GraphQLException
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.parseJson
+import java.net.HttpURLConnection
 
 class OkHttpWebClient(
 	private val httpClient: OkHttpClient,
@@ -92,8 +94,12 @@ class OkHttpWebClient(
 
 	private fun Response.ensureSuccess(): Response {
 		val exception: Exception? = when (code) { // Catch some error codes, not all
-			404 -> NotFoundException(message, request.url.toString())
-			in 500..599 -> HttpStatusException(message, code, request.url.toString())
+			HttpURLConnection.HTTP_NOT_FOUND -> NotFoundException(message, request.url.toString())
+			HttpURLConnection.HTTP_UNAUTHORIZED -> request.tag(MangaSource::class.java)?.let {
+				AuthRequiredException(it)
+			} ?: HttpStatusException(message, code, request.url.toString())
+
+			in 400..599 -> HttpStatusException(message, code, request.url.toString())
 			else -> null
 		}
 		if (exception != null) {

@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site
 
 import okhttp3.Headers
-import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -10,13 +9,11 @@ import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.net.HttpURLConnection
 import java.net.URLDecoder
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -121,7 +118,7 @@ internal class RemangaParser(
 			?: throw ParseException("Cannot obtain slug from ${manga.url}", manga.publicUrl)
 		val data = webClient.httpGet(
 			url = "https://api.$domain/api/titles$slug/",
-		).handle401().parseJson()
+		).parseJson()
 		val content = try {
 			data.getJSONObject("content")
 		} catch (e: JSONException) {
@@ -180,9 +177,7 @@ internal class RemangaParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val referer = "https://${domain}/"
 		val content = webClient.httpGet(chapter.url.toAbsoluteUrl(getDomain("api")))
-			.handle401()
 			.parseJson()
 			.getJSONObject("content")
 		val pages = content.optJSONArray("pages")
@@ -200,8 +195,8 @@ internal class RemangaParser(
 		val result = ArrayList<MangaPage>(pages.length())
 		for (i in 0 until pages.length()) {
 			when (val item = pages.get(i)) {
-				is JSONObject -> result += parsePage(item, referer)
-				is JSONArray -> item.mapJSONTo(result) { parsePage(it, referer) }
+				is JSONObject -> result += parsePage(item)
+				is JSONArray -> item.mapJSONTo(result) { parsePage(it) }
 				else -> throw ParseException("Unknown json item $item", chapter.url)
 			}
 		}
@@ -224,7 +219,7 @@ internal class RemangaParser(
 	override suspend fun getUsername(): String {
 		val jo = webClient.httpGet(
 			url = "https://api.${domain}/api/users/current/",
-		).handle401().parseJson()
+		).parseJson()
 		return jo.getJSONObject("content").getString("username")
 	}
 
@@ -250,7 +245,7 @@ internal class RemangaParser(
 		else -> "-chapter_date"
 	}
 
-	private fun parsePage(jo: JSONObject, referer: String) = MangaPage(
+	private fun parsePage(jo: JSONObject) = MangaPage(
 		id = generateUid(jo.getLong("id")),
 		url = jo.getString("link"),
 		preview = null,
@@ -263,7 +258,7 @@ internal class RemangaParser(
 		while (true) {
 			val content = webClient.httpGet(
 				url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=100",
-			).handle401().parseJson().getJSONArray("content")
+			).parseJson().getJSONArray("content")
 			val len = content.length()
 			if (len == 0) {
 				break
@@ -275,11 +270,5 @@ internal class RemangaParser(
 			page++
 		}
 		return result
-	}
-
-	private fun Response.handle401() = apply {
-		if (code == HttpURLConnection.HTTP_UNAUTHORIZED) {
-			throw AuthRequiredException(source)
-		}
 	}
 }
