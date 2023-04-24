@@ -18,11 +18,14 @@ class OkHttpWebClient(
 	private val mangaSource: MangaSource,
 ) : WebClient {
 
-	override suspend fun httpGet(url: HttpUrl): Response {
+	override suspend fun httpGet(url: HttpUrl, extraHeaders: Headers?): Response {
 		val request = Request.Builder()
 			.get()
 			.url(url)
 			.addTags()
+		if (extraHeaders != null) {
+			request.headers(extraHeaders)
+		}
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 

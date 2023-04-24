@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.network
 
+import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Response
@@ -13,11 +14,15 @@ interface WebClient {
 	 */
 	suspend fun httpGet(url: String): Response = httpGet(url.toHttpUrl())
 
+	suspend fun httpGet(url: String, extraHeaders: Headers?): Response = httpGet(url.toHttpUrl(), extraHeaders)
+
 	/**
 	 * Do a GET http request to specific url
 	 * @param url
 	 */
-	suspend fun httpGet(url: HttpUrl): Response
+	suspend fun httpGet(url: HttpUrl): Response = httpGet(url, null)
+
+	suspend fun httpGet(url: HttpUrl, extraHeaders: Headers?): Response
 
 	/**
 	 * Do a HEAD http request to specific url
