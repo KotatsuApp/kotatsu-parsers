@@ -46,6 +46,12 @@ fun Response.parseJsonArray(): JSONArray = try {
 	closeQuietly()
 }
 
+fun Response.parseRaw(): String = try {
+	requireBody().string()
+} finally {
+	closeQuietly()
+}
+
 /**
  * Convert url to relative if it is on [domain]
  * @return an url relative to the [domain] or absolute, if domain is mismatching

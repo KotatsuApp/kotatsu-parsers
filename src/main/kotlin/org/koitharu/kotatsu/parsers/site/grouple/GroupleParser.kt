@@ -40,10 +40,9 @@ internal abstract class GroupleParser(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
 
-	override val headers: Headers
-		get() = Headers.Builder()
-			.add("User-Agent", config[userAgentKey])
-			.build()
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", config[userAgentKey])
+		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

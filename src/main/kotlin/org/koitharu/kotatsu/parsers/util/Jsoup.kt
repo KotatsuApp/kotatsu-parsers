@@ -115,3 +115,7 @@ fun Element.selectLast(cssQuery: String): Element? {
 fun Element.selectLastOrThrow(cssQuery: String): Element {
 	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
 }
+
+fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
+
+fun Element.ownTextOrNull(): String? = ownText().takeUnless { it.isEmpty() }
