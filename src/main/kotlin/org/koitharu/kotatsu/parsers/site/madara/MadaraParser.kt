@@ -304,12 +304,6 @@ internal abstract class MadaraParser(
 				it.substring(0, pos) to it.substring(pos + 1)
 			}.toMutableMap()
 
-	@MangaSourceParser("MANGAREAD", "MangaRead", "en")
-	class MangaRead(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAREAD, "www.mangaread.org") {
-		override val tagPrefix = "genres/"
-		override val datePattern = "dd.MM.yyyy"
-	}
-
 	@MangaSourceParser("MANGAWEEBS", "MangaWeebs", "en")
 	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAWEEBS, "mangaweebs.in") {
 		override val datePattern = "dd MMMM HH:mm"
