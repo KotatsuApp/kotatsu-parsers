@@ -1,9 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.grouple
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.headersContentLength
@@ -236,30 +238,42 @@ internal abstract class GroupleParser(
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val parts = page.url.split('|')
-		val path = parts.last()
-		val servers = parts.dropLast(1).toSet()
-		val cachedServer = cachedPagesServer
-		if (!cachedServer.isNullOrEmpty() && cachedServer in servers && tryHead(concatUrl(cachedServer, path))) {
-			return concatUrl(cachedServer, path)
-		}
-		if (servers.isEmpty()) {
+		if (parts.size < 2) {
 			throw ParseException("No servers found for page", page.url)
 		}
-		val server = try {
-			coroutineScope {
-				servers.map { server ->
-					async {
-						val host = server.trim().ifEmpty { "https://$domain/" }
-						if (tryHead(concatUrl(host, path))) host else null
+		val path = parts.last()
+		// fast path
+		cachedPagesServer?.let { host ->
+			val url = concatUrl("https://$host/", path)
+			if (tryHead(url)) {
+				return url
+			} else {
+				cachedPagesServer = null
+			}
+		}
+		// slow path
+		val candidates = HashSet<String>((parts.size - 1) * 2)
+		for (i in 0 until parts.size - 1) {
+			val server = parts[i].trim().ifEmpty { "https://$domain/" }
+			candidates.add(concatUrl(server, path))
+			candidates.add(concatUrl(server, path.substringBeforeLast('?')))
+		}
+		return try {
+			channelFlow {
+				for (url in candidates) {
+					launch {
+						if (tryHead(url)) {
+							send(url)
+						}
 					}
-				}.awaitFirst { it != null }
-			}.also {
-				cachedPagesServer = it
+				}
+			}.first().also {
+				cachedPagesServer = it.toHttpUrlOrNull()?.host
 			}
 		} catch (e: NoSuchElementException) {
-			servers.random()
+			assert(false) { e.toString() }
+			candidates.random()
 		}
-		return concatUrl(checkNotNull(server).ifEmpty { "https://$domain/" }, path)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {

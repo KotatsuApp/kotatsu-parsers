@@ -114,20 +114,24 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null)
 		val manga = list.first()
-		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null")
+		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
 
 		assert(pages.isNotEmpty())
 		assert(pages.isDistinctBy { it.id })
 		assert(pages.all { it.source == source })
 
-		val page = pages.medianOrNull() ?: error("No page")
-		val pageUrl = parser.getPageUrl(page)
-		assert(pageUrl.isNotEmpty())
-		assert(pageUrl.isUrlAbsolute())
-		checkImageRequest(pageUrl, page.source)
+		arrayOf(
+			pages.first(),
+			pages.medianOrNull() ?: error("No page"),
+		).forEach { page ->
+			val pageUrl = parser.getPageUrl(page)
+			assert(pageUrl.isNotEmpty())
+			assert(pageUrl.isUrlAbsolute())
+			checkImageRequest(pageUrl, page.source)
+		}
 	}
 
 	@ParameterizedTest(name = "{index}|favicon|{0}")
