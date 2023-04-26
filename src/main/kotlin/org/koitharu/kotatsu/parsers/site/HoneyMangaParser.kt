@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.core.parser
+package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArraySet
 import okhttp3.Headers
@@ -102,21 +102,39 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	): List<Manga> {
 		val body = JSONObject()
 		var content: JSONArray = JSONArray()
+		body.put("page", page)
+		body.put("pageSize", PAGE_SIZE)
+		val sort = JSONObject()
+		sort.put("sortBy", getSortKey(sortOrder))
+		sort.put("sortOrder", "DESC")
+		body.put("sort", sort)
 
-		// Popular/Newest
-		content = if (query.isNullOrEmpty()) {
-			body.put("page", page)
-			body.put("pageSize", PAGE_SIZE)
-			body.put("filters", JSONArray())
-			val sort = JSONObject()
-			sort.put("sortBy", getSortKey(sortOrder))
-			sort.put("sortOrder", "DESC")
-			body.put("sort", sort)
+		// Tags
+		content = if (!tags.isNullOrEmpty()) {
+			val filters: JSONArray = JSONArray()
+			val tag_filter = JSONObject()
+			tag_filter.put("filterBy", "genres")
+			tag_filter.put("filterOperator", "ALL")
+			val tag: JSONArray = JSONArray()
+			tags.forEach {
+				tag.put(it.title)
+			}
+			tag_filter.put("filterValue", tag)
+			filters.put(tag_filter)
+			body.put("filters", filters)
 			webClient.httpPost(mangaApi, body).parseJson().getJSONArray("data")
 		// Search
-		} else {
-			if((query.length < 3) || (page > 1)) throw IllegalArgumentException("Запит має містити щонайменше 3 символи / The query must contain at least 3 characters")
-			webClient.httpGet(searchApi + query.urlEncoded()).parseJsonArray()
+		} else if(!query.isNullOrEmpty()) {
+			if((query.length < 3)) throw IllegalArgumentException("Запит має містити щонайменше 3 символи / The query must contain at least 3 characters")
+			if(page == 1) {
+				webClient.httpGet(searchApi + query.urlEncoded()).parseJsonArray()
+			} else {
+				JSONArray()
+			}
+		// Popular/Newest
+		}  else {
+			body.put("filters", JSONArray())
+			webClient.httpPost(mangaApi, body).parseJson().getJSONArray("data")
 		}
 		return content.mapJSON { jo ->
 			val id = jo.getString("id")
@@ -186,7 +204,8 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	}
 
 	private fun getCoverUrl(id: String, w: Int): String {
-		return "https://$domain/_next/image?url=https%3A%2F%2Fmanga-storage.fra1.digitaloceanspaces.com%2Fpublic-resources%2F$id&w=$w&q=75"
+		// https://honey-manga.com.ua/_next/image?url=https%3A%2F%2Fhoneymangastorage.b-cdn.net%2Fpublic-resources%2F1c4613c2-ffe3-405a-b26a-2cab59ddd223%3Foptimizer%3Dimage%26width%3D512%26height%3D512&w=3840&q=75
+		return "https://$domain/_next/image?url=https%3A%2F%2Fhoneymangastorage.b-cdn.net%2Fpublic-resources%2F$id&w=$w&q=75"
 	}
 
 	private fun getSortKey(order: SortOrder?) = when (order) {
