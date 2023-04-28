@@ -2,6 +2,9 @@ package org.koitharu.kotatsu.parsers.site
 
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
+import okio.IOException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -15,7 +18,7 @@ internal abstract class NineMangaParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
 	defaultDomain: String,
-) : PagedMangaParser(context, source, pageSize = 26) {
+) : PagedMangaParser(context, source, pageSize = 26), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain, null)
 
@@ -25,11 +28,25 @@ internal abstract class NineMangaParser(
 
 	override val headers = Headers.Builder()
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
+		.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
 		.build()
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
 	)
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val request = chain.request()
+			.newBuilder()
+			.removeHeader("Referer")
+			.build()
+		val response = chain.proceed(request)
+		val responseUrl = response.request.url
+		if (responseUrl.host != request.url.host) {
+			throw IOException("Unexpected redirect to ${responseUrl.host}")
+		}
+		return response
+	}
 
 	override suspend fun getListPage(
 		page: Int,
