@@ -3,11 +3,12 @@ package org.koitharu.kotatsu.parsers.model
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
 class Favicon internal constructor(
-	val url: String,
-	val size: Int,
-	internal val rel: String?,
+	@JvmField val url: String,
+	@JvmField val size: Int,
+	@JvmField internal val rel: String?,
 ) : Comparable<Favicon> {
 
+	@JvmField
 	val type: String = url.toHttpUrl().pathSegments.last()
 		.substringAfterLast('.', "").lowercase()
 

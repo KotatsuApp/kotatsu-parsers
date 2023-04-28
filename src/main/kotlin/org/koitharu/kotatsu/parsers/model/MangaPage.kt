@@ -6,19 +6,19 @@ class MangaPage(
 	/**
 	 * Unique identifier for manga
 	 */
-	val id: Long,
+	@JvmField val id: Long,
 	/**
 	 * Relative url to page (**without** a domain) or any other uri.
 	 * Used principally in parsers.
 	 * May contain link to image or html page.
 	 * @see MangaParser.getPageUrl
 	 */
-	val url: String,
+	@JvmField val url: String,
 	/**
 	 * Absolute url of the small page image if exists, null otherwise
 	 */
-	val preview: String?,
-	val source: MangaSource,
+	@JvmField val preview: String?,
+	@JvmField val source: MangaSource,
 ) {
 
 	override fun equals(other: Any?): Boolean {

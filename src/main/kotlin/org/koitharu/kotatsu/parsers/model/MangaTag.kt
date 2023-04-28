@@ -6,13 +6,13 @@ class MangaTag(
 	/**
 	 * User-readable tag title, should be in Title case
 	 */
-	val title: String,
+	@JvmField val title: String,
 	/**
 	 * Identifier of a tag, must be unique among the source.
 	 * @see MangaParser.getList
 	 */
-	val key: String,
-	val source: MangaSource,
+	@JvmField val key: String,
+	@JvmField val source: MangaSource,
 ) {
 
 	override fun equals(other: Any?): Boolean {

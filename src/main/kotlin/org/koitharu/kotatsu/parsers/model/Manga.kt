@@ -6,67 +6,67 @@ class Manga(
 	/**
 	 * Unique identifier for manga
 	 */
-	val id: Long,
+	@JvmField val id: Long,
 	/**
 	 * Manga title, human-readable
 	 */
-	val title: String,
+	@JvmField val title: String,
 	/**
 	 * Alternative title (for example on other language), may be null
 	 */
-	val altTitle: String?,
+	@JvmField val altTitle: String?,
 	/**
 	 * Relative url to manga (**without** a domain) or any other uri.
 	 * Used principally in parsers
 	 */
-	val url: String,
+	@JvmField val url: String,
 	/**
 	 * Absolute url to manga, must be ready to open in browser
 	 */
-	val publicUrl: String,
+	@JvmField val publicUrl: String,
 	/**
 	 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
 	 * @see hasRating
 	 */
-	val rating: Float,
+	@JvmField val rating: Float,
 	/**
 	 * Indicates that manga may contain sensitive information (18+, NSFW)
 	 */
-	val isNsfw: Boolean,
+	@JvmField val isNsfw: Boolean,
 	/**
 	 * Absolute link to the cover
 	 * @see largeCoverUrl
 	 */
-	val coverUrl: String,
+	@JvmField val coverUrl: String,
 	/**
 	 * Tags (genres) of the manga
 	 */
-	val tags: Set<MangaTag>,
+	@JvmField val tags: Set<MangaTag>,
 	/**
 	 * Manga status (ongoing, finished) or null if unknown
 	 */
-	val state: MangaState?,
+	@JvmField val state: MangaState?,
 	/**
 	 * Author of the manga, may be null
 	 */
-	val author: String?,
+	@JvmField val author: String?,
 	/**
 	 * Large cover url (absolute), null if is no large cover
 	 * @see coverUrl
 	 */
-	val largeCoverUrl: String? = null,
+	@JvmField val largeCoverUrl: String? = null,
 	/**
 	 * Manga description, may be html or null
 	 */
-	val description: String? = null,
+	@JvmField val description: String? = null,
 	/**
 	 * List of chapters
 	 */
-	val chapters: List<MangaChapter>? = null,
+	@JvmField val chapters: List<MangaChapter>? = null,
 	/**
 	 * Manga source
 	 */
-	val source: MangaSource,
+	@JvmField val source: MangaSource,
 ) {
 
 	/**
