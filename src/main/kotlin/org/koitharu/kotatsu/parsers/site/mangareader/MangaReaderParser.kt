@@ -234,7 +234,7 @@ internal abstract class MangaReaderParser(
 			get() = ConfigKey.Domain("manhwaland.us", arrayOf("manhwaland.us", "manhwaland.guru"))
 
 		override val listUrl: String
-			get() = "/series"
+			get() = "/manga"
 		override val tableMode: Boolean
 			get() = false
 	}
