@@ -150,12 +150,12 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				}
 				val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 				val relations = jo.getJSONArray("relationships").associateByKey("type")
-				val number = attrs.getIntOrDefault("chapter", 0)
+				val number = attrs.getFloatOrDefault("chapter", 0f)
 				MangaChapter(
 					id = generateUid(id),
 					name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
 						?: "Chapter #$number",
-					number = number,
+					number = number.toInt(),
 					url = id,
 					scanlator = relations["scanlation_group"]?.getStringOrNull("name"),
 					uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
