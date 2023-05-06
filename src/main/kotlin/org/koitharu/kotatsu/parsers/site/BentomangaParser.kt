@@ -9,8 +9,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import java.util.*
 
 @MangaSourceParser("BENTOMANGA", "Bentomanga", "fr")
@@ -110,7 +112,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 			},
 			author = root.selectFirst(".datas_more-authors-people")?.textOrNull().assertNotNull("author"),
 			chapters = run {
-				val input = root.selectFirst("input[name=\"limit\"]") ?: return@run emptyList()
+				val input = root.selectFirst("input[name=\"limit\"]") ?: return@run parseChapters(root)
 				val max = input.attr("max").toInt()
 				if (max <= 1) {
 					parseChapters(root)
@@ -142,6 +144,9 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 				"x-requested-with", "XMLHttpRequest",
 			),
 		).parseJson()
+		if (json.getIntOrDefault("type", 1) == 2) {
+			throw ParseException("Light Novels are not supported", chapterUrl)
+		}
 		val baseUrl = json.getString("baseImagesUrl")
 		val pages = json.getJSONArray("page_array")
 		return (0 until pages.length()).map { i ->
@@ -186,7 +191,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 					name = if (name != null && name != title) "$title: $name" else title,
 					number = href.substringAfterLast('/').toIntOrNull() ?: 0,
 					url = href,
-					scanlator = div.selectFirst(".team_link-name")?.textOrNull().assertNotNull("scanlator"),
+					scanlator = div.selectFirst(".team_link-name")?.textOrNull(),
 					uploadDate = div.selectFirst(".component-chapter-date")
 						?.ownTextOrNull()
 						.parseDate(),
