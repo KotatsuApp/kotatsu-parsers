@@ -436,9 +436,9 @@ internal abstract class MangaReaderParser(
 
 	@MangaSourceParser("KOMIKTAP", "KomikTap", "id")
 	class KomikTapParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.KOMIKTAP, pageSize = 15, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.KOMIKTAP, pageSize = 10, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("92.87.6.124", null)
+			get() = ConfigKey.Domain("92.87.6.124", arrayOf("92.87.6.124", "komiktap.in"))
 
 		override val listUrl: String
 			get() = "/manga"
