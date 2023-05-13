@@ -37,6 +37,7 @@ internal abstract class GroupleParser(
 
 	@Volatile
 	private var cachedPagesServer: String? = null
+	protected open val defaultIsNsfw = false
 
 	private val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
@@ -131,7 +132,7 @@ internal abstract class GroupleParser(
 						?.div(5f)
 				}.getOrNull() ?: RATING_UNKNOWN,
 				author = tileInfo?.selectFirst("a.person-link")?.text(),
-				isNsfw = false,
+				isNsfw = defaultIsNsfw,
 				tags = runCatching {
 					tileInfo?.select("a.element-link")
 						?.mapToSet {
@@ -173,7 +174,7 @@ internal abstract class GroupleParser(
 					)
 				},
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
-			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
+			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
 				?.select("tr:has(td > a)")?.mapChapters(reversed = true) { i, tr ->
 					val a = tr.selectFirst("a.chapter-link") ?: return@mapChapters null
