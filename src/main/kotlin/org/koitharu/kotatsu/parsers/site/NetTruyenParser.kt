@@ -4,7 +4,9 @@ import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
@@ -13,11 +15,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
-class NetTruyenParser(override val context: MangaLoaderContext) :
-	PagedMangaParser(MangaSource.NETTRUYEN, pageSize = 36) {
+class NetTruyenParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaSource.NETTRUYEN, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("www.nettruyenme.com", null)
+		get() = ConfigKey.Domain(
+			"www.nettruyento.com",
+			arrayOf("www.nettruyento.com", "nettruyento.com", "nettruyenin.com"),
+		)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.RATING)
@@ -27,13 +32,13 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val rating = doc.selectFirst("span[itemprop=ratingValue]")
 			?.ownText()
 			?.toFloatOrNull() ?: 0f
 
 		val chapterElements = doc.getElementById("nt_listchapter")?.select("ul > li") ?: doc.parseFailed()
-		val chapters = chapterElements.asReversed().mapChapters { index, element ->
+		val chapters = chapterElements.mapChapters(reversed = true) { index, element ->
 			val a = element.selectFirst("div.chapter > a") ?: return@mapChapters null
 			val relativeUrl = a.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 			val timeText = element.selectFirst("div.col-xs-4.text-center.no-wrap.small")?.text()
@@ -89,6 +94,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 					val currentYear = calendar.get(Calendar.YEAR).toString().takeLast(2)
 					"$relativeDate/$currentYear"
 				}
+
 				3 -> relativeDate
 				else -> return 0L
 			}
@@ -109,7 +115,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		val isSearching = !query.isNullOrEmpty()
 		val url = buildString {
 			append("https://")
-			append(getDomain())
+			append(domain)
 			if (isSearching) {
 				append("/tim-truyen?keyword=")
 				append(query!!.urlEncoded())
@@ -124,7 +130,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 		}
 
 		val response = if (isSearching) {
-			val result = runCatching { context.httpGet(url) }
+			val result = runCatchingCancellable { webClient.httpGet(url) }
 			val exception = result.exceptionOrNull()
 			if (exception is NotFoundException) {
 				return emptyList()
@@ -132,7 +138,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 
 			result.getOrThrow()
 		} else {
-			context.httpGet(url)
+			webClient.httpGet(url)
 		}
 
 		val itemsElements = response.parseHtml()
@@ -155,7 +161,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 				id = generateUid(slug),
 				title = tooltipElement.selectFirst("div.title")?.text().orEmpty(),
 				altTitle = null,
-				url = absUrl.toRelativeUrl(getDomain()),
+				url = absUrl.toRelativeUrl(domain),
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
@@ -173,14 +179,13 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val pageElements = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val pageElements = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 			.select("div.reading-detail.box_doc > div img")
 		return pageElements.map { element ->
 			val url = element.attrAsAbsoluteUrl("data-original")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = getDomain(),
 				preview = null,
 				source = source,
 			)
@@ -199,7 +204,7 @@ class NetTruyenParser(override val context: MangaLoaderContext) :
 
 	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
-		val doc = context.httpGet("/tim-truyen-nang-cao".toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet("/tim-truyen-nang-cao".toAbsoluteUrl(domain)).parseHtml()
 		val tagItems = doc.select("div.genre-item")
 		val result = ArrayMap<String, MangaTag>(tagItems.size)
 		for (item in tagItems) {

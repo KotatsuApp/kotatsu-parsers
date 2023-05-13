@@ -16,10 +16,6 @@ internal class NeoxScansParser(context: MangaLoaderContext) :
 
 	override val datePattern: String = "dd/MM/yyyy"
 
-	override fun getFaviconUrl(): String {
-		return "https://${getDomain()}/wp-content/uploads/2022/05/cropped-cropped-neoxscans-192x192.png"
-	}
-
 	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
 		val root = body.selectFirstOrThrow(".site-content")
 		val postContent = root.selectFirstOrThrow(".post-content")
@@ -44,8 +40,8 @@ internal class NeoxScansParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirst("div.main-col-inner")
 			?.selectFirst("div.reading-content")
 			?: throw ParseException("Root not found", fullUrl)
@@ -56,7 +52,6 @@ internal class NeoxScansParser(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				referer = fullUrl,
 				source = source,
 			)
 		}

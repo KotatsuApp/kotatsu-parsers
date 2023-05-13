@@ -46,6 +46,12 @@ fun Response.parseJsonArray(): JSONArray = try {
 	closeQuietly()
 }
 
+fun Response.parseRaw(): String = try {
+	requireBody().string()
+} finally {
+	closeQuietly()
+}
+
 /**
  * Convert url to relative if it is on [domain]
  * @return an url relative to the [domain] or absolute, if domain is mismatching
@@ -65,6 +71,16 @@ fun String.toAbsoluteUrl(domain: String): String = when {
 	this.startsWith("//") -> "https:$this"
 	this.startsWith('/') -> "https://$domain$this"
 	else -> this
+}
+
+fun concatUrl(host: String, path: String): String {
+	val hostWithSlash = host.endsWith('/')
+	val pathWithSlash = path.startsWith('/')
+	return when {
+		hostWithSlash && pathWithSlash -> host + path.drop(1)
+		!hostWithSlash && !pathWithSlash -> "$host/$path"
+		else -> host + path
+	}
 }
 
 fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {

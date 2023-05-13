@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site
 
+import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -13,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
 @MangaSourceParser("DESUME", "Desu.me", "ru")
-internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMangaParser(MangaSource.DESUME, 20) {
+internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.me", null)
 
@@ -24,6 +25,8 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 		SortOrder.ALPHABETICAL,
 	)
 
+	private val tagsCache = SuspendLazy(::fetchTags)
+
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -33,7 +36,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 		if (query != null && page != searchPaginator.firstPage) {
 			return emptyList()
 		}
-		val domain = getDomain()
+		val domain = domain
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -50,14 +53,16 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 				append(query)
 			}
 		}
-		val json = context.httpGet(url).parseJson().getJSONArray("response")
+		val json = webClient.httpGet(url).parseJson().getJSONArray("response")
 			?: throw ParseException("Invalid response", url)
 		val total = json.length()
 		val list = ArrayList<Manga>(total)
+		val tagsMap = tagsCache.tryGet().getOrNull()
 		for (i in 0 until total) {
 			val jo = json.getJSONObject(i)
 			val cover = jo.getJSONObject("image")
 			val id = jo.getLong("id")
+			val genres = jo.getString("genres").split(',')
 			list += Manga(
 				url = "/manga/api/$id",
 				publicUrl = jo.getString("url"),
@@ -73,7 +78,13 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 				rating = jo.getDouble("score").toFloat().coerceIn(0f, 1f),
 				id = generateUid(id),
 				isNsfw = false,
-				tags = emptySet(),
+				tags = if (!tagsMap.isNullOrEmpty()) {
+					genres.mapNotNullToSet { g ->
+						tagsMap[g.trim().toTitleCase()]
+					}
+				} else {
+					emptySet()
+				},
 				author = null,
 				description = jo.getString("description"),
 			)
@@ -82,8 +93,8 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val url = manga.url.toAbsoluteUrl(getDomain())
-		val json = context.httpGet(url).parseJson().getJSONObject("response")
+		val url = manga.url.toAbsoluteUrl(domain)
+		val json = webClient.httpGet(url).parseJson().getJSONObject("response")
 			?: throw ParseException("Invalid response", url)
 		val baseChapterUrl = manga.url + "/chapter/"
 		val chaptersList = json.getJSONObject("chapters").getJSONArray("list")
@@ -117,14 +128,13 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val json = context.httpGet(fullUrl)
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val json = webClient.httpGet(fullUrl)
 			.parseJson()
 			.getJSONObject("response") ?: throw ParseException("Invalid response", fullUrl)
 		return json.getJSONObject("pages").getJSONArray("list").mapJSON { jo ->
 			MangaPage(
 				id = generateUid(jo.getLong("id")),
-				referer = fullUrl,
 				preview = null,
 				source = chapter.source,
 				url = jo.getString("img"),
@@ -133,21 +143,7 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("https://${getDomain()}/manga/").parseHtml()
-		val root = doc.body().requireElementById("animeFilter")
-			.selectFirstOrThrow(".catalog-genres")
-		return root.select("li").mapToSet {
-			val input = it.selectFirstOrThrow("input")
-			MangaTag(
-				source = source,
-				key = input.attr("data-genre-slug").ifEmpty {
-					it.parseFailed("data-genre-slug is empty")
-				},
-				title = input.attr("data-genre-name").toTitleCase().ifEmpty {
-					it.parseFailed("data-genre-name is empty")
-				},
-			)
-		}
+		return tagsCache.get().values.toSet()
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =
@@ -158,4 +154,26 @@ internal class DesuMeParser(override val context: MangaLoaderContext) : PagedMan
 			SortOrder.NEWEST -> "id"
 			else -> "updated"
 		}
+
+	private suspend fun fetchTags(): Map<String, MangaTag> {
+		val doc = webClient.httpGet("https://${domain}/manga/").parseHtml()
+		val root = doc.body().requireElementById("animeFilter")
+			.selectFirstOrThrow(".catalog-genres")
+		val li = root.select("li")
+		val result = ArrayMap<String, MangaTag>(li.size)
+		li.forEach {
+			val input = it.selectFirstOrThrow("input")
+			val tag = MangaTag(
+				source = source,
+				key = input.attr("data-genre-slug").ifEmpty {
+					it.parseFailed("data-genre-slug is empty")
+				},
+				title = input.attr("data-genre-name").toTitleCase().ifEmpty {
+					it.parseFailed("data-genre-name is empty")
+				},
+			)
+			result[tag.title] = tag
+		}
+		return result
+	}
 }

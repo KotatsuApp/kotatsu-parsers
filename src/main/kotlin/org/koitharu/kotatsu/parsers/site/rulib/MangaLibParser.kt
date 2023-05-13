@@ -20,14 +20,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 internal open class MangaLibParser(
-	override val context: MangaLoaderContext,
+	context: MangaLoaderContext,
 	source: MangaSource,
-) : PagedMangaParser(source, pageSize = 60), MangaParserAuthProvider {
+) : PagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangalib.me", null)
 
 	override val authUrl: String
-		get() = "https://${getDomain()}/login"
+		get() = "https://${domain}/login"
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.RATING,
@@ -48,7 +48,7 @@ internal open class MangaLibParser(
 		}
 		val url = buildString {
 			append("https://")
-			append(getDomain())
+			append(domain)
 			append("/manga-list?dir=")
 			append(getSortKey(sortOrder))
 			append("&page=")
@@ -58,7 +58,7 @@ internal open class MangaLibParser(
 				append(tag.key)
 			}
 		}
-		val doc = context.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().getElementById("manga-list") ?: doc.parseFailed("Root not found")
 		val items = root.selectFirst("div.media-cards-grid")?.select("div.media-card-wrap")
 			?: return emptyList()
@@ -73,7 +73,7 @@ internal open class MangaLibParser(
 				author = null,
 				rating = RATING_UNKNOWN,
 				url = href,
-				publicUrl = href.toAbsoluteUrl(a.host ?: getDomain()),
+				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				tags = emptySet(),
 				state = null,
 				isNsfw = false,
@@ -83,12 +83,12 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val fullUrl = manga.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet("$fullUrl?section=info").parseHtml()
+		val fullUrl = manga.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet("$fullUrl?section=info").parseHtml()
 		val root = doc.body().getElementById("main-page") ?: throw ParseException("Root not found", fullUrl)
 		val title = root.selectFirst("div.media-header__wrap")?.children()
 		val info = root.selectFirst("div.media-content")
-		val chaptersDoc = context.httpGet("$fullUrl?section=chapters").parseHtml()
+		val chaptersDoc = webClient.httpGet("$fullUrl?section=chapters").parseHtml()
 		val scripts = chaptersDoc.select("script")
 		val dateFormat = SimpleDateFormat("yyy-MM-dd", Locale.US)
 		var chapters: ChaptersListBuilder? = null
@@ -98,6 +98,7 @@ internal open class MangaLibParser(
 				if (line.startsWith("window.__DATA__")) {
 					val json = JSONObject(line.substringAfter('=').substringBeforeLast(';'))
 					val list = json.getJSONObject("chapters").getJSONArray("list")
+					val id = json.optJSONObject("user")?.getLong("id")?.toString() ?: "not"
 					val total = list.length()
 					chapters = ChaptersListBuilder(total)
 					for (i in 0 until total) {
@@ -105,13 +106,21 @@ internal open class MangaLibParser(
 						val chapterId = item.getLong("chapter_id")
 						val scanlator = item.getStringOrNull("username")
 						val url = buildString {
-							append(manga.url)
-							append("/v")
-							append(item.getInt("chapter_volume"))
-							append("/c")
-							append(item.getString("chapter_number"))
-							append('/')
-							append(item.optString("chapter_string"))
+							if (isAuthorized) {
+								append(manga.url)
+								append("/v")
+								append(item.getInt("chapter_volume"))
+								append("/c")
+								append(item.getString("chapter_number"))
+								append("?ui=")
+								append(id)
+							} else {
+								append(manga.url)
+								append("/v")
+								append(item.getInt("chapter_volume"))
+								append("/c")
+								append(item.getString("chapter_number"))
+							}
 						}
 						val nameChapter = item.getStringOrNull("chapter_name")
 						val volume = item.getInt("chapter_volume")
@@ -163,8 +172,8 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		if (doc.location().substringBefore('?').endsWith("/register")) {
 			throw AuthRequiredException(source)
 		}
@@ -193,7 +202,6 @@ internal open class MangaLibParser(
 						id = generateUid(pageUrl),
 						url = pageUrl,
 						preview = null,
-						referer = fullUrl,
 						source = source,
 					)
 				}
@@ -203,8 +211,8 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val url = "https://${getDomain()}/manga-list"
-		val doc = context.httpGet(url).parseHtml()
+		val url = "https://${domain}/manga-list"
+		val doc = webClient.httpGet(url).parseHtml()
 		val scripts = doc.body().select("script")
 		for (script in scripts) {
 			val raw = script.html().trim()
@@ -227,13 +235,13 @@ internal open class MangaLibParser(
 
 	override val isAuthorized: Boolean
 		get() {
-			return context.cookieJar.getCookies(getDomain()).any {
+			return context.cookieJar.getCookies(domain).any {
 				it.name.startsWith("remember_web_")
 			}
 		}
 
 	override suspend fun getUsername(): String {
-		val body = context.httpGet("https://${getDomain()}/messages").parseHtml().body()
+		val body = webClient.httpGet("https://${LibConst.LIB_SOCIAL_LINK}/messages").parseHtml().body()
 		if (body.baseUri().endsWith("/login")) {
 			throw AuthRequiredException(source)
 		}
@@ -257,8 +265,8 @@ internal open class MangaLibParser(
 	}
 
 	private suspend fun search(query: String): List<Manga> {
-		val domain = getDomain()
-		val json = context.httpGet("https://$domain/search?type=manga&q=$query")
+		val domain = domain
+		val json = webClient.httpGet("https://$domain/search?type=manga&q=$query")
 			.parseJsonArray()
 		return json.mapJSON { jo ->
 			val slug = jo.getString("slug")
@@ -285,4 +293,10 @@ internal open class MangaLibParser(
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
 	class Impl(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.MANGALIB)
+
+	object LibConst {
+
+		val LIB_SOCIAL_LINK = "lib.social"
+
+	}
 }

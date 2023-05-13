@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NHENTAI", "N-Hentai")
-class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser(MangaSource.NHENTAI, pageSize = 25) {
+class NHentaiParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.NHENTAI, pageSize = 25) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("nhentai.net", null)
@@ -32,7 +32,7 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
 			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
 		}
-		val domain = getDomain()
+		val domain = domain
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -66,7 +66,7 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 				}
 			}
 		}
-		val root = context.httpGet(url).parseHtml().body().requireElementById("content")
+		val root = webClient.httpGet(url).parseHtml().body().requireElementById("content")
 			.selectLastOrThrow("div.index-container")
 		val regexBrackets = Regex("\\[[^]]+]|\\([^)]+\\)")
 		val regexSpaces = Regex("\\s+")
@@ -99,8 +99,8 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = context.httpGet(
-			url = manga.url.toAbsoluteUrl(getDomain()),
+		val root = webClient.httpGet(
+			url = manga.url.toAbsoluteUrl(domain),
 		).parseHtml().body().requireElementById("bigcontainer")
 		val img = root.requireElementById("cover").selectFirstOrThrow("img")
 		val tagContainers = root.requireElementById("tags").select(".tag-container")
@@ -135,8 +135,8 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url = chapter.url.toAbsoluteUrl(getDomain())
-		val root = context.httpGet(url).parseHtml().requireElementById("thumbnail-container")
+		val url = chapter.url.toAbsoluteUrl(domain)
+		val root = webClient.httpGet(url).parseHtml().requireElementById("thumbnail-container")
 		return root.select(".thumb-container").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectFirstOrThrow("img")
@@ -144,7 +144,6 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 			MangaPage(
 				id = generateUid(href),
 				url = href,
-				referer = url,
 				preview = img.attrAsAbsoluteUrlOrNull("data-src")
 					?: img.attrAsAbsoluteUrl("src"),
 				source = source,
@@ -153,7 +152,7 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val root = context.httpGet(page.url.toAbsoluteUrl(getDomain())).parseHtml().body()
+		val root = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml().body()
 			.requireElementById("image-container")
 		return root.selectFirstOrThrow("img").attrAsAbsoluteUrl("src")
 	}
@@ -168,7 +167,7 @@ class NHentaiParser(override val context: MangaLoaderContext) : PagedMangaParser
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val root = context.httpGet("https://${getDomain()}/tags/popular?page=$page").parseHtml().body()
+		val root = webClient.httpGet("https://${domain}/tags/popular?page=$page").parseHtml().body()
 			.getElementById("tag-container")
 		return root?.parseTags().orEmpty()
 	}

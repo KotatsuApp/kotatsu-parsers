@@ -14,11 +14,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.collections.HashSet
 
 @MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
-class BlogTruyenParser(override val context: MangaLoaderContext) :
-	PagedMangaParser(MangaSource.BLOGTRUYEN, pageSize = 20) {
+class BlogTruyenParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyen.vn", null)
@@ -31,7 +30,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	private var cacheTags: ArrayMap<String, MangaTag>? = null
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val descriptionElement = doc.selectFirstOrThrow("div.description")
 		val statusText = descriptionElement
 			.selectFirst("p:contains(Trạng thái) > span.color-red")
@@ -67,16 +66,16 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
-			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.attrAsAbsoluteUrlOrNull("src"),
+			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.imageUrl(),
 			state = state,
 			rating = rating ?: RATING_UNKNOWN,
-			isNsfw = doc.getElementById("warningCategory") != null
+			isNsfw = doc.getElementById("warningCategory") != null,
 		)
 	}
 
 	private fun parseChapterList(doc: Document): List<MangaChapter> {
 		val chapterList = doc.select("#list-chapters > p")
-		return chapterList.asReversed().mapChapters { index, element ->
+		return chapterList.mapChapters(reversed = true) { index, element ->
 			val titleElement = element.selectFirst("span.title > a") ?: return@mapChapters null
 			val name = titleElement.text()
 			val relativeUrl = titleElement.attrAsRelativeUrl("href")
@@ -90,7 +89,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				scanlator = null,
 				uploadDate = uploadDate,
 				branch = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -103,25 +102,27 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	): List<Manga> {
 		return when {
 			!query.isNullOrEmpty() -> {
-				val searchUrl = "https://${getDomain()}/timkiem/nangcao/1/0/-1/-1?txt=${query.urlEncoded()}&p=$page"
-				val searchContent = context.httpGet(searchUrl).parseHtml()
+				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${query.urlEncoded()}&p=$page"
+				val searchContent = webClient.httpGet(searchUrl).parseHtml()
 					.selectFirst("section.list-manga-bycate > div.list")
 				parseMangaList(searchContent)
 			}
 
 			!tags.isNullOrEmpty() -> {
 				val tag = tags.oneOrThrowIfMany()!!
-				val categoryAjax = "https://${getDomain()}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
-				val listContent = context.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
+				val categoryAjax =
+					"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
+				val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
 				parseMangaList(listContent)
 			}
+
 			else -> getNormalList(page)
 		}
 	}
 
 	private suspend fun getNormalList(page: Int): List<Manga> {
-		val pageLink = "https://${getDomain()}/page-$page"
-		val doc = context.httpGet(pageLink).parseHtml()
+		val pageLink = "https://${domain}/page-$page"
+		val doc = webClient.httpGet(pageLink).parseHtml()
 		val listElements = doc.selectFirstOrThrow("section.list-mainpage.listview")
 			.select("div.bg-white.storyitem")
 
@@ -139,8 +140,8 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				altTitle = null,
 				description = it.selectFirst("p.al-j.break.line-height-15")?.text(),
 				url = relativeUrl,
-				publicUrl = relativeUrl.toAbsoluteUrl(getDomain()),
-				coverUrl = linkTag.selectLast("img")?.attr("src").orEmpty(),
+				publicUrl = relativeUrl.toAbsoluteUrl(domain),
+				coverUrl = linkTag.selectLast("img")?.imageUrl().orEmpty(),
 				source = source,
 				tags = tags,
 				isNsfw = false,
@@ -164,8 +165,8 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				altTitle = null,
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
-				publicUrl = relativeUrl.toAbsoluteUrl(getDomain()),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.absUrl("src").orEmpty(),
+				publicUrl = relativeUrl.toAbsoluteUrl(domain),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.imageUrl().orEmpty(),
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -179,19 +180,17 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		fun generateImageId(index: Int) = generateUid("${chapter.url}/$index")
 
-		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val pages = ArrayList<MangaPage>()
-		val referer = chapter.url.toAbsoluteUrl(getDomain())
+		val referer = chapter.url.toAbsoluteUrl(domain)
 		doc.select("#content > img").forEach { img ->
-			val url = img.attrAsRelativeUrl("src")
 			pages.add(
 				MangaPage(
-					id = generateImageId(pages.lastIndex),
-					url = url,
-					referer = referer,
+					id = generateImageId(pages.size),
+					url = img.imageUrl(),
 					preview = null,
 					source = source,
-				)
+				),
 			)
 		}
 
@@ -204,12 +203,11 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 				val imageUrl = imageArr.getJSONObject(i).getString("url")
 				pages.add(
 					MangaPage(
-						id = generateImageId(pages.lastIndex),
+						id = generateImageId(pages.size),
 						url = imageUrl,
-						referer = referer,
 						preview = null,
-						source = source
-					)
+						source = source,
+					),
 				)
 			}
 		}
@@ -230,7 +228,7 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 
 	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
 		cacheTags?.let { return@withLock it }
-		val doc = context.httpGet("/timkiem/nangcao".toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet("/timkiem/nangcao".toAbsoluteUrl(domain)).parseHtml()
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
 		for (tag in tagItems) {
@@ -238,11 +236,17 @@ class BlogTruyenParser(override val context: MangaLoaderContext) :
 			tagMap[tag.text().trim()] = MangaTag(
 				title = title,
 				key = tag.attr("data-id"),
-				source = source
+				source = source,
 			)
 		}
 
 		cacheTags = tagMap
 		tagMap
+	}
+
+	private fun Element.imageUrl(): String {
+		return attrAsAbsoluteUrlOrNull("src")
+			?: attrAsAbsoluteUrlOrNull("data-cfsrc")
+			?: ""
 	}
 }

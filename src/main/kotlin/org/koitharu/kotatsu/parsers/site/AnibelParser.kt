@@ -8,6 +8,9 @@ import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.getDomain
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.stringIterator
@@ -15,17 +18,13 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
 @MangaSourceParser("ANIBEL", "Anibel", "be")
-internal class AnibelParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.ANIBEL) {
+internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.ANIBEL) {
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)
-
-	override fun getFaviconUrl(): String {
-		return "https://cdn.${getDomain()}/favicons/favicon.png"
-	}
 
 	override suspend fun getList(
 		offset: Int,
@@ -78,7 +77,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 				isNsfw = false,
 				rating = jo.getDouble("rating").toFloat() / 10f,
 				url = href,
-				publicUrl = "https://${getDomain()}/$href",
+				publicUrl = "https://${domain}/$href",
 				tags = jo.getJSONArray("genres").mapToTags(),
 				state = when (jo.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
@@ -165,12 +164,11 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 			""".trimIndent(),
 		).getJSONObject("chapter")
 		val pages = chapterJson.getJSONArray("images")
-		val chapterUrl = "https://${getDomain()}/${chapter.url}"
+		val chapterUrl = "https://${domain}/${chapter.url}"
 		return pages.mapJSONIndexed { i, jo ->
 			MangaPage(
 				id = generateUid("${chapter.url}/$i"),
 				url = jo.getString("large"),
-				referer = chapterUrl,
 				preview = jo.getString("thumbnail"),
 				source = source,
 			)
@@ -219,7 +217,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				url = href,
-				publicUrl = "https://${getDomain()}/$href",
+				publicUrl = "https://${domain}/$href",
 				tags = emptySet(),
 				state = null,
 				source = source,
@@ -228,7 +226,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 	}
 
 	private suspend fun apiCall(request: String): JSONObject {
-		return context.graphQLQuery("https://api.${getDomain()}/graphql", request)
+		return webClient.graphQLQuery("https://api.${domain}/graphql", request)
 			.getJSONObject("data")
 	}
 
@@ -242,6 +240,7 @@ internal class AnibelParser(override val context: MangaLoaderContext) : MangaPar
 					c == '-' -> {
 						builder.setCharAt(i, ' ')
 					}
+
 					capitalize -> {
 						builder.setCharAt(i, c.uppercaseChar())
 						capitalize = false

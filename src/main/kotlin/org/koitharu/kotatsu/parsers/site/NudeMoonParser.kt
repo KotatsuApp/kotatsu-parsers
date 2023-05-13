@@ -15,16 +15,19 @@ private const val MAX_THUMB_INDEX = 19
 
 @MangaSourceParser("NUDEMOON", "Nude-Moon", "ru")
 internal class NudeMoonParser(
-	override val context: MangaLoaderContext,
-) : MangaParser(MangaSource.NUDEMOON), MangaParserAuthProvider {
+	context: MangaLoaderContext,
+) : MangaParser(context, MangaSource.NUDEMOON), MangaParserAuthProvider {
 
-	override val configKeyDomain = ConfigKey.Domain("nude-moon.net", null)
+	override val configKeyDomain = ConfigKey.Domain(
+		defaultValue = "nude-moon.org",
+		presetValues = arrayOf("nude-moon.org", "nude-moon.net"),
+	)
 	override val authUrl: String
-		get() = "https://${getDomain()}/index.php"
+		get() = "https://${domain}/index.php"
 
 	override val isAuthorized: Boolean
 		get() {
-			return context.cookieJar.getCookies(getDomain()).any {
+			return context.cookieJar.getCookies(domain).any {
 				it.name == "fusion_user"
 			}
 		}
@@ -37,7 +40,7 @@ internal class NudeMoonParser(
 
 	init {
 		context.cookieJar.insertCookies(
-			getDomain(),
+			domain,
 			"NMfYa=1;",
 			"nm_mobile=0;",
 		)
@@ -49,7 +52,7 @@ internal class NudeMoonParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val url = when {
 			!query.isNullOrEmpty() -> "https://$domain/search?stext=${query.urlEncoded()}&rowstart=$offset"
 			!tags.isNullOrEmpty() -> tags.joinToString(
@@ -61,7 +64,7 @@ internal class NudeMoonParser(
 
 			else -> "https://$domain/all_manga?${getSortKey(sortOrder)}&rowstart=$offset"
 		}
-		val doc = context.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().run {
 			selectFirst("td.main-bg") ?: selectFirst("td.main-body")
 		} ?: doc.parseFailed("Cannot find root")
@@ -100,7 +103,7 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val body = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml().body()
+		val body = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().body()
 		val root = body.selectFirst("table.shoutbox")
 			?: body.parseFailed("Cannot find root")
 		val info = root.select("div.tbl2")
@@ -136,8 +139,8 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val mangaId = chapter.url.substringAfterLast('/').substringBefore('-').toIntOrNull()
 
 		val script = doc.select("script").firstNotNullOfOrNull {
@@ -154,7 +157,6 @@ internal class NudeMoonParser(
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = fullUrl,
 				preview = if (i <= MAX_THUMB_INDEX && mangaId != null) {
 					val part2 = url.substringBeforeLast('/')
 					val part3 = url.substringAfterLast('/')
@@ -169,8 +171,8 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val domain = getDomain()
-		val doc = context.httpGet("https://$domain/all_manga").parseHtml()
+		val domain = domain
+		val doc = webClient.httpGet("https://$domain/all_manga").parseHtml()
 		val root = doc.body().getElementsContainingOwnText("Поиск манги по тегам")
 			.firstOrNull()?.parents()?.find { it.tag().normalName() == "tbody" }
 			?.selectFirst("td.textbox")?.selectFirst("td.small")
@@ -186,7 +188,7 @@ internal class NudeMoonParser(
 	}
 
 	override suspend fun getUsername(): String {
-		val body = context.httpGet("https://${getDomain()}/").parseHtml()
+		val body = webClient.httpGet("https://${domain}/").parseHtml()
 			.body()
 		return body
 			.getElementsContainingOwnText("Профиль")
@@ -200,10 +202,6 @@ internal class NudeMoonParser(
 					body.parseFailed("Cannot find username")
 				}
 			}
-	}
-
-	override fun getFaviconUrl(): String {
-		return "https://${getDomain()}/favicon.jpg"
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =

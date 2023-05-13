@@ -1,13 +1,16 @@
 package org.koitharu.kotatsu.parsers.site
 
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("CLONEMANGA", "CloneManga", "en")
-internal class CloneMangaParser(override val context: MangaLoaderContext) : PagedMangaParser(
+internal class CloneMangaParser(context: MangaLoaderContext) : PagedMangaParser(
+	context,
 	MangaSource.CLONEMANGA,
 	pageSize = 1,
 ) {
@@ -18,10 +21,6 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org", null)
 
-	override fun getFaviconUrl(): String {
-		return "https://pbs.twimg.com/profile_images/458758466346029056/Ys93EANp_400x400.png"
-	}
-
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -31,17 +30,17 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 		if (query != null || page > 1) {
 			return emptyList()
 		}
-		val link = "https://${getDomain()}/viewer_landing.php"
-		val doc = context.httpGet(link).parseHtml()
+		val link = "https://${domain}/viewer_landing.php"
+		val doc = webClient.httpGet(link).parseHtml()
 		val mangas = doc.getElementsByClass("comicPreviewContainer")
 		return mangas.mapNotNull { item ->
-			val attr = item.getElementsByClass("comicPreview").attr("style")
+			val background = item.selectFirstOrThrow(".comicPreview").styleValueOrNull("background")
 			val href = item.selectFirst("a")?.attrAsAbsoluteUrl("href") ?: return@mapNotNull null
-			val cover = attr.substring(attr.indexOf("site/themes"), attr.indexOf(")"))
+			val cover = background?.substring(background.indexOf("site/themes"), background.indexOf(")"))
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h3")?.text() ?: return@mapNotNull null,
-				coverUrl = "https://${getDomain()}/$cover",
+				coverUrl = "https://${domain}/$cover",
 				altTitle = null,
 				author = "Dan Kim",
 				rating = RATING_UNKNOWN,
@@ -49,14 +48,14 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 				isNsfw = false,
 				tags = emptySet(),
 				state = null,
-				publicUrl = href.toAbsoluteUrl(getDomain()),
+				publicUrl = href.toAbsoluteUrl(domain),
 				source = source,
 			)
 		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.publicUrl).parseHtml()
+		val doc = webClient.httpGet(manga.publicUrl).parseHtml()
 		val series = doc.location()
 		val numChapters = Regex(
 			pattern = "&page=(.*)&lang=",
@@ -75,7 +74,7 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 				scanlator = null,
 				branch = null,
 				uploadDate = 0L,
-				source = MangaSource.DUMMY,
+				source = source,
 			)
 			chapters.add(chapter)
 		}
@@ -83,7 +82,7 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val imgUrl = doc.getElementsByClass("subsectionContainer")[0]
 			.selectFirst("img")
 			?.attrAsAbsoluteUrlOrNull("src") ?: doc.parseFailed("Something broken")
@@ -91,14 +90,11 @@ internal class CloneMangaParser(override val context: MangaLoaderContext) : Page
 			MangaPage(
 				id = generateUid(imgUrl),
 				url = imgUrl,
-				referer = imgUrl,
 				preview = null,
-				source = MangaSource.DUMMY,
+				source = source,
 			),
 		)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
-		return emptySet()
-	}
+	override suspend fun getTags(): Set<MangaTag> = emptySet()
 }

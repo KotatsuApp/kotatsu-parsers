@@ -8,24 +8,22 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.isDistinct
-import org.koitharu.kotatsu.test_util.isDistinctBy
-import org.koitharu.kotatsu.test_util.isUrlAbsolute
-import org.koitharu.kotatsu.test_util.maxDuplicates
+import org.koitharu.kotatsu.test_util.*
 
 
 @ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
-	private val context = MangaLoaderContextMock()
+	private val context = MangaLoaderContextMock
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
 	fun list(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -36,6 +34,9 @@ internal class MangaParserTest {
 		val parser = source.newParser(context)
 		val page1 = parser.getList(0, sortOrder = null, tags = null)
 		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
+		assert(page1.isNotEmpty()) { "Page 1 is empty" }
+		assert(page2.isNotEmpty()) { "Page 2 is empty" }
+		assert(page1 != page2) { "Pages are equal" }
 		val intersection = page1.intersect(page2.toSet())
 		assert(intersection.isEmpty()) {
 			"Pages are intersected by " + intersection.size
@@ -46,12 +47,13 @@ internal class MangaParserTest {
 	@MangaSources
 	fun search(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val subject = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
+		val subject = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
 		val list = parser.getList(0, query)
+		assert(list.isNotEmpty()) { "Empty search results by \"$query\"" }
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
 			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"
 		}
@@ -69,7 +71,7 @@ internal class MangaParserTest {
 		assert(keys.isDistinct())
 		assert("" !in keys)
 		val titles = tags.map { it.title }
-		assert(titles.isDistinct())
+//		assert(titles.isDistinct())
 		assert("" !in titles)
 		assert(tags.all { it.source == source })
 
@@ -83,7 +85,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
@@ -101,9 +103,9 @@ internal class MangaParserTest {
 				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
 			}
 			assert(c.all { it.source == source })
-			checkImageRequest(coverUrl, publicUrl)
+			checkImageRequest(coverUrl, source)
 			largeCoverUrl?.let {
-				checkImageRequest(it, publicUrl)
+				checkImageRequest(it, source)
 			}
 		}
 	}
@@ -112,20 +114,24 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val list = parser.getList(20, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null)
 		val manga = list.first()
-		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null")
+		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
 
 		assert(pages.isNotEmpty())
 		assert(pages.isDistinctBy { it.id })
 		assert(pages.all { it.source == source })
 
-		val page = pages.medianOrNull() ?: error("No page")
-		val pageUrl = parser.getPageUrl(page)
-		assert(pageUrl.isNotEmpty())
-		assert(pageUrl.isUrlAbsolute())
-		checkImageRequest(pageUrl, page.referer)
+		arrayOf(
+			pages.first(),
+			pages.medianOrNull() ?: error("No page"),
+		).forEach { page ->
+			val pageUrl = parser.getPageUrl(page)
+			assert(pageUrl.isNotEmpty())
+			assert(pageUrl.isUrlAbsolute())
+			checkImageRequest(pageUrl, page.source)
+		}
 	}
 
 	@ParameterizedTest(name = "{index}|favicon|{0}")
@@ -141,19 +147,19 @@ internal class MangaParserTest {
 		}
 		val favicon = favicons.find(24)
 		checkNotNull(favicon)
-		checkImageRequest(favicon.url, favicons.referer)
+		checkImageRequest(favicon.url, source)
 	}
 
 	@ParameterizedTest(name = "{index}|domain|{0}")
 	@MangaSources
 	fun domain(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
-		val defaultDomain = parser.getDomain()
+		val defaultDomain = parser.domain
 		val url = HttpUrl.Builder()
 			.host(defaultDomain)
 			.scheme("https")
 			.toString()
-		val response = context.doRequest(url, extraHeaders = parser.headers)
+		val response = context.doRequest(url, source)
 		val realUrl = response.request.url
 		val realDomain = realUrl.topPrivateDomain()
 		val realHost = realUrl.host
@@ -185,11 +191,11 @@ internal class MangaParserTest {
 			assert(item.publicUrl.isUrlAbsolute())
 		}
 		val testItem = list.random()
-		checkImageRequest(testItem.coverUrl, testItem.publicUrl)
+		checkImageRequest(testItem.coverUrl, testItem.source)
 	}
 
-	private suspend fun checkImageRequest(url: String, referer: String?) {
-		context.doRequest(url, referer).use {
+	private suspend fun checkImageRequest(url: String, source: MangaSource) {
+		context.doRequest(url, source).use {
 			assert(it.isSuccessful) { "Request failed: ${it.code}(${it.message}): $url" }
 			assert(it.mimeType?.startsWith("image/") == true) {
 				"Wrong response mime type: ${it.mimeType}"

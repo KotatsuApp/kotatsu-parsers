@@ -19,7 +19,8 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 @MangaSourceParser("BATOTO", "Bato.To")
-internal class BatoToParser(override val context: MangaLoaderContext) : PagedMangaParser(
+internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
+	context = context,
 	source = MangaSource.BATOTO,
 	pageSize = 60,
 	searchPageSize = 20,
@@ -34,7 +35,16 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"bato.to",
-		arrayOf("bato.to", "mto.to", "mangatoto.com", "battwo.com", "batotwo.com", "comiko.net", "batotoo.com"),
+		arrayOf(
+			"bato.to",
+			"mto.to",
+			"hto.to",
+			"mangatoto.com",
+			"battwo.com",
+			"batotwo.com",
+			"comiko.net",
+			"batotoo.com",
+		),
 	)
 
 	override suspend fun getListPage(
@@ -49,7 +59,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 		@Suppress("NON_EXHAUSTIVE_WHEN_STATEMENT")
 		val url = buildString {
 			append("https://")
-			append(getDomain())
+			append(domain)
 			append("/browse?sort=")
 			when (sortOrder) {
 				SortOrder.UPDATED,
@@ -70,7 +80,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 			.requireElementById("mainer")
 		val details = root.selectFirstOrThrow(".detail-set")
 		val attrs = details.selectFirst(".attr-main")?.select(".attr-item")?.associate {
@@ -93,16 +103,15 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 			chapters = root.selectFirst(".episode-list")
 				?.selectFirst(".main")
 				?.children()
-				?.reversed()
-				?.mapChapters { i, div ->
+				?.mapChapters(reversed = true) { i, div ->
 					div.parseChapter(i)
 				}.orEmpty(),
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val scripts = context.httpGet(fullUrl).parseHtml().select("script")
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val scripts = webClient.httpGet(fullUrl).parseHtml().select("script")
 		for (script in scripts) {
 			val scriptSrc = script.html()
 			val p = scriptSrc.indexOf("const imgHttpLis =")
@@ -126,7 +135,6 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 				result += MangaPage(
 					id = generateUid(url),
 					url = url + "?" + args.getString(i),
-					referer = fullUrl,
 					preview = null,
 					source = source,
 				)
@@ -137,8 +145,8 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val scripts = context.httpGet(
-			"https://${getDomain()}/browse",
+		val scripts = webClient.httpGet(
+			"https://${domain}/browse",
 		).parseHtml().selectOrThrow("script")
 		for (script in scripts) {
 			val genres = script.html().substringBetweenFirst("const _genres =", ";") ?: continue
@@ -157,12 +165,10 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 		throw ParseException("Cannot find gernes list", scripts[0].baseUri())
 	}
 
-	override fun getFaviconUrl(): String = "https://styles.amarkcdn.com/img/batoto/favicon.ico?v0"
-
 	private suspend fun search(page: Int, query: String): List<Manga> {
 		val url = buildString {
 			append("https://")
-			append(getDomain())
+			append(domain)
 			append("/search?word=")
 			append(query.replace(' ', '+'))
 			append("&page=")
@@ -177,7 +183,7 @@ internal class BatoToParser(override val context: MangaLoaderContext) : PagedMan
 		?.toIntOrNull() ?: body.parseFailed("Cannot determine current page")
 
 	private suspend fun parseList(url: String, page: Int): List<Manga> {
-		val body = context.httpGet(url).parseHtml().body()
+		val body = webClient.httpGet(url).parseHtml().body()
 		if (body.selectFirst(".browse-no-matches") != null) {
 			return emptyList()
 		}

@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site
 
+import androidx.collection.SparseArrayCompat
+import androidx.collection.set
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -17,8 +20,8 @@ private const val DOMAIN_AUTHORIZED = "exhentai.org"
 
 @MangaSourceParser("EXHENTAI", "ExHentai")
 internal class ExHentaiParser(
-	override val context: MangaLoaderContext,
-) : PagedMangaParser(MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
+	context: MangaLoaderContext,
+) : PagedMangaParser(context, MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.NEWEST,
@@ -28,11 +31,13 @@ internal class ExHentaiParser(
 		get() = ConfigKey.Domain(if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED, null)
 
 	override val authUrl: String
-		get() = "https://${getDomain()}/bounce_login.php"
+		get() = "https://${domain}/bounce_login.php"
 
 	private val ratingPattern = Regex("-?[0-9]+px")
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
 	private var updateDm = false
+	private val nextPages = SparseArrayCompat<Long>()
+	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(true)
 
 	override val isAuthorized: Boolean
 		get() {
@@ -54,6 +59,7 @@ internal class ExHentaiParser(
 	init {
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
 		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
+		paginator.firstPage = 0
 	}
 
 	override suspend fun getListPage(
@@ -63,11 +69,16 @@ internal class ExHentaiParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		var search = query?.urlEncoded().orEmpty()
+		val next = nextPages.get(page, 0L)
+		if (page > 0 && next == 0L) {
+			assert(false) { "Page timestamp not found" }
+			return emptyList()
+		}
 		val url = buildString {
 			append("https://")
-			append(getDomain())
-			append("/?page=")
-			append(page)
+			append(domain)
+			append("/?next=")
+			append(next)
 			if (!tags.isNullOrEmpty()) {
 				var fCats = 0
 				for (tag in tags) {
@@ -88,8 +99,12 @@ internal class ExHentaiParser(
 			if (updateDm) {
 				append("&inline_set=dm_e")
 			}
+			append("&advsearch=1")
+			if (config[suspiciousContentKey]) {
+				append("&f_sh=on")
+			}
 		}
-		val body = context.httpGet(url).parseHtml().body()
+		val body = webClient.httpGet(url).parseHtml().body()
 		val root = body.selectFirst("table.itg")
 			?.selectFirst("tbody")
 			?: if (updateDm) {
@@ -99,6 +114,7 @@ internal class ExHentaiParser(
 				return getListPage(page, query, tags, sortOrder)
 			}
 		updateDm = false
+		nextPages[page + 1] = getNextTimestamp(body)
 		return root.children().mapNotNull { tr ->
 			if (tr.childrenSize() != 2) return@mapNotNull null
 			val (td1, td2) = tr.children()
@@ -132,7 +148,7 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().selectFirstOrThrow("div.gm")
 		val cover = root.getElementById("gd1")?.children()?.first()
 		val title = root.getElementById("gd2")
@@ -176,14 +192,13 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().requireElementById("gdt")
 		return root.select("a").map { a ->
 			val url = a.attrAsRelativeUrl("href")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = a.absUrl("href"),
 				preview = null,
 				source = source,
 			)
@@ -191,12 +206,12 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.body().requireElementById("img").attrAsAbsoluteUrl("src")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("https://${getDomain()}").parseHtml()
+		val doc = webClient.httpGet("https://${domain}").parseHtml()
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
 		return root.select("div.cs").mapNotNullToSet { div ->
 			val id = div.id().substringAfterLast('_').toIntOrNull()
@@ -210,7 +225,7 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getUsername(): String {
-		val doc = context.httpGet("https://forums.$DOMAIN_UNAUTHORIZED/").parseHtml().body()
+		val doc = webClient.httpGet("https://forums.$DOMAIN_UNAUTHORIZED/").parseHtml().body()
 		val username = doc.getElementById("userlinks")
 			?.getElementsByAttributeValueContaining("href", "showuser=")
 			?.firstOrNull()
@@ -221,6 +236,11 @@ internal class ExHentaiParser(
 				doc.parseFailed()
 			}
 		return username
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(suspiciousContentKey)
 	}
 
 	private fun isAuthorized(domain: String): Boolean {
@@ -275,5 +295,13 @@ internal class ExHentaiParser(
 		val className = classNames.find { x -> x.startsWith("ct") } ?: return null
 		val num = className.drop(2).toIntOrNull(16) ?: return null
 		return 2.0.pow(num).toInt().toString()
+	}
+
+	private fun getNextTimestamp(root: Element): Long {
+		return root.getElementById("unext")
+			?.attrAsAbsoluteUrlOrNull("href")
+			?.toHttpUrlOrNull()
+			?.queryParameter("next")
+			?.toLongOrNull() ?: 1
 	}
 }

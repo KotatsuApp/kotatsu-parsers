@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGATOWN", "MangaTown", "en")
-internal class MangaTownParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGATOWN) {
+internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGATOWN) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com", null)
 
@@ -42,18 +42,18 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				if (offset != 0) {
 					return emptyList()
 				}
-				"/search?name=${query.urlEncoded()}".toAbsoluteUrl(getDomain())
+				"/search?name=${query.urlEncoded()}".toAbsoluteUrl(domain)
 			}
 
-			tags.isNullOrEmpty() -> "/directory/$page.htm$sortKey".toAbsoluteUrl(getDomain())
-			tags.size == 1 -> "/directory/${tags.first().key}/$page.htm$sortKey".toAbsoluteUrl(getDomain())
+			tags.isNullOrEmpty() -> "/directory/$page.htm$sortKey".toAbsoluteUrl(domain)
+			tags.size == 1 -> "/directory/${tags.first().key}/$page.htm$sortKey".toAbsoluteUrl(domain)
 			else -> tags.joinToString(
-				prefix = "/search?page=$page".toAbsoluteUrl(getDomain()),
+				prefix = "/search?page=$page".toAbsoluteUrl(domain),
 			) { tag ->
 				"&genres[${tag.key}]=1"
 			}
 		}
-		val doc = context.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().selectFirstOrThrow("ul.manga_pic_list")
 		return root.select("li").mapNotNull { li ->
 			val a = li.selectFirst("a.manga_cover")
@@ -87,13 +87,13 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				}.orEmpty(),
 				url = href,
 				isNsfw = false,
-				publicUrl = href.toAbsoluteUrl(a.host ?: getDomain()),
+				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 			)
 		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().selectFirstOrThrow("section.main")
 			.selectFirstOrThrow("div.article_content")
 		val info = root.selectFirst("div.detail_info")?.selectFirst("ul")
@@ -135,8 +135,8 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow("div.page_select")
 		return root.selectFirstOrThrow("select").selectOrThrow("option").mapNotNull {
 			val href = it.attrAsRelativeUrlOrNull("value")
@@ -147,19 +147,18 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 				id = generateUid(href),
 				url = href,
 				preview = null,
-				referer = fullUrl,
 				source = MangaSource.MANGATOWN,
 			)
 		}
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.requireElementById("image").attrAsAbsoluteUrl("src")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("/directory/".toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet("/directory/".toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().selectFirst("aside.right")
 			?.getElementsContainingOwnText("Genres")
 			?.first()
@@ -188,7 +187,7 @@ internal class MangaTownParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	private suspend fun bypassLicensedChapters(manga: Manga): List<MangaChapter> {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain("m"))).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(getDomain("m"))).parseHtml()
 		val list = doc.body().selectFirst("ul.detail-ch-list") ?: return emptyList()
 		val dateFormat = SimpleDateFormat("MMM dd,yyyy", Locale.US)
 		return list.select("li").asReversed().mapIndexedNotNull { i, li ->

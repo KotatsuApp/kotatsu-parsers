@@ -1,11 +1,19 @@
 package org.koitharu.kotatsu.parsers.site.grouple
 
+import kotlinx.coroutines.flow.channelFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.internal.headersContentLength
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -18,15 +26,25 @@ private const val PAGE_SIZE = 70
 private const val PAGE_SIZE_SEARCH = 50
 private const val NSFW_ALERT = "сексуальные сцены"
 private const val NOTHING_FOUND = "Ничего не найдено"
+private const val MIN_IMAGE_SIZE = 1024L
+private const val HEADER_ACCEPT = "Accept"
 
 internal abstract class GroupleParser(
+	context: MangaLoaderContext,
 	source: MangaSource,
-	userAgent: String,
 	private val siteId: Int,
-) : MangaParser(source), MangaParserAuthProvider {
+) : MangaParser(context, source), MangaParserAuthProvider, Interceptor {
 
-	override val headers = Headers.Builder()
-		.add("User-Agent", userAgent)
+	@Volatile
+	private var cachedPagesServer: String? = null
+	protected open val defaultIsNsfw = false
+
+	private val userAgentKey = ConfigKey.UserAgent(
+		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
+	)
+
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", config[userAgentKey])
 		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
@@ -38,12 +56,12 @@ internal abstract class GroupleParser(
 
 	override val authUrl: String
 		get() {
-			val targetUri = "https://${getDomain()}/".urlEncoded()
+			val targetUri = "https://${domain}/".urlEncoded()
 			return "https://grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
 		}
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(getDomain()).any { it.name == "gwt" }
+		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
 
 	override suspend fun getList(
 		offset: Int,
@@ -51,29 +69,26 @@ internal abstract class GroupleParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val doc = when {
-			!query.isNullOrEmpty() -> context.httpPost(
+			!query.isNullOrEmpty() -> webClient.httpPost(
 				"https://$domain/search",
 				mapOf(
 					"q" to query.urlEncoded(),
 					"offset" to (offset upBy PAGE_SIZE_SEARCH).toString(),
 				),
-				headers,
 			)
 
-			tags.isNullOrEmpty() -> context.httpGet(
+			tags.isNullOrEmpty() -> webClient.httpGet(
 				"https://$domain/list?sortType=${
 					getSortKey(sortOrder)
 				}&offset=${offset upBy PAGE_SIZE}",
-				headers,
 			)
 
-			tags.size == 1 -> context.httpGet(
+			tags.size == 1 -> webClient.httpGet(
 				"https://$domain/list/genre/${tags.first().key}?sortType=${
 					getSortKey(sortOrder)
 				}&offset=${offset upBy PAGE_SIZE}",
-				headers,
 			)
 
 			offset > 0 -> return emptyList()
@@ -117,7 +132,7 @@ internal abstract class GroupleParser(
 						?.div(5f)
 				}.getOrNull() ?: RATING_UNKNOWN,
 				author = tileInfo?.selectFirst("a.person-link")?.text(),
-				isNsfw = false,
+				isNsfw = defaultIsNsfw,
 				tags = runCatching {
 					tileInfo?.select("a.element-link")
 						?.mapToSet {
@@ -140,7 +155,7 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired().parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
 			?: doc.parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
@@ -159,10 +174,10 @@ internal abstract class GroupleParser(
 					)
 				},
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
-			isNsfw = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
+			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
-				?.select("tr:has(td > a)")?.asReversed()?.mapChapters { i, tr ->
-					val a = tr.selectFirst("a") ?: return@mapChapters null
+				?.select("tr:has(td > a)")?.mapChapters(reversed = true) { i, tr ->
+					val a = tr.selectFirst("a.chapter-link") ?: return@mapChapters null
 					val href = a.attrAsRelativeUrl("href")
 					var translators = ""
 					val translatorElement = a.attr("title")
@@ -176,7 +191,7 @@ internal abstract class GroupleParser(
 						name = tr.selectFirst("a")?.text().orEmpty().removePrefix(manga.title).trim(),
 						number = i + 1,
 						url = href,
-						uploadDate = dateFormat.tryParse(tr.selectFirst("td.d-none")?.text()),
+						uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
 						scanlator = translators,
 						source = source,
 						branch = null,
@@ -186,11 +201,13 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain()) + "?mtr=1", headers).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain) + "?mtr=1")
+			.checkAuthRequired()
+			.parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
-			val pos = data.indexOf("rm_h.initReader(")
+			val pos = data.indexOf("rm_h.readerInit( 0,")
 			if (pos == -1) {
 				continue
 			}
@@ -203,7 +220,7 @@ internal abstract class GroupleParser(
 			}
 			val ja = JSONArray("[$json]")
 			val pages = ja.getJSONArray(1)
-			val servers = ja.getJSONArray(4).mapJSON { it.getString("path") }
+			val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
 			val serversStr = servers.joinToString("|")
 			return (0 until pages.length()).map { i ->
 				val page = pages.getJSONArray(i)
@@ -213,7 +230,6 @@ internal abstract class GroupleParser(
 					id = generateUid(url),
 					url = "$primaryServer|$serversStr|$url",
 					preview = null,
-					referer = chapter.url,
 					source = source,
 				)
 			}
@@ -223,21 +239,46 @@ internal abstract class GroupleParser(
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val parts = page.url.split('|')
+		if (parts.size < 2) {
+			throw ParseException("No servers found for page", page.url)
+		}
 		val path = parts.last()
-		val servers = parts.dropLast(1).toSet()
-		val headers = Headers.headersOf("Referer", page.referer)
-		for (server in servers) {
-			val url = server + path
-			if (tryHead(url, headers)) {
+		// fast path
+		cachedPagesServer?.let { host ->
+			val url = concatUrl("https://$host/", path)
+			if (tryHead(url)) {
 				return url
+			} else {
+				cachedPagesServer = null
 			}
 		}
-		val fallbackServer = servers.firstOrNull() ?: throw ParseException("Cannot find any page url", page.url)
-		return fallbackServer + path
+		// slow path
+		val candidates = HashSet<String>((parts.size - 1) * 2)
+		for (i in 0 until parts.size - 1) {
+			val server = parts[i].trim().ifEmpty { "https://$domain/" }
+			candidates.add(concatUrl(server, path))
+			candidates.add(concatUrl(server, path.substringBeforeLast('?')))
+		}
+		return try {
+			channelFlow {
+				for (url in candidates) {
+					launch {
+						if (tryHead(url)) {
+							send(url)
+						}
+					}
+				}
+			}.first().also {
+				cachedPagesServer = it.toHttpUrlOrNull()?.host
+			}
+		} catch (e: NoSuchElementException) {
+			assert(false) { e.toString() }
+			candidates.random()
+		}
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("https://${getDomain()}/list/genres/sort_name", headers).parseHtml()
+		val doc = webClient.httpGet("https://${domain}/list/genres/sort_name").parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")
 			?.selectFirst("table.table") ?: doc.parseFailed("Cannot find root")
 		return root.select("a.element-link").mapToSet { a ->
@@ -250,12 +291,34 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getUsername(): String {
-		val root = context.httpGet("https://grouple.co/").parseHtml().body()
+		val root = webClient.httpGet("https://grouple.co/").parseHtml().body()
 		val element = root.selectFirst("img.user-avatar") ?: throw AuthRequiredException(source)
 		val res = element.parent()?.text()
 		return if (res.isNullOrEmpty()) {
 			root.parseFailed("Cannot find username")
 		} else res
+	}
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val request = chain.request()
+		if (!request.header(HEADER_ACCEPT).isNullOrEmpty()) {
+			return chain.proceed(request)
+		}
+		val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast('.', "")?.lowercase(Locale.ROOT)
+		return if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp") {
+			chain.proceed(
+				request.newBuilder()
+					.header(HEADER_ACCEPT, "image/webp,image/png;q=0.9,image/jpeg,*/*;q=0.8")
+					.build(),
+			)
+		} else {
+			chain.proceed(request)
+		}
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =
@@ -270,7 +333,7 @@ internal abstract class GroupleParser(
 	private suspend fun advancedSearch(domain: String, tags: Set<MangaTag>): Response {
 		val url = "https://$domain/search/advanced"
 		// Step 1: map catalog genres names to advanced-search genres ids
-		val tagsIndex = context.httpGet(url, headers).parseHtml()
+		val tagsIndex = webClient.httpGet(url).parseHtml()
 			.body().selectFirst("form.search-form")
 			?.select("div.form-group")
 			?.get(1) ?: throw ParseException("Genres filter element not found", url)
@@ -301,10 +364,19 @@ internal abstract class GroupleParser(
 		payload["s_sale"] = ""
 		payload["years"] = "1900,2099"
 		payload["+"] = "Искать".urlEncoded()
-		return context.httpPost(url, payload, headers)
+		return webClient.httpPost(url, payload)
 	}
 
-	private suspend fun tryHead(url: String, headers: Headers): Boolean = runCatching {
-		context.httpHead(url, headers).isSuccessful
+	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
+		val response = webClient.httpHead(url)
+		response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
 	}.getOrDefault(false)
+
+	private fun Response.checkAuthRequired(): Response {
+		val lastPathSegment = request.url.pathSegments.lastOrNull() ?: return this
+		if (lastPathSegment == "login") {
+			throw AuthRequiredException(source)
+		}
+		return this
+	}
 }

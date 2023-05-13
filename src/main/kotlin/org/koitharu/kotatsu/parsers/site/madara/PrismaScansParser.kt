@@ -10,17 +10,13 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import java.util.*
 
 @MangaSourceParser("PRISMA_SCANS", "Prisma Scans", "pt")
 internal class PrismaScansParser(context: MangaLoaderContext) :
 	Madara6Parser(context, MangaSource.PRISMA_SCANS, "prismascans.net") {
 
 	override val tagPrefix = "manga-genre/"
-
-	override fun getFaviconUrl(): String {
-		return "https://${getDomain()}/wp-content/uploads/2022/07/cropped-branca-1-192x192.png"
-	}
+	override val datePattern = "MMM dd, yyyy"
 
 	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
 		val root = body.selectFirstOrThrow(".site-content")
@@ -33,7 +29,7 @@ internal class PrismaScansParser(context: MangaLoaderContext) :
 			largeCoverUrl = root.selectFirst("picture")
 				?.selectFirst("img[data-src]")
 				?.attrAsAbsoluteUrlOrNull("data-src"),
-			description = root.selectFirstOrThrow(".description-summary").firstElementChild()?.html(),
+			description = root.selectFirstOrThrow(".manga-excerpt").firstElementChild()?.html(),
 			author = postContent.getElementsContainingOwnText("Artista")
 				.firstOrNull()?.tableValue()?.text()?.trim(),
 			altTitle = postContent.getElementsContainingOwnText("Título Alternativo")
@@ -46,7 +42,7 @@ internal class PrismaScansParser(context: MangaLoaderContext) :
 		)
 	}
 
-	override fun String.asMangaState() = when (trim().lowercase(sourceLocale ?: Locale.ROOT)) {
+	override fun String.asMangaState() = when (trim().lowercase(sourceLocale)) {
 		"em lançamento" -> MangaState.ONGOING
 		"completo",
 		"cancelado",

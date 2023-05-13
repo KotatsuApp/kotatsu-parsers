@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.multichan
 
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
@@ -8,7 +9,10 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-internal abstract class ChanParser(source: MangaSource) : MangaParser(source), MangaParserAuthProvider {
+internal abstract class ChanParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+) : MangaParser(context, source), MangaParserAuthProvider {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -17,10 +21,10 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 	)
 
 	override val authUrl: String
-		get() = "https://${getDomain()}"
+		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(getDomain()).any { it.name == "dle_user_id" }
+		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
 
 	override suspend fun getList(
 		offset: Int,
@@ -28,7 +32,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val url = when {
 			!query.isNullOrEmpty() -> {
 				if (offset != 0) {
@@ -45,7 +49,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 
 			else -> "https://$domain/${getSortKey(sortOrder)}?offset=$offset"
 		}
-		val doc = context.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
 			?: doc.parseFailed("Cannot find root")
 		return root.select("div.content_row").mapNotNull { row ->
@@ -82,13 +86,13 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().getElementById("dle-content") ?: doc.parseFailed("Cannot find root")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
-			chapters = root.select("table.table_cha tr:gt(1)").reversed().mapChapters { i, tr ->
+			chapters = root.select("table.table_cha tr:gt(1)").mapChapters(reversed = true) { i, tr ->
 				val href = tr?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 					?: return@mapChapters null
 				MangaChapter(
@@ -106,8 +110,8 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
@@ -117,7 +121,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 			}
 			val json = data.substring(pos).substringAfter('[').substringBefore(';')
 				.substringBeforeLast(']')
-			val domain = getDomain()
+			val domain = domain
 			return json.split(",").mapNotNull {
 				it.trim()
 					.removeSurrounding('"', '\'')
@@ -128,7 +132,6 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 					id = generateUid(url),
 					url = url,
 					preview = null,
-					referer = fullUrl,
 					source = source,
 				)
 			}
@@ -137,8 +140,8 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val domain = getDomain()
-		val doc = context.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
+		val domain = domain
+		val doc = webClient.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")
 			?.select("ul")?.last() ?: doc.parseFailed("Cannot find root")
 		return root.select("li.sidetag").mapToSet { li ->
@@ -152,7 +155,7 @@ internal abstract class ChanParser(source: MangaSource) : MangaParser(source), M
 	}
 
 	override suspend fun getUsername(): String {
-		val doc = context.httpGet("https://${getDomain()}").parseHtml().body()
+		val doc = webClient.httpGet("https://${domain}").parseHtml().body()
 		val root = doc.requireElementById("top_user")
 		val a = root.getElementsByAttributeValueContaining("href", "/user/").firstOrNull()
 			?: throw AuthRequiredException(source)

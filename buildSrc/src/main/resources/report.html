@@ -2,13 +2,15 @@
 <html lang="en">
 <head>
 	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta content="width=device-width, initial-scale=1" name="viewport">
 	<title>{{ testSuite.name }}</title>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
-		  integrity="sha384-0evHe/X+R7YkIZDRvuzKMRqM+OrBnVFBL6DOitfPri4tjfHxaWutUpFmBp4vmVor" crossorigin="anonymous">
-	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.0-beta1/dist/js/bootstrap.bundle.min.js"
-			integrity="sha384-pprn3073KE6tl6bjs2QrFaJGz5/SUsLqktiwsUTF55Jfv3qYSDhgCecCxMW52nD2"
-			crossorigin="anonymous"></script>
+	<!-- CSS only -->
+	<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/css/bootstrap.min.css"
+		  integrity="sha384-Zenh87qX5JnK2Jl0vWa8Ck2rdkQ2Bzep5IDxbcnCeuOxjzrPF/et3URy9Bv1WTRi" rel="stylesheet">
+	<!-- JavaScript Bundle with Popper -->
+	<script crossorigin="anonymous"
+			integrity="sha384-OERcA2EqjJCMA+/3y+gxIOqMEjwtxJY7qPCqsdltbNJuaOe923+mo//f6V8Qbsw3"
+			src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"></script>
 	<script src="https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js"></script>
 </head>
 <body class="py-4">
@@ -25,64 +27,100 @@
 			{{ testSuite.errors }} ({{ error_percent }}%)
 		</div>
 	</div>
-	<div class="table-responsive mt-4">
-		<table class="table table-hover">
-			<thead>
-			<tr>
-				<th scope="col">Source</th>
-				{% for test in tests %}
-				<th scope="col" style="min-width: 5em;">{{ test }}</th>
-				{% endfor %}
-			</tr>
-			</thead>
-			{% for name, cases in results %}
-			<tr>
-				<th scope="row">{{ name }}</th>
-				{% for test in tests %}
-				{% set case = cases[test] %}
-				{% if case.failure == null %}
-				<td class="table-success text-center">
-					<i data-feather="check"></i>
-				</td>
-				{% else %}
-					{% if case.failure.type == 'java.lang.AssertionError' %}
-					<td class="table-warning text-center" style="cursor: pointer;"
-						data-bs-toggle="modal" data-bs-target="#failure_{{ case.hashCode }}">
-						<i data-feather="alert-triangle"></i>
-					</td>
-					{% else %}
-					<td class="table-danger text-center" style="cursor: pointer;"
-						data-bs-toggle="modal" data-bs-target="#failure_{{ case.hashCode }}">
-						<i data-feather="x"></i>
-					</td>
-					{% endif %}
-				<!--suppress HtmlUnknownTag -->
-				<div class="modal fade" id="failure_{{ case.hashCode }}" tabindex="-1">
-					<div class="modal-dialog modal-lg modal-dialog-scrollable">
-						<div class="modal-content">
-							<div class="modal-header">
-								<h5 class="modal-title">{{ case.testName }} failed</h5>
-								<button type="button" class="btn-close" data-bs-dismiss="modal"
-										aria-label="Close"></button>
-							</div>
-							<div class="modal-body font-monospace lh-sm bg-light" style="font-size: 0.7em;">
-								{{ case.failure.textHtml()|raw }}
-							</div>
-							<div class="modal-footer">
-								<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-							</div>
+	<table class="table table-hover">
+		<thead class="sticky-top bg-body">
+		<tr>
+			<th scope="col">Source</th>
+			{% for test in tests %}
+			<th class="text-center" scope="col" style="min-width: 5em;">{{ test }}</th>
+			{% endfor %}
+		</tr>
+		</thead>
+		{% for name, cases in results %}
+		<tr>
+			<th scope="row">{{ name }}</th>
+			{% for test in tests %}
+			{% set case = cases[test] %}
+			{% if case.failure == null %}
+			<td class="table-success text-center">
+				<i data-feather="check"></i>
+			</td>
+			{% else %}
+			{% if case.failure.type == 'java.lang.AssertionError' %}
+			<td class="table-warning text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="alert-triangle"></i>
+			</td>
+			{% elseif case.failure.type == 'java.net.SocketTimeoutException' or case.failure.type ==
+			'java.net.UnknownHostException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="power"></i>
+			</td>
+			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.exception.CloudFlareProtectedException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="shield"></i>
+			</td>
+			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.exception.AuthRequiredException' %}
+			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="user-x"></i>
+			</td>
+			{% else %}
+			<td class="table-danger text-center" data-bs-target="#failure_{{ case.hashCode }}"
+				data-bs-toggle="modal" style="cursor: pointer;">
+				<i data-feather="x"></i>
+			</td>
+			{% endif %}
+			<!--suppress HtmlUnknownTag -->
+			<div class="modal fade" id="failure_{{ case.hashCode }}" tabindex="-1">
+				<div class="modal-dialog modal-lg modal-dialog-scrollable">
+					<div class="modal-content">
+						<div class="modal-header">
+							<h5 class="modal-title">{{ case.testName }} failed</h5>
+							<button aria-label="Close" class="btn-close" data-bs-dismiss="modal"
+									type="button"></button>
+						</div>
+						<div class="modal-body font-monospace lh-sm bg-light" style="font-size: 0.7em;">
+							{{ case.failure.textHtml()|raw }}
+						</div>
+						<div class="modal-footer">
+							<button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Close</button>
 						</div>
 					</div>
 				</div>
-				{% endif %}
-				{% endfor %}
-			</tr>
+			</div>
+			{% endif %}
 			{% endfor %}
-		</table>
-	</div>
+		</tr>
+		{% endfor %}
+	</table>
 </div>
 <script>
 	feather.replace()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

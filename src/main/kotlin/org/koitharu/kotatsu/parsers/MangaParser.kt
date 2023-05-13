@@ -1,20 +1,20 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
-import androidx.annotation.VisibleForTesting
 import okhttp3.Headers
-import okhttp3.HttpUrl
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
+import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.FaviconParser
+import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
-abstract class MangaParser @InternalParsersApi constructor(val source: MangaSource) {
-
-	protected abstract val context: MangaLoaderContext
+abstract class MangaParser @InternalParsersApi constructor(
+	@property:InternalParsersApi val context: MangaLoaderContext,
+	val source: MangaSource,
+) {
 
 	/**
 	 * Supported [SortOrder] variants. Must not be empty.
@@ -25,18 +25,18 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 
 	val config by lazy { context.getConfig(source) }
 
-	val sourceLocale: Locale?
-		get() = source.locale?.let { Locale(it) }
+	open val sourceLocale: Locale
+		get() = source.locale?.let { Locale(it) } ?: Locale.ROOT
 
 	/**
 	 * Provide default domain and available alternatives, if any.
 	 *
 	 * Never hardcode domain in requests, use [getDomain] instead.
 	 */
-	protected abstract val configKeyDomain: ConfigKey.Domain
+	@InternalParsersApi
+	abstract val configKeyDomain: ConfigKey.Domain
 
-	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
-	internal open val headers: Headers? = null
+	open val headers: Headers? = null
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
@@ -46,6 +46,8 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 			val supported = sortOrders
 			return SortOrder.values().first { it in supported }
 		}
+
+	protected val webClient: WebClient = OkHttpWebClient(context.httpClient, source)
 
 	/**
 	 * Parse list of manga by specified criteria
@@ -103,7 +105,7 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	/**
 	 * Fetch direct link to the page image.
 	 */
-	open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(getDomain())
+	open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(domain)
 
 	/**
 	 * Fetch available tags (genres) for source
@@ -111,90 +113,14 @@ abstract class MangaParser @InternalParsersApi constructor(val source: MangaSour
 	abstract suspend fun getTags(): Set<MangaTag>
 
 	/**
-	 * Returns direct link to the website favicon
-	 */
-	@Deprecated(
-		message = "Use parseFavicons() to get multiple favicons with different size",
-		replaceWith = ReplaceWith("parseFavicons()"),
-	)
-	open fun getFaviconUrl() = "https://${getDomain()}/favicon.ico"
-
-	/**
 	 * Parse favicons from the main page of the source`s website
 	 */
 	open suspend fun getFavicons(): Favicons {
-		return FaviconParser(context, getDomain(), headers).parseFavicons()
+		return FaviconParser(webClient, domain).parseFavicons()
 	}
 
 	@CallSuper
 	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		keys.add(configKeyDomain)
-	}
-
-	/* Utils */
-
-	fun getDomain(): String {
-		return config[configKeyDomain]
-	}
-
-	fun getDomain(subdomain: String): String {
-		val domain = getDomain()
-		return subdomain + "." + domain.removePrefix("www.")
-	}
-
-	fun urlBuilder(): HttpUrl.Builder {
-		return HttpUrl.Builder()
-			.scheme("https")
-			.host(getDomain())
-	}
-
-	/**
-	 * Create a unique id for [Manga]/[MangaChapter]/[MangaPage].
-	 * @param url must be relative url, without a domain
-	 * @see [Manga.id]
-	 * @see [MangaChapter.id]
-	 * @see [MangaPage.id]
-	 */
-	@InternalParsersApi
-	protected fun generateUid(url: String): Long {
-		var h = 1125899906842597L
-		source.name.forEach { c ->
-			h = 31 * h + c.code
-		}
-		url.forEach { c ->
-			h = 31 * h + c.code
-		}
-		return h
-	}
-
-	/**
-	 * Create a unique id for [Manga]/[MangaChapter]/[MangaPage].
-	 * @param id an internal identifier
-	 * @see [Manga.id]
-	 * @see [MangaChapter.id]
-	 * @see [MangaPage.id]
-	 */
-	@InternalParsersApi
-	protected fun generateUid(id: Long): Long {
-		var h = 1125899906842597L
-		source.name.forEach { c ->
-			h = 31 * h + c.code
-		}
-		h = 31 * h + id
-		return h
-	}
-
-	@InternalParsersApi
-	protected fun Element.parseFailed(message: String? = null): Nothing {
-		throw ParseException(message, ownerDocument()?.location() ?: baseUri(), null)
-	}
-
-	@InternalParsersApi
-	protected fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? {
-		return when {
-			isNullOrEmpty() -> null
-			size == 1 -> first()
-			else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
-		}
 	}
 }

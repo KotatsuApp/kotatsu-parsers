@@ -12,7 +12,8 @@ import java.util.*
 private const val DEF_BRANCH_NAME = "Основний переклад"
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
-class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaParser(
+class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
+	context = context,
 	source = MangaSource.MANGAINUA,
 	pageSize = 24,
 	searchPageSize = 10,
@@ -31,21 +32,21 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 	): List<Manga> {
 		val url = when {
 			!query.isNullOrEmpty() -> (
-					"/index.php?do=search" +
-							"&subaction=search" +
-							"&search_start=$page" +
-							"&full_search=1" +
-							"&story=$query" +
-							"&titleonly=3"
-					).toAbsoluteUrl(getDomain())
+				"/index.php?do=search" +
+					"&subaction=search" +
+					"&search_start=$page" +
+					"&full_search=1" +
+					"&story=$query" +
+					"&titleonly=3"
+				).toAbsoluteUrl(domain)
 
-			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
+			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
 			tags.size == 1 -> "${tags.first().key}/page/$page"
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 genre")
-			else -> "/mangas/page/$page".toAbsoluteUrl(getDomain())
+			else -> "/mangas/page/$page".toAbsoluteUrl(domain)
 		}
-		val doc = context.httpGet(url).parseHtml()
-		val container = doc.body().requireElementById("dle-content")
+		val doc = webClient.httpGet(url).parseHtml()
+		val container = doc.body().requireElementById("site-content")
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
@@ -73,15 +74,15 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 					}
 				}.getOrNull().orEmpty(),
 				state = null,
-				publicUrl = href.toAbsoluteUrl(container.host ?: getDomain()),
+				publicUrl = href.toAbsoluteUrl(container.host ?: domain),
 				source = source,
 			)
 		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
-		val root = doc.body().requireElementById("dle-content")
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val root = doc.body().requireElementById("site-content")
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
 		val chapterNodes = root.selectFirstOrThrow(".linkstocomics").select(".ltcitems")
 		var prevChapterName: String? = null
@@ -120,8 +121,8 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().requireElementById("comics").selectFirstOrThrow("ul.xfieldimagegallery")
 		return root.select("li").map { ul ->
 			val img = ul.selectFirstOrThrow("img")
@@ -130,15 +131,14 @@ class MangaInUaParser(override val context: MangaLoaderContext) : PagedMangaPars
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				referer = fullUrl,
 				source = source,
 			)
 		}
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val domain = getDomain()
-		val doc = context.httpGet("https://$domain/mangas").parseHtml()
+		val domain = domain
+		val doc = webClient.httpGet("https://$domain/mangas").parseHtml()
 		val root = doc.body().requireElementById("menu_1").selectFirstOrThrow("div.menu__wrapper")
 		return root.select("li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

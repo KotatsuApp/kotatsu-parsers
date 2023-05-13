@@ -10,23 +10,25 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan (eu)", "en")
-internal class IsekaiScanEuParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "isekaiscan.eu") {
+@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
+internal class MangaDistrict(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
 
-	override val datePattern = "MM/dd/yyyy"
+	override val tagPrefix = "publication-genre/"
+
+	override val isNsfwSource = true
+
+	override val datePattern = "MMM dd,yyyy"
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
-		val mangaId = doc.body().requireElementById("manga-chapters-holder").attr("data-id")
-		val ul = context.httpPost(
-			"https://${getDomain()}/wp-admin/admin-ajax.php",
-			mapOf(
-				"action" to "manga_get_chapters",
-				"manga" to mangaId,
-			),
-		).parseHtml().body().selectFirstOrThrow("ul")
+		val slug = manga.url.removeSuffix('/').substringAfterLast('/')
+		val doc2 = webClient.httpPost(
+			"https://$domain/read-scan/$slug/ajax/chapters/",
+			mapOf(),
+		).parseHtml()
+		val ul = doc2.body().selectFirstOrThrow("ul")
 		val dateFormat = SimpleDateFormat(datePattern, Locale.US)
-		return ul.select("li").asReversed().mapChapters { i, li ->
+		return ul.select("li").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(

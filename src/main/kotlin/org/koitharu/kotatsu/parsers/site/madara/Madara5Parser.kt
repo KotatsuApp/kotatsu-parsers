@@ -13,10 +13,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 abstract class Madara5Parser @InternalParsersApi constructor(
-	override val context: MangaLoaderContext,
+	context: MangaLoaderContext,
 	source: MangaSource,
 	domain: String,
-) : PagedMangaParser(source, pageSize = 22) {
+) : PagedMangaParser(context, source, pageSize = 22) {
 
 	protected open val datePattern = "MMMM dd, HH:mm"
 	protected open val tagPrefix = "/mangas/"
@@ -32,7 +32,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -50,7 +50,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 			append("&op=1&author=&artist=&page=")
 			append(page)
 		}
-		val root = context.httpGet(url).parseHtml().body().selectFirstOrThrow(".search-wrap")
+		val root = webClient.httpGet(url).parseHtml().body().selectFirstOrThrow(".search-wrap")
 		return root.select(".c-tabs-item__content").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectLastOrThrow("img")
@@ -82,7 +82,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml().body()
+		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().body()
 			.selectFirstOrThrow(".site-content")
 		val postContent = root.selectFirstOrThrow(".post-content")
 		val tags = postContent.getElementsContainingOwnText("Genre")
@@ -105,14 +105,13 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val arrayData = doc.getElementById("arraydata") ?: doc.parseFailed("#arraydata not found")
 		return arrayData.html().split(',').map { url ->
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = fullUrl,
 				preview = null,
 				source = source,
 			)
@@ -120,15 +119,15 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("http://${getDomain()}/").parseHtml().body()
+		val doc = webClient.httpGet("http://${domain}/").parseHtml().body()
 		return doc.getElementsByAttributeValueContaining("href", tagPrefix)
 			.mapToSet { it.asMangaTag() }
 	}
 
 	private suspend fun loadChapters(mangaId: Long): List<MangaChapter> {
-		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.US)
-		val doc = context.httpGet("https://${getDomain()}/ajax-list-chapter?mangaID=$mangaId").parseHtml()
-		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
+		val doc = webClient.httpGet("https://${domain}/ajax-list-chapter?mangaID=$mangaId").parseHtml()
+		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(
@@ -166,7 +165,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 		parseFailed("Cannot find tableValue for node ${text()}")
 	}
 
-	private fun String.asMangaState() = when (trim().lowercase(sourceLocale ?: Locale.US)) {
+	private fun String.asMangaState() = when (trim().lowercase(sourceLocale)) {
 		"ongoing" -> MangaState.ONGOING
 		"completed" -> MangaState.FINISHED
 		else -> null
@@ -180,8 +179,5 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 	)
 
 	@MangaSourceParser("MANGAOWLS", "BeautyManga", "en")
-	class BeautyManga(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com") {
-
-		override fun getFaviconUrl() = "http://${getDomain()}/frontend/images/favico.png"
-	}
+	class BeautyManga(context: MangaLoaderContext) : Madara5Parser(context, MangaSource.MANGAOWLS, "beautymanga.com")
 }

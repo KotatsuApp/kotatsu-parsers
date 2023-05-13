@@ -2,6 +2,9 @@ package org.koitharu.kotatsu.parsers.site
 
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
+import okio.IOException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -12,24 +15,38 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 internal abstract class NineMangaParser(
-	final override val context: MangaLoaderContext,
+	context: MangaLoaderContext,
 	source: MangaSource,
 	defaultDomain: String,
-) : PagedMangaParser(source, pageSize = 26) {
+) : PagedMangaParser(context, source, pageSize = 26), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain, null)
 
 	init {
-		context.cookieJar.insertCookies(getDomain(), "ninemanga_template_desk=yes")
+		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
 	}
 
 	override val headers = Headers.Builder()
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
+		.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
 		.build()
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
 	)
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val request = chain.request()
+			.newBuilder()
+			.removeHeader("Referer")
+			.build()
+		val response = chain.proceed(request)
+		val responseUrl = response.request.url
+		if (responseUrl.host != request.url.host) {
+			throw IOException("Unexpected redirect to ${responseUrl.host}")
+		}
+		return response
+	}
 
 	override suspend fun getListPage(
 		page: Int,
@@ -39,7 +56,7 @@ internal abstract class NineMangaParser(
 	): List<Manga> {
 		val url = buildString {
 			append("https://")
-			append(getDomain())
+			append(domain)
 			when {
 				!query.isNullOrEmpty() -> {
 					append("/search/?name_sel=&wd=")
@@ -63,7 +80,7 @@ internal abstract class NineMangaParser(
 			append(page)
 			append(".html")
 		}
-		val doc = context.httpGet(url, headers).parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().selectFirst("ul.direlist")
 			?: doc.parseFailed("Cannot find root")
 		val baseHost = root.baseUri().toHttpUrl().host
@@ -91,9 +108,8 @@ internal abstract class NineMangaParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(
-			manga.url.toAbsoluteUrl(getDomain()) + "?waring=1",
-			headers,
+		val doc = webClient.httpGet(
+			manga.url.toAbsoluteUrl(domain) + "?waring=1",
 		).parseHtml()
 		val root = doc.body().selectFirstOrThrow("div.manga")
 		val infoRoot = root.selectFirstOrThrow("div.bookintro")
@@ -111,7 +127,7 @@ internal abstract class NineMangaParser(
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()
 				?.html()?.substringAfter("</b>"),
 			chapters = root.selectFirst("div.chapterbox")?.select("ul.sub_vol_ul > li")
-				?.asReversed()?.mapChapters { i, li ->
+				?.mapChapters(reversed = true) { i, li ->
 					val a = li.selectFirst("a.chapter_list_a")
 					val href = a?.attrAsRelativeUrlOrNull("href")
 						?.replace("%20", " ") ?: li.parseFailed("Link not found")
@@ -130,13 +146,12 @@ internal abstract class NineMangaParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = context.httpGet(chapter.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.body().getElementById("page")?.select("option")?.map { option ->
 			val url = option.attr("value")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = chapter.url.toAbsoluteUrl(getDomain()),
 				preview = null,
 				source = source,
 			)
@@ -144,14 +159,14 @@ internal abstract class NineMangaParser(
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = context.httpGet(page.url.toAbsoluteUrl(getDomain()), headers).parseHtml()
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body()
 		return root.selectFirst("a.pic_download")?.absUrl("href")
 			?: doc.parseFailed("Page image not found")
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet("https://${getDomain()}/search/?type=high", headers)
+		val doc = webClient.httpGet("https://${domain}/search/?type=high")
 			.parseHtml()
 		val root = doc.body().getElementById("search_form")
 		return root?.select("li.cate_list")?.mapNotNullToSet { li ->

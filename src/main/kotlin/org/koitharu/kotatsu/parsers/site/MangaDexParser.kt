@@ -20,12 +20,13 @@ private const val PAGE_SIZE = 20
 private const val CHAPTERS_FIRST_PAGE_SIZE = 120
 private const val CHAPTERS_MAX_PAGE_SIZE = 500
 private const val CHAPTERS_PARALLELISM = 3
+private const val CHAPTERS_MAX_COUNT = 10_000 // strange api behavior, looks like a bug
 private const val CONTENT_RATING =
 	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
 
 @MangaSourceParser("MANGADEX", "MangaDex")
-internal class MangaDexParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.MANGADEX) {
+internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGADEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org", null)
 
@@ -42,7 +43,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val url = buildString {
 			append("https://api.")
 			append(domain)
@@ -75,7 +76,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 				},
 			)
 		}
-		val json = context.httpGet(url).parseJson().getJSONArray("data")
+		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
 		return json.mapJSON { jo ->
 			val id = jo.getString("id")
 			val attrs = jo.getJSONObject("attributes")
@@ -123,10 +124,10 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-		val domain = getDomain()
+		val domain = domain
 		val mangaId = manga.url.removePrefix("/")
 		val attrsDeferred = async {
-			context.httpGet(
+			webClient.httpGet(
 				"https://api.$domain/manga/${mangaId}?includes[]=artist&includes[]=author&includes[]=cover_art",
 			).parseJson().getJSONObject("data").getJSONObject("attributes")
 		}
@@ -139,7 +140,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			Locale.ROOT,
 		)
 		manga.copy(
-			description = mangaAttrs.getJSONObject("description").selectByLocale()
+			description = mangaAttrs.optJSONObject("description")?.selectByLocale()
 				?: manga.description,
 			chapters = feed.mapChapters { _, jo ->
 				val id = jo.getString("id")
@@ -149,12 +150,12 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 				}
 				val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 				val relations = jo.getJSONArray("relationships").associateByKey("type")
-				val number = attrs.getIntOrDefault("chapter", 0)
+				val number = attrs.getFloatOrDefault("chapter", 0f)
 				MangaChapter(
 					id = generateUid(id),
 					name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
 						?: "Chapter #$number",
-					number = number,
+					number = number.toInt(),
 					url = id,
 					scanlator = relations["scanlation_group"]?.getStringOrNull("name"),
 					uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
@@ -166,19 +167,17 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val domain = getDomain()
-		val chapterJson = context.httpGet("https://api.$domain/at-home/server/${chapter.url}?forcePort443=false")
+		val domain = domain
+		val chapterJson = webClient.httpGet("https://api.$domain/at-home/server/${chapter.url}?forcePort443=false")
 			.parseJson()
 			.getJSONObject("chapter")
 		val pages = chapterJson.getJSONArray("data")
 		val prefix = "https://uploads.$domain/data/${chapterJson.getString("hash")}/"
-		val referer = "https://$domain/"
 		return List(pages.length()) { i ->
 			val url = prefix + pages.getString(i)
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = referer,
 				preview = null, // TODO prefix + dataSaver.getString(i),
 				source = source,
 			)
@@ -186,7 +185,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val tags = context.httpGet("https://api.${getDomain()}/manga/tag").parseJson()
+		val tags = webClient.httpGet("https://api.${domain}/manga/tag").parseJson()
 			.getJSONArray("data")
 		return tags.mapJSONToSet { jo ->
 			MangaTag(
@@ -214,7 +213,7 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 			return firstPage.data
 		}
 		val tail = coroutineScope {
-			val leftCount = firstPage.total - firstPage.size
+			val leftCount = firstPage.total.coerceAtMost(CHAPTERS_MAX_COUNT) - firstPage.size
 			val pages = (leftCount / CHAPTERS_MAX_PAGE_SIZE.toFloat()).toIntUp()
 			val dispatcher = Dispatchers.Default.limitedParallelism(CHAPTERS_PARALLELISM)
 			List(pages) { page ->
@@ -231,20 +230,25 @@ internal class MangaDexParser(override val context: MangaLoaderContext) : MangaP
 	}
 
 	private suspend fun loadChapters(mangaId: String, offset: Int, limit: Int): Chapters {
+		val limitedLimit = when {
+			offset >= CHAPTERS_MAX_COUNT -> return Chapters(emptyList(), CHAPTERS_MAX_COUNT)
+			offset + limit > CHAPTERS_MAX_COUNT -> CHAPTERS_MAX_COUNT - offset
+			else -> limit
+		}
 		val url = buildString {
 			append("https://api.")
-			append(getDomain())
+			append(domain)
 			append("/manga/")
 			append(mangaId)
 			append("/feed")
 			append("?limit=")
-			append(limit)
+			append(limitedLimit)
 			append("&includes[]=scanlation_group&order[volume]=asc&order[chapter]=asc&offset=")
 			append(offset)
 			append('&')
 			append(CONTENT_RATING)
 		}
-		val json = context.httpGet(url).parseJson()
+		val json = webClient.httpGet(url).parseJson()
 		if (json.getString("result") == "ok") {
 			return Chapters(
 				data = json.optJSONArray("data")?.toJSONList().orEmpty(),

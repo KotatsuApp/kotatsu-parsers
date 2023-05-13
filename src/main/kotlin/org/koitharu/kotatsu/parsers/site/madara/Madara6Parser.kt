@@ -7,7 +7,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 internal abstract class Madara6Parser(
 	context: MangaLoaderContext,
@@ -20,7 +19,7 @@ internal abstract class Madara6Parser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		return coroutineScope {
 			val chapters = async { loadChapters(manga.url) }
-			val body = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml().body()
+			val body = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().body()
 			parseDetails(manga, body, chapters.await())
 		}
 	}
@@ -45,10 +44,10 @@ internal abstract class Madara6Parser(
 	)
 
 	protected open suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
-		val url = mangaUrl.toAbsoluteUrl(getDomain()).removeSuffix('/') + "/ajax/chapters/"
-		val dateFormat = SimpleDateFormat(datePattern, sourceLocale ?: Locale.ROOT)
-		val doc = context.httpPost(url, emptyMap()).parseHtml()
-		return doc.select("li.wp-manga-chapter").asReversed().mapChapters { i, li ->
+		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
+		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
+		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(

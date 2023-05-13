@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers
 
 import com.koushikdutta.quack.QuackContext
-import okhttp3.Headers
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
@@ -10,10 +9,10 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.await
 import java.util.concurrent.TimeUnit
 
-internal class MangaLoaderContextMock : MangaLoaderContext() {
+internal object MangaLoaderContextMock : MangaLoaderContext() {
 
 	private val userAgent = "Kotatsu/%s (Android %s; %s; %s %s; %s)".format(
-		/*BuildConfig.VERSION_NAME*/ "3.0",
+		/*BuildConfig.VERSION_NAME*/ "4.4",
 		/*Build.VERSION.RELEASE*/ "r",
 		/*Build.MODEL*/ "",
 		/*Build.BRAND*/ "",
@@ -25,7 +24,7 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 
 	override val httpClient: OkHttpClient = OkHttpClient.Builder()
 		.cookieJar(cookieJar)
-		.addInterceptor(UserAgentInterceptor(userAgent))
+		.addInterceptor(CommonHeadersInterceptor(userAgent))
 		.addInterceptor(CloudFlareInterceptor())
 		.connectTimeout(20, TimeUnit.SECONDS)
 		.readTimeout(60, TimeUnit.SECONDS)
@@ -46,15 +45,12 @@ internal class MangaLoaderContextMock : MangaLoaderContext() {
 		return SourceConfigMock()
 	}
 
-	suspend fun doRequest(url: String, referer: String? = null, extraHeaders: Headers? = null): Response {
+	suspend fun doRequest(url: String, source: MangaSource?): Response {
 		val request = Request.Builder()
 			.get()
 			.url(url)
-		if (extraHeaders != null) {
-			request.headers(extraHeaders)
-		}
-		if (referer != null) {
-			request.header("Referer", referer)
+		if (source != null) {
+			request.tag(MangaSource::class.java, source)
 		}
 		return httpClient.newCall(request.build()).await()
 	}

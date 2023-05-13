@@ -22,9 +22,9 @@ private const val PAGE_SIZE = 20
 private const val CHAPTERS_LIMIT = 99999
 
 @MangaSourceParser("COMICK_FUN", "ComicK")
-internal class ComickFunParser(override val context: MangaLoaderContext) : MangaParser(MangaSource.COMICK_FUN) {
+internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.COMICK_FUN) {
 
-	override val configKeyDomain = ConfigKey.Domain("comick.fun", null)
+	override val configKeyDomain = ConfigKey.Domain("comick.app", null)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -41,11 +41,11 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val domain = getDomain()
+		val domain = domain
 		val url = buildString {
 			append("https://api.")
 			append(domain)
-			append("/search?tachiyomi=true")
+			append("/v1.0/search?tachiyomi=true")
 			if (!query.isNullOrEmpty()) {
 				if (offset > 0) {
 					return emptyList()
@@ -71,7 +71,7 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 				)
 			}
 		}
-		val ja = context.httpGet(url).parseJsonArray()
+		val ja = webClient.httpGet(url).parseJsonArray()
 		val tagsMap = cachedTags ?: loadTags()
 		return ja.mapJSON { jo ->
 			val slug = jo.getString("slug")
@@ -101,9 +101,9 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val domain = getDomain()
+		val domain = domain
 		val url = "https://api.$domain/comic/${manga.url}?tachiyomi=true"
-		val jo = context.httpGet(url).parseJson()
+		val jo = webClient.httpGet(url).parseJson()
 		val comic = jo.getJSONObject("comic")
 		return manga.copy(
 			title = comic.getString("title"),
@@ -118,21 +118,20 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 				)
 			},
 			author = jo.getJSONArray("artists").optJSONObject(0)?.getString("name"),
-			chapters = getChapters(comic.getLong("id")),
+			chapters = getChapters(comic.getString("hid")),
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val jo = context.httpGet(
-			"https://api.${getDomain()}/chapter/${chapter.url}?tachiyomi=true",
+		val jo = webClient.httpGet(
+			"https://api.${domain}/chapter/${chapter.url}?tachiyomi=true",
 		).parseJson().getJSONObject("chapter")
-		val referer = "https://${getDomain()}/"
+		val referer = "https://${domain}/"
 		return jo.getJSONArray("images").mapJSON {
 			val url = it.getString("url")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				referer = referer,
 				preview = null,
 				source = source,
 			)
@@ -149,7 +148,7 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 	}
 
 	private suspend fun loadTags(): SparseArrayCompat<MangaTag> {
-		val ja = context.httpGet("https://api.${getDomain()}/genre").parseJsonArray()
+		val ja = webClient.httpGet("https://api.${domain}/genre").parseJsonArray()
 		val tags = SparseArrayCompat<MangaTag>(ja.length())
 		for (jo in ja.JSONIterator()) {
 			tags.append(
@@ -165,9 +164,9 @@ internal class ComickFunParser(override val context: MangaLoaderContext) : Manga
 		return tags
 	}
 
-	private suspend fun getChapters(id: Long): List<MangaChapter> {
-		val ja = context.httpGet(
-			url = "https://api.${getDomain()}/comic/$id/chapter?tachiyomi=true&limit=$CHAPTERS_LIMIT",
+	private suspend fun getChapters(hid: String): List<MangaChapter> {
+		val ja = webClient.httpGet(
+			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
 		val counters = HashMap<Locale, Int>()

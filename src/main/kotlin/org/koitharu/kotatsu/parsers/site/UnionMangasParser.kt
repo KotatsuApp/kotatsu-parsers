@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("UNION_MANGAS", "Union Mangás", "pt")
-class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaParser(MangaSource.UNION_MANGAS, 40) {
+class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.UNION_MANGAS, 40) {
 
 	override val sortOrders = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -45,7 +45,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 					else -> "visualizacoes"
 				},
 			).addPathSegment(page.toString())
-		val doc = context.httpGet(url.build()).parseHtml()
+		val doc = webClient.httpGet(url.build()).parseHtml()
 		val root = doc.selectFirstOrThrow("div.tamanho-bloco-perfil")
 		return root.select(".lista-mangas-novos").map { div ->
 			val a = div.selectFirstOrThrow("a")
@@ -70,7 +70,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = context.httpGet(manga.url.toAbsoluteUrl(getDomain())).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.selectFirstOrThrow(".perfil-manga")
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
@@ -90,7 +90,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 				it.toMangaTag()
 			} ?: manga.tags,
 			isNsfw = root.selectFirst(".alert-danger")?.html()?.contains("18 anos") == true,
-			chapters = root.select("div.row.capitulos").asReversed().mapChapters { i, div ->
+			chapters = root.select("div.row.capitulos").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
 				val title = a.text()
@@ -111,8 +111,8 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(getDomain())
-		val doc = context.httpGet(fullUrl).parseHtml()
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow("article")
 		return root.selectOrThrow("img[pag]").mapNotNull { img ->
 			val href = img.attrAsRelativeUrl("src")
@@ -122,7 +122,6 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 			MangaPage(
 				id = generateUid(href),
 				url = href,
-				referer = fullUrl,
 				preview = null,
 				source = source,
 			)
@@ -130,7 +129,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = context.httpGet(urlBuilder().addPathSegment("lista-mangas").build()).parseHtml()
+		val doc = webClient.httpGet(urlBuilder().addPathSegment("lista-mangas").build()).parseHtml()
 		val ul = doc.body().selectFirstOrThrow(".nav-tabs").selectFirstOrThrow("ul.dropdown-menu")
 		return ul.select("li").mapToSet { li ->
 			li.selectFirstOrThrow("a").toMangaTag()
@@ -138,8 +137,8 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 	}
 
 	private suspend fun search(query: String): List<Manga> {
-		val domain = getDomain()
-		val json = context.httpGet(
+		val domain = domain
+		val json = webClient.httpGet(
 			urlBuilder()
 				.addPathSegments("assets/busca.php")
 				.addQueryParameter("nomeManga", query)
@@ -170,7 +169,7 @@ class UnionMangasParser(override val context: MangaLoaderContext) : PagedMangaPa
 	}
 
 	private fun Element.toMangaTag() = MangaTag(
-		title = text().toTitleCase(sourceLocale ?: Locale.ROOT),
+		title = text().toTitleCase(sourceLocale),
 		key = attr("href").removeSuffix('/').substringAfterLast('/'),
 		source = source,
 	)
