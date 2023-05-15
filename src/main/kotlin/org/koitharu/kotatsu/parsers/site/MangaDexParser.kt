@@ -243,43 +243,38 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			"yyyy-MM-dd'T'HH:mm:ss'+00:00'",
 			Locale.ROOT,
 		)
-		val branches = list.associateGrouping { jo ->
-			jo.getJSONObject("attributes").getStringOrNull("translatedLanguage") to
-				jo.getJSONArray("relationships").associateByKey("type")["scanlation_group"]
-					?.getJSONObject("attributes")?.getStringOrNull("name")
-		}
-		val dc = list.groupBy { jo -> jo.getJSONObject("attributes").getFloatOrDefault("chapter", 0f) }
 		val chaptersBuilder = ChaptersListBuilder(list.size)
-		var index = 0
-		for ((number, value) in dc) {
-			for (jo in value) {
-				val id = jo.getString("id")
-				val attrs = jo.getJSONObject("attributes")
-				if (!attrs.isNull("externalUrl")) {
-					continue
-				}
-				val lang = attrs.getStringOrNull("translatedLanguage")
-				val locale = lang?.let { Locale.forLanguageTag(it) }
-				val relations = jo.getJSONArray("relationships").associateByKey("type")
-				val team = relations["scanlation_group"]?.getJSONObject("attributes")?.getStringOrNull("name")
-					?.takeUnless { it.isBlank() }
-				var branch = locale?.getDisplayName(locale)?.toTitleCase(locale)
-				if (branches[lang].orEmpty().size > 1 && team != null) {
-					branch += " ($team)"
-				}
-				chaptersBuilder += MangaChapter(
-					id = generateUid(id),
-					name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
-						?: "Chapter #$number",
-					number = if (number <= 0f) (index + 1) else number.toInt(),
-					url = id,
-					scanlator = team,
-					uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
-					branch = branch,
-					source = source,
-				)
+		val branchedChapters = HashMap<String?, HashMap<Float, MangaChapter>>()
+		for (jo in list) {
+			val id = jo.getString("id")
+			val attrs = jo.getJSONObject("attributes")
+			if (!attrs.isNull("externalUrl")) {
+				continue
 			}
-			index++
+			val number = jo.getJSONObject("attributes").getFloatOrDefault("chapter", 0f)
+			val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
+			val lc = locale?.getDisplayName(locale)?.toTitleCase(locale)
+			val relations = jo.getJSONArray("relationships").associateByKey("type")
+			val team = relations["scanlation_group"]?.getJSONObject("attributes")?.getStringOrNull("name")
+				?.takeUnless { it.isBlank() }
+			val branch = (list.indices).firstNotNullOf { i ->
+				val b = if (i == 0) lc else "$lc ($i)"
+				if (branchedChapters[b]?.get(number) == null) b else null
+			}
+			val chapter = MangaChapter(
+				id = generateUid(id),
+				name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
+					?: "Chapter #${number.toString().removeSuffix(".0")}",
+				number = if (number <= 0f) (branchedChapters[branch]?.size?.plus(1) ?: 0) else number.toInt(),
+				url = id,
+				scanlator = team,
+				uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
+				branch = branch,
+				source = source,
+			)
+			if (chaptersBuilder.add(chapter)) {
+				branchedChapters.getOrPut(branch, ::HashMap)[number] = chapter
+			}
 		}
 		return chaptersBuilder.toList()
 	}

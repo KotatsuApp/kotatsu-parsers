@@ -168,41 +168,36 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
 		val list = ja.toJSONList().reversed()
-		val dc = list.groupBy { jo -> jo.getStringOrNull("vol") to jo.getStringOrNull("chap") }
-		val branches = list.associateGrouping { jo ->
-			jo.getString("lang") to jo.optJSONArray("group_name")
-				?.asIterable<String>()
-				?.joinToString()
-				?.takeUnless { it.isBlank() }
-		}
+
 		val chaptersBuilder = ChaptersListBuilder(list.size)
-		var number = 0
-		for ((key, value) in dc) {
-			number++
-			val (vol, chap) = key
-			for (jo in value) {
-				val lang = jo.getString("lang")
-				val locale = Locale.forLanguageTag(lang)
-				val team =
-					jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()?.takeUnless { it.isBlank() }
-				var branch = locale.getDisplayName(locale).toTitleCase(locale)
-				if (branches[lang].orEmpty().size > 1 && team != null) {
-					branch += " ($team)"
-				}
-				chaptersBuilder += MangaChapter(
-					id = generateUid(jo.getLong("id")),
-					name = buildString {
-						vol?.let { append("Vol ").append(it).append(' ') }
-						chap?.let { append("Chap ").append(it) }
-						jo.getStringOrNull("title")?.let { append(": ").append(it) }
-					},
-					number = number,
-					url = jo.getString("hid"),
-					scanlator = team,
-					uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
-					branch = branch,
-					source = source,
-				)
+		val branchedChapters = HashMap<String?, HashMap<Pair<String?, String?>, MangaChapter>>()
+		for (jo in list) {
+			val vol = jo.getStringOrNull("vol")
+			val chap = jo.getStringOrNull("chap")
+			val volChap = vol to chap
+			val locale = Locale.forLanguageTag(jo.getString("lang"))
+			val lc = locale.getDisplayName(locale).toTitleCase(locale)
+			val branch = (list.indices).firstNotNullOf { i ->
+				val b = if (i == 0) lc else "$lc ($i)"
+				if (branchedChapters[b]?.get(volChap) == null) b else null
+			}
+			val chapter = MangaChapter(
+				id = generateUid(jo.getLong("id")),
+				name = buildString {
+					vol?.let { append("Vol ").append(it).append(' ') }
+					chap?.let { append("Chap ").append(it) }
+					jo.getStringOrNull("title")?.let { append(": ").append(it) }
+				},
+				number = branchedChapters[branch]?.size?.plus(1) ?: 0,
+				url = jo.getString("hid"),
+				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
+					?.takeUnless { it.isBlank() },
+				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
+				branch = branch,
+				source = source,
+			)
+			if (chaptersBuilder.add(chapter)) {
+				branchedChapters.getOrPut(branch, ::HashMap)[volChap] = chapter
 			}
 		}
 		return chaptersBuilder.toList()
