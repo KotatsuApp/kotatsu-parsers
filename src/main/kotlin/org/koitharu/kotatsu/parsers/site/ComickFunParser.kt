@@ -171,7 +171,8 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		val dc = list.groupBy { jo -> jo.getStringOrNull("vol") to jo.getStringOrNull("chap") }
 		val branches = list.associateGrouping { jo ->
 			jo.getString("lang") to jo.optJSONArray("group_name")
-				?.joinToString { it.toString() }
+				?.asIterable<String>()
+				?.joinToString()
 				?.takeUnless { it.isBlank() }
 		}
 		val chaptersBuilder = ChaptersListBuilder(list.size)
@@ -182,7 +183,8 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 			for (jo in value) {
 				val lang = jo.getString("lang")
 				val locale = Locale.forLanguageTag(lang)
-				val team = jo.optJSONArray("group_name")?.joinToString { it.toString() }?.takeUnless { it.isBlank() }
+				val team =
+					jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()?.takeUnless { it.isBlank() }
 				var branch = locale.getDisplayName(locale).toTitleCase(locale)
 				if (branches[lang].orEmpty().size > 1 && team != null) {
 					branch += " ($team)"

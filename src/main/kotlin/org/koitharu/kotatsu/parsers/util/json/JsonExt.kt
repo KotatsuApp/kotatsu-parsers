@@ -141,3 +141,7 @@ fun JSONArray?.isNullOrEmpty(): Boolean {
 fun JSONArray.toJSONList(): List<JSONObject> {
 	return List(length()) { i -> getJSONObject(i) }
 }
+
+inline fun <reified T> JSONArray.asIterable(): Iterable<T> = Iterable {
+	JSONTypedIterator(this, T::class.java)
+}
