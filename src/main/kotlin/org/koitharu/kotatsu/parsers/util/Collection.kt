@@ -66,11 +66,11 @@ inline fun <T> List<T>.areItemsEquals(other: List<T>, equals: (T, T) -> Boolean)
 
 fun <T> Iterator<T>.nextOrNull(): T? = if (hasNext()) next() else null
 
-inline fun <T, K, V> Collection<T>.associateGrouping(transform: (T) -> Pair<K, V>): Map<K, List<V>> {
-	val result = LinkedHashMap<K, MutableList<V>>(size)
+inline fun <T, K, V> Collection<T>.associateGrouping(transform: (T) -> Pair<K, V>): Map<K, Set<V>> {
+	val result = LinkedHashMap<K, MutableSet<V>>(size)
 	for (item in this) {
 		val (k, v) = transform(item)
-		result.getOrPut(k) { LinkedList() }.add(v)
+		result.getOrPut(k) { LinkedHashSet() }.add(v)
 	}
 	return result
 }

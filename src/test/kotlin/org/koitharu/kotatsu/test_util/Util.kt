@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.test_util
 
 import androidx.collection.ArraySet
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
@@ -44,15 +44,15 @@ inline operator fun <T> List<T>.component6(): T = get(5)
 inline operator fun <T> List<T>.component7(): T = get(6)
 
 fun mangaOf(source: MangaSource, url: String): Manga {
-	val httpUrl = url.toHttpUrl()
+	val httpUrl = url.toHttpUrlOrNull()
 	var id = 1125899906842597L
 	source.name.forEach { c -> id = 31 * id + c.code }
 	url.forEach { c -> id = 31 * id + c.code }
 	return Manga(
 		id = id,
-		title = httpUrl.pathSegments.last(),
+		title = httpUrl?.pathSegments?.last() ?: url,
 		altTitle = null,
-		url = url.toRelativeUrl(httpUrl.host),
+		url = httpUrl?.let { url.toRelativeUrl(it.host) } ?: url,
 		publicUrl = url,
 		rating = RATING_UNKNOWN,
 		isNsfw = false,
