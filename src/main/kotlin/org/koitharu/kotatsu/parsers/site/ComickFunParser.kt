@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
-import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
@@ -126,7 +125,6 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		val jo = webClient.httpGet(
 			"https://api.${domain}/chapter/${chapter.url}?tachiyomi=true",
 		).parseJson().getJSONObject("chapter")
-		val referer = "https://${domain}/"
 		return jo.getJSONArray("images").mapJSON {
 			val url = it.getString("url")
 			MangaPage(
@@ -169,37 +167,43 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-		val counters = HashMap<Locale, Int>()
-		return ja.mapReversed { jo ->
-			val locale = Locale.forLanguageTag(jo.getString("lang"))
-			var number = counters[locale] ?: 0
+		val list = ja.toJSONList().reversed()
+		val dc = list.groupBy { jo -> jo.getStringOrNull("vol") to jo.getStringOrNull("chap") }
+		val branches = list.associateGrouping { jo ->
+			jo.getString("lang") to jo.optJSONArray("group_name")
+				?.joinToString { it.toString() }
+				?.takeUnless { it.isBlank() }
+		}
+		val chaptersBuilder = ChaptersListBuilder(list.size)
+		var number = 0
+		for ((key, value) in dc) {
 			number++
-			counters[locale] = number
-			MangaChapter(
-				id = generateUid(jo.getLong("id")),
-				name = buildString {
-					jo.getStringOrNull("vol")?.let { append("Vol ").append(it).append(' ') }
-					jo.getStringOrNull("chap")?.let { append("Chap ").append(it) }
-					jo.getStringOrNull("title")?.let { append(": ").append(it) }
-				},
-				number = number,
-				url = jo.getString("hid"),
-				scanlator = jo.optJSONArray("group_name")?.optString(0),
-				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
-				branch = locale.getDisplayName(locale).toTitleCase(locale),
-				source = source,
-			)
+			val (vol, chap) = key
+			for (jo in value) {
+				val lang = jo.getString("lang")
+				val locale = Locale.forLanguageTag(lang)
+				val team = jo.optJSONArray("group_name")?.joinToString { it.toString() }?.takeUnless { it.isBlank() }
+				var branch = locale.getDisplayName(locale).toTitleCase(locale)
+				if (branches[lang].orEmpty().size > 1 && team != null) {
+					branch += " ($team)"
+				}
+				chaptersBuilder += MangaChapter(
+					id = generateUid(jo.getLong("id")),
+					name = buildString {
+						vol?.let { append("Vol ").append(it).append(' ') }
+						chap?.let { append("Chap ").append(it) }
+						jo.getStringOrNull("title")?.let { append(": ").append(it) }
+					},
+					number = number,
+					url = jo.getString("hid"),
+					scanlator = team,
+					uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
+					branch = branch,
+					source = source,
+				)
+			}
 		}
-	}
-
-	private inline fun <R> JSONArray.mapReversed(block: (JSONObject) -> R): List<R> {
-		val len = length()
-		val destination = ArrayList<R>(len)
-		for (i in (0 until len).reversed()) {
-			val jo = getJSONObject(i)
-			destination.add(block(jo))
-		}
-		return destination
+		return chaptersBuilder.toList()
 	}
 
 	private fun JSONObject.selectGenres(name: String, tags: SparseArrayCompat<MangaTag>): Set<MangaTag> {
