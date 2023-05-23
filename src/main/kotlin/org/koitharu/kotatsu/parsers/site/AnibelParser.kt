@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getDomain
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
+import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
 import org.koitharu.kotatsu.parsers.util.json.stringIterator
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
@@ -72,7 +73,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
 					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
-				altTitle = title.getString("alt").takeUnless(String::isEmpty),
+				altTitle = title.optJSONArray("alt")?.optString(0)?.takeUnless(String::isEmpty),
 				author = null,
 				isNsfw = false,
 				rating = jo.getDouble("rating").toFloat() / 10f,
@@ -110,20 +111,21 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 			""".trimIndent(),
 		).getJSONObject("media")
 		val title = details.getJSONObject("title")
-		val poster = details.getString("poster").removePrefix("/cdn")
-			.toAbsoluteUrl(getDomain("cdn"))
+		val poster = details.getString("poster").removePrefix("/cdn").toAbsoluteUrl(getDomain("cdn"))
 		val chapters = apiCall(
 			"""
-			chapters(mediaId: "${details.getString("mediaId")}") {
-				id
-				chapter
-				released
+			chapters(mediaId: "${details.getString("mediaId")}", offset: 0, limit: 99999) {
+				docs {
+					id
+					chapter
+					released
+				}
 			}
 			""".trimIndent(),
-		).getJSONArray("chapters")
+		).getJSONObject("chapters").getJSONArray("docs")
 		return manga.copy(
 			title = title.getString("be"),
-			altTitle = title.getString("alt"),
+			altTitle = title.optJSONArray("alt")?.optString(0)?.takeUnless(String::isEmpty),
 			coverUrl = "$poster?width=200&height=280",
 			largeCoverUrl = poster,
 			description = details.getJSONObject("description").getString("be"),
@@ -164,7 +166,6 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 			""".trimIndent(),
 		).getJSONObject("chapter")
 		val pages = chapterJson.getJSONArray("images")
-		val chapterUrl = "https://${domain}/${chapter.url}"
 		return pages.mapJSONIndexed { i, jo ->
 			MangaPage(
 				id = generateUid("${chapter.url}/$i"),
@@ -190,23 +191,29 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 	private suspend fun search(query: String): List<Manga> {
 		val json = apiCall(
 			"""
-			search(query: "$query", limit: 40) {
-				id
+			search(query: "$query", limit: 60) {
+				mediaId
 				title {
 					be
 					en
 				}
 				poster
-				url
-				type
+				status
+				slug
+				mediaType
+				genres
 			}
 			""".trimIndent(),
 		)
 		val array = json.getJSONArray("search")
-		return array.mapJSON { jo ->
-			val mediaId = jo.getString("id")
+		return array.mapJSONNotNull { jo ->
+			val type = jo.getString("mediaType").lowercase()
+			if (type != "manga") {
+				return@mapJSONNotNull null
+			}
+			val mediaId = jo.getString("mediaId")
 			val title = jo.getJSONObject("title")
-			val href = "${jo.getString("type").lowercase()}/${jo.getString("url")}"
+			val href = "$type/${jo.getString("slug")}"
 			Manga(
 				id = generateUid(mediaId),
 				title = title.getString("be"),
@@ -218,16 +225,19 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 				rating = RATING_UNKNOWN,
 				url = href,
 				publicUrl = "https://${domain}/$href",
-				tags = emptySet(),
-				state = null,
+				tags = jo.getJSONArray("genres").mapToTags(),
+				state = when (jo.getString("status")) {
+					"ongoing" -> MangaState.ONGOING
+					"finished" -> MangaState.FINISHED
+					else -> null
+				},
 				source = source,
 			)
 		}
 	}
 
 	private suspend fun apiCall(request: String): JSONObject {
-		return webClient.graphQLQuery("https://api.${domain}/graphql", request)
-			.getJSONObject("data")
+		return webClient.graphQLQuery("https://${domain}/graphql", request).getJSONObject("data")
 	}
 
 	private fun JSONArray.mapToTags(): Set<MangaTag> {

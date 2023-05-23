@@ -81,7 +81,14 @@ class OkHttpWebClient(
 		body.put("operationName", null as Any?)
 		body.put("variables", JSONObject())
 		body.put("query", "{$query}")
-		val json = httpPost(endpoint, body).parseJson()
+
+		val mediaType = "application/json; charset=utf-8".toMediaType()
+		val requestBody = body.toString().toRequestBody(mediaType)
+		val request = Request.Builder()
+			.post(requestBody)
+			.url(endpoint)
+			.addTags()
+		val json = httpClient.newCall(request.build()).await().parseJson()
 		json.optJSONArray("errors")?.let {
 			if (it.length() != 0) {
 				throw GraphQLException(it)
