@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -60,8 +61,7 @@ internal open class MangaLibParser(
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().getElementById("manga-list") ?: doc.parseFailed("Root not found")
-		val items = root.selectFirst("div.media-cards-grid")?.select("div.media-card-wrap")
-			?: return emptyList()
+		val items = root.selectFirst("div.media-cards-grid")?.select("div.media-card-wrap") ?: return emptyList()
 		return items.mapNotNull { card ->
 			val a = card.selectFirst("a.media-card") ?: return@mapNotNull null
 			val href = a.attrAsRelativeUrl("href")
@@ -149,22 +149,20 @@ internal open class MangaLibParser(
 		return manga.copy(
 			title = title?.getOrNull(0)?.text()?.takeUnless(String::isBlank) ?: manga.title,
 			altTitle = title?.getOrNull(1)?.text()?.substringBefore('/')?.trim(),
-			rating = root.selectFirst("div.media-stats-item__score")
-				?.selectFirst("span")
-				?.text()?.toFloatOrNull()?.div(5f) ?: manga.rating,
-			author = info?.getElementsMatchingOwnText("Автор")?.firstOrNull()
-				?.nextElementSibling()?.text() ?: manga.author,
-			tags = info?.selectFirst("div.media-tags")
-				?.select("a.media-tag-item")?.mapNotNullToSet { a ->
-					val href = a.attr("href")
-					if (href.contains("genres")) {
-						MangaTag(
-							title = a.text().toTitleCase(),
-							key = href.substringAfterLast('='),
-							source = source,
-						)
-					} else null
-				} ?: manga.tags,
+			rating = root.selectFirst("div.media-stats-item__score")?.selectFirst("span")?.text()?.toFloatOrNull()
+				?.div(5f) ?: manga.rating,
+			author = info?.getElementsMatchingOwnText("Автор")?.firstOrNull()?.nextElementSibling()?.text()
+				?: manga.author,
+			tags = info?.selectFirst("div.media-tags")?.select("a.media-tag-item")?.mapNotNullToSet { a ->
+				val href = a.attr("href")
+				if (href.contains("genres")) {
+					MangaTag(
+						title = a.text().toTitleCase(),
+						key = href.substringAfterLast('='),
+						source = source,
+					)
+				} else null
+			} ?: manga.tags,
 			isNsfw = isNsfw(doc),
 			description = info?.selectFirst("div.media-description__text")?.html(),
 			chapters = chapters?.toList(),
@@ -173,22 +171,22 @@ internal open class MangaLibParser(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val doc = handle404 {
+			webClient.httpGet(fullUrl).parseHtml()
+		}
 		if (doc.location().substringBefore('?').endsWith("/register")) {
 			throw AuthRequiredException(source)
 		}
 		val scripts = doc.head().select("script")
-		val pg = (doc.body().getElementById("pg")?.html() ?: doc.parseFailed("Element #pg not found"))
-			.substringAfter('=')
-			.substringBeforeLast(';')
+		val pg =
+			(doc.body().getElementById("pg")?.html() ?: doc.parseFailed("Element #pg not found")).substringAfter('=')
+				.substringBeforeLast(';')
 		val pages = JSONArray(pg)
 		for (script in scripts) {
 			val raw = script.html().trim()
 			if (raw.contains("window.__info")) {
 				val json = JSONObject(
-					raw.substringAfter("window.__info")
-						.substringAfter('=')
-						.substringBeforeLast(';'),
+					raw.substringAfter("window.__info").substringAfter('=').substringBeforeLast(';'),
 				)
 				val domain = json.getJSONObject("servers").run {
 					getStringOrNull("main") ?: getString(
@@ -241,7 +239,7 @@ internal open class MangaLibParser(
 		}
 
 	override suspend fun getUsername(): String {
-		val body = webClient.httpGet("https://${LibConst.LIB_SOCIAL_LINK}/messages").parseHtml().body()
+		val body = webClient.httpGet("https://${LIB_SOCIAL_LINK}/messages").parseHtml().body()
 		if (body.baseUri().endsWith("/login")) {
 			throw AuthRequiredException(source)
 		}
@@ -249,6 +247,10 @@ internal open class MangaLibParser(
 	}
 
 	protected open fun isNsfw(doc: Document): Boolean {
+		val modal = doc.body().getElementById("title-caution")
+		if (!modal?.getElementsContainingOwnText("18+").isNullOrEmpty()) {
+			return true
+		}
 		val sidebar = doc.body().run {
 			selectFirst(".media-sidebar") ?: selectFirst(".media-info")
 		} ?: doc.parseFailed("Sidebar not found")
@@ -266,8 +268,7 @@ internal open class MangaLibParser(
 
 	private suspend fun search(query: String): List<Manga> {
 		val domain = domain
-		val json = webClient.httpGet("https://$domain/search?type=manga&q=$query")
-			.parseJsonArray()
+		val json = webClient.httpGet("https://$domain/search?type=manga&q=$query").parseJsonArray()
 		return json.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			val url = "/$slug"
@@ -291,12 +292,21 @@ internal open class MangaLibParser(
 		}
 	}
 
+	private inline fun <T> handle404(block: () -> T): T = try {
+		block()
+	} catch (e: NotFoundException) {
+		if (isAuthorized) {
+			throw e
+		} else {
+			throw AuthRequiredException(source)
+		}
+	}
+
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
 	class Impl(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.MANGALIB)
 
-	object LibConst {
+	companion object {
 
-		val LIB_SOCIAL_LINK = "lib.social"
-
+		const val LIB_SOCIAL_LINK = "lib.social"
 	}
 }
