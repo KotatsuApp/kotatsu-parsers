@@ -22,7 +22,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	override val sortOrders: Set<SortOrder>
 		get() = Collections.singleton(SortOrder.UPDATED)
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua", null)
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua")
 
 	override suspend fun getListPage(
 		page: Int,

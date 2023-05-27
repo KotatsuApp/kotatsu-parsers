@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 
 @MangaSourceParser("PRISMA_SCANS", "Prisma Scans", "pt")
 internal class PrismaScansParser(context: MangaLoaderContext) :
-	Madara6Parser(context, MangaSource.PRISMA_SCANS, "prismascans.net") {
+	Madara6Parser(context, MangaSource.PRISMA_SCANS, "prismascans.net", 10) {
 
 	override val tagPrefix = "manga-genre/"
 	override val datePattern = "MMM dd, yyyy"

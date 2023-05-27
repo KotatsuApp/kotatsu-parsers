@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
 internal class MangaDistrict(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com") {
+	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
 
 	override val tagPrefix = "publication-genre/"
 

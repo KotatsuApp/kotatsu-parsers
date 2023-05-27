@@ -12,7 +12,7 @@ internal class MintMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"mintmanga.live",
-		arrayOf("mintmanga.live", "mintmanga.com"),
+		"mintmanga.com",
 	)
 
 }

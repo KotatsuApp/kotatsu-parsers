@@ -10,6 +10,6 @@ internal class SelfMangaParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.SELFMANGA, 3) {
 
-	override val configKeyDomain = ConfigKey.Domain("selfmanga.live", null)
+	override val configKeyDomain = ConfigKey.Domain("selfmanga.live")
 
 }

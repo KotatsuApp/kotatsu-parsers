@@ -12,7 +12,7 @@ internal class ReadmangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"readmanga.live",
-		arrayOf("readmanga.io", "readmanga.live", "readmanga.me"),
+		"readmanga.io",
+		"readmanga.me",
 	)
-
 }

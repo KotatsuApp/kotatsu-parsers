@@ -20,7 +20,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
-	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", arrayOf("www.japscan.lol", "japscan.ws"))
+	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", "japscan.ws")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0")

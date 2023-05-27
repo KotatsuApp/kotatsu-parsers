@@ -25,7 +25,7 @@ internal open class MangaLibParser(
 	source: MangaSource,
 ) : PagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
 
-	override val configKeyDomain = ConfigKey.Domain("mangalib.me", null)
+	override val configKeyDomain = ConfigKey.Domain("mangalib.me")
 
 	override val authUrl: String
 		get() = "https://${domain}/login"

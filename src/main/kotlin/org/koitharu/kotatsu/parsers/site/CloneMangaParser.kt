@@ -1,33 +1,26 @@
 package org.koitharu.kotatsu.parsers.site
 
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("CLONEMANGA", "CloneManga", "en")
-internal class CloneMangaParser(context: MangaLoaderContext) : PagedMangaParser(
-	context,
-	MangaSource.CLONEMANGA,
-	pageSize = 1,
-) {
+internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.CLONEMANGA) {
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org", null)
+	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (query != null || page > 1) {
+	@InternalParsersApi
+	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
+		if (query != null || offset > 0) {
 			return emptyList()
 		}
 		val link = "https://${domain}/viewer_landing.php"

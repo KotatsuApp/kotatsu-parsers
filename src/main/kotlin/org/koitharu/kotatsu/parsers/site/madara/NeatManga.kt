@@ -11,7 +11,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NEATMANGA", "NeatManga", "en")
-internal class NeatManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.NEATMANGA, "neatmangas.com") {
+internal class NeatManga(context: MangaLoaderContext) : MadaraParser(
+	context, MangaSource.NEATMANGA, "neatmangas.com",
+	pageSize = 20,
+) {
 
 	override val datePattern = "dd MMMM yyyy"
 

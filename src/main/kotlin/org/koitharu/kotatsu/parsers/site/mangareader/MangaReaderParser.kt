@@ -30,6 +30,7 @@ internal abstract class MangaReaderParser(
 
 	abstract val listUrl: String
 	abstract val tableMode: Boolean
+	protected open val isNsfwSource = false
 	open val chapterDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
@@ -70,7 +71,7 @@ internal abstract class MangaReaderParser(
 			description = mangaInfo?.selectFirst("div.entry-content")?.html(),
 			state = mangaState,
 			author = mangaInfo?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text(),
-			isNsfw = docs.selectFirst(".restrictcontainer") != null,
+			isNsfw = manga.isNsfw || docs.selectFirst(".restrictcontainer") != null,
 			tags = tags.orEmpty(),
 			chapters = chapters,
 		)
@@ -91,7 +92,7 @@ internal abstract class MangaReaderParser(
 			description = docs.selectFirst(".info-right div.entry-content > p")?.html(),
 			state = mangaState,
 			author = docs.selectFirst(".info-left .tsinfo div:contains(Author)")?.lastElementChild()?.text(),
-			isNsfw = docs.selectFirst(".info-right .alr") != null,
+			isNsfw = manga.isNsfw || docs.selectFirst(".info-right .alr") != null,
 			tags = tags,
 			chapters = chapters,
 		)
@@ -162,7 +163,7 @@ internal abstract class MangaReaderParser(
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
-				isNsfw = false,
+				isNsfw = isNsfwSource,
 				coverUrl = it.selectFirst("img.ts-post-image")?.imageUrl().orEmpty(),
 				tags = emptySet(),
 				state = null,
@@ -230,33 +231,27 @@ internal abstract class MangaReaderParser(
 	@MangaSourceParser("MANHWALAND", "Manhwaland", "id")
 	class ManhwaLandParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANHWALAND, pageSize = 20, searchPageSize = 10) {
-		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwaland.us", arrayOf("manhwaland.us", "manhwaland.guru"))
 
-		override val listUrl: String
-			get() = "/manga"
-		override val tableMode: Boolean
-			get() = false
+		override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwaland.us", "manhwaland.guru")
+		override val listUrl: String = "/manga"
+		override val tableMode: Boolean = false
 	}
 
 	@MangaSourceParser("SEKAIKOMIK", "Sekaikomik", "id")
 	class SekaikomikParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.SEKAIKOMIK, pageSize = 20, searchPageSize = 100) {
-		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("sekaikomik.pro", null)
+		override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("sekaikomik.pro")
 
-		override val listUrl: String
-			get() = "/manga"
-		override val tableMode: Boolean
-			get() = false
+		override val listUrl: String = "/manga"
+		override val tableMode: Boolean = false
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM D, yyyy", idLocale)
 	}
 
 	@MangaSourceParser("MANHWAINDO", "Manhwaindo", "id")
 	class ManhwaIndoParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.MANHWAINDO, pageSize = 20, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.MANHWAINDO, pageSize = 30, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwaindo.id", null)
+			get() = ConfigKey.Domain("manhwaindo.id")
 
 		override val chapterDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH)
 		override val listUrl: String get() = "/series"
@@ -267,7 +262,7 @@ internal abstract class MangaReaderParser(
 	class ManhwalistParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANHWALIST, pageSize = 24, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwalist.in", null)
+			get() = ConfigKey.Domain("manhwalist.in")
 
 		override val listUrl: String = "/manga"
 		override val tableMode: Boolean get() = false
@@ -276,9 +271,9 @@ internal abstract class MangaReaderParser(
 
 	@MangaSourceParser("KIRYUU", "Kiryuu", "id")
 	class KiryuuParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.KIRYUU, pageSize = 20, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.KIRYUU, pageSize = 30, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("kiryuu.id", null)
+			get() = ConfigKey.Domain("kiryuu.id")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -291,7 +286,7 @@ internal abstract class MangaReaderParser(
 	class TurktoonParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.TURKTOON, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("turktoon.com", null)
+			get() = ConfigKey.Domain("turktoon.com")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -316,7 +311,7 @@ internal abstract class MangaReaderParser(
 	class WestmangaParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.WESTMANGA, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("westmanga.info", null)
+			get() = ConfigKey.Domain("westmanga.info")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -327,9 +322,9 @@ internal abstract class MangaReaderParser(
 
 	@MangaSourceParser("TEMPESTFANSUB", "Tempestfansub", "tr")
 	class TempestfansubParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.TEMPESTFANSUB, pageSize = 40, searchPageSize = 40) {
+		MangaReaderParser(context, MangaSource.TEMPESTFANSUB, pageSize = 25, searchPageSize = 40) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("tempestscans.com", null)
+			get() = ConfigKey.Domain("tempestscans.com")
 
 		override val listUrl: String get() = "/manga"
 		override val tableMode: Boolean get() = true
@@ -344,7 +339,7 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
@@ -353,7 +348,7 @@ internal abstract class MangaReaderParser(
 	class ManhwadesuParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANHWADESU, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("manhwadesu.pro", arrayOf("manhwadesu.pro", "manhwadesu.org"))
+			get() = ConfigKey.Domain("manhwadesu.pro", "manhwadesu.org")
 
 		override val listUrl: String get() = "/komik"
 		override val tableMode: Boolean get() = false
@@ -363,7 +358,7 @@ internal abstract class MangaReaderParser(
 	class MangaTaleParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANGATALE, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("mangatale.co", null)
+			get() = ConfigKey.Domain("mangatale.co")
 
 		override val listUrl: String get() = "/manga"
 		override val tableMode: Boolean get() = false
@@ -379,7 +374,7 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
@@ -388,7 +383,7 @@ internal abstract class MangaReaderParser(
 	class DragonTranslationParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.DRAGONTRANSLATION, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("dragontranslation.com", null)
+			get() = ConfigKey.Domain("dragontranslation.com")
 
 		override val listUrl: String get() = "/manga"
 		override val tableMode: Boolean get() = false
@@ -404,7 +399,7 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
@@ -413,7 +408,7 @@ internal abstract class MangaReaderParser(
 	class AsuraTRParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.ASURATR, pageSize = 30, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("asurascanstr.com", null)
+			get() = ConfigKey.Domain("asurascanstr.com")
 
 		override val listUrl: String get() = "/manga"
 		override val tableMode: Boolean get() = false
@@ -429,16 +424,16 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
 
 	@MangaSourceParser("KOMIKTAP", "KomikTap", "id")
 	class KomikTapParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.KOMIKTAP, pageSize = 10, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.KOMIKTAP, pageSize = 25, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("92.87.6.124", arrayOf("92.87.6.124", "komiktap.in"))
+			get() = ConfigKey.Domain("92.87.6.124", "komiktap.in")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -450,9 +445,9 @@ internal abstract class MangaReaderParser(
 
 	@MangaSourceParser("KUMAPOI", "KumaPoi", "id")
 	class KumaPoiParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.KUMAPOI, pageSize = 15, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.KUMAPOI, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("kumapoi.me", null)
+			get() = ConfigKey.Domain("kumapoi.me")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -466,7 +461,7 @@ internal abstract class MangaReaderParser(
 	class AsuraScansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.ASURASCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("asurascans.com", null)
+			get() = ConfigKey.Domain("asurascans.com")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -484,16 +479,16 @@ internal abstract class MangaReaderParser(
 				tags = infoElement?.select(".wd-full .mgen > a")
 					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
 					.orEmpty(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
 
 	@MangaSourceParser("TOONHUNTER", "Toon Hunter", "th")
 	class ToonHunterParser(context: MangaLoaderContext) :
-		MangaReaderParser(context, MangaSource.TOONHUNTER, pageSize = 20, searchPageSize = 10) {
+		MangaReaderParser(context, MangaSource.TOONHUNTER, pageSize = 30, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("toonhunter.com", null)
+			get() = ConfigKey.Domain("toonhunter.com")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -508,7 +503,7 @@ internal abstract class MangaReaderParser(
 				chapters = chapters,
 				description = infoElement?.selectFirst("div.entry-content")?.html(),
 				author = infoElement?.selectFirst(".flex-wrap div:contains(Author)")?.lastElementSibling()?.text(),
-				isNsfw = docs.selectFirst(".postbody .alr") != null,
+				isNsfw = manga.isNsfw || docs.selectFirst(".postbody .alr") != null,
 			)
 		}
 	}
@@ -517,7 +512,7 @@ internal abstract class MangaReaderParser(
 	class CosmicScansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.COSMICSCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("cosmicscans.com", null)
+			get() = ConfigKey.Domain("cosmicscans.com")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -543,7 +538,7 @@ internal abstract class MangaReaderParser(
 	class KomikLokalParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKLOKAL, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikmirror.art", null)
+			get() = ConfigKey.Domain("komikmirror.art")
 
 		override val listUrl: String
 			get() = "/manga"
@@ -567,12 +562,10 @@ internal abstract class MangaReaderParser(
 	class KomiKavParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKAV, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikav.com", null)
+			get() = ConfigKey.Domain("komikav.com")
 
-		override val listUrl: String
-			get() = "/manga"
-		override val tableMode: Boolean
-			get() = false
+		override val listUrl: String = "/manga"
+		override val tableMode: Boolean = false
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 
@@ -593,12 +586,11 @@ internal abstract class MangaReaderParser(
 	class KomikDewasaParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKDEWASA, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikdewasa.us", arrayOf("komikdewasa.us", "komikdewasa.info"))
+			get() = ConfigKey.Domain("komikdewasa.us", "komikdewasa.info")
 
-		override val listUrl: String
-			get() = "/manga"
-		override val tableMode: Boolean
-			get() = false
+		override val listUrl: String = "/manga"
+		override val tableMode: Boolean = false
+		override val isNsfwSource: Boolean = true
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 
@@ -615,7 +607,7 @@ internal abstract class MangaReaderParser(
 	class MangasusuParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.MANGASUSU, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("mangasusu.co.in", null)
+			get() = ConfigKey.Domain("mangasusu.co.in")
 
 		override val listUrl: String
 			get() = "/project"
@@ -629,7 +621,7 @@ internal abstract class MangaReaderParser(
 	class KomikLabParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKLAB, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komiklab.com", null)
+			get() = ConfigKey.Domain("komiklab.com")
 
 		override val listUrl: String
 			get() = "/project"
@@ -643,7 +635,7 @@ internal abstract class MangaReaderParser(
 	class KomikIndoParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKINDO, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikindo.co", null)
+			get() = ConfigKey.Domain("komikindo.co")
 
 		override val listUrl: String
 			get() = "/project"
@@ -657,7 +649,7 @@ internal abstract class MangaReaderParser(
 	class KomikMangaParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKMANGA, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
-			get() = ConfigKey.Domain("komikhentai.co", null)
+			get() = ConfigKey.Domain("komikhentai.co")
 
 		override val listUrl: String
 			get() = "/project"

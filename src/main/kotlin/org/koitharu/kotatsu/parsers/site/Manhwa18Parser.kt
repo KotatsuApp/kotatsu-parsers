@@ -11,10 +11,9 @@ import java.util.*
 
 @MangaSourceParser("MANHWA18", "Manhwa18", "en")
 class Manhwa18Parser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANHWA18, pageSize = 20, searchPageSize = 20) {
+	PagedMangaParser(context, MangaSource.MANHWA18, pageSize = 18, searchPageSize = 18) {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("manhwa18.net", null)
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.net")
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)

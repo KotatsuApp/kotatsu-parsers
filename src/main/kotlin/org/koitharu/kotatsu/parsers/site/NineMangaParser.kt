@@ -19,7 +19,7 @@ internal abstract class NineMangaParser(
 	defaultDomain: String,
 ) : PagedMangaParser(context, source, pageSize = 26), Interceptor {
 
-	override val configKeyDomain = ConfigKey.Domain(defaultDomain, null)
+	override val configKeyDomain = ConfigKey.Domain(defaultDomain)
 
 	init {
 		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
@@ -102,12 +102,12 @@ internal abstract class NineMangaParser(
 		val infoRoot = root.selectFirstOrThrow("div.bookintro")
 		return manga.copy(
 			tags = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()?.select("a")?.mapToSet { a ->
-					MangaTag(
-						title = a.text().toTitleCase(),
-						key = a.attr("href").substringBetween("/", "."),
-						source = source,
-					)
-				}.orEmpty(),
+				MangaTag(
+					title = a.text().toTitleCase(),
+					key = a.attr("href").substringBetween("/", "."),
+					source = source,
+				)
+			}.orEmpty(),
 			author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.text(),
 			state = parseStatus(infoRoot.select("li a.red").text()),
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()?.html()

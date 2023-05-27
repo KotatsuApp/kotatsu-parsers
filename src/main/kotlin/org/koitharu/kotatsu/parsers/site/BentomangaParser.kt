@@ -26,7 +26,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("www.bentomanga.com", null)
+	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0")
@@ -118,7 +118,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 					parseChapters(root)
 				} else {
 					coroutineScope {
-						val result = ArrayList<MangaChapter>(parseChapters(root))
+						val result = ArrayList(parseChapters(root))
 						result.ensureCapacity(result.size * max)
 						(2..max).map { i ->
 							async {

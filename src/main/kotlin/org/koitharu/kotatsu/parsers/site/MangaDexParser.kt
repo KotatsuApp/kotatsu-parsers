@@ -28,7 +28,7 @@ private const val LOCALE_FALLBACK = "en"
 @MangaSourceParser("MANGADEX", "MangaDex")
 internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGADEX) {
 
-	override val configKeyDomain = ConfigKey.Domain("mangadex.org", null)
+	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
 	override val sortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

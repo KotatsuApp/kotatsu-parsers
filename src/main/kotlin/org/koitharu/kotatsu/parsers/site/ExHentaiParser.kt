@@ -28,7 +28,10 @@ internal class ExHentaiParser(
 	)
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain(if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED, null)
+		get() = ConfigKey.Domain(
+			if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED,
+			if (isAuthorized) DOMAIN_UNAUTHORIZED else DOMAIN_AUTHORIZED,
+		)
 
 	override val authUrl: String
 		get() = "https://${domain}/bounce_login.php"

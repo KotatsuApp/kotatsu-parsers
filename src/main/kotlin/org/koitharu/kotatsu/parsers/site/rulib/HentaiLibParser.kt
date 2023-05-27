@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 @MangaSourceParser("HENTAILIB", "HentaiLib", "ru")
 internal class HentaiLibParser(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.HENTAILIB) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentailib.me", null)
+	override val configKeyDomain = ConfigKey.Domain("hentailib.me")
 	override fun isNsfw(doc: Document) = true
 }

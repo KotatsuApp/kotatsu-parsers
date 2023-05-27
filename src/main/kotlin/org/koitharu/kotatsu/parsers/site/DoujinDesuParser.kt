@@ -13,7 +13,7 @@ import java.util.*
 class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DOUJINDESU, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("212.32.226.234", null)
+		get() = ConfigKey.Domain("212.32.226.234")
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)

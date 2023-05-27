@@ -16,7 +16,7 @@ import java.util.*
 @MangaSourceParser("DESUME", "Desu.me", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.me", null)
+	override val configKeyDomain = ConfigKey.Domain("desu.me")
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

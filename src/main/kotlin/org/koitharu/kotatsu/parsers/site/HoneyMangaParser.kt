@@ -42,7 +42,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 			.build()
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("honey-manga.com.ua", null)
+		get() = ConfigKey.Domain("honey-manga.com.ua")
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -58,7 +58,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		body.put("sortOrder", "ASC")
 		val chapterRequest = webClient.httpPost(chapterApi, body).parseJson()
 		return manga.copy(
-			chapters = chapterRequest.getJSONArray("data").mapJSONIndexed() { i, jo ->
+			chapters = chapterRequest.getJSONArray("data").mapJSONIndexed { i, jo ->
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
 					name = buildString {

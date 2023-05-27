@@ -20,7 +20,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("blogtruyen.vn", null)
+		get() = ConfigKey.Domain("blogtruyen.vn")
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
@@ -182,7 +182,6 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val pages = ArrayList<MangaPage>()
-		val referer = chapter.url.toAbsoluteUrl(domain)
 		doc.select("#content > img").forEach { img ->
 			pages.add(
 				MangaPage(

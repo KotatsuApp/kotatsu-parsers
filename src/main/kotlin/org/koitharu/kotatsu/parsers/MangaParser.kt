@@ -47,6 +47,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 			return SortOrder.values().first { it in supported }
 		}
 
+	@JvmField
 	protected val webClient: WebClient = OkHttpWebClient(context.httpClient, source)
 
 	/**

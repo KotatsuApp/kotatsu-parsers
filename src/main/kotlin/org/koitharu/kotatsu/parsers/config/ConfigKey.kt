@@ -7,9 +7,16 @@ sealed class ConfigKey<T>(
 	abstract val defaultValue: T
 
 	class Domain(
-		override val defaultValue: String,
-		@JvmField val presetValues: Array<String>?,
-	) : ConfigKey<String>("domain")
+		@JvmField vararg val presetValues: String,
+	) : ConfigKey<String>("domain") {
+
+		init {
+			require(presetValues.isNotEmpty()) { "You must provide at least one domain" }
+		}
+
+		override val defaultValue: String
+			get() = presetValues.first()
+	}
 
 	class ShowSuspiciousContent(
 		override val defaultValue: Boolean,

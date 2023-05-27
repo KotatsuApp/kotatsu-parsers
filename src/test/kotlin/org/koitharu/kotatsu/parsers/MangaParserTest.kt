@@ -11,7 +11,10 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.*
+import org.koitharu.kotatsu.test_util.isDistinct
+import org.koitharu.kotatsu.test_util.isDistinctBy
+import org.koitharu.kotatsu.test_util.isUrlAbsolute
+import org.koitharu.kotatsu.test_util.maxDuplicates
 
 
 @ExtendWith(AuthCheckExtension::class)
@@ -34,6 +37,11 @@ internal class MangaParserTest {
 		val parser = source.newParser(context)
 		val page1 = parser.getList(0, sortOrder = null, tags = null)
 		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
+		if (parser is PagedMangaParser) {
+			assert(parser.pageSize == page1.size) {
+				"Page size is ${page1.size} but ${parser.pageSize} expected"
+			}
+		}
 		assert(page1.isNotEmpty()) { "Page 1 is empty" }
 		assert(page2.isNotEmpty()) { "Page 2 is empty" }
 		assert(page1 != page2) { "Pages are equal" }

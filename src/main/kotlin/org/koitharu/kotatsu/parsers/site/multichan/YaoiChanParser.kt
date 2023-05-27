@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
 internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.YAOICHAN) {
 
-	override val configKeyDomain = ConfigKey.Domain("yaoi-chan.me", null)
+	override val configKeyDomain = ConfigKey.Domain("yaoi-chan.me")
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

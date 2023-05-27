@@ -17,7 +17,7 @@ import java.util.*
 class TruyentranhLHParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, source = MangaSource.TRUYENTRANHLH, pageSize = 18) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("truyentranhlh.net", null)
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("truyentranhlh.net")
 	override val sortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
 	private val mutex = Mutex()

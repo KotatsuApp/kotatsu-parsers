@@ -21,7 +21,7 @@ import java.util.*
 @MangaSourceParser("ANIBEL", "Anibel", "be")
 internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.ANIBEL) {
 
-	override val configKeyDomain = ConfigKey.Domain("anibel.net", null)
+	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,

@@ -24,7 +24,7 @@ abstract class Madara5Parser @InternalParsersApi constructor(
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val configKeyDomain = ConfigKey.Domain(domain, null)
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getListPage(
 		page: Int,

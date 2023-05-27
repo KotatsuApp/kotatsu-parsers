@@ -18,7 +18,7 @@ import java.util.*
 class NHentaiParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.NHENTAI, pageSize = 25) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("nhentai.net", null)
+		get() = ConfigKey.Domain("nhentai.net")
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST, SortOrder.POPULARITY)

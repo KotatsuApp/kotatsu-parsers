@@ -18,11 +18,11 @@ import java.util.*
 class NetTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.NETTRUYEN, pageSize = 36) {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain(
-			"www.nettruyento.com",
-			arrayOf("www.nettruyento.com", "nettruyento.com", "nettruyenin.com"),
-		)
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"www.nettruyento.com",
+		"nettruyento.com",
+		"nettruyenin.com",
+	)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.RATING)

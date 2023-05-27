@@ -20,7 +20,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("unionleitor.top", emptyArray())
+	override val configKeyDomain = ConfigKey.Domain("unionleitor.top")
 
 	override suspend fun getListPage(
 		page: Int,

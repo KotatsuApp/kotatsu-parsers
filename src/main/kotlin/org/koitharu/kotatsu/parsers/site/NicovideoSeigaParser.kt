@@ -33,7 +33,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp", null)
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
 
 	@InternalParsersApi
 	override suspend fun getList(

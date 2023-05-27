@@ -14,37 +14,37 @@ import java.util.*
 
 @MangaSourceParser("TATAKAE_SCANS", "Tatakae Scans", "pt")
 internal class TatakaeScansParser(context: MangaLoaderContext) :
-    Madara6Parser(context, MangaSource.TATAKAE_SCANS, "tatakaescan.com") {
+	Madara6Parser(context, MangaSource.TATAKAE_SCANS, "tatakaescan.com", pageSize = 10) {
 
-    override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
+	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 
-    override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
-        val root = body.selectFirstOrThrow(".site-content")
-        val postContent = root.selectFirstOrThrow(".post-content")
-        val tags = postContent.getElementsContainingOwnText("Gênero")
-            .firstOrNull()?.tableValue()
-            ?.getElementsByAttributeValueContaining("href", tagPrefix)
-            ?.mapToSet { a -> a.asMangaTag() } ?: manga.tags
-        return manga.copy(
-            largeCoverUrl = root.selectFirst("picture")
-                ?.selectFirst("img[data-src]")
-                ?.attrAsAbsoluteUrlOrNull("data-src"),
-            description = (root.selectFirst(".detail-content")
-                ?: root.selectFirstOrThrow(".manga-excerpt")).html(),
-            author = postContent.getElementsContainingOwnText("Autor")
-                .firstOrNull()?.tableValue()?.text()?.trim(),
-            state = postContent.getElementsContainingOwnText("Status")
-                .firstOrNull()?.tableValue()?.text()?.asMangaState(),
-            tags = tags,
-            isNsfw = body.hasClass("adult-content"),
-            chapters = chapters,
-        )
-    }
+	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
+		val root = body.selectFirstOrThrow(".site-content")
+		val postContent = root.selectFirstOrThrow(".post-content")
+		val tags = postContent.getElementsContainingOwnText("Gênero")
+			.firstOrNull()?.tableValue()
+			?.getElementsByAttributeValueContaining("href", tagPrefix)
+			?.mapToSet { a -> a.asMangaTag() } ?: manga.tags
+		return manga.copy(
+			largeCoverUrl = root.selectFirst("picture")
+				?.selectFirst("img[data-src]")
+				?.attrAsAbsoluteUrlOrNull("data-src"),
+			description = (root.selectFirst(".detail-content")
+				?: root.selectFirstOrThrow(".manga-excerpt")).html(),
+			author = postContent.getElementsContainingOwnText("Autor")
+				.firstOrNull()?.tableValue()?.text()?.trim(),
+			state = postContent.getElementsContainingOwnText("Status")
+				.firstOrNull()?.tableValue()?.text()?.asMangaState(),
+			tags = tags,
+			isNsfw = body.hasClass("adult-content"),
+			chapters = chapters,
+		)
+	}
 
-    override fun String.asMangaState() = when (trim().lowercase(Locale.ROOT)) {
-        "em lançamento" -> MangaState.ONGOING
+	override fun String.asMangaState() = when (trim().lowercase(Locale.ROOT)) {
+		"em lançamento" -> MangaState.ONGOING
 
-        else -> null
-    }
+		else -> null
+	}
 
 }

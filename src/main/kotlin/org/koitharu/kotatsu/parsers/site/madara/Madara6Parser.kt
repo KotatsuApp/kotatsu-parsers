@@ -12,7 +12,8 @@ internal abstract class Madara6Parser(
 	context: MangaLoaderContext,
 	source: MangaSource,
 	domain: String,
-) : MadaraParser(context, source, domain) {
+	pageSize: Int = 12,
+) : MadaraParser(context, source, domain, pageSize) {
 
 	override val datePattern: String = "dd MMMM yyyy"
 

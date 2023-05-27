@@ -20,7 +20,6 @@ internal class AllHentaiParser(
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"2023.allhen.online",
-		null,
 	)
 	override val defaultIsNsfw = true
 
