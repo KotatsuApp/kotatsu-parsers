@@ -7,7 +7,7 @@ sealed class ConfigKey<T>(
 	abstract val defaultValue: T
 
 	class Domain(
-		@JvmField vararg val presetValues: String,
+		@JvmField @JvmSuppressWildcards vararg val presetValues: String,
 	) : ConfigKey<String>("domain") {
 
 		init {
