@@ -336,7 +336,8 @@ internal abstract class GroupleParser(
 		val tagsIndex = webClient.httpGet(url).parseHtml()
 			.body().selectFirst("form.search-form")
 			?.select("div.form-group")
-			?.get(1) ?: throw ParseException("Genres filter element not found", url)
+			?.find { it.selectFirst("li.property") != null }
+			?: throw ParseException("Genres filter element not found", url)
 		val tagNames = tags.map { it.title.lowercase() }
 		val payload = HashMap<String, String>()
 		var foundGenres = 0
@@ -372,7 +373,7 @@ internal abstract class GroupleParser(
 		response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
 	}.getOrDefault(false)
 
-	private fun Response.checkAuthRequired(): Response {
+	protected fun Response.checkAuthRequired(): Response {
 		val lastPathSegment = request.url.pathSegments.lastOrNull() ?: return this
 		if (lastPathSegment == "login") {
 			throw AuthRequiredException(source)

@@ -76,10 +76,11 @@ fun String.toAbsoluteUrl(domain: String): String = when {
 fun concatUrl(host: String, path: String): String {
 	val hostWithSlash = host.endsWith('/')
 	val pathWithSlash = path.startsWith('/')
+	val hostWithScheme = if (host.startsWith("//")) "https:$host" else host
 	return when {
-		hostWithSlash && pathWithSlash -> host + path.drop(1)
-		!hostWithSlash && !pathWithSlash -> "$host/$path"
-		else -> host + path
+		hostWithSlash && pathWithSlash -> hostWithScheme + path.drop(1)
+		!hostWithSlash && !pathWithSlash -> "$hostWithScheme/$path"
+		else -> hostWithScheme + path
 	}
 }
 

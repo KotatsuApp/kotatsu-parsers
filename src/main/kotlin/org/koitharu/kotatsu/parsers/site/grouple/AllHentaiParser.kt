@@ -8,19 +8,14 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("ALLHENTAI", "ALlHentai", "ru")
 internal class AllHentaiParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {
 
-	override val configKeyDomain = ConfigKey.Domain(
-		"2023.allhen.online",
-	)
+	override val configKeyDomain = ConfigKey.Domain("2023.allhen.online")
 	override val defaultIsNsfw = true
 
 	override val authUrl: String
@@ -28,6 +23,9 @@ internal class AllHentaiParser(
 			val targetUri = "https://${domain}/".urlEncoded()
 			return "https://qawa.org/internal/auth/login?targetUri=$targetUri&siteId=1"
 		}
+
+	override val isAuthorized: Boolean
+		get() = context.cookieJar.getCookies(domain).any { it.name == "trSessionId" }
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		try {

@@ -79,13 +79,32 @@ internal class MangaParserTest {
 		assert(keys.isDistinct())
 		assert("" !in keys)
 		val titles = tags.map { it.title }
-//		assert(titles.isDistinct())
+		assert(titles.isDistinct())
 		assert("" !in titles)
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
 		val list = parser.getList(offset = 0, tags = setOf(tag), sortOrder = null)
 		checkMangaList(list, "${tag.title} (${tag.key})")
+		assert(list.all { it.source == source })
+	}
+
+	@ParameterizedTest(name = "{index}|tags_multiple|{0}")
+	@MangaSources
+	fun tagsMultiple(source: MangaSource) = runTest {
+		val parser = source.newParser(context)
+		val tags = parser.getTags().shuffled().take(2).toSet()
+
+		val list = try {
+			parser.getList(offset = 0, tags = tags, sortOrder = null)
+		} catch (e: IllegalArgumentException) {
+			if (e.message == "Multiple genres are not supported by this source") {
+				return@runTest
+			} else {
+				throw e
+			}
+		}
+		checkMangaList(list, "${tags.joinToString { it.title }} (${tags.joinToString { it.key }})")
 		assert(list.all { it.source == source })
 	}
 
@@ -163,10 +182,7 @@ internal class MangaParserTest {
 	fun domain(source: MangaSource) = runTest {
 		val parser = source.newParser(context)
 		val defaultDomain = parser.domain
-		val url = HttpUrl.Builder()
-			.host(defaultDomain)
-			.scheme("https")
-			.toString()
+		val url = HttpUrl.Builder().host(defaultDomain).scheme("https").toString()
 		val response = context.doRequest(url, source)
 		val realUrl = response.request.url
 		val realDomain = realUrl.topPrivateDomain()
