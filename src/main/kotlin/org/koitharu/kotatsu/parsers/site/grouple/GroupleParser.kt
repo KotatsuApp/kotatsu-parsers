@@ -175,9 +175,9 @@ internal abstract class GroupleParser(
 				},
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
 			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
-			chapters = root.selectFirst("div.chapters-link")?.selectFirst("table")
-				?.select("tr:has(td > a)")?.mapChapters(reversed = true) { i, tr ->
-					val a = tr.selectFirst("a.chapter-link") ?: return@mapChapters null
+			chapters = root.requireElementById("chapters-list").select("a.chapter-link")
+				.mapChapters(reversed = true) { i, a ->
+					val tr = a.selectFirstParent("tr") ?: return@mapChapters null
 					val href = a.attrAsRelativeUrl("href")
 					var translators = ""
 					val translatorElement = a.attr("title")
@@ -188,7 +188,7 @@ internal abstract class GroupleParser(
 					}
 					MangaChapter(
 						id = generateUid(href),
-						name = tr.selectFirst("a")?.text().orEmpty().removePrefix(manga.title).trim(),
+						name = a.text().removePrefix(manga.title).trim(),
 						number = i + 1,
 						url = href,
 						uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),

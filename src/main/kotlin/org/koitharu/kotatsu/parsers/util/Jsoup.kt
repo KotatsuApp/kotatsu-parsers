@@ -5,6 +5,7 @@ package org.koitharu.kotatsu.parsers.util
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
+import org.jsoup.select.QueryParser
 import org.jsoup.select.Selector
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
@@ -119,3 +120,12 @@ fun Element.selectLastOrThrow(cssQuery: String): Element {
 fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
 
 fun Element.ownTextOrNull(): String? = ownText().takeUnless { it.isEmpty() }
+
+fun Element.selectFirstParent(query: String): Element? {
+	val selector = QueryParser.parse(query)
+	val parents = parents()
+	val root = parents.lastOrNull() ?: return null
+	return parents.firstOrNull {
+		selector.matches(root, it)
+	}
+}

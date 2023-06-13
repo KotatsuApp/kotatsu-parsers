@@ -4,6 +4,7 @@ import androidx.collection.arraySetOf
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -60,7 +61,12 @@ internal class MangaRead(context: MangaLoaderContext) :
 				},
 			)
 		}
-		val root = webClient.httpGet(url.build()).parseHtml().body().selectFirstOrThrow(".search-wrap")
+		val body = webClient.httpGet(url.build()).parseHtml().body()
+		val root = body.selectFirst(".search-wrap") ?: if (body.selectFirst(".not-found-content") != null) {
+			return emptyList()
+		} else {
+			throw ParseException(".search-wrap not found", body.baseUri())
+		}
 		return root.select(".c-tabs-item__content").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectLastOrThrow("img")
