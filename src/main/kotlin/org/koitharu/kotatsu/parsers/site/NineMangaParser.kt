@@ -33,8 +33,13 @@ internal abstract class NineMangaParser(
 	)
 
 	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request().newBuilder().removeHeader("Referer").build()
-		return chain.proceed(request)
+		val request = chain.request()
+		val newRequest = if (request.url.host == domain) {
+			request.newBuilder().removeHeader("Referer").build()
+		} else {
+			request
+		}
+		return chain.proceed(newRequest)
 	}
 
 	override suspend fun getListPage(
