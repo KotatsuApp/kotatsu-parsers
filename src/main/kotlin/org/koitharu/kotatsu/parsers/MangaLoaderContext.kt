@@ -8,22 +8,24 @@ import java.util.*
 
 abstract class MangaLoaderContext {
 
-    abstract val httpClient: OkHttpClient
+	abstract val httpClient: OkHttpClient
 
-    abstract val cookieJar: CookieJar
+	abstract val cookieJar: CookieJar
 
-    open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
+	fun newParserInstance(source: MangaSource): MangaParser = source.newParser(this)
 
-    open fun decodeBase64(data: String): ByteArray = Base64.getDecoder().decode(data)
+	open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
 
-    open fun getPreferredLocales(): List<Locale> = listOf(Locale.getDefault())
+	open fun decodeBase64(data: String): ByteArray = Base64.getDecoder().decode(data)
 
-    /**
-     * Execute JavaScript code and return result
-     * @param script JavaScript source code
-     * @return execution result as string, may be null
-     */
-    abstract suspend fun evaluateJs(script: String): String?
+	open fun getPreferredLocales(): List<Locale> = listOf(Locale.getDefault())
 
-    abstract fun getConfig(source: MangaSource): MangaSourceConfig
+	/**
+	 * Execute JavaScript code and return result
+	 * @param script JavaScript source code
+	 * @return execution result as string, may be null
+	 */
+	abstract suspend fun evaluateJs(script: String): String?
+
+	abstract fun getConfig(source: MangaSource): MangaSourceConfig
 }

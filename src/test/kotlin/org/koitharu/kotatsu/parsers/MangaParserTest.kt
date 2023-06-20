@@ -25,7 +25,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
 	fun list(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
@@ -34,7 +34,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|pagination|{0}")
 	@MangaSources
 	fun pagination(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val page1 = parser.getList(0, sortOrder = null, tags = null)
 		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
 		if (parser is PagedMangaParser) {
@@ -54,7 +54,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|search|{0}")
 	@MangaSources
 	fun search(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val subject = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
@@ -72,7 +72,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|tags|{0}")
 	@MangaSources
 	fun tags(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val tags = parser.getTags()
 		assert(tags.isNotEmpty()) { "No tags found" }
 		val keys = tags.map { it.key }
@@ -92,7 +92,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|tags_multiple|{0}")
 	@MangaSources
 	fun tagsMultiple(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val tags = parser.getTags().shuffled().take(2).toSet()
 
 		val list = try {
@@ -111,7 +111,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|details|{0}")
 	@MangaSources
 	fun details(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
@@ -140,7 +140,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|pages|{0}")
 	@MangaSources
 	fun pages(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
@@ -164,7 +164,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|favicon|{0}")
 	@MangaSources
 	fun favicon(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val favicons = parser.getFavicons()
 		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
 		assert(favicons.isNotEmpty())
@@ -180,7 +180,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|domain|{0}")
 	@MangaSources
 	fun domain(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		val defaultDomain = parser.domain
 		val url = HttpUrl.Builder().host(defaultDomain).scheme("https").toString()
 		val response = context.doRequest(url, source)
@@ -196,7 +196,7 @@ internal class MangaParserTest {
 	@MangaSources
 	@Disabled
 	fun authorization(source: MangaSource) = runTest {
-		val parser = source.newParser(context)
+		val parser = context.newParserInstance(source)
 		if (parser is MangaParserAuthProvider) {
 			val username = parser.getUsername()
 			assert(username.isNotBlank()) { "Username is blank" }

@@ -8,7 +8,10 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 
 @MangaSourceParser("ALLHENTAI", "ALlHentai", "ru")
 internal class AllHentaiParser(
@@ -24,9 +27,6 @@ internal class AllHentaiParser(
 			return "https://qawa.org/internal/auth/login?targetUri=$targetUri&siteId=1"
 		}
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "trSessionId" }
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		try {
 			return super.getPages(chapter)
@@ -34,7 +34,7 @@ internal class AllHentaiParser(
 			if (isAuthorized) {
 				throw e
 			} else {
-				throw AuthRequiredException(source)
+				throw AuthRequiredException(source, e)
 			}
 		}
 	}

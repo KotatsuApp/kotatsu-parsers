@@ -40,7 +40,7 @@ This library provides manga sources.
 3. Usage in code
 
    ```kotlin
-   val parser = MangaSource.MANGADEX.newParser(mangaLoaderContext)
+   val parser = mangaLoaderContext.newParserInstance(MangaSource.MANGADEX)
    ```
 
    `mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.

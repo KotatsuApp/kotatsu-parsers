@@ -70,6 +70,7 @@ class ParserProcessor(
 				import org.koitharu.kotatsu.parsers.model.MangaSource
 				
 				@Suppress("DEPRECATION")
+				@Deprecated("", replaceWith = ReplaceWith("context.newParserInstance(this)"))
 				fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
 				
 			""".trimIndent(),
