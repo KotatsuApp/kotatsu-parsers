@@ -57,8 +57,9 @@ internal abstract class Madara6Parser(
 				name = a.text(),
 				number = i + 1,
 				branch = null,
-				uploadDate = dateFormat.tryParse(
-					li.selectFirst(".chapter-release-date")?.text()?.trim(),
+				uploadDate = parseChapterDate(
+					dateFormat,
+					li.selectFirst("span.chapter-release-date i")?.text(),
 				),
 				scanlator = null,
 				source = source,
