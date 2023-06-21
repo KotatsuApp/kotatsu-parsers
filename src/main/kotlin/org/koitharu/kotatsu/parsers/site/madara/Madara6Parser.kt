@@ -50,7 +50,7 @@ internal abstract class Madara6Parser(
 		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
 		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
-			val href = a.attrAsRelativeUrl("href")
+			val href = a.attrAsRelativeUrl("href") + "?style=list"
 			MangaChapter(
 				id = generateUid(href),
 				url = href,
