@@ -65,6 +65,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				SortOrder.POPULARITY -> append("views_a.za")
 				SortOrder.NEWEST -> append("create.za")
 				SortOrder.ALPHABETICAL -> append("title.az")
+				SortOrder.RATING -> Unit
 			}
 			if (!tags.isNullOrEmpty()) {
 				append("&genres=")
