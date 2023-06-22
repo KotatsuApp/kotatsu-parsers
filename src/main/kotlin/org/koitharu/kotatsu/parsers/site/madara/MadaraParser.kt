@@ -192,6 +192,10 @@ internal abstract class MadaraParser(
 			date.endsWith(" önce", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// Handle translated 'ago' in french.
+			date.startsWith("il y a", ignoreCase = true)-> {
+				parseRelativeDate(date)
+			}
 			// Handle 'yesterday' and 'today', using midnight
 			date.startsWith("year", ignoreCase = true) -> {
 				Calendar.getInstance().apply {
