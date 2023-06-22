@@ -44,10 +44,6 @@ internal class HhentaiFr(context: MangaLoaderContext) :
 		return manga.copy(
 			rating = postContent.selectFirstOrThrow(".post-rating")
 				.selectFirstOrThrow(".total_votes").text().toFloat() / 5f,
-			largeCoverUrl = root.selectFirst(".summary_image")
-				?.selectFirst("img[data-src]")
-				?.attrAsAbsoluteUrlOrNull("data-src")
-				.assertNotNull("largeCoverUrl"),
 			description = root.selectFirstOrThrow(".description-summary")
 				.firstElementChild()?.html(),
 			author = postContent.getElementsContainingOwnText("Auteur(s)")
