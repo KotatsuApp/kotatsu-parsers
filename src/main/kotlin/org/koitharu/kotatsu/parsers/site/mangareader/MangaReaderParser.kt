@@ -558,6 +558,59 @@ internal abstract class MangaReaderParser(
 					.orEmpty(),
 			)
 		}
+	}
+
+	@MangaSourceParser("EPSILONSCAN", "Epsilonscan", "fr")
+    class EpsilonscanParser(context: MangaLoaderContext) :
+		MangaReaderParser(context, MangaSource.EPSILONSCAN, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("epsilonscan.fr")
+
+		override val listUrl: String
+			get() = "/manga"
+		override val tableMode: Boolean
+			get() = false
+        override val isNsfwSource: Boolean = true    
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.infox")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Auteur)")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+			)
+		}
+	}
+
+	@MangaSourceParser("LEGACY_SCANS", "Legacy Scans", "fr")
+    class LegacyScansParser(context: MangaLoaderContext) :
+		MangaReaderParser(context, MangaSource.LEGACY_SCANS, pageSize = 20, searchPageSize = 10) {
+		override val configKeyDomain: ConfigKey.Domain
+			get() = ConfigKey.Domain("legacy-scans.com")
+
+		override val listUrl: String
+			get() = "/manga"
+		override val tableMode: Boolean
+			get() = false  
+
+		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
+
+		override suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+			val infoElement = docs.selectFirst("div.main-info")
+			return manga.copy(
+				chapters = chapters,
+				description = infoElement?.selectFirst("div.entry-content")?.html(),
+				author = infoElement?.selectFirst(".flex-wrap div:contains(Auteur(s))")?.lastElementSibling()?.text(),
+				tags = infoElement?.select(".wd-full .mgen > a")
+					?.mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+					.orEmpty(),
+			)
+		}
 	}	
 	
 	@MangaSourceParser("KOMIKLOKAL", "KomikLokal", "id")
