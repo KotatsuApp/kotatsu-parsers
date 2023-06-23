@@ -32,6 +32,8 @@ internal class Hipercool(context: MangaLoaderContext) :
 			largeCoverUrl = root.selectFirst("picture")
 				?.selectFirst("img[data-src]")
 				?.attrAsAbsoluteUrlOrNull("data-src"),
+			description = root.selectFirst("div.description-summary")?.selectFirst("div.summary__content")?.select("p")
+				?.filterNot { it.ownText().startsWith("A brief description") }?.joinToString { it.html() },
 			tags = tags,
 			isNsfw = body.hasClass("adult-content"),
 			chapters = chapters,
