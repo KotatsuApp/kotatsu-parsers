@@ -475,4 +475,7 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("ZINMANGA", "ZINMANGA", "en")
 	class Zinmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ZINMANGA, "zinmanga.com")
+
+	@MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
+	class Stkissmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
 }
