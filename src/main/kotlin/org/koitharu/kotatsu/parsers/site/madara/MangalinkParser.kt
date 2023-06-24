@@ -12,35 +12,35 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANGALINK_AR", "Mangalink", "ar")
 internal class MangalinkParser(context: MangaLoaderContext) :
-    MadaraParser(context, MangaSource.MANGALINK_AR, "mangalink.online") {
+	MadaraParser(context, MangaSource.MANGALINK_AR, "mangalink.online") {
 
-    override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-        val fullUrl = manga.url.toAbsoluteUrl(domain)
-        val doc = webClient.httpGet(fullUrl).parseHtml()
-        val chaptersDeferred = async { getChapters(manga, doc) }
-        val root = doc.body().selectFirst("div.profile-manga")
-            ?.selectFirst("div.summary_content")
-            ?.selectFirst("div.post-content")
-            ?: throw ParseException("Root not found", fullUrl)
-        val root2 = doc.body().selectFirst("div.content-area")
-            ?.selectFirst("div.c-page")
-            ?: throw ParseException("Root2 not found", fullUrl)
-        manga.copy(
-            tags = root.selectFirst("div.genres-content")?.select("a")
-                ?.mapNotNullToSet { a ->
-                    MangaTag(
-                        key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-                        title = a.text().toTitleCase(),
-                        source = source,
-                    )
-                } ?: manga.tags,
-            description = root2.selectFirst("div.description-summary")
-                ?.selectFirst("div.summary__content")
-                ?.select("p")
-                ?.filterNot { it.ownText().startsWith("A brief description") }
-                ?.joinToString { it.html() },
-            chapters = chaptersDeferred.await(),
-        )
-    }
+	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
+		val fullUrl = manga.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val chaptersDeferred = async { getChapters(manga, doc) }
+		val root = doc.body().selectFirst("div.profile-manga")
+			?.selectFirst("div.summary_content")
+			?.selectFirst("div.post-content")
+			?: throw ParseException("Root not found", fullUrl)
+		val root2 = doc.body().selectFirst("div.content-area")
+			?.selectFirst("div.c-page")
+			?: throw ParseException("Root2 not found", fullUrl)
+		manga.copy(
+			tags = root.selectFirst("div.genres-content")?.select("a")
+				?.mapNotNullToSet { a ->
+					MangaTag(
+						key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+						title = a.text().toTitleCase(),
+						source = source,
+					)
+				} ?: manga.tags,
+			description = root2.selectFirst("div.description-summary")
+				?.selectFirst("div.summary__content")
+				?.select("p")
+				?.filterNot { it.ownText().startsWith("A brief description") }
+				?.joinToString { it.html() },
+			chapters = chaptersDeferred.await(),
+		)
+	}
 
 }

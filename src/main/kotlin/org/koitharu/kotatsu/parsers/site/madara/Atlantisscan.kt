@@ -3,8 +3,14 @@ package org.koitharu.kotatsu.parsers.site.madara
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.util.assertNotNull
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 
 
 @MangaSourceParser("ATLANTISSCAN", "Atlantisscan", "pt")

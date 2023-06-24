@@ -535,7 +535,7 @@ internal abstract class MangaReaderParser(
 	}
 
 	@MangaSourceParser("PHENIXSCANS", "Phenixscans", "fr")
-    class PhenixscansParser(context: MangaLoaderContext) :
+	class PhenixscansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.PHENIXSCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("phenixscans.fr")
@@ -561,7 +561,7 @@ internal abstract class MangaReaderParser(
 	}
 
 	@MangaSourceParser("EPSILONSCAN", "Epsilonscan", "fr")
-    class EpsilonscanParser(context: MangaLoaderContext) :
+	class EpsilonscanParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.EPSILONSCAN, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("epsilonscan.fr")
@@ -570,7 +570,7 @@ internal abstract class MangaReaderParser(
 			get() = "/manga"
 		override val tableMode: Boolean
 			get() = false
-        override val isNsfwSource: Boolean = true    
+		override val isNsfwSource: Boolean = true
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
 
@@ -588,7 +588,7 @@ internal abstract class MangaReaderParser(
 	}
 
 	@MangaSourceParser("LEGACY_SCANS", "Legacy Scans", "fr")
-    class LegacyScansParser(context: MangaLoaderContext) :
+	class LegacyScansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.LEGACY_SCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("legacy-scans.com")
@@ -596,7 +596,7 @@ internal abstract class MangaReaderParser(
 		override val listUrl: String
 			get() = "/manga"
 		override val tableMode: Boolean
-			get() = false  
+			get() = false
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
 
@@ -611,8 +611,8 @@ internal abstract class MangaReaderParser(
 					.orEmpty(),
 			)
 		}
-	}	
-	
+	}
+
 	@MangaSourceParser("KOMIKLOKAL", "KomikLokal", "id")
 	class KomikLokalParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.KOMIKLOKAL, pageSize = 20, searchPageSize = 10) {

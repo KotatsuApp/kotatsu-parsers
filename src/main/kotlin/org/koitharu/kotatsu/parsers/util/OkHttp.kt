@@ -8,22 +8,22 @@ import okhttp3.Headers
 import okhttp3.Response
 
 suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
-    val callback = ContinuationCallCallback(this, continuation)
-    enqueue(callback)
-    continuation.invokeOnCancellation(callback)
+	val callback = ContinuationCallCallback(this, continuation)
+	enqueue(callback)
+	continuation.invokeOnCancellation(callback)
 }
 
 val Response.mimeType: String?
-    get() = body?.contentType()?.run { "$type/$subtype" }
+	get() = body?.contentType()?.run { "$type/$subtype" }
 
 val Response.contentDisposition: String?
-    get() = header("Content-Disposition")
+	get() = header("Content-Disposition")
 
 fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers.Builder {
-    for ((name, value) in other) {
-        if (replaceExisting || this[name] == null) {
-            this[name] = value
-        }
-    }
-    return this
+	for ((name, value) in other) {
+		if (replaceExisting || this[name] == null) {
+			this[name] = value
+		}
+	}
+	return this
 }

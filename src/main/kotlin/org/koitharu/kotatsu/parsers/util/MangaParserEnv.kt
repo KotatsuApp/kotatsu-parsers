@@ -20,14 +20,14 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
  */
 @InternalParsersApi
 fun MangaParser.generateUid(url: String): Long {
-    var h = 1125899906842597L
-    source.name.forEach { c ->
-        h = 31 * h + c.code
-    }
-    url.forEach { c ->
-        h = 31 * h + c.code
-    }
-    return h
+	var h = 1125899906842597L
+	source.name.forEach { c ->
+		h = 31 * h + c.code
+	}
+	url.forEach { c ->
+		h = 31 * h + c.code
+	}
+	return h
 }
 
 /**
@@ -39,40 +39,40 @@ fun MangaParser.generateUid(url: String): Long {
  */
 @InternalParsersApi
 fun MangaParser.generateUid(id: Long): Long {
-    var h = 1125899906842597L
-    source.name.forEach { c ->
-        h = 31 * h + c.code
-    }
-    h = 31 * h + id
-    return h
+	var h = 1125899906842597L
+	source.name.forEach { c ->
+		h = 31 * h + c.code
+	}
+	h = 31 * h + id
+	return h
 }
 
 @InternalParsersApi
 fun Element.parseFailed(message: String? = null): Nothing {
-    throw ParseException(message, ownerDocument()?.location() ?: baseUri(), null)
+	throw ParseException(message, ownerDocument()?.location() ?: baseUri(), null)
 }
 
 @InternalParsersApi
 fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? {
-    return when {
-        isNullOrEmpty() -> null
-        size == 1 -> first()
-        else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
-    }
+	return when {
+		isNullOrEmpty() -> null
+		size == 1 -> first()
+		else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
+	}
 }
 
 val MangaParser.domain: String
-    get() {
-        return config[configKeyDomain]
-    }
+	get() {
+		return config[configKeyDomain]
+	}
 
 fun MangaParser.getDomain(subdomain: String): String {
-    val domain = domain
-    return subdomain + "." + domain.removePrefix("www.")
+	val domain = domain
+	return subdomain + "." + domain.removePrefix("www.")
 }
 
 fun MangaParser.urlBuilder(): HttpUrl.Builder {
-    return HttpUrl.Builder()
-        .scheme("https")
-        .host(domain)
+	return HttpUrl.Builder()
+		.scheme("https")
+		.host(domain)
 }

@@ -193,7 +193,7 @@ internal abstract class MadaraParser(
 				parseRelativeDate(date)
 			}
 			// Handle translated 'ago' in french.
-			date.startsWith("il y a", ignoreCase = true)-> {
+			date.startsWith("il y a", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
 			// Handle 'yesterday' and 'today', using midnight

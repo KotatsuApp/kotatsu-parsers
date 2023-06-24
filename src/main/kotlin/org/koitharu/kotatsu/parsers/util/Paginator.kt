@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.util
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
 
-class Paginator constructor(private val initialPageSize: Int) {
+class Paginator(private val initialPageSize: Int) {
 
 	var firstPage = 1
 	private var pages = SparseArrayCompat<Int>()

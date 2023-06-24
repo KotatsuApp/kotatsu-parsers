@@ -23,6 +23,7 @@ fun Number.format(decimals: Int = 0, decPoint: Char = '.', thousandsSep: Char? =
 		is Float,
 		is Double,
 		-> formatter.format(this.toDouble())
+
 		else -> formatter.format(this.toLong())
 	}
 }
