@@ -101,10 +101,16 @@ internal abstract class MangaReaderParser(
 		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
 				"Ongoing",
+				"En Cours",
+				"OnGoing",
 				"Devam Ediyor"
 				-> MangaState.ONGOING
 				"Completed",
-				"Tamamlandı"
+				"Complété",
+				"Fini",
+				"Terminé",
+				"Tamamlandı",
+				"Finished"
 				-> MangaState.FINISHED
 				else -> null
 			}
