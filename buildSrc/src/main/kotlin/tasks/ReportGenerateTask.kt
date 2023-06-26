@@ -1,6 +1,6 @@
 package tasks
 
-import com.soywiz.korte.Template
+import korlibs.template.Template
 import kotlinx.coroutines.runBlocking
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction

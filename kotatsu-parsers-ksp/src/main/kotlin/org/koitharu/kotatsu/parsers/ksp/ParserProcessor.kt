@@ -70,6 +70,7 @@ class ParserProcessor(
 				import org.koitharu.kotatsu.parsers.model.MangaSource
 				
 				@Suppress("DEPRECATION")
+				@InternalParsersApi
 				@Deprecated("", replaceWith = ReplaceWith("context.newParserInstance(this)"))
 				fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
 				
