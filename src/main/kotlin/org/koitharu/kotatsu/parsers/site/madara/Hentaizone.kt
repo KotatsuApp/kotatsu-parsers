@@ -23,10 +23,10 @@ internal class Hentaizone(context: MangaLoaderContext) :
 	override val isNsfwSource = true
 
 	override fun String.asMangaState(): MangaState? = when (this) {
-		"OnGoing",
+		"En Cours",
 		-> MangaState.ONGOING
 
-		"finished",
+		"Terminé",
 		-> MangaState.FINISHED
 
 		else -> null
