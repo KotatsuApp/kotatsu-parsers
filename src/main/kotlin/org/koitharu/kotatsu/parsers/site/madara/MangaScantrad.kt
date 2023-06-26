@@ -50,7 +50,7 @@ internal class MangaScantrad(context: MangaLoaderContext) :
 				.firstOrNull()?.tableValue()?.text()?.trim(),
 			altTitle = postContent.getElementsContainingOwnText("Alternatif")
 				.firstOrNull()?.tableValue()?.text()?.trim(),
-			state = postContent.getElementsContainingOwnText("Statut")
+			state = postContent.getElementsContainingOwnText("État")
 				.firstOrNull()?.tableValue()?.text()?.asMangaState(),
 			tags = tags,
 			isNsfw = body.hasClass("adult-content"),
