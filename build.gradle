@@ -2,8 +2,8 @@ import tasks.ReportGenerateTask
 
 plugins {
 	id 'java-library'
-	id 'org.jetbrains.kotlin.jvm'
-	id 'com.google.devtools.ksp'
+	id 'org.jetbrains.kotlin.jvm' version '1.8.21'
+	id 'com.google.devtools.ksp' version '1.8.22-1.0.11'
 	id 'maven-publish'
 }
 
@@ -16,7 +16,6 @@ test {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = '1.8'
 		freeCompilerArgs += [
 			'-opt-in=kotlin.RequiresOptIn',
 			'-opt-in=kotlin.contracts.ExperimentalContracts',
@@ -28,7 +27,6 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = '1.8'
 		freeCompilerArgs += [
 			'-opt-in=kotlin.RequiresOptIn',
 			'-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi',
@@ -38,6 +36,7 @@ compileTestKotlin {
 }
 
 kotlin {
+	jvmToolchain(11)
 	sourceSets {
 		main.kotlin.srcDirs += 'build/generated/ksp/main/kotlin'
 	}
@@ -70,5 +69,6 @@ dependencies {
 	testImplementation 'io.webfolder:quickjs:1.1.0'
 }
 
-//noinspection ConfigurationAvoidance
-task generateTestsReport(type: ReportGenerateTask)
+tasks.register('generateTestsReport', ReportGenerateTask) {
+	dependsOn test
+}

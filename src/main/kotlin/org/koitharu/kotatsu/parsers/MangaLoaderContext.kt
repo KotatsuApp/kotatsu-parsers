@@ -12,7 +12,8 @@ abstract class MangaLoaderContext {
 
 	abstract val cookieJar: CookieJar
 
-	fun newParserInstance(source: MangaSource): MangaParser = this.newParserInstance(source)
+	@Suppress("DEPRECATION")
+	fun newParserInstance(source: MangaSource): MangaParser = source.newParser(this)
 
 	open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
 
