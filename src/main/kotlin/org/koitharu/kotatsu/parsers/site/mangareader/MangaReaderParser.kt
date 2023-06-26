@@ -62,8 +62,19 @@ internal abstract class MangaReaderParser(
 			docs.selectFirst("div.seriestucontentr") ?:
 			docs.selectFirst("div.seriestucon")
 
-		val mangaState = mangaInfo?.selectFirst(".infotable td:contains(Status)")?.lastElementSibling()?.let {
+		val state_select =
+			docs.selectFirst(".tsinfo div:contains(Status)") ?:
+			docs.selectFirst(".tsinfo div:contains(Statut)") ?:
+			docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?:
+			docs.selectFirst(".tsinfo div:contains(Estado)") ?:
+			docs.selectFirst(".tsinfo div:contains(สถานะ)") ?:
+			docs.selectFirst(".tsinfo div:contains(Stato )") ?:
+			docs.selectFirst(".tsinfo div:contains(Durum)")
+
+		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
+				"مستمرةا",
+				"En curso",
 				"Ongoing",
 				"On going",
 				"Ativo",
@@ -73,7 +84,9 @@ internal abstract class MangaReaderParser(
 				"em lançamento",
 				"Онгоінг",
 				"Publishing",
-				"Devam Ediyor"
+				"Devam Ediyor",
+				"Em Andamento",
+				"In Corso"
 				-> MangaState.ONGOING
 				"Completed",
 				"Completo",
@@ -82,8 +95,11 @@ internal abstract class MangaReaderParser(
 				"Terminé",
 				"Tamamlandı",
 				"Đã hoàn thành",
+				"مكتملة",
 				"Завершено",
-				"Finished"
+				"Finished",
+				"Finalizado",
+				"Completata"
 				-> MangaState.FINISHED
 				else -> null
 			}
@@ -105,10 +121,17 @@ internal abstract class MangaReaderParser(
 
 		val state_select =
 			docs.selectFirst(".tsinfo div:contains(Status)") ?:
+			docs.selectFirst(".tsinfo div:contains(Statut)") ?:
+			docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?:
+			docs.selectFirst(".tsinfo div:contains(Estado)") ?:
+			docs.selectFirst(".tsinfo div:contains(สถานะ)") ?:
+			docs.selectFirst(".tsinfo div:contains(Stato )") ?:
 			docs.selectFirst(".tsinfo div:contains(Durum)")
 
 		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
+				"مستمرةا",
+				"En curso",
 				"Ongoing",
 				"On going",
 				"Ativo",
@@ -118,7 +141,9 @@ internal abstract class MangaReaderParser(
 				"em lançamento",
 				"Онгоінг",
 				"Publishing",
-				"Devam Ediyor"
+				"Devam Ediyor",
+				"Em Andamento",
+				"In Corso"
 				-> MangaState.ONGOING
 				"Completed",
 				"Completo",
@@ -127,8 +152,11 @@ internal abstract class MangaReaderParser(
 				"Terminé",
 				"Tamamlandı",
 				"Đã hoàn thành",
+				"مكتملة",
 				"Завершено",
-				"Finished"
+				"Finished",
+				"Finalizado",
+				"Completata"
 				-> MangaState.FINISHED
 				else -> null
 			}
