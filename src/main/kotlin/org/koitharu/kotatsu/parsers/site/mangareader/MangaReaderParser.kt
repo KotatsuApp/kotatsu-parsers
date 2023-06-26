@@ -65,15 +65,24 @@ internal abstract class MangaReaderParser(
 		val mangaState = mangaInfo?.selectFirst(".infotable td:contains(Status)")?.lastElementSibling()?.let {
 			when (it.text()) {
 				"Ongoing",
+				"On going",
+				"Ativo",
 				"En Cours",
 				"OnGoing",
+				"Đang tiến hành",
+				"em lançamento",
+				"Онгоінг",
+				"Publishing",
 				"Devam Ediyor"
 				-> MangaState.ONGOING
 				"Completed",
+				"Completo",
 				"Complété",
 				"Fini",
 				"Terminé",
 				"Tamamlandı",
+				"Đã hoàn thành",
+				"Завершено",
 				"Finished"
 				-> MangaState.FINISHED
 				else -> null
@@ -101,15 +110,24 @@ internal abstract class MangaReaderParser(
 		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
 				"Ongoing",
+				"On going",
+				"Ativo",
 				"En Cours",
 				"OnGoing",
+				"Đang tiến hành",
+				"em lançamento",
+				"Онгоінг",
+				"Publishing",
 				"Devam Ediyor"
 				-> MangaState.ONGOING
 				"Completed",
+				"Completo",
 				"Complété",
 				"Fini",
 				"Terminé",
 				"Tamamlandı",
+				"Đã hoàn thành",
+				"Завершено",
 				"Finished"
 				-> MangaState.FINISHED
 				else -> null
