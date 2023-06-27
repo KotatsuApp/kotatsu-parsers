@@ -31,7 +31,7 @@ internal class Atlantisscan(context: MangaLoaderContext) :
 
 	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
 		val root = body.selectFirstOrThrow(".site-content")
-		val postContent = root.selectFirstOrThrow(".post-content")
+		val postContent = root.selectFirstOrThrow(".summary_content")
 		val tags = postContent.getElementsContainingOwnText("Genre(s) ")
 			.firstOrNull()?.tableValue()
 			?.getElementsByAttributeValueContaining("href", tagPrefix)

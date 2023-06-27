@@ -23,10 +23,10 @@ internal class Hentaizone(context: MangaLoaderContext) :
 	override val isNsfwSource = true
 
 	override fun String.asMangaState(): MangaState? = when (this) {
-		"OnGoing",
+		"En Cours",
 		-> MangaState.ONGOING
 
-		"finished",
+		"Terminé",
 		-> MangaState.FINISHED
 
 		else -> null
@@ -34,7 +34,7 @@ internal class Hentaizone(context: MangaLoaderContext) :
 
 	override fun parseDetails(manga: Manga, body: Element, chapters: List<MangaChapter>): Manga {
 		val root = body.selectFirstOrThrow(".site-content")
-		val postContent = root.selectFirstOrThrow(".post-content")
+		val postContent = root.selectFirstOrThrow(".summary_content")
 		val tags = postContent.getElementsContainingOwnText("Genre(s)")
 			.firstOrNull()?.tableValue()
 			?.getElementsByAttributeValueContaining("href", tagPrefix)
