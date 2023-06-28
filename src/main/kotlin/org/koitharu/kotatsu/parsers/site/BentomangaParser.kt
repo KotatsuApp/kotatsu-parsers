@@ -11,7 +11,6 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import java.util.*
@@ -28,10 +27,6 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 	)
 
 	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
-
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
 
 	init {
 		paginator.firstPage = 0
