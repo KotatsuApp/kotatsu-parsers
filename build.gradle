@@ -69,6 +69,4 @@ dependencies {
 	testImplementation 'io.webfolder:quickjs:1.1.0'
 }
 
-tasks.register('generateTestsReport', ReportGenerateTask) {
-	dependsOn test
-}
+tasks.register('generateTestsReport', ReportGenerateTask)

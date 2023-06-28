@@ -42,10 +42,13 @@ open class ReportGenerateTask : DefaultTask() {
 		val results = LinkedHashMap<String, LinkedHashMap<String, TestCase>>()
 		val tests = LinkedHashSet<String>()
 		for (case in testSuite.testCases) {
+			if (!case.isValid()) {
+				continue
+			}
 			tests.add(case.testName)
 			val map = results.getOrPut(case.source) { LinkedHashMap() }
 			val oldValue = map.put(case.testName, case)
-			check(oldValue == null)
+			check(oldValue == null) { "Check failed: $oldValue" }
 		}
 
 		val failPercent = (testSuite.failures.toDouble() / testSuite.tests * 100.0).roundToInt()

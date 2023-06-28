@@ -19,14 +19,16 @@ class TestCase {
 	var failure: Failure? = null
 
 	val index by lazy {
-		name.split('|')[0].toInt()
+		name.split('|').getOrNull(0)?.toIntOrNull() ?: 0
 	}
 
 	val testName by lazy {
-		name.split('|')[1]
+		name.split('|').getOrNull(1).orEmpty()
 	}
 
 	val source by lazy {
-		name.split('|')[2]
+		name.split('|').getOrNull(2).orEmpty()
 	}
+
+	fun isValid() = name.count { it == '|' } == 2
 }
