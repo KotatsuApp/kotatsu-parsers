@@ -14,10 +14,6 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("legacy-scans.com")
 
-	override val listUrl: String
-		get() = "/manga"
-	override val tableMode: Boolean
-		get() = false
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
 }

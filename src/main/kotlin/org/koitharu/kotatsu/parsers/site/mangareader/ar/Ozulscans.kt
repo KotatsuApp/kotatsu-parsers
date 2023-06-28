@@ -14,8 +14,5 @@ internal class Ozulscans(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("ozulscans.com")
 
-	override val listUrl: String get() = "/manga"
-	override val tableMode: Boolean get() = false
-
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("yyyy,d MMM", Locale("ar", "AR"))
+	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("ar", "AR"))
 }

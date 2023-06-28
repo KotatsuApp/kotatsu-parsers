@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import java.text.SimpleDateFormat
-import java.util.*
 
 @MangaSourceParser("ANIGLISCANS", "Anigli Scans", "en")
 internal class AnigliScans(context: MangaLoaderContext) :
@@ -16,8 +14,5 @@ internal class AnigliScans(context: MangaLoaderContext) :
 
 	override val listUrl: String
 		get() = "/series"
-	override val tableMode: Boolean
-		get() = false
 
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 }

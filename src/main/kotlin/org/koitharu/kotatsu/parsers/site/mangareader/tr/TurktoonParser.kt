@@ -14,9 +14,6 @@ internal class TurktoonParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("turktoon.com")
 
-	override val listUrl: String = "/manga"
-
-	override val tableMode: Boolean = false
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr", "TR"))
 

@@ -14,10 +14,6 @@ internal class Origamiorpheans(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("origami-orpheans.com.br")
 
-	override val listUrl: String
-		get() = "/manga"
-	override val tableMode: Boolean
-		get() = true
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("pt", "PT"))
 
