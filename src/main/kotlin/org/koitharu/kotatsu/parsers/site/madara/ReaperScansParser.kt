@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("REAPER_SCANS_ID", "ReaperScansID", "in")
+@MangaSourceParser("REAPER_SCANS_ID", "ReaperScansID", "id")
 internal class ReaperScansParser(context: MangaLoaderContext) :
 	Madara6Parser(context, MangaSource.REAPER_SCANS_ID, "reaperscans.id") {
 

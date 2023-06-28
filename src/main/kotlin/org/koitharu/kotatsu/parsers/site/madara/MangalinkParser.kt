@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANGALINK_AR", "Mangalink", "ar")
 internal class MangalinkParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGALINK_AR, "mangalink.online") {
+	MadaraParser(context, MangaSource.MANGALINK_AR, "mangalink.online", pageSize = 10) {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

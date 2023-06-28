@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site
 
-import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -25,8 +24,9 @@ internal abstract class NineMangaParser(
 		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
 	}
 
-	override val headers = Headers.Builder().add("Accept-Language", "en-US;q=0.7,en;q=0.3")
-		.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0").build()
+	override val headers = super.headers.newBuilder()
+		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
+		.build()
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,

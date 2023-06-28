@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArraySet
-import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.Response
 import org.json.JSONArray
@@ -35,11 +34,6 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	private val searchApi get() = "https://search.api.$domain/api/v1/title/search-matching?query="
 
 	private val imageStorageUrl = "https://manga-storage.fra1.digitaloceanspaces.com/public-resources"
-
-	override val headers
-		get() = Headers.Builder()
-			.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
-			.build()
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("honey-manga.com.ua")

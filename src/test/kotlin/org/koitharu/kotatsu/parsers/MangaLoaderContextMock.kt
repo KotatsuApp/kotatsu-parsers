@@ -11,20 +11,11 @@ import java.util.concurrent.TimeUnit
 
 internal object MangaLoaderContextMock : MangaLoaderContext() {
 
-	private val userAgent = "Kotatsu/%s (Android %s; %s; %s %s; %s)".format(
-		/*BuildConfig.VERSION_NAME*/ "4.4",
-		/*Build.VERSION.RELEASE*/ "r",
-		/*Build.MODEL*/ "",
-		/*Build.BRAND*/ "",
-		/*Build.DEVICE*/ "",
-		/*Locale.getDefault().language*/ "en",
-	)
-
 	override val cookieJar = InMemoryCookieJar()
 
 	override val httpClient: OkHttpClient = OkHttpClient.Builder()
 		.cookieJar(cookieJar)
-		.addInterceptor(CommonHeadersInterceptor(userAgent))
+		.addInterceptor(CommonHeadersInterceptor())
 		.addInterceptor(CloudFlareInterceptor())
 		.connectTimeout(20, TimeUnit.SECONDS)
 		.readTimeout(60, TimeUnit.SECONDS)

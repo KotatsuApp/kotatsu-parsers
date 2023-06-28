@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIZONE", "Hentaizone", "fr")
 internal class Hentaizone(context: MangaLoaderContext) :
-	Madara6Parser(context, MangaSource.HENTAIZONE, "hentaizone.xyz") {
+	Madara6Parser(context, MangaSource.HENTAIZONE, "hentaizone.xyz", pageSize = 10) {
 
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.FRENCH

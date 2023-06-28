@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("HIPERCOOL", "Hipercool", "pt")
 internal class Hipercool(context: MangaLoaderContext) :
-	Madara6Parser(context, MangaSource.HIPERCOOL, "hipercool.xyz") {
+	Madara6Parser(context, MangaSource.HIPERCOOL, "hipercool.xyz", pageSize = 20) {
 
 	override val datePattern = "MMMM d, yyyy"
 

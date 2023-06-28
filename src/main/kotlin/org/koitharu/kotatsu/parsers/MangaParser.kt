@@ -5,6 +5,7 @@ import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.FaviconParser
 import org.koitharu.kotatsu.parsers.util.domain
@@ -31,12 +32,14 @@ abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Provide default domain and available alternatives, if any.
 	 *
-	 * Never hardcode domain in requests, use [getDomain] instead.
+	 * Never hardcode domain in requests, use [domain] instead.
 	 */
 	@InternalParsersApi
 	abstract val configKeyDomain: ConfigKey.Domain
 
-	open val headers: Headers? = null
+	open val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.build()
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null

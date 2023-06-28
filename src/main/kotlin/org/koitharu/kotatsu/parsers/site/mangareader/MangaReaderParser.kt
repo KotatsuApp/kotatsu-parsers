@@ -58,18 +58,14 @@ internal abstract class MangaReaderParser(
 
 	open suspend fun parseInfoTable(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
 		val mangaInfo =
-			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?:
-			docs.selectFirst("div.seriestucontentr") ?:
-			docs.selectFirst("div.seriestucon")
+			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?: docs.selectFirst("div.seriestucontentr")
+			?: docs.selectFirst("div.seriestucon")
 
 		val state_select =
-			docs.selectFirst(".tsinfo div:contains(Status)") ?:
-			docs.selectFirst(".tsinfo div:contains(Statut)") ?:
-			docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?:
-			docs.selectFirst(".tsinfo div:contains(Estado)") ?:
-			docs.selectFirst(".tsinfo div:contains(สถานะ)") ?:
-			docs.selectFirst(".tsinfo div:contains(Stato )") ?:
-			docs.selectFirst(".tsinfo div:contains(Durum)")
+			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
+			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
+			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
+			?: docs.selectFirst(".tsinfo div:contains(Durum)")
 
 		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
@@ -86,8 +82,9 @@ internal abstract class MangaReaderParser(
 				"Publishing",
 				"Devam Ediyor",
 				"Em Andamento",
-				"In Corso"
+				"In Corso",
 				-> MangaState.ONGOING
+
 				"Completed",
 				"Completo",
 				"Complété",
@@ -99,8 +96,9 @@ internal abstract class MangaReaderParser(
 				"Завершено",
 				"Finished",
 				"Finalizado",
-				"Completata"
+				"Completata",
 				-> MangaState.FINISHED
+
 				else -> null
 			}
 		}
@@ -120,13 +118,10 @@ internal abstract class MangaReaderParser(
 	open suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
 
 		val state_select =
-			docs.selectFirst(".tsinfo div:contains(Status)") ?:
-			docs.selectFirst(".tsinfo div:contains(Statut)") ?:
-			docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?:
-			docs.selectFirst(".tsinfo div:contains(Estado)") ?:
-			docs.selectFirst(".tsinfo div:contains(สถานะ)") ?:
-			docs.selectFirst(".tsinfo div:contains(Stato )") ?:
-			docs.selectFirst(".tsinfo div:contains(Durum)")
+			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
+			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
+			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
+			?: docs.selectFirst(".tsinfo div:contains(Durum)")
 
 		val mangaState = state_select?.lastElementChild()?.let {
 			when (it.text()) {
@@ -143,8 +138,9 @@ internal abstract class MangaReaderParser(
 				"Publishing",
 				"Devam Ediyor",
 				"Em Andamento",
-				"In Corso"
+				"In Corso",
 				-> MangaState.ONGOING
+
 				"Completed",
 				"Completo",
 				"Complété",
@@ -156,8 +152,9 @@ internal abstract class MangaReaderParser(
 				"Завершено",
 				"Finished",
 				"Finalizado",
-				"Completata"
+				"Completata",
 				-> MangaState.FINISHED
+
 				else -> null
 			}
 		}
@@ -170,19 +167,18 @@ internal abstract class MangaReaderParser(
 
 			state = mangaState,
 			author =
-			docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text() ?:
-			docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text() ?:
-			docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text() ?:
-			docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text() ,
+			docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
+				?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text()
+				?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text()
+				?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text(),
 
 			isNsfw = manga.isNsfw
-					|| docs.selectFirst(".info-right .alr") != null
-					|| docs.selectFirst(".postbody .alr") != null,
+				|| docs.selectFirst(".info-right .alr") != null
+				|| docs.selectFirst(".postbody .alr") != null,
 			tags = tags,
 			chapters = chapters,
 		)
 	}
-
 
 
 	override suspend fun getListPage(
@@ -766,7 +762,7 @@ internal abstract class MangaReaderParser(
 	// Fr site //
 
 	@MangaSourceParser("PHENIXSCANS", "Phenixscans", "fr")
-    class PhenixscansParser(context: MangaLoaderContext) :
+	class PhenixscansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.PHENIXSCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("phenixscans.fr")
@@ -810,7 +806,7 @@ internal abstract class MangaReaderParser(
 	}
 
 	@MangaSourceParser("EPSILONSCAN", "Epsilonscan", "fr")
-    class EpsilonscanParser(context: MangaLoaderContext) :
+	class EpsilonscanParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.EPSILONSCAN, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("epsilonscan.fr")
@@ -819,13 +815,13 @@ internal abstract class MangaReaderParser(
 			get() = "/manga"
 		override val tableMode: Boolean
 			get() = false
-        override val isNsfwSource: Boolean = true    
+		override val isNsfwSource: Boolean = true
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
 	}
 
 	@MangaSourceParser("LEGACY_SCANS", "Legacy Scans", "fr")
-    class LegacyScansParser(context: MangaLoaderContext) :
+	class LegacyScansParser(context: MangaLoaderContext) :
 		MangaReaderParser(context, MangaSource.LEGACY_SCANS, pageSize = 20, searchPageSize = 10) {
 		override val configKeyDomain: ConfigKey.Domain
 			get() = ConfigKey.Domain("legacy-scans.com")
@@ -833,7 +829,7 @@ internal abstract class MangaReaderParser(
 		override val listUrl: String
 			get() = "/manga"
 		override val tableMode: Boolean
-			get() = false  
+			get() = false
 
 		override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.FRENCH)
 	}

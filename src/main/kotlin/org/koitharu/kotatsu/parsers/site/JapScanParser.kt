@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -23,7 +24,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", "japscan.ws")
 
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/113.0")
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
 	override suspend fun getListPage(

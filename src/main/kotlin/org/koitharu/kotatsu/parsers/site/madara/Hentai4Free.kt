@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en")
 internal class Hentai4Free(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net") {
+	MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net", pageSize = 24) {
 
 	override val tagPrefix = "hentai-tag/"
 

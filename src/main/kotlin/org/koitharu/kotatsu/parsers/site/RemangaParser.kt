@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.net.URLDecoder
@@ -29,7 +30,7 @@ internal class RemangaParser(
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
 	private val baseHeaders = Headers.Builder()
-		.add("User-Agent", "Mozilla/5.0 (Android 13; Mobile; rv:68.0) Gecko/68.0 Firefox/109.0")
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
 
 	override val headers

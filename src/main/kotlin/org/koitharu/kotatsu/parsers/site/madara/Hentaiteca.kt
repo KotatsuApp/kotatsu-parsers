@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 
 @MangaSourceParser("HENTAITECA", "Hentaiteca", "pt")
 internal class Hentaiteca(context: MangaLoaderContext) :
-	Madara6Parser(context, MangaSource.HENTAITECA, "hentaiteca.net") {
+	Madara6Parser(context, MangaSource.HENTAITECA, "hentaiteca.net", pageSize = 10) {
 
 	override val datePattern = "MM/dd/yyyy"
 
