@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArrayMap
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
@@ -24,6 +26,10 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
 	)
+
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.KOTATSU)
+		.build()
 
 	private val tagsCache = SuspendLazy(::fetchTags)
 
