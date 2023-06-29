@@ -456,6 +456,9 @@ internal abstract class MadaraParser(
 	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
 	class MangaManhua(context: MangaLoaderContext) :
 		MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online", pageSize = 10)
+	{
+		override val datePattern = "d MMMM، yyyy"
+	}
 
 	@MangaSourceParser("MANGA_247", "247MANGA", "en")
 	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com") {
@@ -475,6 +478,9 @@ internal abstract class MadaraParser(
 
 	@MangaSourceParser("ZINMANGA", "ZINMANGA", "en")
 	class Zinmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ZINMANGA, "zinmanga.com")
+	{
+		override val datePattern = "MM/dd/yyyy"
+	}
 
 	@MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
 	class Stkissmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
