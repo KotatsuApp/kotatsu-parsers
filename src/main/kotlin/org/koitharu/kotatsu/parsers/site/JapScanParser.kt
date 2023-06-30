@@ -19,10 +19,7 @@ import java.util.*
 @MangaSourceParser("JAPSCAN", "JapScan", "fr")
 internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.JAPSCAN, 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.ALPHABETICAL,
-	)
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", "japscan.ws")
 
