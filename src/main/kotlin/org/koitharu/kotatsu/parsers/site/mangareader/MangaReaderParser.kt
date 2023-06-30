@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -63,13 +64,11 @@ internal abstract class MangaReaderParser(
 		val selecttag = if(tablemode != null)
 		{
 			tablemode.select(".seriestugenre > a")
-
 		}else
 		{
 			docs.select(".wd-full .mgen > a")
-
-
 		}
+
 		val tags = selecttag.mapNotNullToSet { tagMap[it.text()] }
 
 
@@ -100,38 +99,13 @@ internal abstract class MangaReaderParser(
 
 		val mangaState = state?.let {
 			when (it.text()) {
-				"مستمرة",
-				"En curso",
-				"Ongoing",
-				"On going",
-				"Ativo",
-				"En Cours",
-				"OnGoing",
-				"Đang tiến hành",
-				"em lançamento",
-				"Онгоінг",
-				"Publishing",
-				"Devam Ediyor",
-				"Em Andamento",
-				"In Corso",
-				"Güncel",
-				"Berjalan",
+				"مستمرة", "En curso", "Ongoing", "On going",
+				"Ativo", "En Cours", "OnGoing", "Đang tiến hành", "em lançamento", "Онгоінг", "Publishing",
+				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
 				-> MangaState.ONGOING
-				"Completed",
-				"Completo",
-				"Complété",
-				"Fini",
-				"Terminé",
-				"Tamamlandı",
-				"Đã hoàn thành",
-				"مكتملة",
-				"Завершено",
-				"Finished",
-				"Finalizado",
-				"Completata",
-				"One-Shot",
-				"Bitti",
-				"Tamat",
+				"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
+				"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
 				-> MangaState.FINISHED
 				else -> null
 			}
@@ -239,25 +213,45 @@ internal abstract class MangaReaderParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
-		val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
-		val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
-			.getJSONArray("sources")
-			.getJSONObject(0)
-			.getJSONArray("images")
 
-		val pages = ArrayList<MangaPage>(images.length())
-		for (i in 0 until images.length()) {
-			pages.add(
+		val test = docs.select("script:containsData(ts_reader)")
+		if(test.isNullOrEmpty())
+		{
+			return docs.select("div#readerarea img").map { img ->
+				val url = img.imageUrl()
 				MangaPage(
-					id = generateUid(images.getString(i)),
-					url = images.getString(i),
+					id = generateUid(url),
+					url = url,
 					preview = null,
 					source = source,
-				),
-			)
+				)
+			}
+		}else
+		{
+			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
+			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
+				.getJSONArray("sources")
+				.getJSONObject(0)
+				.getJSONArray("images")
+			val pages = ArrayList<MangaPage>(images.length())
+			for (i in 0 until images.length()) {
+				pages.add(
+					MangaPage(
+						id = generateUid(images.getString(i)),
+						url = images.getString(i),
+						preview = null,
+						source = source,
+					),
+				)
+			}
+
+			return pages
+
 		}
 
-		return pages
+
+
+
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {

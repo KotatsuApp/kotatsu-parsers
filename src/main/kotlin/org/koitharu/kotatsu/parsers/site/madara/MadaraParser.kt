@@ -5,7 +5,6 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -14,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 internal abstract class MadaraParser(
 	context: MangaLoaderContext,
@@ -37,6 +37,28 @@ internal abstract class MadaraParser(
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
+
+	protected fun Element.tableValue(): Element {
+		for (p in parents()) {
+			val children = p.children()
+			if (children.size == 2) {
+				return children[1]
+			}
+		}
+		parseFailed("Cannot find tableValue for node ${text()}")
+	}
+
+
+	protected val ongoing: Array<String> = arrayOf(
+	"مستمرة", "En curso", "En Curso","Ongoing", "OnGoing","On going",
+	"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
+	"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+	"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",)
+
+	protected val finished: Array<String> = arrayOf(
+	"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
+	"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",)
+
 
 	override suspend fun getListPage(
 		page: Int,
@@ -80,9 +102,16 @@ internal abstract class MadaraParser(
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
-					?.lowercase()) {
-					"ongoing" -> MangaState.ONGOING
-					"completed" -> MangaState.FINISHED
+					?.lowercase())
+				{
+					"مستمرة", "En curso", "En Curso","Ongoing", "OnGoing","On going",
+					"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
+					"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
+					-> MangaState.ONGOING
+					"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
+					"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
+					-> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
@@ -120,36 +149,68 @@ internal abstract class MadaraParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChapters(manga, doc) }
-		val root = doc.body().selectFirst("div.profile-manga")?.selectFirst("div.summary_content")
-			?.selectFirst("div.post-content") ?: throw ParseException("Root not found", fullUrl)
-		val root2 = doc.body().selectFirst("div.content-area")?.selectFirst("div.c-page")
-			?: throw ParseException("Root2 not found", fullUrl)
-		manga.copy(
-			tags = root.selectFirst("div.genres-content")?.select("a")?.mapNotNullToSet { a ->
+
+		val testchekasync = doc.body().select("div.listing-chapters_wrap")
+
+		val chaptersDeferred = if(testchekasync.isNullOrEmpty())
+		{
+			async { loadChapters(manga.url) }
+
+		}else
+		{
+			async { getChapters(manga, doc) }
+		}
+
+		val desc = doc.body().selectFirst("div.description-summary div.summary__content") ?:
+		doc.body().selectFirst("div.summary_content div.post-content_item > h5 + div") ?:
+		doc.body().selectFirst("div.summary_content div.manga-excerpt")
+
+
+		val stateselect =
+			doc.body().select("div.post-content_item:contains(Status) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Statut) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(حالة العمل) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Estado) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Stato) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Statüsü) > div.summary-content").last()
+			?: doc.body().select("div.summary-content").last()
+
+		val state =
+			stateselect?.let {
+				when (it.text()) {
+					in ongoing -> MangaState.ONGOING
+					in finished -> MangaState.FINISHED
+					else -> null
+				}
+			}
+
+			manga.copy(
+			tags = doc.body().select("div.genres-content a").mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
-			} ?: manga.tags,
-			description = root2.selectFirst("div.description-summary")?.selectFirst("div.summary__content")?.select("p")
-				?.filterNot { it.ownText().startsWith("A brief description") }?.joinToString { it.html() },
+			},
+			description = desc?.select("p")?.filterNot { it.ownText().startsWith("A brief description") }?.joinToString { it.text() },
+			altTitle =
+			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()?.trim() ?:
+			doc.body().select(".post-content_item:contains(Nomes alternativos: ) .summary-content").firstOrNull()?.tableValue()?.text()?.trim(),
+			state = state,
 			chapters = chaptersDeferred.await(),
 		)
 	}
 
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
-		val root2 = doc.body().selectFirstOrThrow("div.content-area").selectFirstOrThrow("div.c-page")
+		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select("li").mapChapters(reversed = true) { i, li ->
+		return root2.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val link = href + "?style=list"
 			MangaChapter(
 				id = generateUid(href),
 				name = a.ownText(),
 				number = i + 1,
-				url = href,
+				url = link,
 				uploadDate = parseChapterDate(
 					dateFormat,
 					li.selectFirst("span.chapter-release-date i")?.text(),
@@ -157,6 +218,30 @@ internal abstract class MadaraParser(
 				source = source,
 				scanlator = null,
 				branch = null,
+			)
+		}
+	}
+
+	protected open suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
+		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
+		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
+		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
+			val a = li.selectFirst("a")
+			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val link = href + "?style=list"
+			MangaChapter(
+				id = generateUid(href),
+				url = link,
+				name = a.text(),
+				number = i + 1,
+				branch = null,
+				uploadDate = parseChapterDate(
+					dateFormat,
+					li.selectFirst("span.chapter-release-date i")?.text(),
+				),
+				scanlator = null,
+				source = source,
 			)
 		}
 	}
@@ -289,199 +374,4 @@ internal abstract class MadaraParser(
 			it.substring(0, pos) to it.substring(pos + 1)
 		}.toMutableMap()
 
-	@MangaSourceParser("MANGAWEEBS", "MangaWeebs", "en")
-	class MangaWeebs(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGAWEEBS, "mangaweebs.in",
-		pageSize = 20,
-	) {
-		override val datePattern = "dd MMMM HH:mm"
-	}
-
-	@MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
-	class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachiraw.com") {
-
-		override val sourceLocale: Locale = Locale.ENGLISH
-	}
-
-	@MangaSourceParser("PIANMANGA", "PianManga", "en")
-	class PianManga(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.PIANMANGA, "pianmanga.me",
-		pageSize = 10,
-	)
-
-	@MangaSourceParser("MANGAROSIE", "MangaRosie", "en")
-	class MangaRosie(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGAROSIE, "mangarosie.in",
-		pageSize = 16,
-	)
-
-	@MangaSourceParser("MANGATX", "MangaTx", "en")
-	class MangaTx(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGATX, "mangatx.com")
-
-	@MangaSourceParser("MANGAEFFECT", "MangaEffect", "en")
-	class MangaEffect(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAEFFECT, "mangaeffect.com") {
-		override val datePattern = "dd.MM.yyyy"
-	}
-
-	@MangaSourceParser("AQUAMANGA", "AquaManga", "en")
-	class AquaManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.com")
-
-	@MangaSourceParser("MANGALEK", "MangaLek", "ar")
-	class MangaLek(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGALEK, "mangalek.com",
-		pageSize = 10,
-	)
-
-	@MangaSourceParser("HARIMANGA", "HariManga", "en")
-	class HariManga(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.HARIMANGA, "harimanga.com",
-		pageSize = 10,
-	) {
-		override val datePattern = "MM/dd/yyyy"
-	}
-
-	@MangaSourceParser("KISSMANGA", "KissManga", "en")
-	class KissManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KISSMANGA, "kissmanga.in")
-
-	@MangaSourceParser("MANGAROCK", "MangaRock", "en")
-	class MangaRock(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGAROCK, "mangarockteam.com")
-
-	@MangaSourceParser("FREEMANGA", "FreeManga", "en")
-	class FreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.FREEMANGA, "freemanga.me")
-
-	@MangaSourceParser("MANGA_KOMI", "MangaKomi", "en")
-	class MangaKomi(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGA_KOMI, "mangakomi.io",
-		pageSize = 18,
-	)
-
-	@MangaSourceParser("MANHWACLAN", "ManhwaClan", "en")
-	class ManhwaClan(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANHWACLAN, "manhwaclan.com",
-		pageSize = 10,
-	)
-
-	@MangaSourceParser("MANGA_3S", "Manga3s", "en")
-	class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com") {
-		override val tagPrefix = "manhwa-genre/"
-	}
-
-	@MangaSourceParser("MANHWAKOOL", "Manhwa Kool", "en")
-	class ManhwaKool(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANHWAKOOL, "manhwakool.com",
-		pageSize = 10,
-	) {
-		override val datePattern: String = "MM/dd"
-	}
-
-	@MangaSourceParser("TOPMANHUA", "Top Manhua", "en")
-	class TopManhua(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOPMANHUA, "www.topmanhua.com") {
-		override val tagPrefix = "manhua-genre/"
-		override val datePattern = "MM/dd/yyyy"
-	}
-
-	@MangaSourceParser("S2MANGA", "S2Manga", "en")
-	class S2Manga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.S2MANGA, "s2manga.com")
-
-	@MangaSourceParser("SKY_MANGA", "Sky Manga", "en")
-	class SkyManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.SKY_MANGA, "skymanga.xyz") {
-
-		override val isNsfwSource = true
-
-	}
-
-	@MangaSourceParser("BAKAMAN", "BakaMan", "th")
-	class BakaMan(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.BAKAMAN, "bakaman.net",
-		pageSize = 18,
-	) {
-
-		override val isNsfwSource = false
-	}
-
-	@MangaSourceParser("HENTAI20", "Hentai20", "en")
-	class Hentai20(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI20, "hentai20.io") {
-
-		override val tagPrefix = "manga-genre/"
-
-		override val isNsfwSource = true
-	}
-
-	@MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en")
-	class AllPornComic(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com", pageSize = 24) {
-
-		override val tagPrefix = "porncomic-genre/"
-
-		override val isNsfwSource = true
-
-	}
-
-	@MangaSourceParser("CAT_300", "Cat300", "th")
-	class Cat300(context: MangaLoaderContext) : MadaraParser(context, MangaSource.CAT_300, "cat300.com") {
-
-		override val isNsfwSource = true
-	}
-
-	@MangaSourceParser("BIBIMANGA", "BibiManga", "en")
-	class BibiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.BIBIMANGA, "bibimanga.com") {
-
-		override val isNsfwSource = false
-	}
-
-	@MangaSourceParser("TREE_MANGA", "Tree Manga", "en")
-	class TreeManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TREE_MANGA, "treemanga.com") {
-
-		override val datePattern = "MM/dd/yyyy"
-
-	}
-
-	@MangaSourceParser("MANGACV", "Manga Cv", "en")
-	class MangaCv(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGACV, "mangacv.com",
-		pageSize = 10,
-	)
-
-	@MangaSourceParser("TOONILY", "Toonily", "en")
-	class Toonily(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.TOONILY, "toonily.com",
-		pageSize = 18,
-	) {
-
-		override val tagPrefix = "webtoon-genre/"
-
-		override val isNsfwSource = false
-	}
-
-	@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
-	class MangaManhua(context: MangaLoaderContext) :
-		MadaraParser(context, MangaSource.MANGA_MANHUA, "mangamanhua.online", pageSize = 10)
-	{
-		override val datePattern = "d MMMM، yyyy"
-	}
-
-	@MangaSourceParser("MANGA_247", "247MANGA", "en")
-	class Manga247(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_247, "247manga.com") {
-		override val tagPrefix = "manhwa-genre/"
-	}
-
-	@MangaSourceParser("MANGA_365", "365Manga", "en")
-	class Manga365(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_365, "365manga.com")
-
-	@MangaSourceParser("MANGACLASH", "Mangaclash", "en")
-	class Mangaclash(context: MangaLoaderContext) : MadaraParser(
-		context, MangaSource.MANGACLASH, "mangaclash.com",
-		pageSize = 18,
-	) {
-		override val datePattern = "MM/dd/yyyy"
-	}
-
-	@MangaSourceParser("ZINMANGA", "ZINMANGA", "en")
-	class Zinmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ZINMANGA, "zinmanga.com")
-	{
-		override val datePattern = "MM/dd/yyyy"
-	}
-
-	@MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
-	class Stkissmanga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
 }
