@@ -119,7 +119,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 			it.groupValues[1]
 		}.toList()
 
-		val ShortTables = shortkeyRegex.findAll(script).map {
+		val shortTables = shortkeyRegex.findAll(script).map {
 			it.groupValues[1]
 		}.toList()
 
