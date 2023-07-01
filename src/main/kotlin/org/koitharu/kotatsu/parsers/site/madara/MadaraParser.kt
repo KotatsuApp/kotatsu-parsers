@@ -33,6 +33,8 @@ internal abstract class MadaraParser(
 	protected open val isNsfwSource = false
 	protected open val datePattern = "MMMM dd, yyyy"
 
+	protected open val postreq = false
+
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
@@ -202,8 +204,7 @@ internal abstract class MadaraParser(
 		val testchekasync = doc.body().select("div.listing-chapters_wrap")
 
 		val chaptersDeferred = if (testchekasync.isNullOrEmpty()) {
-			async { loadChapters(manga.url) }
-
+			async { loadChapters(manga.url, doc) }
 		} else {
 			async { getChapters(manga, doc) }
 		}
@@ -277,10 +278,20 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	protected open suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
-		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+	protected open suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
+
+		val doc = if (postreq == false) {
+			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+			webClient.httpPost(url, emptyMap()).parseHtml()
+		} else {
+			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
+			val url = "https://$domain/wp-admin/admin-ajax.php"
+			val postdata = "action=manga_get_chapters&manga=$mangaId"
+
+			webClient.httpPost(url, postdata).parseHtml()
+		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
+
 		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
@@ -340,9 +351,11 @@ internal abstract class MadaraParser(
 			date.endsWith(" h", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+
 			date.endsWith(" d", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+
 			date.endsWith(" mins", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}

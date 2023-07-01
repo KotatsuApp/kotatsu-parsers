@@ -7,7 +7,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ANSHSCANS", "Ansh Scans", "en")
-internal class AnshScans(context: MangaLoaderContext) : MadaraParser(context, MangaSource.ANSHSCANS, "anshscans.org", 10){
+internal class AnshScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.ANSHSCANS, "anshscans.org", 10) {
 
 	override val tagPrefix = "genre/"
 

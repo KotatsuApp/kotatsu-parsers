@@ -9,7 +9,7 @@ import java.util.Locale
 
 @MangaSourceParser("AZORANOV", "Azoranov", "ar")
 internal class Azoranov(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.AZORANOV, "azoranov.com", pageSize = 10,) {
+	MadaraParser(context, MangaSource.AZORANOV, "azoranov.com", pageSize = 10) {
 
 	override val tagPrefix = "novel-genre/"
 	override val datePattern = "MMMM d, yyyy"
