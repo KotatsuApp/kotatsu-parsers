@@ -9,7 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HENTAI20", "Hentai20", "en")
 internal class Hentai20(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI20, "hentai20.io") {
 
-	override val tagPrefix = "manga-genre/"
-
 	override val isNsfwSource = true
 }

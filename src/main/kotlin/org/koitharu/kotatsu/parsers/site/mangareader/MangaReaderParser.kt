@@ -14,7 +14,6 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
-
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -61,38 +60,36 @@ internal abstract class MangaReaderParser(
 
 		val tagMap = getOrCreateTagMap()
 
-		val selecttag = if(tablemode != null)
-		{
+		val selecttag = if (tablemode != null) {
 			tablemode.select(".seriestugenre > a")
-		}else
-		{
+		} else {
 			docs.select(".wd-full .mgen > a")
 		}
 
 		val tags = selecttag.mapNotNullToSet { tagMap[it.text()] }
 
 
-		val stateselect = if(tablemode != null)
-		{
-			tablemode.selectFirst(".infotable td:contains(Status)") ?: tablemode.selectFirst(".infotable td:contains(Statut)")
-			?: tablemode.selectFirst(".infotable td:contains(حالة العمل)") ?: tablemode.selectFirst(".infotable td:contains(Estado)")
-			?: docs.selectFirst(".infotable td:contains(สถานะ)") ?: tablemode.selectFirst(".infotable td:contains(Stato )")
-			?: tablemode.selectFirst(".infotable td:contains(Durum)") ?: tablemode.selectFirst(".infotable td:contains(Statüsü)")
+		val stateselect = if (tablemode != null) {
+			tablemode.selectFirst(".infotable td:contains(Status)")
+				?: tablemode.selectFirst(".infotable td:contains(Statut)")
+				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
+				?: tablemode.selectFirst(".infotable td:contains(Estado)")
+				?: docs.selectFirst(".infotable td:contains(สถานะ)")
+				?: tablemode.selectFirst(".infotable td:contains(Stato )")
+				?: tablemode.selectFirst(".infotable td:contains(Durum)")
+				?: tablemode.selectFirst(".infotable td:contains(Statüsü)")
 
-		}else
-		{
+		} else {
 			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
 			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
 			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
 			?: docs.selectFirst(".tsinfo div:contains(Durum)") ?: docs.selectFirst(".tsinfo div:contains(Statüsü)")
 		}
 
-		val state = if(tablemode != null)
-		{
+		val state = if (tablemode != null) {
 			stateselect?.lastElementSibling()
 
-		}else
-		{
+		} else {
 			stateselect?.lastElementChild()
 		}
 
@@ -104,28 +101,29 @@ internal abstract class MangaReaderParser(
 				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
 				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
 				-> MangaState.ONGOING
+
 				"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
 				"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
 				-> MangaState.FINISHED
+
 				else -> null
 			}
 		}
 
 
-
-		val author = tablemode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()?:
-		docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text() ?:
-		docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text() ?:
-		docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text() ?:
-		docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
+		val author = tablemode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()
+			?: docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
+			?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text()
+			?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text()
+			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
 				|| docs.selectFirst(".info-right .alr") != null
 				|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
-			description = tablemode?.selectFirst("div.entry-content")?.html() ?:
-			docs.selectFirst("div.entry-content")?.html(),
+			description = tablemode?.selectFirst("div.entry-content")?.html() ?: docs.selectFirst("div.entry-content")
+				?.html(),
 			state = mangaState,
 			author = author,
 			isNsfw = manga.isNsfw || nsfw,
@@ -215,8 +213,7 @@ internal abstract class MangaReaderParser(
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
 
 		val test = docs.select("script:containsData(ts_reader)")
-		if(test.isNullOrEmpty())
-		{
+		if (test.isNullOrEmpty()) {
 			return docs.select("div#readerarea img").map { img ->
 				val url = img.imageUrl()
 				MangaPage(
@@ -226,8 +223,7 @@ internal abstract class MangaReaderParser(
 					source = source,
 				)
 			}
-		}else
-		{
+		} else {
 			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
 			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
 				.getJSONArray("sources")
@@ -248,8 +244,6 @@ internal abstract class MangaReaderParser(
 			return pages
 
 		}
-
-
 
 
 	}

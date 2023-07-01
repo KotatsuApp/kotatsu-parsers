@@ -6,6 +6,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
-internal class Stkissmanga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
+@MangaSourceParser("COLORED_MANGA", "Colored Manga", "en")
+internal class ColoredManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.COLORED_MANGA, "coloredmanga.com") {
+
+	override val tagPrefix = "manga-tag"
+	override val datePattern = "dd-MMM"
+}

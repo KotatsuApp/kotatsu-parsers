@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGALEK", "MangaLek", "ar")
 internal class MangaLek(context: MangaLoaderContext) : MadaraParser(
 	context, MangaSource.MANGALEK, "mangalek.com",
-	pageSize = 10,
+	pageSize = 20,
 )

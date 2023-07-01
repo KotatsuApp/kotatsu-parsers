@@ -32,13 +32,13 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	): List<Manga> {
 		val url = when {
 			!query.isNullOrEmpty() -> (
-				"/index.php?do=search" +
-					"&subaction=search" +
-					"&search_start=$page" +
-					"&full_search=1" +
-					"&story=$query" +
-					"&titleonly=3"
-				).toAbsoluteUrl(domain)
+					"/index.php?do=search" +
+							"&subaction=search" +
+							"&search_start=$page" +
+							"&full_search=1" +
+							"&story=$query" +
+							"&titleonly=3"
+					).toAbsoluteUrl(domain)
 
 			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
 			tags.size == 1 -> "${tags.first().key}/page/$page"

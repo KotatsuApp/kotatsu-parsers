@@ -50,14 +50,62 @@ internal abstract class MadaraParser(
 
 
 	protected val ongoing: Array<String> = arrayOf(
-	"مستمرة", "En curso", "En Curso","Ongoing", "OnGoing","On going",
-	"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
-	"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-	"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",)
+		"مستمرة",
+		"En curso",
+		"En Curso",
+		"Ongoing",
+		"OnGoing",
+		"On going",
+		"Ativo",
+		"En Cours",
+		"En cours",
+		"En cours \uD83D\uDFE2",
+		"Đang tiến hành",
+		"Em lançamento",
+		"em lançamento",
+		"Em Lançamento",
+		"Онгоінг",
+		"Publishing",
+		"Devam Ediyor",
+		"Em Andamento",
+		"In Corso",
+		"Güncel",
+		"Berjalan",
+		"Продолжается",
+		"Updating",
+		"Lançando",
+		"In Arrivo",
+		"Emision",
+		"En emision",
+		"مستمر",
+		"Curso",
+		"En marcha",
+		"Publicandose",
+		"连载中",
+	)
 
 	protected val finished: Array<String> = arrayOf(
-	"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
-	"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",)
+		"Completed",
+		"Completo",
+		"Complété",
+		"Fini",
+		"Terminé",
+		"Terminé ⚫",
+		"Tamamlandı",
+		"Đã hoàn thành",
+		"مكتملة",
+		"Завершено",
+		"Finished",
+		"Finalizado",
+		"Completata",
+		"One-Shot",
+		"Bitti",
+		"Tamat",
+		"Completado",
+		"Concluído",
+		"Concluido",
+		"已完结",
+	)
 
 
 	override suspend fun getListPage(
@@ -102,16 +150,17 @@ internal abstract class MadaraParser(
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
-					?.lowercase())
-				{
-					"مستمرة", "En curso", "En Curso","Ongoing", "OnGoing","On going",
+					?.lowercase()) {
+					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going",
 					"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
 					"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
 					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
 					-> MangaState.ONGOING
+
 					"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
 					"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
 					-> MangaState.FINISHED
+
 					else -> null
 				},
 				source = source,
@@ -152,25 +201,29 @@ internal abstract class MadaraParser(
 
 		val testchekasync = doc.body().select("div.listing-chapters_wrap")
 
-		val chaptersDeferred = if(testchekasync.isNullOrEmpty())
-		{
+		val chaptersDeferred = if (testchekasync.isNullOrEmpty()) {
 			async { loadChapters(manga.url) }
 
-		}else
-		{
+		} else {
 			async { getChapters(manga, doc) }
 		}
 
-		val desc = doc.body().selectFirst("div.description-summary div.summary__content") ?:
-		doc.body().selectFirst("div.summary_content div.post-content_item > h5 + div") ?:
-		doc.body().selectFirst("div.summary_content div.manga-excerpt")
+		val desc = doc.body().selectFirst("div.description-summary div.summary__content") ?: doc.body()
+			.selectFirst("div.summary_content div.post-content_item > h5 + div") ?: doc.body()
+			.selectFirst("div.post-content div.manga-summary") ?: doc.body()
+			.selectFirst("div.post-content div.desc") ?: doc.body()
+			.selectFirst("div.summary_content div.manga-excerpt")
 
 
 		val stateselect =
-			doc.body().select("div.post-content_item:contains(Status) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Statut) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(حالة العمل) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Estado) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Stato) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body().select("div.post-content_item:contains(Statüsü) > div.summary-content").last()
+			doc.body().select("div.post-content_item:contains(Status) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Statut) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(حالة العمل) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(Estado) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Stato) > div.summary-content").last()
+			?: doc.body().select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Statüsü) > div.summary-content").last()
 			?: doc.body().select("div.summary-content").last()
 
 		val state =
@@ -182,7 +235,7 @@ internal abstract class MadaraParser(
 				}
 			}
 
-			manga.copy(
+		manga.copy(
 			tags = doc.body().select("div.genres-content a").mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
@@ -190,10 +243,12 @@ internal abstract class MadaraParser(
 					source = source,
 				)
 			},
-			description = desc?.select("p")?.filterNot { it.ownText().startsWith("A brief description") }?.joinToString { it.text() },
+			description = desc?.select("p")?.filterNot { it.ownText().startsWith("A brief description") }
+				?.joinToString { it.text() },
 			altTitle =
-			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()?.trim() ?:
-			doc.body().select(".post-content_item:contains(Nomes alternativos: ) .summary-content").firstOrNull()?.tableValue()?.text()?.trim(),
+			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()
+				?.trim() ?: doc.body().select(".post-content_item:contains(Nomes alternativos: ) .summary-content")
+				.firstOrNull()?.tableValue()?.text()?.trim(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)
@@ -281,6 +336,16 @@ internal abstract class MadaraParser(
 			date.startsWith("il y a", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// Handle translated short 'ago'
+			date.endsWith(" h", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+			date.endsWith(" d", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+			date.endsWith(" mins", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 			// Handle 'yesterday' and 'today', using midnight
 			date.startsWith("year", ignoreCase = true) -> {
 				Calendar.getInstance().apply {
@@ -330,16 +395,17 @@ internal abstract class MadaraParser(
 				"día",
 				"dia",
 				"day",
+				"d",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("jam", "saat", "heure", "hora", "hour").anyWordIn(date) -> cal.apply {
+			WordSet("jam", "saat", "heure", "hora", "hour", "h").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
 					-number,
 				)
 			}.timeInMillis
 
-			WordSet("menit", "dakika", "min", "minute", "minuto").anyWordIn(date) -> cal.apply {
+			WordSet("menit", "dakika", "min", "minute", "minuto", "mins").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
 					-number,

@@ -5,10 +5,13 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import java.util.Locale
 
-@MangaSourceParser("HARIMANGA", "HariManga", "en")
-internal class HariManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com", pageSize = 10) {
+@MangaSourceParser("AZORANOV", "Azoranov", "ar")
+internal class Azoranov(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.AZORANOV, "azoranov.com", pageSize = 10,) {
 
+	override val tagPrefix = "novel-genre/"
 	override val datePattern = "MMMM d, yyyy"
+	override val sourceLocale: Locale = Locale("ar", "AR")
 }

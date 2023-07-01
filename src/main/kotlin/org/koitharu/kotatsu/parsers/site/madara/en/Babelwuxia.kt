@@ -6,6 +6,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
-internal class Stkissmanga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
+@MangaSourceParser("BABELWUXIA", "Babelwuxia", "en")
+internal class Babelwuxia(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.BABELWUXIA, "read.babelwuxia.com") {
+	override val datePattern = "MMMM d, yyyy"
+}

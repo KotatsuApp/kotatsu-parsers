@@ -7,7 +7,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TOONILY", "Toonily", "en")
-internal class Toonily(context: MangaLoaderContext) : MadaraParser(context, MangaSource.TOONILY, "toonily.com", pageSize = 18,) {
+internal class Toonily(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.TOONILY, "toonily.com", pageSize = 18) {
 
 	override val tagPrefix = "webtoon-genre/"
 
