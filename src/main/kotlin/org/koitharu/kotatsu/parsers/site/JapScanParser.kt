@@ -115,7 +115,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		val shortkeyRegex = Regex("""'([\dA-Z]{2})'""", RegexOption.IGNORE_CASE)
 		val longkeyRegex = Regex("""'([\dA-Z]{20})'""", RegexOption.IGNORE_CASE)
 
-		val LongTables = longkeyRegex.findAll(script).map {
+		val longTables = longkeyRegex.findAll(script).map {
 			it.groupValues[1]
 		}.toList()
 
