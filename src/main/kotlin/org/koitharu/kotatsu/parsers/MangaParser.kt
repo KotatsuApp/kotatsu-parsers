@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.FaviconParser
+import org.koitharu.kotatsu.parsers.util.RelatedMangaFinder
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
@@ -126,5 +127,15 @@ abstract class MangaParser @InternalParsersApi constructor(
 	@CallSuper
 	open fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		keys.add(configKeyDomain)
+	}
+
+	open suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		return RelatedMangaFinder(listOf(this)).invoke(seed)
+	}
+
+	protected fun getParser(source: MangaSource) = if (this.source == source) {
+		this
+	} else {
+		context.newParserInstance(source)
 	}
 }

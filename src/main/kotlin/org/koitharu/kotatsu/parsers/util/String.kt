@@ -2,6 +2,7 @@
 
 package org.koitharu.kotatsu.parsers.util
 
+import androidx.annotation.FloatRange
 import androidx.collection.arraySetOf
 import java.math.BigInteger
 import java.net.URLEncoder
@@ -208,6 +209,18 @@ fun String.levenshteinDistance(other: String): Int {
 
 	return cost[lhsLength - 1]
 }
+
+/**
+ * @param threshold 0 = exact match
+ */
+fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold: Float): Boolean {
+	if (threshold <= 0f) {
+		return equals(other, ignoreCase = true)
+	}
+	val diff = lowercase().levenshteinDistance(other.lowercase()) / ((length + other.length) / 2f)
+	return diff < threshold
+}
+
 
 inline fun <T> Appendable.appendAll(
 	items: Iterable<T>,

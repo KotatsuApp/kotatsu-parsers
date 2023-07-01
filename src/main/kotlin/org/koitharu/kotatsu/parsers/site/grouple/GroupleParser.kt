@@ -76,6 +76,7 @@ internal abstract class GroupleParser(
 				mapOf(
 					"q" to query.urlEncoded(),
 					"offset" to (offset upBy PAGE_SIZE_SEARCH).toString(),
+					"fast-filter" to "CREATION",
 				),
 			)
 
@@ -319,6 +320,15 @@ internal abstract class GroupleParser(
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
+	}
+
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val parsers = listOf(
+			getParser(MangaSource.READMANGA_RU),
+			getParser(MangaSource.MINTMANGA),
+			getParser(MangaSource.SELFMANGA),
+		)
+		return RelatedMangaFinder(parsers).invoke(seed)
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =
