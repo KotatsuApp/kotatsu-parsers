@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -22,14 +21,6 @@ import org.koitharu.kotatsu.test_util.maxDuplicates
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock
-
-	@Test
-	fun related() = runTest {
-		val parser = context.newParserInstance(MangaSource.READMANGA_RU)
-		val seed = parser.getList(0, "emanon").first()
-		val related = parser.getRelatedManga(seed)
-		assert(related.isNotEmpty() && seed !in related)
-	}
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources

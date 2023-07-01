@@ -3,7 +3,10 @@ package org.koitharu.kotatsu.parsers.site.multichan
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
@@ -17,19 +20,7 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		"hentaichan.pro",
 	)
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		return super.getList(offset, query, tags, sortOrder).map {
-			it.copy(
-				coverUrl = it.coverUrl.replace("_blur", ""),
-				isNsfw = true,
-			)
-		}
-	}
+	override val isNsfwSource = true
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

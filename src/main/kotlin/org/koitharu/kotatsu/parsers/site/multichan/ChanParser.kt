@@ -20,6 +20,8 @@ internal abstract class ChanParser(
 		SortOrder.ALPHABETICAL,
 	)
 
+	protected open val isNsfwSource = false
+
 	override val authUrl: String
 		get() = "https://${domain}"
 
@@ -79,7 +81,7 @@ internal abstract class ChanParser(
 				}.getOrNull().orEmpty(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				isNsfw = false,
+				isNsfw = isNsfwSource,
 				source = source,
 			)
 		}
@@ -87,7 +89,7 @@ internal abstract class ChanParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body().getElementById("dle-content") ?: doc.parseFailed("Cannot find root")
+		val root = doc.body().requireElementById("dle-content")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 		return manga.copy(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
@@ -160,6 +162,33 @@ internal abstract class ChanParser(
 		val a = root.getElementsByAttributeValueContaining("href", "/user/").firstOrNull()
 			?: throw AuthRequiredException(source)
 		return a.attr("href").removeSuffix('/').substringAfterLast('/')
+	}
+
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val doc = webClient.httpGet(seed.url.replace("/manga/", "/related/").toAbsoluteUrl(domain)).parseHtml()
+		val root = doc.body().requireElementById("right")
+		return root.select("div.related").mapNotNull { div ->
+			val info = div.selectFirst(".related_info") ?: return@mapNotNull null
+			val a = info.selectFirst("a") ?: return@mapNotNull null
+			val href = a.attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
+				altTitle = a.attr("title"),
+				title = a.text().substringAfterLast('(').substringBeforeLast(')'),
+				author = info.getElementsByAttributeValueStarting(
+					"href",
+					"/mangaka",
+				).firstOrNull()?.text(),
+				coverUrl = div.selectFirst("img")?.absUrl("src").orEmpty(),
+				tags = emptySet(),
+				rating = RATING_UNKNOWN,
+				state = null,
+				isNsfw = isNsfwSource,
+				source = source,
+			)
+		}
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =
