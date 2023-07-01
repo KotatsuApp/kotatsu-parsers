@@ -14,10 +14,6 @@ internal class Mangaschan(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("mangaschan.com")
 
-	override val listUrl: String
-		get() = "/manga"
-	override val tableMode: Boolean
-		get() = false
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("pt", "PT"))
 

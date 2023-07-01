@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import java.text.SimpleDateFormat
-import java.util.*
 
 @MangaSourceParser("KOMIKDEWASA", "KomikDewasa", "id")
 internal class KomikDewasaParser(context: MangaLoaderContext) :
@@ -15,8 +13,5 @@ internal class KomikDewasaParser(context: MangaLoaderContext) :
 		get() = ConfigKey.Domain("komikdewasa.cfd")
 
 	override val listUrl: String = "/komik"
-	override val tableMode: Boolean = true
 	override val isNsfwSource: Boolean = true
-
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 }

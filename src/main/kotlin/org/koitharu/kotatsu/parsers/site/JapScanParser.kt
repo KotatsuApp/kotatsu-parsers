@@ -112,16 +112,21 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		val embeddedData = doc.requireElementById("data").attr("data-data")
 		val script = webClient.httpGet(scriptUrl).parseRaw()
 
-		val sample = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz".toList()
-		val keyRegex = Regex("""'([\dA-Z]{62})'""", RegexOption.IGNORE_CASE)
+		val shortkeyRegex = Regex("""'([\dA-Z]{2})'""", RegexOption.IGNORE_CASE)
+		val longkeyRegex = Regex("""'([\dA-Z]{20})'""", RegexOption.IGNORE_CASE)
 
-		val keyTables = keyRegex.findAll(script)
-			.mapNotNullTo(ArrayList(2)) { match ->
-				match.groupValues[1].takeIf {
-					it.toList().sorted() == sample
-				}
-			}
-		check(keyTables.size == 2)
+		val longTables = longkeyRegex.findAll(script).map {
+			it.groupValues[1]
+		}.toList()
+
+		val shortTables = shortkeyRegex.findAll(script).map {
+			it.groupValues[1]
+		}.toList()
+
+		val keyTables = listOf(
+			ShortTables[1].reversed() + LongTables[5].reversed() + LongTables[2].reversed() + LongTables[0].reversed(),
+			ShortTables[2].reversed() + LongTables[3].reversed() + LongTables[4].reversed() + LongTables[1].reversed(),
+		)
 
 		var error: Exception? = null
 		repeat(2) { i ->

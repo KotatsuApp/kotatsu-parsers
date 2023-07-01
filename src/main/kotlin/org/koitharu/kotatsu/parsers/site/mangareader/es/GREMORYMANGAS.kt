@@ -14,10 +14,6 @@ internal class GREMORYMANGAS(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("gremorymangas.com")
 
-	override val listUrl: String get() = "/manga"
-
-	override val tableMode: Boolean
-		get() = true
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("es", "ES"))
 }

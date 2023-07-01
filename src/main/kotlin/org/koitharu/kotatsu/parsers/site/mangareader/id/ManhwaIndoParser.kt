@@ -16,5 +16,4 @@ internal class ManhwaIndoParser(context: MangaLoaderContext) :
 
 	override val chapterDateFormat = SimpleDateFormat("MMMM dd, yyyy", Locale.ENGLISH)
 	override val listUrl: String get() = "/series"
-	override val tableMode: Boolean get() = false
 }

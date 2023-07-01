@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.text.SimpleDateFormat
+import java.util.*
 
 @MangaSourceParser("MIRRORDESU", "Mirrordesu", "id")
 internal class Mirrordesu(context: MangaLoaderContext) :
@@ -15,11 +16,9 @@ internal class Mirrordesu(context: MangaLoaderContext) :
 
 	override val listUrl: String
 		get() = "/komik"
-	override val tableMode: Boolean
-		get() = false
 
 	override val isNsfwSource = true
 
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
+	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("in", "ID"))
 
 }

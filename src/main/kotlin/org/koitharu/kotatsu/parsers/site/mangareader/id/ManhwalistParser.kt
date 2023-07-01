@@ -12,9 +12,7 @@ import java.util.*
 internal class ManhwalistParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWALIST, pageSize = 24, searchPageSize = 10) {
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("manhwalist.in")
+		get() = ConfigKey.Domain("manhwalist.xyz")
 
-	override val listUrl: String = "/manga"
-	override val tableMode: Boolean get() = false
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
 }

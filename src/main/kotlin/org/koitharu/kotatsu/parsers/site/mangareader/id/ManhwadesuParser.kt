@@ -5,6 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @MangaSourceParser("MANHWADESU", "ManhwaDesu", "id")
 internal class ManhwadesuParser(context: MangaLoaderContext) :
@@ -13,5 +15,6 @@ internal class ManhwadesuParser(context: MangaLoaderContext) :
 		get() = ConfigKey.Domain("manhwadesu.pro", "manhwadesu.org")
 
 	override val listUrl: String get() = "/komik"
-	override val tableMode: Boolean get() = false
+
+	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM D, yyyy", Locale("in", "ID"))
 }

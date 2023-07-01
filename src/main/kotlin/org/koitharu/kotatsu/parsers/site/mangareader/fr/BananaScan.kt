@@ -14,11 +14,6 @@ internal class BananaScan(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("banana-scan.com")
 
-	override val listUrl: String
-		get() = "/manga"
-	override val tableMode: Boolean
-		get() = false
-
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.FRENCH)
 
 }

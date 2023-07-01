@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 
+
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -24,13 +25,9 @@ internal abstract class MangaReaderParser(
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
-	protected val idLocale
-		get() = Locale("in", "ID")
-
-	abstract val listUrl: String
-	abstract val tableMode: Boolean
+	protected open val listUrl = "/manga"
 	protected open val isNsfwSource = false
-	open val chapterDateFormat = SimpleDateFormat("MMM d, yyyy", idLocale)
+	open val chapterDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
@@ -51,128 +48,87 @@ internal abstract class MangaReaderParser(
 				source = source,
 			)
 		}
-		return if (tableMode) parseInfoTable(docs, manga, chapters) else parseInfoList(docs, manga, chapters)
+		return parseInfo(docs, manga, chapters)
 	}
 
-	open suspend fun parseInfoTable(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-		val mangaInfo =
+	open suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+
+		/// set if is table
+		val tablemode =
 			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?: docs.selectFirst("div.seriestucontentr")
 			?: docs.selectFirst("div.seriestucon")
 
-		val state_select =
-			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
-			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
-			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
-			?: docs.selectFirst(".tsinfo div:contains(Durum)")
 
-		val mangaState = state_select?.lastElementChild()?.let {
-			when (it.text()) {
-				"مستمرةا",
-				"En curso",
-				"Ongoing",
-				"On going",
-				"Ativo",
-				"En Cours",
-				"OnGoing",
-				"Đang tiến hành",
-				"em lançamento",
-				"Онгоінг",
-				"Publishing",
-				"Devam Ediyor",
-				"Em Andamento",
-				"In Corso",
-				-> MangaState.ONGOING
-
-				"Completed",
-				"Completo",
-				"Complété",
-				"Fini",
-				"Terminé",
-				"Tamamlandı",
-				"Đã hoàn thành",
-				"مكتملة",
-				"Завершено",
-				"Finished",
-				"Finalizado",
-				"Completata",
-				-> MangaState.FINISHED
-
-				else -> null
-			}
-		}
 		val tagMap = getOrCreateTagMap()
-		val tags = mangaInfo?.select(".seriestugenre > a")?.mapNotNullToSet { tagMap[it.text()] }
 
-		return manga.copy(
-			description = mangaInfo?.selectFirst("div.entry-content")?.html(),
-			state = mangaState,
-			author = mangaInfo?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text(),
-			isNsfw = manga.isNsfw || docs.selectFirst(".restrictcontainer") != null,
-			tags = tags.orEmpty(),
-			chapters = chapters,
-		)
-	}
+		val selecttag = if(tablemode != null)
+		{
+			tablemode.select(".seriestugenre > a")
+		}else
+		{
+			docs.select(".wd-full .mgen > a")
+		}
 
-	open suspend fun parseInfoList(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
+		val tags = selecttag.mapNotNullToSet { tagMap[it.text()] }
 
-		val state_select =
+
+		val stateselect = if(tablemode != null)
+		{
+			tablemode.selectFirst(".infotable td:contains(Status)") ?: tablemode.selectFirst(".infotable td:contains(Statut)")
+			?: tablemode.selectFirst(".infotable td:contains(حالة العمل)") ?: tablemode.selectFirst(".infotable td:contains(Estado)")
+			?: docs.selectFirst(".infotable td:contains(สถานะ)") ?: tablemode.selectFirst(".infotable td:contains(Stato )")
+			?: tablemode.selectFirst(".infotable td:contains(Durum)") ?: tablemode.selectFirst(".infotable td:contains(Statüsü)")
+
+		}else
+		{
 			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
 			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
 			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
-			?: docs.selectFirst(".tsinfo div:contains(Durum)")
+			?: docs.selectFirst(".tsinfo div:contains(Durum)") ?: docs.selectFirst(".tsinfo div:contains(Statüsü)")
+		}
 
-		val mangaState = state_select?.lastElementChild()?.let {
+		val state = if(tablemode != null)
+		{
+			stateselect?.lastElementSibling()
+
+		}else
+		{
+			stateselect?.lastElementChild()
+		}
+
+
+		val mangaState = state?.let {
 			when (it.text()) {
-				"مستمرةا",
-				"En curso",
-				"Ongoing",
-				"On going",
-				"Ativo",
-				"En Cours",
-				"OnGoing",
-				"Đang tiến hành",
-				"em lançamento",
-				"Онгоінг",
-				"Publishing",
-				"Devam Ediyor",
-				"Em Andamento",
-				"In Corso",
+				"مستمرة", "En curso", "Ongoing", "On going",
+				"Ativo", "En Cours", "OnGoing", "Đang tiến hành", "em lançamento", "Онгоінг", "Publishing",
+				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
 				-> MangaState.ONGOING
-
-				"Completed",
-				"Completo",
-				"Complété",
-				"Fini",
-				"Terminé",
-				"Tamamlandı",
-				"Đã hoàn thành",
-				"مكتملة",
-				"Завершено",
-				"Finished",
-				"Finalizado",
-				"Completata",
+				"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
+				"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
 				-> MangaState.FINISHED
-
 				else -> null
 			}
 		}
 
-		val tags = docs.select(".wd-full .mgen > a").mapNotNullToSet { getOrCreateTagMap()[it.text()] }
+
+
+		val author = tablemode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()?:
+		docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text() ?:
+		docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text() ?:
+		docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text() ?:
+		docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
+
+		val nsfw = docs.selectFirst(".restrictcontainer") != null
+				|| docs.selectFirst(".info-right .alr") != null
+				|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
-			description =
+			description = tablemode?.selectFirst("div.entry-content")?.html() ?:
 			docs.selectFirst("div.entry-content")?.html(),
-
 			state = mangaState,
-			author =
-			docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
-				?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text()
-				?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text()
-				?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text(),
-
-			isNsfw = manga.isNsfw
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null,
+			author = author,
+			isNsfw = manga.isNsfw || nsfw,
 			tags = tags,
 			chapters = chapters,
 		)
@@ -257,25 +213,45 @@ internal abstract class MangaReaderParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
-		val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
-		val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
-			.getJSONArray("sources")
-			.getJSONObject(0)
-			.getJSONArray("images")
 
-		val pages = ArrayList<MangaPage>(images.length())
-		for (i in 0 until images.length()) {
-			pages.add(
+		val test = docs.select("script:containsData(ts_reader)")
+		if(test.isNullOrEmpty())
+		{
+			return docs.select("div#readerarea img").map { img ->
+				val url = img.imageUrl()
 				MangaPage(
-					id = generateUid(images.getString(i)),
-					url = images.getString(i),
+					id = generateUid(url),
+					url = url,
 					preview = null,
 					source = source,
-				),
-			)
+				)
+			}
+		}else
+		{
+			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
+			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
+				.getJSONArray("sources")
+				.getJSONObject(0)
+				.getJSONArray("images")
+			val pages = ArrayList<MangaPage>(images.length())
+			for (i in 0 until images.length()) {
+				pages.add(
+					MangaPage(
+						id = generateUid(images.getString(i)),
+						url = images.getString(i),
+						preview = null,
+						source = source,
+					),
+				)
+			}
+
+			return pages
+
 		}
 
-		return pages
+
+
+
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {

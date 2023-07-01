@@ -16,8 +16,6 @@ internal class CartelDeManhwas(context: MangaLoaderContext) :
 
 	override val listUrl: String
 		get() = "/series"
-	override val tableMode: Boolean
-		get() = false
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("es", "ES"))
 }

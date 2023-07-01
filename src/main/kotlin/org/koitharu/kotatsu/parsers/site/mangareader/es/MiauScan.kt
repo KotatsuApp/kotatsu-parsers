@@ -14,8 +14,6 @@ internal class MiauScan(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("miauscan.com")
 
-	override val listUrl: String get() = "/manga"
-	override val tableMode: Boolean get() = false
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("es", "ES"))
 
