@@ -84,6 +84,7 @@ internal abstract class MadaraParser(
 		"En marcha",
 		"Publicandose",
 		"连载中",
+		"Devam ediyor",
 	)
 
 	protected val finished: Array<String> = arrayOf(
@@ -107,6 +108,7 @@ internal abstract class MadaraParser(
 		"Concluído",
 		"Concluido",
 		"已完结",
+		"Bitmiş",
 	)
 
 
@@ -156,11 +158,11 @@ internal abstract class MadaraParser(
 					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going",
 					"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
 					"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
+					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中", "Devam ediyor",
 					-> MangaState.ONGOING
 
 					"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
-					"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
+					"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
 					-> MangaState.FINISHED
 
 					else -> null
