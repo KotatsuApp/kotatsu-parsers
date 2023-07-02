@@ -90,8 +90,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 						source = source,
 					)
 				}
-		}else
-		{
+		} else {
 			val root = doc.requireElementById("main")
 			return root.select("article.post-outer")
 				.map { article ->
@@ -124,7 +123,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 			altTitle = root.select(".divider2:contains(Noms associés :)").firstOrNull()?.text(),
 			state = when (root.select(".label.label-primary")[2].text()) {
 				"En cours" -> MangaState.ONGOING
-				"Terminé", "Abondonné", "One Shot", -> MangaState.FINISHED
+				"Terminé", "Abondonné", "One Shot" -> MangaState.FINISHED
 				else -> null
 			},
 			tags = root.select("div.project-details a[href*=tag]").mapNotNullToSet { a ->
