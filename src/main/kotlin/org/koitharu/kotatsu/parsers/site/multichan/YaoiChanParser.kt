@@ -6,7 +6,13 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.requireElementById
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
 internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.YAOICHAN) {

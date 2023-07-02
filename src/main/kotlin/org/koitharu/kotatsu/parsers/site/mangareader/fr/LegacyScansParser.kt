@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 @MangaSourceParser("LEGACY_SCANS", "Legacy Scans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :

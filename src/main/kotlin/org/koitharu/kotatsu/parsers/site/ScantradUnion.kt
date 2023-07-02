@@ -6,11 +6,32 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.network.UserAgents
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.requireElementById
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
+import java.util.Locale
 
 @MangaSourceParser("SCANTRADUNION", "Scantrad Union", "fr")
 internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.SCANTRADUNION, 10) {
@@ -141,7 +162,12 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 					val href = li.getElementsByTag("a").firstNotNullOf { a ->
 						a.attrAsAbsoluteUrlOrNull("href")?.takeIf { it.contains("https://$domain/read/") }
 					}
-					val name = li.select(".chapter-name").text()
+
+					val name = if (li.select(".chapter-name").isNullOrEmpty()) {
+						li.select(".chapter-name").text()
+					} else {
+						"Chapter $i"
+					}
 					val date = li.select(".name-chapter").first()!!.children().elementAt(2).text()
 					MangaChapter(
 						id = generateUid(href),

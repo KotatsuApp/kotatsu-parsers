@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 @MangaSourceParser("SUSHISCAN", "SushiScan", "fr")
 internal class SushiScan(context: MangaLoaderContext) :
