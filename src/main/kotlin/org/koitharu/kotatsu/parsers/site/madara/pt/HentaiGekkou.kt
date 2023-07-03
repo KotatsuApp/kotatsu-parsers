@@ -7,10 +7,12 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
 
-@MangaSourceParser("CERISE_SCANS", "Cerise Scans", "pt")
-internal class CeriseScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.CERISE_SCANS, "cerisescans.com") {
+@MangaSourceParser("HENTAIGEKKOU", "Hentai Gekkou", "pt")
+internal class HentaiGekkou(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.HENTAIGEKKOU, "hentai.gekkouscans.com.br", 10) {
 
+	override val tagPrefix = "genero/"
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 	override val sourceLocale: Locale = Locale("pt", "PT")
+	override val isNsfwSource = true
 }

@@ -108,6 +108,7 @@ internal abstract class MadaraParser(
 		"Curso",
 		"En marcha",
 		"Publicandose",
+		"Publicando",
 		"连载中",
 		"Devam ediyor",
 	)
@@ -181,14 +182,15 @@ internal abstract class MadaraParser(
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
 					?.lowercase()) {
-					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going",
-					"Ativo", "En Cours", "En cours", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
-					"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中", "Devam ediyor",
+					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours",
+					"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
+					"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
+					"Devam ediyor",
 					-> MangaState.ONGOING
 
-					"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
-					"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
+					"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "مكتملة",
+					"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
 					-> MangaState.FINISHED
 
 					else -> null
