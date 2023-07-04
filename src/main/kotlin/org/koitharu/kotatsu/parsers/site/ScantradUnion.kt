@@ -17,10 +17,12 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.requireElementById
@@ -189,7 +191,8 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 		val root = doc.body().selectFirst("#webtoon")
 			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
-			val url = img.attr("data-src") ?: img.attr("src") ?: img.parseFailed("Image src not found")
+			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
+			?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -204,7 +207,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 		val body = doc.body()
 		val root = body.select(".asp_gochosen")[1]
 		val list = root?.select("option").orEmpty()
-		return list.mapNotNullToSet { li ->
+		return list.mapToSet { li ->
 
 			MangaTag(
 				key = li.text(),

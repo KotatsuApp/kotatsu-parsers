@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("MANGASORIGINES", "Mangas Origines", "fr")
-internal class MangasOrigines(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGASORIGINES, "mangas-origines.xyz") {
+@MangaSourceParser("MANGASORIGINESUNOFFICIAL", "Mangas Origines ( unofficial )", "fr")
+internal class MangasOriginesUnofficial(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGASORIGINESUNOFFICIAL, "mangas-origines.xyz") {
 
 
 	override val datePattern = "MMMM d, yyyy"

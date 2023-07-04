@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
@@ -84,7 +84,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 			state = mangaState,
 			author = author,
 			isNsfw = manga.isNsfw || nsfw,
-			tags = docs.select("div.spe a[rel*=tag]").mapNotNullToSet { a ->
+			tags = docs.select("div.spe a[rel*=tag]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),
