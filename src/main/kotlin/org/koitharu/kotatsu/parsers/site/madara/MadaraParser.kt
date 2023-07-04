@@ -123,6 +123,7 @@ internal abstract class MadaraParser(
 		"Terminé ⚫",
 		"Tamamlandı",
 		"Đã hoàn thành",
+		"Hoàn Thành",
 		"مكتملة",
 		"Завершено",
 		"Finished",
@@ -189,7 +190,7 @@ internal abstract class MadaraParser(
 					"Devam ediyor",
 					-> MangaState.ONGOING
 
-					"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "مكتملة",
+					"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành", "مكتملة",
 					"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
 					-> MangaState.FINISHED
 
@@ -373,6 +374,10 @@ internal abstract class MadaraParser(
 			date.endsWith(" önce", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// Handle translated 'ago' in Viêt Nam.
+			date.endsWith(" trước", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 			// Handle translated 'ago' in french.
 			date.startsWith("il y a", ignoreCase = true) -> {
 				parseRelativeDate(date)
@@ -448,7 +453,7 @@ internal abstract class MadaraParser(
 				)
 			}.timeInMillis
 
-			WordSet("menit", "dakika", "min", "minute", "minuto", "mins").anyWordIn(date) -> cal.apply {
+			WordSet("menit", "dakika", "min", "minute", "minuto", "mins", "phút").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
 					-number,

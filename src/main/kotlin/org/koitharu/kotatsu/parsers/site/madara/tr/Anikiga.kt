@@ -12,7 +12,7 @@ import java.util.Locale
 internal class Anikiga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ANIKIGA, "anikiga.com") {
 
-	override val tagPrefix = "manga-tur"
+	override val tagPrefix = "manga-tur/"
 	override val datePattern = "d MMMM yyyy"
 	override val sourceLocale: Locale = Locale("tr")
 	override val postreq = true
