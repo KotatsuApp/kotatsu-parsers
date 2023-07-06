@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("HARIMANGA", "HariManga", "en")
 internal class HariManga(context: MangaLoaderContext) :
-	MadaraParser( context, MangaSource.HARIMANGA, "harimanga.com",  pageSize = 10,) {
+	MadaraParser(context, MangaSource.HARIMANGA, "harimanga.com", pageSize = 10) {
 
 	override val datePattern = "MMMM d, yyyy"
 }

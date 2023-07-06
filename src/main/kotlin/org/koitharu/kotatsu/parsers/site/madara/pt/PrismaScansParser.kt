@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class PrismaScansParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PRISMA_SCANS, "prismascans.net", 10) {
 
-	override val tagPrefix = "manga-genre/"
 	override val datePattern = "MMM dd, yyyy"
 
 }

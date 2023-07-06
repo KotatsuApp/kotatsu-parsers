@@ -1,11 +1,19 @@
 package org.koitharu.kotatsu.parsers.site.madara.fr
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -20,7 +28,7 @@ internal class Hentaizone(context: MangaLoaderContext) :
 	override val isNsfwSource = true
 
 
-	override suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
+	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val doc = webClient.httpPost(url, emptyMap()).parseHtml()

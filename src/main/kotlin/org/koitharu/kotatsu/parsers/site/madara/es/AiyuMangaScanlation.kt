@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class AiyuMangaScanlation(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.AIYUMANGASCANLATION, "aiyumangascanlation.com") {
 
-	override val tagPrefix = "manga-genre/"
 	override val datePattern = "MM/dd/yyyy"
 }
