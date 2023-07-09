@@ -250,7 +250,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain), headers).parseHtml()
 		var doc = redirectToReadingPage(redirectDoc)
 		val currentUrl = doc.location()
 		val newUrl = if (!currentUrl.contains("cascade")) {
