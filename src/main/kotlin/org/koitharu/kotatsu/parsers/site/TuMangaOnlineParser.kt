@@ -73,7 +73,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 	private val rateLimitMillis = unit.toMillis(period)
 	private val fairLock = Semaphore(1, true)
 
-	// RateLimit
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val call = chain.call()
 		if (call.isCanceled()) throw IOException("Canceled")
@@ -95,7 +94,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 
 		try {
 			synchronized(requestQueue) {
-				while (requestQueue.size >= permits) { // queue is full, remove expired entries
+				while (requestQueue.size >= permits) {
 					val periodStart = SystemClock.elapsedRealtime() - rateLimitMillis
 					var hasRemovedExpired = false
 					while (requestQueue.isEmpty().not() && requestQueue.first() <= periodStart) {
@@ -283,7 +282,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 		}
 	}
 
-	// Some chapters uses JavaScript to redirect to read page
 	private suspend fun redirectToReadingPage(document: Document): Document {
 		val script1 = document.selectFirst("script:containsData(uniqid)")
 		val script2 = document.selectFirst("script:containsData(window.location.replace)")
