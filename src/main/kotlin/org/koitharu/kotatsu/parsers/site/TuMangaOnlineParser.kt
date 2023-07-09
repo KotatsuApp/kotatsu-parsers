@@ -60,7 +60,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 			SortOrder.POPULARITY,
 		)
 
-	private val host = "lectortmo.com"
+	private val host = domain
 	private val permits = 10
 	private val period = 60L
 	private val unit = TimeUnit.SECONDS
