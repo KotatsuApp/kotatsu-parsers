@@ -10,8 +10,6 @@ internal class Hentaiteca(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAITECA, "hentaiteca.net", pageSize = 10) {
 
 	override val datePattern = "MM/dd/yyyy"
-
 	override val tagPrefix = "genero/"
-
 	override val isNsfwSource = true
 }

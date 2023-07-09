@@ -4,12 +4,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.Locale
 
 @MangaSourceParser("EMPERORSCAN", "Emperor Scan", "es")
 internal class EmperorScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.EMPERORSCAN, "dokkomanga.com") {
 
 	override val datePattern = "MMMM d, yyyy"
-	override val sourceLocale: Locale = Locale("es")
 }

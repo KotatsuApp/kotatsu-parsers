@@ -115,14 +115,15 @@ internal abstract class MangaReaderParser(
 
 		val mangaState = state?.let {
 			when (it.text()) {
-				"مستمرة", "En curso", "Ongoing", "On going",
-				"Ativo", "En Cours", "OnGoing", "Đang tiến hành", "em lançamento", "Онгоінг", "Publishing",
-				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "连载中",
+				"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours",
+				"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
+				"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
+				"Devam ediyor",
 				-> MangaState.ONGOING
 
-				"Completed", "Completo", "Complété", "Fini", "Terminé", "Tamamlandı", "Đã hoàn thành", "مكتملة", "Завершено",
-				"Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结",
+				"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành", "مكتملة",
+				"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
 				-> MangaState.FINISHED
 
 				else -> null
@@ -141,8 +142,7 @@ internal abstract class MangaReaderParser(
 				|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
-			description = tablemode?.selectFirst("div.entry-content")?.html() ?: docs.selectFirst("div.entry-content")
-				?.html(),
+			description = docs.selectFirst("div.entry-content")?.text(),
 			state = mangaState,
 			author = author,
 			isNsfw = manga.isNsfw || nsfw,

@@ -10,6 +10,5 @@ internal class ScantradVf(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SCANTRADVF, "scantrad-vf.co") {
 
 	override val datePattern = "d MMMM yyyy"
-
 	override val tagPrefix = "genre/"
 }

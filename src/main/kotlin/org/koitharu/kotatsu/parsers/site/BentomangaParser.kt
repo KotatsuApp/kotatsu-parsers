@@ -202,7 +202,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 	private fun parseChapters(root: Element): List<MangaChapter> {
 		return root.requireElementById("chapters_content")
 			.select(".component-chapter").map { div ->
-				val a = div.selectFirstOrThrow("a")
+				val a = div.selectFirstOrThrow("a:not([style*='display:none'])")
 				val href = a.attrAsRelativeUrl("href")
 				val title = div.selectFirstOrThrow(".chapter_volume").text()
 				val name = div.selectFirst(".chapter_title")?.textOrNull()
