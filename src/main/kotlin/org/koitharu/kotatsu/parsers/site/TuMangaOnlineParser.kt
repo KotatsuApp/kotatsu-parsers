@@ -38,9 +38,6 @@ import java.util.Locale
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
-/**
- * This parser is just for parser development, it should not be used in releases
- */
 @MangaSourceParser("TUMANGAONLINE", "TuMangaOnline", "es")
 class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 	context,
