@@ -7,7 +7,6 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -293,10 +292,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 			val regexAction = """form\.action\s?=\s?'(.+)'""".toRegex()
 			val params = regexParams.find(data)!!
 			val action = regexAction.find(data)!!.groupValues[1]
-
-			val body = JSONObject()
-			body.put("uniqid",params.groupValues[1])
-			body.put("cascade",params.groupValues[2])
 
 			val formBody = FormBody.Builder()
 				.add("uniqid", params.groupValues[1])
