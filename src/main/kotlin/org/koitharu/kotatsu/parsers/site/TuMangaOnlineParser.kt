@@ -201,7 +201,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 				doc.select(regularChapterListSelector()).reversed().forEachIndexed { i, item ->
 					val chaptername = item.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
 					val scanelement = item.select("ul.chapter-list > li")
-					scanelement.forEach { chapters.add(regularChapterFromElement(item, chaptername, i)) }
+					scanelement.forEach { chapters.add(regularChapterFromElement(it, chaptername, i)) }
 				}
 				chapters
 			}
