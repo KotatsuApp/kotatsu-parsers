@@ -4,11 +4,11 @@ import android.os.SystemClock
 import okhttp3.FormBody
 import okhttp3.Headers
 import okhttp3.Interceptor
-import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.core.util.ext.ensureSuccess
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -21,19 +21,23 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
+import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.tryParse
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.EnumSet
-import java.util.Locale
 import java.util.concurrent.Semaphore
 import java.util.concurrent.TimeUnit
 
@@ -44,26 +48,16 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 	pageSize = 24,
 ), Interceptor {
 
-	private val client = OkHttpClient.Builder().build()
-
-	override val headers: Headers
-		get() = super.headers.newBuilder()
-			.set("Referer","https://$domain/")
-			.build()
-
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("lectortmo.com")
+
+	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(
 			SortOrder.NEWEST,
 			SortOrder.POPULARITY,
 		)
-
-	private val host = domain
-	private val permits = 10
-	private val period = 60L
-	private val unit = TimeUnit.SECONDS
 
 	private val requestQueue = ArrayDeque<Long>(permits)
 	private val rateLimitMillis = unit.toMillis(period)
@@ -74,7 +68,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 		if (call.isCanceled()) throw IOException("Canceled")
 
 		val request = chain.request()
-		when (host) {
+		when (domain) {
 			request.url.host -> {}
 			else -> return chain.proceed(request)
 		}
@@ -168,7 +162,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 		val doc = webClient.httpGet(url, headers).parseHtml()
 		val items = doc.body().select("div.element")
 		return items.mapNotNull { item ->
-			val href = item.selectFirst("a")?.attrAsRelativeUrl("href")?.substringAfter(" ") ?: return@mapNotNull null
+			val href = item.selectFirst("a")?.attrAsRelativeUrlOrNull("href")?.substringAfter(' ') ?: return@mapNotNull null
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h4.text-truncate")?.text() ?: return@mapNotNull null,
@@ -199,13 +193,15 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
 			author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", "),
 			chapters = if(doc.select("div.chapters").isEmpty()){
-				doc.select(oneShotChapterListSelector()).reversed().map { oneShotChapterFromElement(it) }
+				doc.select(oneShotChapterListSelector()).mapChapters(reversed = true) { i, item ->
+					oneShotChapterFromElement(item)
+				}
 			} else {
 				val chapters = mutableListOf<MangaChapter>()
-				doc.select(regularChapterListSelector()).reversed().forEachIndexed{ i, chapelement ->
-					val chaptername = chapelement.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
-					val scanelement = chapelement.select("ul.chapter-list > li")
-					scanelement.forEach { chapters.add(regularChapterFromElement(it, chaptername, i)) }
+				doc.select(regularChapterListSelector()).reversed().forEachIndexed { i, item ->
+					val chaptername = item.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
+					val scanelement = item.select("ul.chapter-list > li")
+					scanelement.forEach { chapters.add(regularChapterFromElement(item, chaptername, i)) }
 				}
 				chapters
 			}
@@ -214,8 +210,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 
 	private fun oneShotChapterListSelector() = "div.chapter-list-element > ul.list-group li.list-group-item"
 	private fun oneShotChapterFromElement(element: Element): MangaChapter {
-		val href = element.selectFirst("div.row > .text-right > a")
-			?.attrAsRelativeUrl("href") ?: element.parseFailed()
+		val href = element.selectFirstOrThrow("div.row > .text-right > a")
+			.attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
 			name = "One Shot",
@@ -223,17 +219,15 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
-			uploadDate = element.select("span.badge.badge-primary.p-2").first()?.text()
-				?.let { parseChapterDate(it) }
-				?: 0,
+			uploadDate = chapterDateFormat.tryParse(element.select("span.badge.badge-primary.p-2").first()?.text()),
 			source = source,
 		)
 	}
 
 	private fun regularChapterListSelector() = "div.chapters > ul.list-group li.p-0.list-group-item"
 	private fun regularChapterFromElement(element: Element, chName: String, number: Int): MangaChapter {
-		val href = element.selectFirst("div.row > .text-right > a")
-			?.attrAsRelativeUrl("href") ?: element.parseFailed()
+		val href = element.selectFirstOrThrow("div.row > .text-right > a")
+			.attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
 			name = chName,
@@ -241,9 +235,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
-			uploadDate = element.select("span.badge.badge-primary.p-2").first()?.text()
-				?.let { parseChapterDate(it) }
-				?: 0,
+			uploadDate = chapterDateFormat.tryParse(element.select("span.badge.badge-primary.p-2").first()?.text()),
 			source = source,
 		)
 	}
@@ -298,13 +290,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 				.add("cascade", params.groupValues[2])
 				.build()
 
-			val postRequest = Request.Builder()
-				.url(action)
-				.headers(redirectHeaders)
-				.post(formBody)
-				.build()
-
-			return redirectToReadingPage(client.newCall(postRequest).execute().parseHtml())
+			return redirectToReadingPage(webClient.httpPost(action,redirectHeaders,formBody).parseHtml())
 		}
 
 		if (script2 != null) {
@@ -318,57 +304,17 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 		return document
 	}
 
-	override suspend fun getTags() = setOf<MangaTag>(
-		MangaTag("Acción", "1", source),
-		MangaTag("Aventura", "2", source),
-		MangaTag("Comedia", "3", source),
-		MangaTag("Drama", "4", source),
-		MangaTag("Recuentos de la vida", "5", source),
-		MangaTag("Ecchi", "6", source),
-		MangaTag("Fantasia", "7", source),
-		MangaTag("Magia", "8", source),
-		MangaTag("Sobrenatural", "9", source),
-		MangaTag("Horror", "10", source),
-		MangaTag("Misterio", "11", source),
-		MangaTag("Psicológico", "12", source),
-		MangaTag("Romance", "13", source),
-		MangaTag("Ciencia Ficción", "14", source),
-		MangaTag("Thriller", "15", source),
-		MangaTag("Deporte", "16", source),
-		MangaTag("Girls Love", "17", source),
-		MangaTag("Boys Love", "18", source),
-		MangaTag("Harem", "19", source),
-		MangaTag("Mecha", "20", source),
-		MangaTag("Supervivencia", "21", source),
-		MangaTag("Reencarnación", "22", source),
-		MangaTag("Gore", "23", source),
-		MangaTag("Apocalíptico", "24", source),
-		MangaTag("Tragedia", "25", source),
-		MangaTag("Vida Escolar", "26", source),
-		MangaTag("Historia", "27", source),
-		MangaTag("Militar", "28", source),
-		MangaTag("Policiaco", "29", source),
-		MangaTag("Crimen", "30", source),
-		MangaTag("Superpoderes", "31", source),
-		MangaTag("Vampiros", "32", source),
-		MangaTag("Artes Marciales", "33", source),
-		MangaTag("Samurái", "34", source),
-		MangaTag("Género Bender", "35", source),
-		MangaTag("Realidad Virtual", "36", source),
-		MangaTag("Ciberpunk", "37", source),
-		MangaTag("Musica", "38", source),
-		MangaTag("Parodia", "39", source),
-		MangaTag("Animación", "40", source),
-		MangaTag("Demonios", "41", source),
-		MangaTag("Familia", "42", source),
-		MangaTag("Extranjero", "43", source),
-		MangaTag("Niños", "44", source),
-		MangaTag("Realidad", "45", source),
-		MangaTag("Telenovela", "46", source),
-		MangaTag("Guerra", "47", source),
-		MangaTag("Oeste", "48", source),
-	)
-
+	override suspend fun getTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/library", headers).parseHtml()
+		val elements = doc.body().select("div#books-genders > div > div")
+		return elements.mapNotNullToSet { element ->
+			MangaTag(
+				title = element.select("label").text(),
+				key = element.select("input").attr("value"),
+				source = source
+			)
+		}
+	}
 
 	private fun parseStatus(status: String) = when {
 		status.contains("Publicándose") -> MangaState.ONGOING
@@ -376,7 +322,18 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser (
 		else -> null
 	}
 
-	private fun parseChapterDate(date: String): Long =
-		SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).parse(date)?.time ?: 0
+	private suspend fun WebClient.httpPost(url: String, headers: Headers, body: FormBody): Response {
+		val client = context.httpClient
+		val request = Request.Builder()
+			.post(body)
+			.headers(headers)
+			.url(url)
+		return client.newCall(request.build()).await().ensureSuccess()
+	}
 
+	companion object {
+		private const val permits = 10
+		private const val period = 60L
+		private val unit = TimeUnit.SECONDS
+	}
 }
