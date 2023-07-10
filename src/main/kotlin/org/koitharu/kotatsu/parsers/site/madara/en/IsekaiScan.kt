@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -21,6 +22,7 @@ import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
@@ -88,7 +90,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail.manga")
 		}.map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			Manga(
 				id = generateUid(href),
@@ -108,17 +110,8 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
 					?.lowercase()) {
-					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours", "Activo",
-					"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
-					"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "Em andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
-					"Devam ediyor",
-					-> MangaState.ONGOING
-
-					"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành", "مكتملة",
-					"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
-					-> MangaState.FINISHED
-
+					"Ongoing" -> MangaState.ONGOING
+					"Completed " -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,

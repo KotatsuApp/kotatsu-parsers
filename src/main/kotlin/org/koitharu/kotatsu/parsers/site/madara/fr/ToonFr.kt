@@ -34,8 +34,8 @@ internal class ToonFr(context: MangaLoaderContext) :
 			val href = a.attrAsRelativeUrl("href") + "?style=list"
 
 			// correct parse date missing a "."
-			val date_org = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
-			val date_corect_parse = date_org
+			val dateOrg = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
+			val dateCorrectParse = dateOrg
 				.replace("Jan", "janv.")
 				.replace("Févr", "févr.")
 				.replace("Avr", "avr.")
@@ -52,7 +52,7 @@ internal class ToonFr(context: MangaLoaderContext) :
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					date_corect_parse,
+					dateCorrectParse,
 				),
 				scanlator = null,
 				source = source,
