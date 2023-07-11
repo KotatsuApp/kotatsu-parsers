@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 
-@MangaSourceParser("HAYALISTIC", "Hayalistic", "vi")
+@MangaSourceParser("HAYALISTIC", "Hayalistic", "tr")
 internal class Hayalistic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HAYALISTIC, "hayalistic.com", 24) {
 

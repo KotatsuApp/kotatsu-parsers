@@ -11,5 +11,4 @@ internal class AstralManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ASTRALMANGA, "astral-manga.fr", pageSize = 12) {
 
 	override val datePattern = "dd/MM/yyyy"
-
 }

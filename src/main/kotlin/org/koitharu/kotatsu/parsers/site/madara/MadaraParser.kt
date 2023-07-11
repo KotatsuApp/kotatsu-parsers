@@ -51,11 +51,14 @@ internal abstract class MadaraParser(
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
+		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL,
 	)
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val isNsfwSource = false
 	protected open val datePattern = "MMMM dd, yyyy"
+	protected open val stylepage = "?style=list"
 
 	protected open val postreq = false
 
@@ -87,6 +90,7 @@ internal abstract class MadaraParser(
 		"En cours",
 		"En cours \uD83D\uDFE2",
 		"En cours de publication",
+		"Activo",
 		"Đang tiến hành",
 		"Em lançamento",
 		"em lançamento",
@@ -95,6 +99,7 @@ internal abstract class MadaraParser(
 		"Publishing",
 		"Devam Ediyor",
 		"Em Andamento",
+		"Em andamento",
 		"In Corso",
 		"Güncel",
 		"Berjalan",
@@ -149,11 +154,19 @@ internal abstract class MadaraParser(
 		val tag = tags.oneOrThrowIfMany()
 		val payload = createRequestTemplate()
 		payload["page"] = page.toString()
-		payload["vars[meta_key]"] = when (sortOrder) {
-			SortOrder.POPULARITY -> "_wp_manga_views"
-			SortOrder.UPDATED -> "_latest_update"
-			else -> "_wp_manga_views"
+		when (sortOrder) {
+			SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
+			SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
+			SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
+			SortOrder.ALPHABETICAL -> {
+				payload["vars[orderby]"] = "post_title"
+				payload["vars[order]"] = "ASC"
+			}
+
+			else -> payload["vars[meta_key]"] = "_latest_update"
+
 		}
+
 		payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
 		payload["vars[s]"] = query?.urlEncoded().orEmpty()
 		val doc = webClient.httpPost(
@@ -183,9 +196,9 @@ internal abstract class MadaraParser(
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
 					?.lowercase()) {
-					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours",
+					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours", "Activo",
 					"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
-					"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
+					"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "Em andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
 					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
 					"Devam ediyor",
 					-> MangaState.ONGOING
@@ -228,6 +241,12 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	protected open val selectdesc =
+		"div.description-summary div.summary__content, div.summary_content div.post-content_item > h5 + div, div.summary_content div.manga-excerpt, div.post-content div.manga-summary, div.post-content div.desc, div.c-page__content div.summary__content"
+	protected open val selectgenre = "div.genres-content a"
+	protected open val selectdate = "span.chapter-release-date i"
+	protected open val selectchapter = "li.wp-manga-chapter"
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -240,23 +259,27 @@ internal abstract class MadaraParser(
 			async { getChapters(manga, doc) }
 		}
 
-		val desc = doc.body().selectFirst("div.description-summary div.summary__content") ?: doc.body()
-			.selectFirst("div.summary_content div.post-content_item > h5 + div") ?: doc.body()
-			.selectFirst("div.post-content div.manga-summary") ?: doc.body()
-			.selectFirst("div.post-content div.desc") ?: doc.body()
-			.selectFirst("div.summary_content div.manga-excerpt")
-
+		val desc = doc.select(selectdesc).let {
+			if (it.select("p").text().isNotEmpty()) {
+				it.select("p").joinToString(separator = "\n\n") { p ->
+					p.text().replace("<br>", "\n")
+				}
+			} else {
+				it.text()
+			}
+		}
 
 		val stateselect =
 			doc.body().select("div.post-content_item:contains(Status) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Statut) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(حالة العمل) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(Estado) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Stato) > div.summary-content").last()
-			?: doc.body().select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Statüsü) > div.summary-content").last()
-			?: doc.body().select("div.summary-content").last()
+				.select("div.post-content_item:contains(Statut) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(حالة العمل) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Estado) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Stato) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(Statüsü) > div.summary-content").last() ?: doc.body()
+				.select("div.post-content_item:contains(状态) > div.summary-content").last() ?: doc.body()
+				.select("div.summary-content").last()
 
 		val state =
 			stateselect?.let {
@@ -267,20 +290,21 @@ internal abstract class MadaraParser(
 				}
 			}
 
+		val alt =
+			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()
+				?.trim() ?: doc.body().select(".post-content_item:contains(Nomes alternativos: ) .summary-content")
+				.firstOrNull()?.tableValue()?.text()?.trim()
+
 		manga.copy(
-			tags = doc.body().select("div.genres-content a").mapNotNullToSet { a ->
+			tags = doc.body().select(selectgenre).mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
 			},
-			description = desc?.select("p")?.filterNot { it.ownText().startsWith("A brief description") }
-				?.joinToString { it.text() },
-			altTitle =
-			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()
-				?.trim() ?: doc.body().select(".post-content_item:contains(Nomes alternativos: ) .summary-content")
-				.firstOrNull()?.tableValue()?.text()?.trim(),
+			description = desc,
+			altTitle = alt,
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)
@@ -289,10 +313,10 @@ internal abstract class MadaraParser(
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
+		return root2.select(selectchapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + "?style=list"
+			val link = href + stylepage
 			MangaChapter(
 				id = generateUid(href),
 				name = a.ownText(),
@@ -300,7 +324,7 @@ internal abstract class MadaraParser(
 				url = link,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					li.selectFirst("span.chapter-release-date i")?.text(),
+					li.selectFirst(selectdate)?.text(),
 				),
 				source = source,
 				scanlator = null,
@@ -323,19 +347,19 @@ internal abstract class MadaraParser(
 		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
-		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
+		return doc.select(selectchapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + "?style=list"
+			val link = href + stylepage
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = a.text(),
+				name = a.ownText(),
 				number = i + 1,
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					li.selectFirst("span.chapter-release-date i")?.text(),
+					li.selectFirst(selectdate)?.text(),
 				),
 				scanlator = null,
 				source = source,
@@ -370,6 +394,10 @@ internal abstract class MadaraParser(
 			date.endsWith(" atrás", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// other translated 'ago' in Portuguese.
+			date.startsWith("há ", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 			// Handle translated 'ago' in Turkish.
 			date.endsWith(" önce", ignoreCase = true) -> {
 				parseRelativeDate(date)
@@ -390,10 +418,31 @@ internal abstract class MadaraParser(
 			date.endsWith(" d", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
-
-			date.endsWith(" mins", ignoreCase = true) -> {
+			//If there is no ago but just a motion of time
+			date.endsWith(" días", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+
+			date.endsWith(" día", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			date.endsWith(" horas", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			date.endsWith(" hora", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			date.endsWith(" minutos", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			date.endsWith(" minuto", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
 			// Handle 'yesterday' and 'today', using midnight
 			date.startsWith("year", ignoreCase = true) -> {
 				Calendar.getInstance().apply {
@@ -446,7 +495,7 @@ internal abstract class MadaraParser(
 				"d",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("jam", "saat", "heure", "hora", "hour", "h").anyWordIn(date) -> cal.apply {
+			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "h").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
 					-number,
