@@ -8,35 +8,11 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.model.WordSet
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.removeSuffix
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toMutableMap
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.EnumSet
+import java.util.*
 
 
 internal abstract class MadaraParser(
@@ -78,7 +54,8 @@ internal abstract class MadaraParser(
 	}
 
 
-	protected val ongoing: Array<String> = arrayOf(
+	@JvmField
+	protected val ongoing: Set<String> = hashSetOf(
 		"مستمرة",
 		"En curso",
 		"En Curso",
@@ -118,7 +95,8 @@ internal abstract class MadaraParser(
 		"Devam ediyor",
 	)
 
-	protected val finished: Array<String> = arrayOf(
+	@JvmField
+	protected val finished: Set<String> = hashSetOf(
 		"Completed",
 		"Completo",
 		"Complété",
@@ -143,7 +121,6 @@ internal abstract class MadaraParser(
 		"已完结",
 		"Bitmiş",
 	)
-
 
 	override suspend fun getListPage(
 		page: Int,
@@ -194,19 +171,10 @@ internal abstract class MadaraParser(
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
+				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
 					?.lowercase()) {
-					"مستمرة", "En curso", "En Curso", "Ongoing", "OnGoing", "On going", "Ativo", "En Cours", "En cours", "Activo",
-					"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
-					"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "Em andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
-					"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
-					"Devam ediyor",
-					-> MangaState.ONGOING
-
-					"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành", "مكتملة",
-					"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
-					-> MangaState.FINISHED
-
+					in ongoing -> MangaState.ONGOING
+					in finished -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
@@ -250,8 +218,9 @@ internal abstract class MadaraParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val body = doc.body()
 
-		val testchekasync = doc.body().select("div.listing-chapters_wrap")
+		val testchekasync = body.select("div.listing-chapters_wrap")
 
 		val chaptersDeferred = if (testchekasync.isNullOrEmpty()) {
 			async { loadChapters(manga.url, doc) }
@@ -259,7 +228,7 @@ internal abstract class MadaraParser(
 			async { getChapters(manga, doc) }
 		}
 
-		val desc = doc.select(selectdesc).let {
+		val desc = body.select(selectdesc).let {
 			if (it.select("p").text().isNotEmpty()) {
 				it.select("p").joinToString(separator = "\n\n") { p ->
 					p.text().replace("<br>", "\n")
@@ -269,26 +238,24 @@ internal abstract class MadaraParser(
 			}
 		}
 
-		val stateselect =
-			doc.body().select("div.post-content_item:contains(Status) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Statut) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(حالة العمل) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Estado) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(สถานะ) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Stato) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Durum) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(Statüsü) > div.summary-content").last() ?: doc.body()
-				.select("div.post-content_item:contains(状态) > div.summary-content").last() ?: doc.body()
-				.select("div.summary-content").last()
+		val stateDiv = (body.selectFirst("div.post-content_item:contains(Status)")
+			?: body.selectFirst("div.post-content_item:contains(Statut)")
+			?: body.selectFirst("div.post-content_item:contains(حالة العمل)")
+			?: body.selectFirst("div.post-content_item:contains(Estado)")
+			?: body.selectFirst("div.post-content_item:contains(สถานะ)")
+			?: body.selectFirst("div.post-content_item:contains(Stato)")
+			?: body.selectFirst("div.post-content_item:contains(Durum)")
+			?: body.selectFirst("div.post-content_item:contains(Statüsü)")
+			?: body.selectFirst("div.post-content_item:contains(Статус)")
+			?: body.selectFirst("div.post-content_item:contains(状态)"))?.selectLast("div.summary-content")
 
-		val state =
-			stateselect?.let {
-				when (it.text()) {
-					in ongoing -> MangaState.ONGOING
-					in finished -> MangaState.FINISHED
-					else -> null
-				}
+		val state = stateDiv?.let {
+			when (it.text()) {
+				in ongoing -> MangaState.ONGOING
+				in finished -> MangaState.FINISHED
+				else -> null
 			}
+		}
 
 		val alt =
 			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()
@@ -335,15 +302,14 @@ internal abstract class MadaraParser(
 
 	protected open suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 
-		val doc = if (postreq == false) {
-			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
-			webClient.httpPost(url, emptyMap()).parseHtml()
-		} else {
+		val doc = if (postreq) {
 			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 			val url = "https://$domain/wp-admin/admin-ajax.php"
 			val postdata = "action=manga_get_chapters&manga=$mangaId"
-
 			webClient.httpPost(url, postdata).parseHtml()
+		} else {
+			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+			webClient.httpPost(url, emptyMap()).parseHtml()
 		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
@@ -406,7 +372,7 @@ internal abstract class MadaraParser(
 			date.endsWith(" trước", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
-			// Handle translated 'ago' in french.
+			// Handle translated 'ago' in French.
 			date.startsWith("il y a", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}

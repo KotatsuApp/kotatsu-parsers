@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 
-@MangaSourceParser("BEST_MANGA", "best manga", "ru")
+@MangaSourceParser("BEST_MANGA", "BestManga", "ru")
 internal class BestManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BEST_MANGA, "bestmanga.club") {
 
