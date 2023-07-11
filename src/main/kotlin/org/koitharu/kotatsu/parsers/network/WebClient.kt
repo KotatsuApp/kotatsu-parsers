@@ -22,6 +22,11 @@ interface WebClient {
 	 */
 	suspend fun httpGet(url: HttpUrl): Response = httpGet(url, null)
 
+	/**
+	 * Do a GET http request to specific url
+	 * @param url
+	 * @param extraHeaders additional HTTP headers for request
+	 */
 	suspend fun httpGet(url: HttpUrl, extraHeaders: Headers?): Response
 
 	/**
@@ -41,42 +46,66 @@ interface WebClient {
 	 * @param url
 	 * @param form payload as key=>value map
 	 */
-	suspend fun httpPost(url: String, form: Map<String, String>): Response = httpPost(url.toHttpUrl(), form)
+	suspend fun httpPost(url: String, form: Map<String, String>): Response = httpPost(url.toHttpUrl(), form, null)
 
 	/**
 	 * Do a POST http request to specific url with `multipart/form-data` payload
 	 * @param url
 	 * @param form payload as key=>value map
 	 */
-	suspend fun httpPost(url: HttpUrl, form: Map<String, String>): Response
+	suspend fun httpPost(url: HttpUrl, form: Map<String, String>): Response = httpPost(url, form, null)
+
+	/**
+	 * Do a POST http request to specific url with `multipart/form-data` payload
+	 * @param url
+	 * @param form payload as key=>value map
+	 * @param extraHeaders additional HTTP headers for request
+	 */
+	suspend fun httpPost(url: HttpUrl, form: Map<String, String>, extraHeaders: Headers?): Response
 
 	/**
 	 * Do a POST http request to specific url with `multipart/form-data` payload
 	 * @param url
 	 * @param payload payload as `key=value` string with `&` separator
 	 */
-	suspend fun httpPost(url: String, payload: String): Response = httpPost(url.toHttpUrl(), payload)
+	suspend fun httpPost(url: String, payload: String): Response = httpPost(url.toHttpUrl(), payload, null)
 
 	/**
 	 * Do a POST http request to specific url with `multipart/form-data` payload
 	 * @param url
 	 * @param payload payload as `key=value` string with `&` separator
 	 */
-	suspend fun httpPost(url: HttpUrl, payload: String): Response
+	suspend fun httpPost(url: HttpUrl, payload: String): Response = httpPost(url, payload, null)
+
+	/**
+	 * Do a POST http request to specific url with `multipart/form-data` payload
+	 * @param url
+	 * @param payload payload as `key=value` string with `&` separator
+	 * @param extraHeaders additional HTTP headers for request
+	 */
+	suspend fun httpPost(url: HttpUrl, payload: String, extraHeaders: Headers?): Response
 
 	/**
 	 * Do a POST http request to specific url with json payload
 	 * @param url
 	 * @param body
 	 */
-	suspend fun httpPost(url: String, body: JSONObject): Response = httpPost(url.toHttpUrl(), body)
+	suspend fun httpPost(url: String, body: JSONObject): Response = httpPost(url.toHttpUrl(), body, null)
 
 	/**
 	 * Do a POST http request to specific url with json payload
 	 * @param url
 	 * @param body
 	 */
-	suspend fun httpPost(url: HttpUrl, body: JSONObject): Response
+	suspend fun httpPost(url: HttpUrl, body: JSONObject): Response = httpPost(url, body, null)
+
+	/**
+	 * Do a POST http request to specific url with json payload
+	 * @param url
+	 * @param body
+	 * @param extraHeaders additional HTTP headers for request
+	 */
+	suspend fun httpPost(url: HttpUrl, body: JSONObject, extraHeaders: Headers?): Response
 
 	/**
 	 * Do a GraphQL request to specific url

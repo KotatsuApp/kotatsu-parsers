@@ -23,9 +23,7 @@ class OkHttpWebClient(
 			.get()
 			.url(url)
 			.addTags()
-		if (extraHeaders != null) {
-			request.headers(extraHeaders)
-		}
+			.addExtraHeaders(extraHeaders)
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
@@ -37,7 +35,7 @@ class OkHttpWebClient(
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
-	override suspend fun httpPost(url: HttpUrl, form: Map<String, String>): Response {
+	override suspend fun httpPost(url: HttpUrl, form: Map<String, String>, extraHeaders: Headers?): Response {
 		val body = FormBody.Builder()
 		form.forEach { (k, v) ->
 			body.addEncoded(k, v)
@@ -46,10 +44,11 @@ class OkHttpWebClient(
 			.post(body.build())
 			.url(url)
 			.addTags()
+			.addExtraHeaders(extraHeaders)
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
-	override suspend fun httpPost(url: HttpUrl, payload: String): Response {
+	override suspend fun httpPost(url: HttpUrl, payload: String, extraHeaders: Headers?): Response {
 		val body = FormBody.Builder()
 		payload.split('&').forEach {
 			val pos = it.indexOf('=')
@@ -63,16 +62,18 @@ class OkHttpWebClient(
 			.post(body.build())
 			.url(url)
 			.addTags()
+			.addExtraHeaders(extraHeaders)
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
-	override suspend fun httpPost(url: HttpUrl, body: JSONObject): Response {
+	override suspend fun httpPost(url: HttpUrl, body: JSONObject, extraHeaders: Headers?): Response {
 		val mediaType = "application/json; charset=utf-8".toMediaType()
 		val requestBody = body.toString().toRequestBody(mediaType)
 		val request = Request.Builder()
 			.post(requestBody)
 			.url(url)
 			.addTags()
+			.addExtraHeaders(extraHeaders)
 		return httpClient.newCall(request.build()).await().ensureSuccess()
 	}
 
@@ -99,6 +100,13 @@ class OkHttpWebClient(
 
 	private fun Request.Builder.addTags(): Request.Builder {
 		tag(MangaSource::class.java, mangaSource)
+		return this
+	}
+
+	private fun Request.Builder.addExtraHeaders(headers: Headers?): Request.Builder {
+		if (headers != null) {
+			headers(headers)
+		}
 		return this
 	}
 
