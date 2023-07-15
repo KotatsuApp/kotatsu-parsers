@@ -8,7 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TOONCHILL", "Toon Chill", "en")
 internal class ToonChill(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TOONCHILL, "toonchill.com", 32) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.TOONCHILL, "toonchill.com", 32)

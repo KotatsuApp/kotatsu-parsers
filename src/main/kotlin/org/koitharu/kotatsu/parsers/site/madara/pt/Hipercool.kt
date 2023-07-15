@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Hipercool(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HIPERCOOL, "hipercool.xyz", pageSize = 20) {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val tagPrefix = "manga-tag/"
 	override val isNsfwSource = true
 }

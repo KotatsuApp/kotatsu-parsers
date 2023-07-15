@@ -11,6 +11,5 @@ internal class RagnarokScan(context: MangaLoaderContext) :
 
 	override val stylepage = ""
 	override val tagPrefix = "genero/"
-	override val datePattern = "MMMM d, yyyy"
 
 }

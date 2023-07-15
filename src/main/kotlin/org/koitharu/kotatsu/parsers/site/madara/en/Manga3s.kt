@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Manga3s(context: MangaLoaderContext) : MadaraParser(context, MangaSource.MANGA_3S, "manga3s.com") {
 
 	override val tagPrefix = "manhwa-genre/"
+	override val datePattern = "MMMM dd, yyyy"
 }

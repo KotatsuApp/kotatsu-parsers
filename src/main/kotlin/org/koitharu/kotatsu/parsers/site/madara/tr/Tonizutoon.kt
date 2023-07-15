@@ -12,5 +12,4 @@ internal class Tonizutoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TONIZUTOON, "tonizutoon.com") {
 
 	override val isNsfwSource = true
-	override val datePattern = "MMMM d, yyyy"
 }

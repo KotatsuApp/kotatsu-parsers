@@ -11,6 +11,6 @@ internal class Toonily(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TOONILY, "toonily.com", pageSize = 18) {
 
 	override val tagPrefix = "webtoon-genre/"
-
+	override val datePattern = "MMMM dd, yyyy"
 	override val isNsfwSource = false
 }

@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RANDOMSCANS", "Random Scans", "pt")
 internal class RandomScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RANDOMSCANS, "randomscans.com") {
-
-	override val datePattern: String = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.RANDOMSCANS, "randomscans.com")

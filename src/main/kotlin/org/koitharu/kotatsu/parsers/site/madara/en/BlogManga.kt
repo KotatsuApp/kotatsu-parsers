@@ -11,6 +11,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class BlogManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BLOG_MANGA, "blogmanga.net") {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val postreq = true
 }

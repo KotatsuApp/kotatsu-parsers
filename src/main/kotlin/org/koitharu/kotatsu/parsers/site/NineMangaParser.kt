@@ -195,8 +195,27 @@ internal abstract class NineMangaParser(
 	}
 
 	private fun parseStatus(status: String) = when {
+		// en
 		status.contains("Ongoing") -> MangaState.ONGOING
 		status.contains("Completed") -> MangaState.FINISHED
+		//es
+		status.contains("En curso") -> MangaState.ONGOING
+		status.contains("Completado") -> MangaState.FINISHED
+		//ru
+		status.contains("постоянный") -> MangaState.ONGOING
+		status.contains("завершенный") -> MangaState.FINISHED
+		//de
+		status.contains("Laufende") -> MangaState.ONGOING
+		status.contains("Abgeschlossen") -> MangaState.FINISHED
+		//pt
+		status.contains("Completo") -> MangaState.ONGOING
+		status.contains("Em tradução") -> MangaState.FINISHED
+		//it
+		status.contains("In corso") -> MangaState.ONGOING
+		status.contains("Completato") -> MangaState.FINISHED
+		//fr
+		status.contains("En cours") -> MangaState.ONGOING
+		status.contains("Complété") -> MangaState.FINISHED
 		else -> null
 	}
 

@@ -10,5 +10,4 @@ internal class Eromiau(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.EROMIAU, "www.eromiau.com", 10) {
 
 	override val isNsfwSource = true
-	override val datePattern = "MMMM d, yyyy"
 }

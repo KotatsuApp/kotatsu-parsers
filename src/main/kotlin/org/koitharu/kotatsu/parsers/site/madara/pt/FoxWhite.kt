@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FOXWHITE", "Fox White", "pt")
 internal class FoxWhite(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FOXWHITE, "foxwhite.com.br") {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.FOXWHITE, "foxwhite.com.br")

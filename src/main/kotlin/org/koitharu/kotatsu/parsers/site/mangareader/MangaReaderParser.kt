@@ -79,16 +79,16 @@ internal abstract class MangaReaderParser(
 
 		val tagMap = getOrCreateTagMap()
 
-		val selecttag = if (tablemode != null) {
-			tablemode.select(".seriestugenre > a")
+		val selectTag = if (tablemode != null) {
+			docs.select(".seriestugenre > a")
 		} else {
 			docs.select(".wd-full .mgen > a")
 		}
 
-		val tags = selecttag.mapNotNullToSet { tagMap[it.text()] }
+		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 
 
-		val stateselect = if (tablemode != null) {
+		val stateSelect = if (tablemode != null) {
 			tablemode.selectFirst(".infotable td:contains(Status)")
 				?: tablemode.selectFirst(".infotable td:contains(Statut)")
 				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
@@ -106,10 +106,10 @@ internal abstract class MangaReaderParser(
 		}
 
 		val state = if (tablemode != null) {
-			stateselect?.lastElementSibling()
+			stateSelect?.lastElementSibling()
 
 		} else {
-			stateselect?.lastElementChild()
+			stateSelect?.lastElementChild()
 		}
 
 

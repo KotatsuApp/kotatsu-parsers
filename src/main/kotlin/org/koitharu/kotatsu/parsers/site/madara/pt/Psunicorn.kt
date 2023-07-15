@@ -11,5 +11,4 @@ internal class Psunicorn(context: MangaLoaderContext) :
 
 
 	override val isNsfwSource = true
-	override val datePattern: String = "MMMM d, yyyy"
 }

@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Fbsquads(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FBSQUADS, "fbsquads.com") {
 
-	override val tagPrefix = "manga-tag/"
 	override val datePattern: String = "dd/MM/yyyy"
 	override val isNsfwSource = true
 }

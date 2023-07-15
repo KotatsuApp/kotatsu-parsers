@@ -11,11 +11,9 @@ import java.util.Locale
 @MangaSourceParser("KOMIKINDO", "KomikIndo", "id")
 internal class KomikIndoParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKINDO, pageSize = 20, searchPageSize = 10) {
+
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("komikindo.co")
-
-	override val listUrl: String
-		get() = "/project"
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("in", "ID"))
 }

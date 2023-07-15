@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TECNOSCANN", "TecnoScann", "es")
 internal class TecnoScann(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TECNOSCANN, "tecnoscann.com", 24) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.TECNOSCANN, "tecnoscann.com", 24)

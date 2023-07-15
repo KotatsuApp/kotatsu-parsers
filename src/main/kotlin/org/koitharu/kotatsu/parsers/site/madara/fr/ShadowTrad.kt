@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("SHADOWTRAD", "Shadow Trad", "fr")
 internal class ShadowTrad(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHADOWTRAD, "shadowtrad.net", 10) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.SHADOWTRAD, "shadowtrad.net", 10)

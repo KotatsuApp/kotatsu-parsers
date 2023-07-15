@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RAGNAROKSCANLATION", "Ragnarok Scanlation", "es")
 internal class RagnarokScanlation(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RAGNAROKSCANLATION, "ragnarokscanlation.com") {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.RAGNAROKSCANLATION, "ragnarokscanlation.com")

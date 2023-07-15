@@ -10,6 +10,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class ColoredManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.COLORED_MANGA, "coloredmanga.com") {
 
-	override val tagPrefix = "manga-tag/"
 	override val datePattern = "dd-MMM"
 }

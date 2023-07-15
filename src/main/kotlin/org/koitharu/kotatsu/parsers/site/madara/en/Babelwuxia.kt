@@ -8,6 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("BABELWUXIA", "Babelwuxia", "en")
 internal class Babelwuxia(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.BABELWUXIA, "read.babelwuxia.com") {
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.BABELWUXIA, "read.babelwuxia.com")

@@ -10,7 +10,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class HentaiWebtoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAIWEBTOON, "hentaiwebtoon.com") {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val isNsfwSource = true
 	override val postreq = true
 

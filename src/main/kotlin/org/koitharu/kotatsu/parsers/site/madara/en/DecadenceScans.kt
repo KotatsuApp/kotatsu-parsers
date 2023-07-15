@@ -10,6 +10,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class DecadenceScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DECADENCESCANS, "reader.decadencescans.com", 10) {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val isNsfwSource = true
 }

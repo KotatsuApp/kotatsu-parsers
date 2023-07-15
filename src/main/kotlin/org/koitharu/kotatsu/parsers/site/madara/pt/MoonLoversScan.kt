@@ -10,5 +10,4 @@ internal class MoonLoversScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MOONLOVERSSCAN, "moonloversscan.com.br", 10) {
 
 	override val isNsfwSource = true
-	override val datePattern = "MMMM d, yyyy"
 }

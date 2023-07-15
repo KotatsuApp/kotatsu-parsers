@@ -8,8 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("KUNMANGA", "Kun Manga", "en")
 internal class KunManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.KUNMANGA, "kunmanga.com", 10) {
-
-	override val datePattern = "MMMM d, yyyy"
-
-}
+	MadaraParser(context, MangaSource.KUNMANGA, "kunmanga.com", 10)

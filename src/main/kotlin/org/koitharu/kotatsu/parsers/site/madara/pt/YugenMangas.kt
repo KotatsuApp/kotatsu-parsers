@@ -8,7 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("YUGENMANGAS", "Yugen Mangas", "pt")
 internal class YugenMangas(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.YUGENMANGAS, "yugenmangas.com.br", 10) {
-
-	override val datePattern: String = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.YUGENMANGAS, "yugenmangas.com.br", 10)

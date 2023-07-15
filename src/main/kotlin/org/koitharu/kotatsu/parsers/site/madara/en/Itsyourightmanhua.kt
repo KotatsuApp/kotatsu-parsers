@@ -8,8 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ITSYOURIGHTMANHUA", "Itsyourightmanhua", "en")
 internal class Itsyourightmanhua(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ITSYOURIGHTMANHUA, "itsyourightmanhua.com", 10) {
-
-	override val datePattern = "MMMM d, yyyy"
-
-}
+	MadaraParser(context, MangaSource.ITSYOURIGHTMANHUA, "itsyourightmanhua.com", 10)

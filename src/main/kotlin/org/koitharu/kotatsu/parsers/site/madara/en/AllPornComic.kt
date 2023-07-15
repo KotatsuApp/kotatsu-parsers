@@ -11,7 +11,7 @@ internal class AllPornComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com", pageSize = 24) {
 
 	override val tagPrefix = "porncomic-genre/"
-
+	override val datePattern = "MMMM dd, yyyy"
 	override val isNsfwSource = true
 
 }

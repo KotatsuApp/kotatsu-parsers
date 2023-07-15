@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class FreeWebtoonCoins(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FREEWEBTOONCOINS, "freewebtooncoins.com") {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val tagPrefix = "webtoon-genre/"
 }
