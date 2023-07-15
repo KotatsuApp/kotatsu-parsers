@@ -204,7 +204,7 @@ internal abstract class MangaReaderParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	private fun parseMangaList(docs: Document): List<Manga> {
+	protected open fun parseMangaList(docs: Document): List<Manga> {
 		return docs.select(".postbody .listupd .bs .bsx").mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")
