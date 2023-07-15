@@ -56,16 +56,16 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val cardInfoElement = docs.selectFirst(".card .manga-info")
-		val author = cardInfoElement?.selectFirst("b:contains(Author(s))")?.parent()
-			?.select("a.btn")
+		val cardInfoElement = docs.selectFirst("div.series-information")
+		val author = cardInfoElement?.selectFirst(".info-name:contains(Author(s))")?.parent()
+			?.select("a")
 			?.joinToString(", ") { it.text() }
 		val availableTags = tagsMap.get()
-		val tags = cardInfoElement?.selectFirst("b:contains(Genre(s))")?.parent()
-			?.select("a.btn")
+		val tags = cardInfoElement?.selectFirst(".info-name:contains(Genre(s))")?.parent()
+			?.select("a")
 			?.mapNotNullToSet { availableTags[it.text().lowercase(Locale.ENGLISH)] }
-		val state = cardInfoElement?.selectFirst("b:contains(Status)")?.parent()
-			?.selectFirst("a.btn")
+		val state = cardInfoElement?.selectFirst(".info-name:contains(Status)")?.parent()
+			?.selectFirst("a")
 			?.let {
 				when (it.text()) {
 					"On going" -> MangaState.ONGOING

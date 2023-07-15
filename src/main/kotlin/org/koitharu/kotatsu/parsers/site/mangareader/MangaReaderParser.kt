@@ -103,6 +103,7 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
 			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
 			?: docs.selectFirst(".tsinfo div:contains(Durum)") ?: docs.selectFirst(".tsinfo div:contains(Statüsü)")
+			?: docs.selectFirst(".tsinfo div:contains(Statü)")
 		}
 
 		val state = if (tablemode != null) {
