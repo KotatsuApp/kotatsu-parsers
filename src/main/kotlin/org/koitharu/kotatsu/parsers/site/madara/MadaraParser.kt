@@ -298,7 +298,8 @@ internal abstract class MadaraParser(
 			?: body.selectFirst("div.post-content_item:contains(Durum)")
 			?: body.selectFirst("div.post-content_item:contains(Statüsü)")
 			?: body.selectFirst("div.post-content_item:contains(Статус)")
-			?: body.selectFirst("div.post-content_item:contains(状态)"))?.selectLast("div.summary-content")
+			?: body.selectFirst("div.post-content_item:contains(状态)")
+			?: body.selectFirst("div.post-content_item:contains(الحالة)"))?.selectLast("div.summary-content")
 
 		val state = stateDiv?.let {
 			when (it.text()) {
