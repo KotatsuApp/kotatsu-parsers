@@ -10,5 +10,4 @@ internal class ScanHentaiMenu(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SCANHENTAIMENU, "scan.hentai.menu") {
 
 	override val isNsfwSource = true
-	override val datePattern = "MMMM d, yyyy"
 }

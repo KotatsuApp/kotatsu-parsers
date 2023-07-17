@@ -11,8 +11,9 @@ import java.util.Locale
 @MangaSourceParser("SUSHISCAN", "SushiScan", "fr")
 internal class SushiScan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SUSHISCAN, pageSize = 20, searchPageSize = 10) {
+
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("sushiscan.net")
-
+	override val listUrl = "/catalogue"
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.FRENCH)
 }

@@ -8,4 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGACV", "Manga Cv", "en")
 internal class MangaCv(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGACV, "mangacv.com", pageSize = 10)
+	MadaraParser(context, MangaSource.MANGACV, "mangacv.com", pageSize = 10) {
+	override val datePattern = "MMMM dd, yyyy"
+}

@@ -11,5 +11,4 @@ internal class NijiTranslations(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NIJITRANSLATIONS, "niji-translations.com") {
 
 	override val postreq = true
-	override val datePattern = "MMMM d, yyyy"
 }

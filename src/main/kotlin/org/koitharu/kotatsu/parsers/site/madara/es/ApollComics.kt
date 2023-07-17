@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("APOLL_COMICS", "Apoll Comics", "es")
 internal class ApollComics(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.APOLL_COMICS, "apollcomics.com", 10) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.APOLL_COMICS, "apollcomics.com", 10)

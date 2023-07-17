@@ -11,6 +11,5 @@ internal class Worldmanhwas(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WORLDMANHWAS, "worldmanhwas.bar", 10) {
 
 	override val tagPrefix = "komik-genre/"
-	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

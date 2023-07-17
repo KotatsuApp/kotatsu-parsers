@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANWE", "Manwe", "tr")
 internal class Manwe(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANWE, "manwe.pro", 20) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.MANWE, "manwe.pro", 20)

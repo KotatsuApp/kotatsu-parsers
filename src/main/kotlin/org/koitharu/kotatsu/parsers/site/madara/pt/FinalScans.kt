@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class FinalScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FINALSCANS, "finalscans.com") {
 
-	override val datePattern: String = "MMMM d, yyyy"
 	override val isNsfwSource = true
 }

@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("PRISMA_HENTAI", "Prisma hentai", "pt")
 internal class Prismahentai(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.PRISMA_HENTAI, "prismahentai.com", 18) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.PRISMA_HENTAI, "prismahentai.com", 18)

@@ -11,6 +11,5 @@ internal class Shinigami(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SHINIGAMI, "shinigami.id", 10) {
 
 	override val tagPrefix = "genre/"
-	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

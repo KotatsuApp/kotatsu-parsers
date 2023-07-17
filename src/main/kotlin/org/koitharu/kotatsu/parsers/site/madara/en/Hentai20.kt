@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Hentai20(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HENTAI20, "hentai20.io") {
 
 	override val isNsfwSource = true
+	override val datePattern = "MMMM dd, yyyy"
 }

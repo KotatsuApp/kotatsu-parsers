@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class LeitorKamisama(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LEITORKAMISAMA, "leitor.kamisama.com.br", 10) {
 
-	override val tagPrefix = "manga-tag/"
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 }

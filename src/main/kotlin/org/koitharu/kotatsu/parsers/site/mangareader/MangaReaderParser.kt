@@ -79,16 +79,16 @@ internal abstract class MangaReaderParser(
 
 		val tagMap = getOrCreateTagMap()
 
-		val selecttag = if (tablemode != null) {
-			tablemode.select(".seriestugenre > a")
+		val selectTag = if (tablemode != null) {
+			docs.select(".seriestugenre > a")
 		} else {
 			docs.select(".wd-full .mgen > a")
 		}
 
-		val tags = selecttag.mapNotNullToSet { tagMap[it.text()] }
+		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 
 
-		val stateselect = if (tablemode != null) {
+		val stateSelect = if (tablemode != null) {
 			tablemode.selectFirst(".infotable td:contains(Status)")
 				?: tablemode.selectFirst(".infotable td:contains(Statut)")
 				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
@@ -103,13 +103,14 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
 			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
 			?: docs.selectFirst(".tsinfo div:contains(Durum)") ?: docs.selectFirst(".tsinfo div:contains(Statüsü)")
+			?: docs.selectFirst(".tsinfo div:contains(Statü)")
 		}
 
 		val state = if (tablemode != null) {
-			stateselect?.lastElementSibling()
+			stateSelect?.lastElementSibling()
 
 		} else {
-			stateselect?.lastElementChild()
+			stateSelect?.lastElementChild()
 		}
 
 
@@ -203,7 +204,7 @@ internal abstract class MangaReaderParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	private fun parseMangaList(docs: Document): List<Manga> {
+	protected open fun parseMangaList(docs: Document): List<Manga> {
 		return docs.select(".postbody .listupd .bs .bsx").mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")

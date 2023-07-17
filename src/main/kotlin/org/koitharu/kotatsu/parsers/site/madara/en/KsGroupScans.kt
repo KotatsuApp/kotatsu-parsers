@@ -8,8 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("KSGROUPSCANS", "Ks Group Scans", "en")
 internal class KsGroupScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.KSGROUPSCANS, "ksgroupscans.com") {
-
-	override val datePattern = "MMMM d, yyyy"
-
-}
+	MadaraParser(context, MangaSource.KSGROUPSCANS, "ksgroupscans.com")

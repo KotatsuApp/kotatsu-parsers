@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("WEBTOONHATTI", "Webtoonhatti", "tr")
 internal class Webtoonhatti(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONHATTI, "webtoonhatti.com", 20) {
-	override val tagPrefix = "webtoon-tur/"
 
+	override val tagPrefix = "webtoon-tur/"
 	override val datePattern = "d MMMM"
 }

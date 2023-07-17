@@ -8,4 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("STKISSMANGA", "Stkissmanga", "en")
 internal class Stkissmanga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me")
+	MadaraParser(context, MangaSource.STKISSMANGA, "1stkissmanga.me") {
+
+	override val datePattern = "MMMM dd, yyyy"
+}

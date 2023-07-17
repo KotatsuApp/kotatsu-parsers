@@ -12,7 +12,7 @@ import java.util.Locale
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DRAGONTRANSLATION, pageSize = 20, searchPageSize = 10) {
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("dragontranslation.com")
+		get() = ConfigKey.Domain("dragontranslation.net")
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
 

@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Hscans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HSCANS, "hscans.com", 10) {
 
-	override val tagPrefix = "manga-tag/"
 	override val datePattern = "dd/MM/yyyy"
 
 }

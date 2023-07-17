@@ -13,5 +13,4 @@ internal class LoliconMobi(context: MangaLoaderContext) :
 	override val postreq = true
 	override val isNsfwSource = true
 	override val tagPrefix = "lolicon-genre/"
-	override val datePattern = "MMMM d, yyyy"
 }

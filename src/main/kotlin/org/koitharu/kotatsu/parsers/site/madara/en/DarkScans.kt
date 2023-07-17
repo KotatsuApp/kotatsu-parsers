@@ -8,6 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("DARK_SCANS", "DarkScans", "en")
 internal class DarkScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DARK_SCANS, "darkscans.com", 18) {
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.DARK_SCANS, "darkscans.com", 18)

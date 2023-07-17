@@ -13,6 +13,5 @@ internal class BoysLove(context: MangaLoaderContext) :
 
 	override val isNsfwSource = true
 	override val tagPrefix = "boyslove-genre/"
-	override val datePattern = "MMMM d, yyyy"
 	override val postreq = true
 }

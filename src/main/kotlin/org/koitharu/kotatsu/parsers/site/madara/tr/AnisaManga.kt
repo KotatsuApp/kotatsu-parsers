@@ -9,7 +9,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ANISA_MANGA", "Anisa Manga", "tr")
 internal class AnisaManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ANISA_MANGA, "anisamanga.com") {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.ANISA_MANGA, "anisamanga.com")

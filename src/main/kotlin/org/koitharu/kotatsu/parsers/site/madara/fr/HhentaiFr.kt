@@ -11,7 +11,6 @@ import org.koitharu.kotatsu.parsers.util.insertCookies
 internal class HhentaiFr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HHENTAIFR, "hhentai.fr") {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val isNsfwSource = true
 
 	init {

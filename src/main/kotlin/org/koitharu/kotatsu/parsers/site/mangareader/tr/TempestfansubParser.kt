@@ -12,8 +12,8 @@ import java.util.Locale
 internal class TempestfansubParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TEMPESTFANSUB, pageSize = 25, searchPageSize = 40) {
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("manga.tempestfansub.com")
+		get() = ConfigKey.Domain("tempestfansub.com")
 
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
+	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr", "TR"))
 
 }

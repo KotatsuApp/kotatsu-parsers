@@ -13,6 +13,5 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 
 	override val isNsfwSource = true
 	override val tagPrefix = "adult-webtoon-genre/"
-	override val datePattern = "MMMM d, yyyy"
 	override val postreq = true
 }

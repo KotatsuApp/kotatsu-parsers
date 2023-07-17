@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class GdScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GDSCANS, "gdscans.com", 10) {
 
-	override val datePattern = "MMMM d, yyyy"
 	override val tagPrefix = "webtoon-genre/"
 }

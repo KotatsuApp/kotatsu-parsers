@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("DOKKOMANGA", "Dokko Manga", "es")
 internal class DokkoManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DOKKOMANGA, "dokkomanga.com", 10) {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.DOKKOMANGA, "dokkomanga.com", 10)

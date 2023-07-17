@@ -27,7 +27,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SWATEAM, pageSize = 42, searchPageSize = 39) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("swateam.me")
+		get() = ConfigKey.Domain("swatop.club")
 
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale("ar", "AR"))
 

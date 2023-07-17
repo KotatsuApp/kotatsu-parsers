@@ -33,7 +33,7 @@ internal abstract class MadaraParser(
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val isNsfwSource = false
-	protected open val datePattern = "MMMM dd, yyyy"
+	protected open val datePattern = "MMMM d, yyyy"
 	protected open val stylepage = "?style=list"
 
 	protected open val postreq = false
@@ -62,6 +62,7 @@ internal abstract class MadaraParser(
 		"Ongoing",
 		"OnGoing",
 		"On going",
+		"On Going",
 		"Ativo",
 		"En Cours",
 		"En cours",
@@ -120,7 +121,12 @@ internal abstract class MadaraParser(
 		"Concluido",
 		"已完结",
 		"Bitmiş",
+		"End",
 	)
+
+	// Change these values only if the site does not support manga listings via ajax
+	protected open val withoutAjax = false
+	protected open val listeurl = "manga/"
 
 	override suspend fun getListPage(
 		page: Int,
@@ -128,30 +134,75 @@ internal abstract class MadaraParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val payload = createRequestTemplate()
-		payload["page"] = page.toString()
-		when (sortOrder) {
-			SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
-			SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
-			SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
-			SortOrder.ALPHABETICAL -> {
-				payload["vars[orderby]"] = "post_title"
-				payload["vars[order]"] = "ASC"
+
+		val doc = if (withoutAjax) {
+			val url = buildString {
+				append("https://")
+				append(domain)
+				val pages = page + 1
+
+				when {
+					!query.isNullOrEmpty() -> {
+						append("/page/")
+						append(pages.toString())
+						append("/?s=")
+						append(query.urlEncoded())
+						append("&post_type=wp-manga&")
+					}
+
+					!tags.isNullOrEmpty() -> {
+						append("/$tagPrefix")
+						for (tag in tags) {
+							append(tag.key)
+						}
+						append("/page/")
+						append(pages.toString())
+						append("?")
+					}
+
+					else -> {
+
+						append("/$listeurl")
+						append("/page/")
+						append(pages.toString())
+						append("?")
+					}
+				}
+				append("m_orderby=")
+				when (sortOrder) {
+					SortOrder.POPULARITY -> append("views")
+					SortOrder.UPDATED -> append("latest")
+					SortOrder.NEWEST -> append("new-manga")
+					SortOrder.ALPHABETICAL -> append("alphabet")
+					else -> append("latest")
+				}
 			}
+			webClient.httpGet(url).parseHtml()
+		} else {
+			val tag = tags.oneOrThrowIfMany()
+			val payload = createRequestTemplate()
+			payload["page"] = page.toString()
+			when (sortOrder) {
+				SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
+				SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
+				SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
+				SortOrder.ALPHABETICAL -> {
+					payload["vars[orderby]"] = "post_title"
+					payload["vars[order]"] = "ASC"
+				}
 
-			else -> payload["vars[meta_key]"] = "_latest_update"
-
+				else -> payload["vars[meta_key]"] = "_latest_update"
+			}
+			payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
+			payload["vars[s]"] = query?.urlEncoded().orEmpty()
+			webClient.httpPost(
+				"https://$domain/wp-admin/admin-ajax.php",
+				payload,
+			).parseHtml()
 		}
 
-		payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
-		payload["vars[s]"] = query?.urlEncoded().orEmpty()
-		val doc = webClient.httpPost(
-			"https://$domain/wp-admin/admin-ajax.php",
-			payload,
-		).parseHtml()
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
-			doc.select("div.page-item-detail.manga")
+			doc.select("div.page-item-detail")
 		}.map { div ->
 			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
@@ -247,7 +298,8 @@ internal abstract class MadaraParser(
 			?: body.selectFirst("div.post-content_item:contains(Durum)")
 			?: body.selectFirst("div.post-content_item:contains(Statüsü)")
 			?: body.selectFirst("div.post-content_item:contains(Статус)")
-			?: body.selectFirst("div.post-content_item:contains(状态)"))?.selectLast("div.summary-content")
+			?: body.selectFirst("div.post-content_item:contains(状态)")
+			?: body.selectFirst("div.post-content_item:contains(الحالة)"))?.selectLast("div.summary-content")
 
 		val state = stateDiv?.let {
 			when (it.text()) {
@@ -284,14 +336,16 @@ internal abstract class MadaraParser(
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = a.ownText(),
+				name = name,
 				number = i + 1,
 				url = link,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					li.selectFirst(selectdate)?.text(),
+					dateText,
 				),
 				source = source,
 				scanlator = null,
@@ -317,15 +371,17 @@ internal abstract class MadaraParser(
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = a.ownText(),
+				name = name,
 				number = i + 1,
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					li.selectFirst(selectdate)?.text(),
+					dateText,
 				),
 				scanlator = null,
 				source = source,
@@ -364,6 +420,10 @@ internal abstract class MadaraParser(
 			date.startsWith("há ", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// other translated 'ago' in Spanish
+			date.endsWith(" hace", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 			// Handle translated 'ago' in Turkish.
 			date.endsWith(" önce", ignoreCase = true) -> {
 				parseRelativeDate(date)
@@ -376,15 +436,18 @@ internal abstract class MadaraParser(
 			date.startsWith("il y a", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
-			// Handle translated short 'ago'
+			//If there is no ago but just a motion of time
+
+			// short Hours
 			date.endsWith(" h", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
-
+			// short Day
 			date.endsWith(" d", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
-			//If there is no ago but just a motion of time
+
+			// Day in Portuguese
 			date.endsWith(" días", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
@@ -392,7 +455,15 @@ internal abstract class MadaraParser(
 			date.endsWith(" día", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// Day in French
+			date.endsWith(" jour", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 
+			date.endsWith(" jours", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+			// Hours in Portuguese
 			date.endsWith(" horas", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
@@ -400,12 +471,33 @@ internal abstract class MadaraParser(
 			date.endsWith(" hora", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
+			// Hours in french
+			date.endsWith(" heure", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
 
+			date.endsWith(" heures", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+			// Minutes in English
+			date.endsWith(" mins", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			// Minutes in Portuguese
 			date.endsWith(" minutos", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
 
 			date.endsWith(" minuto", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+			//Minutes in French
+			date.endsWith(" minute", ignoreCase = true) -> {
+				parseRelativeDate(date)
+			}
+
+			date.endsWith(" minutes", ignoreCase = true) -> {
 				parseRelativeDate(date)
 			}
 
@@ -458,17 +550,27 @@ internal abstract class MadaraParser(
 				"día",
 				"dia",
 				"day",
+				"days",
 				"d",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "h").anyWordIn(date) -> cal.apply {
+			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
 					-number,
 				)
 			}.timeInMillis
 
-			WordSet("menit", "dakika", "min", "minute", "minuto", "mins", "phút").anyWordIn(date) -> cal.apply {
+			WordSet(
+				"menit",
+				"dakika",
+				"min",
+				"minute",
+				"minutes",
+				"minuto",
+				"mins",
+				"phút",
+			).anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
 					-number,
@@ -482,7 +584,7 @@ internal abstract class MadaraParser(
 				)
 			}.timeInMillis
 
-			WordSet("month").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
 			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}

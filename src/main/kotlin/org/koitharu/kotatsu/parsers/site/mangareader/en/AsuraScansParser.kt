@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class AsuraScansParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ASURASCANS, pageSize = 20, searchPageSize = 10) {
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("asurascans.com")
+		get() = ConfigKey.Domain("asura.gg")
 
 
 }

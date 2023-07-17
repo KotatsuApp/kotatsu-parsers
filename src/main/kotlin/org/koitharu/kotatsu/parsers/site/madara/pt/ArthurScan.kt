@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ARTHUR_SCAN", "Arthur Scan", "pt")
 internal class ArthurScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ARTHUR_SCAN, "arthurscan.xyz") {
-
-	override val datePattern = "MMMM d, yyyy"
-}
+	MadaraParser(context, MangaSource.ARTHUR_SCAN, "arthurscan.xyz")

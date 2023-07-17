@@ -12,6 +12,5 @@ internal class Manhatic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHATIC, "manhatic.com") {
 
 	override val isNsfwSource = true
-	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

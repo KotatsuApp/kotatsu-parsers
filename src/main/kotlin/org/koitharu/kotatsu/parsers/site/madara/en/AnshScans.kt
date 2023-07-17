@@ -11,5 +11,6 @@ internal class AnshScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ANSHSCANS, "anshscans.org", 10) {
 
 	override val tagPrefix = "genre/"
+	override val datePattern = "MMMM dd, yyyy"
 
 }

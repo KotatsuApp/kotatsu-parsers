@@ -10,10 +10,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("KOMIKLAB", "KomikLab", "id")
 internal class KomikLabParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKLAB, pageSize = 20, searchPageSize = 10) {
+
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("komiklab.com")
-
-	override val listUrl: String
-		get() = "/project"
-
 }
