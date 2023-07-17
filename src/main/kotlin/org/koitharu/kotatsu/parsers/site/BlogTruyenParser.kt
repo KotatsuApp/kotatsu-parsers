@@ -1,8 +1,7 @@
 package org.koitharu.kotatsu.parsers.site
 
 import androidx.collection.ArrayMap
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
+import okhttp3.Headers
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -18,6 +17,8 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.util.SuspendLazy
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.domain
@@ -40,14 +41,17 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("blogtruyen.vn")
+		get() = ConfigKey.Domain("blogtruyenmoi.com")
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
-	private val mutex = Mutex()
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.build()
+
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
-	private var cacheTags: ArrayMap<String, MangaTag>? = null
+	private var cacheTags = SuspendLazy(::fetchTags)
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -75,14 +79,15 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 			}
 		}
 
-		val tagMap = getOrCreateTagMap()
-		val tags = descriptionElement.select("p > span.category").mapNotNullToSet {
-			val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
-			tagMap[tagName]
+		val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
+			descriptionElement.select("p > span.category").mapNotNullToSet {
+				val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
+				tagMap[tagName]
+			}
 		}
 
 		return manga.copy(
-			tags = tags,
+			tags = tags ?: emptySet(),
 			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
@@ -146,24 +151,25 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		val listElements = doc.selectFirstOrThrow("section.list-mainpage.listview")
 			.select("div.bg-white.storyitem")
 
-		return listElements.mapNotNull {
-			val linkTag = it.selectFirst("div.fl-l > a") ?: return@mapNotNull null
+		return listElements.mapNotNull { el ->
+			val linkTag = el.selectFirst("div.fl-l > a") ?: return@mapNotNull null
 			val relativeUrl = linkTag.attrAsRelativeUrl("href")
-			val tagMap = getOrCreateTagMap()
-			val tags = it.select("footer > div.category > a").mapNotNullToSet { a ->
-				tagMap[a.text()]
+			val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
+				el.select("footer > div.category > a").mapNotNullToSet { a ->
+					tagMap[a.text()]
+				}
 			}
 
 			Manga(
 				id = generateUid(relativeUrl),
 				title = linkTag.attr("title"),
 				altTitle = null,
-				description = it.selectFirst("p.al-j.break.line-height-15")?.text(),
+				description = el.selectFirst("p.al-j.break.line-height-15")?.text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				coverUrl = linkTag.selectLast("img")?.imageUrl().orEmpty(),
 				source = source,
-				tags = tags,
+				tags = tags ?: emptySet(),
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				author = null,
@@ -235,18 +241,11 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val map = getOrCreateTagMap()
-		val tags = HashSet<MangaTag>(map.size)
-		for (entry in map) {
-			tags.add(entry.value)
-		}
-
-		return tags
+		return cacheTags.get().values.toSet()
 	}
 
 
-	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
-		cacheTags?.let { return@withLock it }
+	private suspend fun fetchTags(): Map<String, MangaTag> {
 		val doc = webClient.httpGet("/timkiem/nangcao".toAbsoluteUrl(domain)).parseHtml()
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
@@ -258,9 +257,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-
-		cacheTags = tagMap
-		tagMap
+		return tagMap
 	}
 
 	private fun Element.imageUrl(): String {
