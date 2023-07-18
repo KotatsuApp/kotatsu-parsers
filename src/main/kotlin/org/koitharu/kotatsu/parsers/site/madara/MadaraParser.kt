@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.madara
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -10,6 +11,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.cryptoaes.CryptoAES
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -291,6 +293,7 @@ internal abstract class MadaraParser(
 
 		val stateDiv = (body.selectFirst("div.post-content_item:contains(Status)")
 			?: body.selectFirst("div.post-content_item:contains(Statut)")
+			?: body.selectFirst("div.post-content_item:contains(État)")
 			?: body.selectFirst("div.post-content_item:contains(حالة العمل)")
 			?: body.selectFirst("div.post-content_item:contains(Estado)")
 			?: body.selectFirst("div.post-content_item:contains(สถานะ)")
@@ -392,18 +395,67 @@ internal abstract class MadaraParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirst("div.main-col-inner")?.selectFirst("div.reading-content")
-			?: throw ParseException("Root not found", fullUrl)
-		return root.select("div.page-break").map { div ->
-			val img = div.selectFirst("img") ?: div.parseFailed("Page image not found")
-			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
+
+		val chapterProtector = doc.selectFirst("#chapter-protector-data")
+
+		if (chapterProtector == null) {
+			val root = doc.body().selectFirst("div.main-col-inner")?.selectFirst("div.reading-content")
+				?: throw ParseException("Root not found", fullUrl)
+			return root.select("div.page-break").map { div ->
+				val img = div.selectFirst("img") ?: div.parseFailed("Page image not found")
+				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+		} else {
+
+
+			val chapterProtectorHtml = chapterProtector.html()
+			val password = chapterProtectorHtml.substringAfter("wpmangaprotectornonce='").substringBefore("';")
+			val chapterData = JSONObject(
+				chapterProtectorHtml.substringAfter("chapter_data='").substringBefore("';").replace("\\/", "/"),
 			)
+			val unsaltedCiphertext = context.decodeBase64(chapterData.getString("ct"))
+			val salt = chapterData.getString("s").toString().decodeHex()
+			val ciphertext = SALTED + salt + unsaltedCiphertext
+
+			val rawImgArray = CryptoAES.decrypt(Base64.getEncoder().encodeToString(ciphertext), password)
+			val imgArrayString = rawImgArray
+				.replace("[", "")
+				.replace("]", "")
+				.replace("\\", "")
+				.replace("\"", "")
+
+
+			return imgArrayString.split(",").map { url ->
+				MangaPage(
+					id = generateUid(url.toString()),
+					url = url.toString(),
+					preview = null,
+					source = source,
+				)
+			}
+
 		}
+
+
+	}
+
+	fun String.decodeHex(): ByteArray {
+		check(length % 2 == 0) { "Must have an even length" }
+
+		return chunked(2)
+			.map { it.toInt(16).toByte() }
+			.toByteArray()
+	}
+
+	companion object {
+		const val URL_SEARCH_PREFIX = "slug:"
+		val SALTED = "Salted__".toByteArray(Charsets.UTF_8)
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
@@ -604,5 +656,6 @@ internal abstract class MadaraParser(
 			val pos = it.indexOf('=')
 			it.substring(0, pos) to it.substring(pos + 1)
 		}.toMutableMap()
+
 
 }
