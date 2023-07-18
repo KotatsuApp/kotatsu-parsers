@@ -4,32 +4,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.requireElementById
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.styleValueOrNull
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.Collections
-import java.util.Locale
+import java.util.*
 
 private const val DEF_BRANCH_NAME = "Основний переклад"
 
@@ -41,10 +19,13 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	searchPageSize = 10,
 ) {
 
-	override val sortOrders: Set<SortOrder>
-		get() = Collections.singleton(SortOrder.UPDATED)
+	override val sortOrders: Set<SortOrder> = setOf(SortOrder.UPDATED)
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua")
+
+	private val userHashRegex by lazy {
+		Regex("site_login_hash\\s*=\\s*\'([^\']+)\'", RegexOption.IGNORE_CASE)
+	}
 
 	override suspend fun getListPage(
 		page: Int,
@@ -53,14 +34,9 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val url = when {
-			!query.isNullOrEmpty() -> (
-					"/index.php?do=search" +
-							"&subaction=search" +
-							"&search_start=$page" +
-							"&full_search=1" +
-							"&story=$query" +
-							"&titleonly=3"
-					).toAbsoluteUrl(domain)
+			!query.isNullOrEmpty() -> ("/index.php?do=search" + "&subaction=search" + "&search_start=$page" + "&full_search=1" + "&story=$query" + "&titleonly=3").toAbsoluteUrl(
+				domain,
+			)
 
 			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
 			tags.size == 1 -> "${tags.first().key}/page/$page"
@@ -80,17 +56,15 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 				}.orEmpty(),
 				altTitle = null,
 				author = null,
-				rating = item.selectFirst("div.card__short-rate--num")
-					?.text()
-					?.toFloatOrNull()
-					?.div(10F) ?: RATING_UNKNOWN,
+				rating = item.selectFirst("div.card__short-rate--num")?.text()?.toFloatOrNull()?.div(10F)
+					?: RATING_UNKNOWN,
 				url = href,
 				isNsfw = item.selectFirst("ul.card__list")?.select("li")?.lastOrNull()?.text() == "18+",
 				tags = runCatching {
 					item.selectFirst("div.card__category")?.select("a")?.mapToSet {
 						MangaTag(
 							title = it.ownText(),
-							key = it.attr("href").removeSuffix("/"),
+							key = it.attrOrThrow("href").removeSuffix("/"),
 							source = source,
 						)
 					}
@@ -105,8 +79,21 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().requireElementById("site-content")
+		val linkToComics = root.requireElementById("linkstocomics")
+		val userHash = doc.select("script").firstNotNullOf { script ->
+			userHashRegex.find(script.html())?.groupValues?.getOrNull(1)
+		}
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
-		val chapterNodes = root.selectFirstOrThrow(".linkstocomics").select(".ltcitems")
+		val chapterNodes = webClient.httpPost(
+			"https://$domain/engine/ajax/controller.php?mod=load_chapters",
+			mapOf(
+				"action" to "show",
+				"news_id" to linkToComics.attrOrThrow("data-news_id"),
+				"news_category" to linkToComics.attrOrThrow("data-news_category"),
+				"this_link" to "",
+				"user_hash" to userHash,
+			),
+		).parseHtml().select(".ltcitems")
 		var prevChapterName: String? = null
 		var i = 0
 		return manga.copy(
@@ -114,8 +101,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 			largeCoverUrl = root.selectFirst("div.item__full-sidebar--poster")?.selectFirst("img")
 				?.attrAsAbsoluteUrlOrNull("src"),
 			chapters = chapterNodes.mapChapters { _, item ->
-				val href = item?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-					?: return@mapChapters null
+				val href = item?.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 				val isAlternative = item.styleValueOrNull("background") != null
 				val name = item.selectFirst("a")?.text().orEmpty()
 				if (!isAlternative) i++
@@ -145,7 +131,14 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().requireElementById("comics").selectFirstOrThrow("ul.xfieldimagegallery")
+		val userHash = doc.select("script").firstNotNullOf { script ->
+			userHashRegex.find(script.html())?.groupValues?.getOrNull(1)
+		}
+		val ajaxUrl = urlBuilder().addPathSegment("engine").addPathSegment("ajax").addPathSegment("controller.php")
+			.addEncodedQueryParameter("mod", "load_chapters_image")
+			.addQueryParameter("news_id", doc.requireElementById("comics").attrOrThrow("data-news_id"))
+			.addEncodedQueryParameter("action", "show").addQueryParameter("user_hash", userHash).build()
+		val root = webClient.httpGet(ajaxUrl).parseHtml().root()
 		return root.select("li").map { ul ->
 			val img = ul.selectFirstOrThrow("img")
 			val url = img.attrAsAbsoluteUrl("data-src")
@@ -166,7 +159,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			MangaTag(
 				title = a.ownText(),
-				key = a.attr("href").removeSuffix("/"),
+				key = a.attrOrThrow("href").removeSuffix("/"),
 				source = source,
 			)
 		}
