@@ -149,8 +149,8 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		}.toList()
 
 		val keyTables = listOf(
-			shortTables[1].reversed() + longTables[5].reversed() + longTables[2].reversed() + longTables[0].reversed(),
-			shortTables[2].reversed() + longTables[3].reversed() + longTables[4].reversed() + longTables[1].reversed(),
+			shortTables[1].reversed() + longTables[1].reversed() + longTables[4].reversed() + longTables[0].reversed(),
+			shortTables[2].reversed() + longTables[3].reversed() + longTables[5].reversed() + longTables[2].reversed(),
 		)
 
 		var error: Exception? = null
