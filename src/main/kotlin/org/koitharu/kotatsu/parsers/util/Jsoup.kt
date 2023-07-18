@@ -25,6 +25,17 @@ val Element.host: String?
  */
 fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isEmpty() }
 
+
+/**
+ * Return an attribute value or throw an exception if it is missing
+ * @see [Element.attr] which returns empty string instead
+ */
+fun Element.attrOrThrow(attributeKey: String): String = if (hasAttr(attributeKey)) {
+	attr(attributeKey)
+} else {
+	throw ParseException("Attribute \"$attributeKey\" is missing at element \"$this\"", baseUri())
+}
+
 /**
  * Return an attribute value as relative url or null if it is missing or empty
  * @see attrAsRelativeUrl
