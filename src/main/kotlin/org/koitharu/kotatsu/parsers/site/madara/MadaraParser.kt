@@ -8,14 +8,11 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.cryptoaes.CryptoAES
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
-
 
 internal abstract class MadaraParser(
 	context: MangaLoaderContext,
@@ -396,13 +393,11 @@ internal abstract class MadaraParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chapterProtector = doc.selectFirst("#chapter-protector-data")
-
+		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
-			val root = doc.body().selectFirst("div.main-col-inner")?.selectFirst("div.reading-content")
-				?: throw ParseException("Root not found", fullUrl)
+			val root = doc.body().selectFirstOrThrow("div.main-col-inner").selectFirstOrThrow("div.reading-content")
 			return root.select("div.page-break").map { div ->
-				val img = div.selectFirst("img") ?: div.parseFailed("Page image not found")
+				val img = div.selectFirstOrThrow("img")
 				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
 				MangaPage(
 					id = generateUid(url),
@@ -412,8 +407,6 @@ internal abstract class MadaraParser(
 				)
 			}
 		} else {
-
-
 			val chapterProtectorHtml = chapterProtector.html()
 			val password = chapterProtectorHtml.substringAfter("wpmangaprotectornonce='").substringBefore("';")
 			val chapterData = JSONObject(
@@ -423,166 +416,74 @@ internal abstract class MadaraParser(
 			val salt = chapterData.getString("s").toString().decodeHex()
 			val ciphertext = SALTED + salt + unsaltedCiphertext
 
-			val rawImgArray = CryptoAES.decrypt(Base64.getEncoder().encodeToString(ciphertext), password)
-			val imgArrayString = rawImgArray
-				.replace("[", "")
-				.replace("]", "")
-				.replace("\\", "")
-				.replace("\"", "")
-
+			val rawImgArray = CryptoAES(context).decrypt(context.encodeBase64(ciphertext), password)
+			val imgArrayString = rawImgArray.filterNot { c -> c == '[' || c == ']' || c == '\\' || c == '"' }
 
 			return imgArrayString.split(",").map { url ->
 				MangaPage(
-					id = generateUid(url.toString()),
-					url = url.toString(),
+					id = generateUid(url),
+					url = url,
 					preview = null,
 					source = source,
 				)
 			}
 
 		}
-
-
-	}
-
-	fun String.decodeHex(): ByteArray {
-		check(length % 2 == 0) { "Must have an even length" }
-
-		return chunked(2)
-			.map { it.toInt(16).toByte() }
-			.toByteArray()
-	}
-
-	companion object {
-		const val URL_SEARCH_PREFIX = "slug:"
-		val SALTED = "Salted__".toByteArray(Charsets.UTF_8)
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		date ?: return 0
+		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
+		val d = date?.lowercase() ?: return 0
 		return when {
-			date.endsWith(" ago", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Handle translated 'ago' in Portuguese.
-			date.endsWith(" atrás", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// other translated 'ago' in Portuguese.
-			date.startsWith("há ", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// other translated 'ago' in Spanish
-			date.endsWith(" hace", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Handle translated 'ago' in Turkish.
-			date.endsWith(" önce", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Handle translated 'ago' in Viêt Nam.
-			date.endsWith(" trước", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Handle translated 'ago' in French.
-			date.startsWith("il y a", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			//If there is no ago but just a motion of time
-
-			// short Hours
-			date.endsWith(" h", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// short Day
-			date.endsWith(" d", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			// Day in Portuguese
-			date.endsWith(" días", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" día", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Day in French
-			date.endsWith(" jour", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" jours", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Hours in Portuguese
-			date.endsWith(" horas", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" hora", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Hours in french
-			date.endsWith(" heure", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" heures", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			// Minutes in English
-			date.endsWith(" mins", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			// Minutes in Portuguese
-			date.endsWith(" minutos", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" minuto", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-			//Minutes in French
-			date.endsWith(" minute", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
-
-			date.endsWith(" minutes", ignoreCase = true) -> {
-				parseRelativeDate(date)
-			}
+			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
+				d.startsWith("há ") || // other translated 'ago' in Portuguese.
+				d.endsWith(" hace") || // other translated 'ago' in Spanish
+				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
+				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
+				d.startsWith("il y a") || // Handle translated 'ago' in French.
+				//If there is no ago but just a motion of time
+				// short Hours
+				d.endsWith(" h") ||
+				// short Day
+				d.endsWith(" d") ||
+				// Day in Portuguese
+				d.endsWith(" días") || d.endsWith(" día") ||
+				// Day in French
+				d.endsWith(" jour") || d.endsWith(" jours") ||
+				// Hours in Portuguese
+				d.endsWith(" horas") || d.endsWith(" hora") ||
+				// Hours in french
+				d.endsWith(" heure") || d.endsWith(" heures") ||
+				// Minutes in English
+				d.endsWith(" mins") ||
+				// Minutes in Portuguese
+				d.endsWith(" minutos") || d.endsWith(" minuto") ||
+				//Minutes in French
+				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
-			date.startsWith("year", ignoreCase = true) -> {
-				Calendar.getInstance().apply {
-					add(Calendar.DAY_OF_MONTH, -1) // yesterday
-					set(Calendar.HOUR_OF_DAY, 0)
-					set(Calendar.MINUTE, 0)
-					set(Calendar.SECOND, 0)
-					set(Calendar.MILLISECOND, 0)
-				}.timeInMillis
-			}
+			d.startsWith("year") -> Calendar.getInstance().apply {
+				add(Calendar.DAY_OF_MONTH, -1) // yesterday
+				set(Calendar.HOUR_OF_DAY, 0)
+				set(Calendar.MINUTE, 0)
+				set(Calendar.SECOND, 0)
+				set(Calendar.MILLISECOND, 0)
+			}.timeInMillis
 
-			date.startsWith("today", ignoreCase = true) -> {
-				Calendar.getInstance().apply {
-					set(Calendar.HOUR_OF_DAY, 0)
-					set(Calendar.MINUTE, 0)
-					set(Calendar.SECOND, 0)
-					set(Calendar.MILLISECOND, 0)
-				}.timeInMillis
-			}
+			d.startsWith("today") -> Calendar.getInstance().apply {
+				set(Calendar.HOUR_OF_DAY, 0)
+				set(Calendar.MINUTE, 0)
+				set(Calendar.SECOND, 0)
+				set(Calendar.MILLISECOND, 0)
+			}.timeInMillis
 
-			date.contains(Regex("""\d(st|nd|rd|th)""")) -> {
-				// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
-				date.split(" ").map {
-					if (it.contains(Regex("""\d\D\D"""))) {
-						it.replace(Regex("""\D"""), "")
-					} else {
-						it
-					}
-				}.let { dateFormat.tryParse(it.joinToString(" ")) }
-			}
+			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
+				if (it.contains(Regex("""\d\D\D"""))) {
+					it.replace(Regex("""\D"""), "")
+				} else {
+					it
+				}
+			}.let { dateFormat.tryParse(it.joinToString(" ")) }
 
 			else -> dateFormat.tryParse(date)
 		}
@@ -649,13 +550,27 @@ internal abstract class MadaraParser(
 		return result.ifEmpty { null }
 	}
 
-	private fun createRequestTemplate() =
-		("action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" + "orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" + "%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" + "%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" + "%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
-			'&',
-		).map {
-			val pos = it.indexOf('=')
-			it.substring(0, pos) to it.substring(pos + 1)
-		}.toMutableMap()
+	private companion object {
 
+		private fun createRequestTemplate() =
+			("action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
+				"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
+				"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
+				"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
+				"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
+				'&',
+			).map {
+				val pos = it.indexOf('=')
+				it.substring(0, pos) to it.substring(pos + 1)
+			}.toMutableMap()
 
+		fun String.decodeHex(): ByteArray {
+			check(length % 2 == 0) { "Must have an even length" }
+
+			return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
+		}
+
+		const val URL_SEARCH_PREFIX = "slug:"
+		val SALTED = "Salted__".toByteArray(Charsets.UTF_8)
+	}
 }
