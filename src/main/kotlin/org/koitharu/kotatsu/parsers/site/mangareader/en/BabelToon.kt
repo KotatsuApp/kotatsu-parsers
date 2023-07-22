@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.mangareader.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -16,21 +15,17 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.tryParse
 import java.text.SimpleDateFormat
-import java.util.Locale
 
 @MangaSourceParser("BABELTOON", "BabelToon", "en")
 internal class BabelToon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.BABELTOON, pageSize = 20, searchPageSize = 10) {
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("babeltoon.com")
+	MangaReaderParser(context, MangaSource.BABELTOON, "babeltoon.com", pageSize = 20, searchPageSize = 10) {
 
 	override val listUrl = "/series"
 	override val selectMangaliste = ".postbody .listupd .maindet .inmain"
-	override val chapterDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select(".eplister > ul > li").mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
@@ -39,7 +34,7 @@ internal class BabelToon(context: MangaLoaderContext) :
 				url = url,
 				number = index + 1,
 				scanlator = null,
-				uploadDate = chapterDateFormat.tryParse(element.selectFirst(".epl-date")?.text()),
+				uploadDate = dateFormat.tryParse(element.selectFirst(".epl-date")?.text()),
 				branch = null,
 				source = source,
 			)

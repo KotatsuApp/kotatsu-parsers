@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.mangareader.ar
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -22,15 +21,13 @@ import java.util.Locale
 
 @MangaSourceParser("OXAPK", "Oxapk", "ar")
 internal class Oxapk(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.OXAPK, pageSize = 24, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.OXAPK, "oxapk.com", pageSize = 24, searchPageSize = 10) {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("oxapk.com")
-
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("ar", "AR"))
+	override val sourceLocale: Locale = Locale.ENGLISH
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select("#chapterlist > ul > li").mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
@@ -40,7 +37,7 @@ internal class Oxapk(context: MangaLoaderContext) :
 				number = index + 1,
 				scanlator = null,
 				uploadDate = parseChapterDate(
-					chapterDateFormat,
+					dateFormat,
 					element.selectFirst("div.chapter-link-time")?.text(),
 				),
 				branch = null,
@@ -50,7 +47,7 @@ internal class Oxapk(context: MangaLoaderContext) :
 		return parseInfo(docs, manga, chapters)
 	}
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		date ?: return 0
 		return when {
 			date.endsWith("منذ ", ignoreCase = true) -> {

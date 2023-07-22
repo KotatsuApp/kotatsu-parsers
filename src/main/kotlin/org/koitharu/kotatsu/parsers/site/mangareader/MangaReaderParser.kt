@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -31,22 +32,24 @@ import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.Base64
 import java.util.EnumSet
-import java.util.Locale
 
 
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
+	domain: String,
 	pageSize: Int,
 	searchPageSize: Int,
 ) : PagedMangaParser(context, source, pageSize, searchPageSize) {
+
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
 	protected open val listUrl = "/manga"
 	protected open val isNsfwSource = false
-	open val chapterDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+	protected open val datePattern = "MMMM d, yyyy"
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
@@ -54,6 +57,7 @@ internal abstract class MangaReaderParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select("#chapterlist > ul > li").mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
@@ -62,7 +66,7 @@ internal abstract class MangaReaderParser(
 				url = url,
 				number = index + 1,
 				scanlator = null,
-				uploadDate = chapterDateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
+				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
 				branch = null,
 				source = source,
 			)
