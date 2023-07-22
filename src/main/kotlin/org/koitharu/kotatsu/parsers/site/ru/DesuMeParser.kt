@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.ru
 
 import androidx.collection.ArrayMap
 import okhttp3.Headers

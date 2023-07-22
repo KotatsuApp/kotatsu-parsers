@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.en
 
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext

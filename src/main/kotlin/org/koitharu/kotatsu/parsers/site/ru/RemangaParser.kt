@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.ru
 
 import okhttp3.Headers
 import org.json.JSONArray

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.all
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor

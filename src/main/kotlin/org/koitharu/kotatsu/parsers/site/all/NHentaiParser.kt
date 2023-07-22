@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.async

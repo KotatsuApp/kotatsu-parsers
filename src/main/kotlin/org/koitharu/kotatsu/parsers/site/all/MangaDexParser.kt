@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.all
 
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async

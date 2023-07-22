@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site
+package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
