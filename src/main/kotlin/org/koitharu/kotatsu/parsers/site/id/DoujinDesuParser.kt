@@ -1,0 +1,161 @@
+package org.koitharu.kotatsu.parsers.site.id
+
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.requireElementById
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.selectLast
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.urlBuilder
+import org.koitharu.kotatsu.parsers.util.urlEncoded
+import java.text.SimpleDateFormat
+import java.util.EnumSet
+
+@MangaSourceParser("DOUJINDESU", "DoujinDesu", "id")
+class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DOUJINDESU, pageSize = 18) {
+
+	override val configKeyDomain: ConfigKey.Domain
+		get() = ConfigKey.Domain("212.32.226.234")
+
+	override val sortOrders: Set<SortOrder>
+		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
+
+	override suspend fun getDetails(manga: Manga): Manga {
+		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().selectFirstOrThrow("#archive")
+		val chapterDateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", sourceLocale)
+		val metadataEl = docs.selectFirst(".wrapper > .metadata tbody")
+		val state = when (metadataEl?.selectFirst("tr:contains(Status)")?.selectLast("td")?.text()) {
+			"Finished" -> MangaState.FINISHED
+			"Publishing" -> MangaState.ONGOING
+			else -> null
+		}
+		return manga.copy(
+			author = metadataEl?.selectFirst("tr:contains(Author)")?.selectLast("td")?.text(),
+			description = docs.selectFirst(".wrapper > .metadata > .pb-2")?.selectFirst("p")?.html(),
+			state = state,
+			rating = metadataEl?.selectFirst(".rating-prc")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
+			tags = docs.select(".tags > a").mapToSet {
+				MangaTag(
+					key = it.attr("title"),
+					title = it.text(),
+					source = source,
+				)
+			},
+			chapters = docs.requireElementById("chapter_list")
+				.select("ul > li")
+				.mapChapters(reversed = true) { index, element ->
+					val titleTag = element.selectFirstOrThrow(".epsleft > .lchx > a")
+					val url = titleTag.attrAsRelativeUrl("href")
+					MangaChapter(
+						id = generateUid(url),
+						name = titleTag.text(),
+						number = index + 1,
+						url = url,
+						scanlator = null,
+						uploadDate = chapterDateFormat.tryParse(element.select(".epsleft > .date").text()),
+						branch = null,
+						source = source,
+					)
+				},
+		)
+	}
+
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
+		val url = urlBuilder().apply {
+			addPathSegment("manga")
+			addPathSegment("page")
+			addPathSegment("$page/")
+			val order = when (sortOrder) {
+				SortOrder.UPDATED -> "update"
+				SortOrder.POPULARITY -> "popular"
+				SortOrder.ALPHABETICAL -> "title"
+				SortOrder.NEWEST -> "latest"
+				else -> throw IllegalArgumentException("Sort order not supported")
+			}
+			addQueryParameter("order", order)
+			addQueryParameter("title", query.orEmpty())
+			tags?.forEach {
+				addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
+			}
+		}.build()
+
+		return webClient.httpGet(url).parseHtml()
+			.requireElementById("archives")
+			.selectFirstOrThrow("div.entries")
+			.select(".entry")
+			.map {
+				val titleTag = it.selectFirstOrThrow(".metadata > a")
+				val relativeUrl = titleTag.attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(relativeUrl),
+					title = titleTag.attr("title"),
+					altTitle = null,
+					url = relativeUrl,
+					publicUrl = relativeUrl.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = true,
+					coverUrl = it.selectFirst(".thumbnail > img")?.attrAsAbsoluteUrl("src").orEmpty(),
+					tags = emptySet(),
+					state = null,
+					author = null,
+					largeCoverUrl = null,
+					description = null,
+					source = source,
+				)
+			}
+	}
+
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val id = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+			.requireElementById("reader")
+			.attr("data-id")
+		return webClient.httpPost("/themes/ajax/ch.php".toAbsoluteUrl(domain), "id=$id").parseHtml()
+			.select("img")
+			.map {
+				val url = it.attrAsRelativeUrl("src")
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+	}
+
+	override suspend fun getTags(): Set<MangaTag> {
+		return webClient.httpGet("/genre/".toAbsoluteUrl(domain)).parseHtml()
+			.requireElementById("taxonomy")
+			.selectFirstOrThrow(".entries")
+			.select(".entry > a")
+			.mapToSet {
+				MangaTag(
+					key = it.attr("title"),
+					title = it.attr("title"),
+					source = source,
+				)
+			}
+	}
+}

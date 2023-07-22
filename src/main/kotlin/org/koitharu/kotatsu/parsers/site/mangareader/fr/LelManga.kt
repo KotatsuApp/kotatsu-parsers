@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.mangareader.fr
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -16,16 +15,10 @@ import org.koitharu.kotatsu.parsers.util.requireElementById
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @MangaSourceParser("LELMANGA", "LelManga", "fr")
 internal class LelManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LELMANGA, pageSize = 21, searchPageSize = 20) {
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("www.lelmanga.com")
-
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
+	MangaReaderParser(context, MangaSource.LELMANGA, "www.lelmanga.com", pageSize = 21, searchPageSize = 20) {
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -42,7 +35,7 @@ internal class LelManga(context: MangaLoaderContext) :
 		}
 	}
 
-	protected fun Element.src(): String? {
+	private fun Element.src(): String? {
 		var result = absUrl("data-src")
 		if (result.isEmpty()) result = absUrl("data-cfsrc")
 		if (result.isEmpty()) result = absUrl("src")

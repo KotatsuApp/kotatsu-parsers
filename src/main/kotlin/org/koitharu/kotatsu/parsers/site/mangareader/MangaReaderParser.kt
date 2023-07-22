@@ -8,6 +8,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -29,23 +30,26 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.tryParse
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
+import java.util.Base64
 import java.util.EnumSet
-import java.util.Locale
 
 
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
+	domain: String,
 	pageSize: Int,
 	searchPageSize: Int,
 ) : PagedMangaParser(context, source, pageSize, searchPageSize) {
+
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
 	protected open val listUrl = "/manga"
 	protected open val isNsfwSource = false
-	open val chapterDateFormat = SimpleDateFormat("MMM d, yyyy", Locale.ENGLISH)
+	protected open val datePattern = "MMMM d, yyyy"
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
@@ -53,6 +57,7 @@ internal abstract class MangaReaderParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select("#chapterlist > ul > li").mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
@@ -61,7 +66,7 @@ internal abstract class MangaReaderParser(
 				url = url,
 				number = index + 1,
 				scanlator = null,
-				uploadDate = chapterDateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
+				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
 				branch = null,
 				source = source,
 			)
@@ -92,6 +97,7 @@ internal abstract class MangaReaderParser(
 			tablemode.selectFirst(".infotable td:contains(Status)")
 				?: tablemode.selectFirst(".infotable td:contains(Statut)")
 				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
+				?: tablemode.selectFirst(".infotable td:contains(الحالة)")
 				?: tablemode.selectFirst(".infotable td:contains(Estado)")
 				?: docs.selectFirst(".infotable td:contains(สถานะ)")
 				?: tablemode.selectFirst(".infotable td:contains(Stato )")
@@ -103,7 +109,7 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(حالة العمل)") ?: docs.selectFirst(".tsinfo div:contains(Estado)")
 			?: docs.selectFirst(".tsinfo div:contains(สถานะ)") ?: docs.selectFirst(".tsinfo div:contains(Stato )")
 			?: docs.selectFirst(".tsinfo div:contains(Durum)") ?: docs.selectFirst(".tsinfo div:contains(Statüsü)")
-			?: docs.selectFirst(".tsinfo div:contains(Statü)")
+			?: docs.selectFirst(".tsinfo div:contains(Statü)") ?: docs.selectFirst(".tsinfo div:contains(الحالة)")
 		}
 
 		val state = if (tablemode != null) {
@@ -120,7 +126,7 @@ internal abstract class MangaReaderParser(
 				"En cours \uD83D\uDFE2", "En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento",
 				"Онгоінг", "Publishing", "Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating",
 				"Lançando", "In Arrivo", "Emision", "En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中",
-				"Devam ediyor",
+				"Devam ediyor", "Devam Etmekte",
 				-> MangaState.ONGOING
 
 				"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành", "مكتملة",
@@ -204,8 +210,10 @@ internal abstract class MangaReaderParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
+	protected open val selectMangaliste = ".postbody .listupd .bs .bsx"
+
 	protected open fun parseMangaList(docs: Document): List<Manga> {
-		return docs.select(".postbody .listupd .bs .bsx").mapNotNull {
+		return docs.select(selectMangaliste).mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()
@@ -228,12 +236,15 @@ internal abstract class MangaReaderParser(
 		}
 	}
 
+	protected open val encodedSrc = false
+	protected open val selectScript = "div.wrapper script"
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
 
 		val test = docs.select("script:containsData(ts_reader)")
-		if (test.isNullOrEmpty()) {
+		if (test.isNullOrEmpty() and !encodedSrc) {
 			return docs.select("div#readerarea img").map { img ->
 				val url = img.imageUrl()
 				MangaPage(
@@ -244,11 +255,32 @@ internal abstract class MangaReaderParser(
 				)
 			}
 		} else {
-			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
-			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
-				.getJSONArray("sources")
-				.getJSONObject(0)
-				.getJSONArray("images")
+			val images = if (encodedSrc) {
+				val script = docs.select(selectScript)
+				var decode = ""
+				for (i in script) {
+					if (i.attr("src").startsWith("data:text/javascript;base64,")) {
+						decode = Base64.getDecoder().decode(i.attr("src").replace("data:text/javascript;base64,", ""))
+							.decodeToString()
+						if (decode.startsWith("ts_reader.run")) {
+							break
+						}
+					}
+
+				}
+				JSONObject(decode.substringAfter('(').substringBeforeLast(')'))
+					.getJSONArray("sources")
+					.getJSONObject(0)
+					.getJSONArray("images")
+
+			} else {
+				val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
+				JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
+					.getJSONArray("sources")
+					.getJSONObject(0)
+					.getJSONArray("images")
+			}
+
 			val pages = ArrayList<MangaPage>(images.length())
 			for (i in 0 until images.length()) {
 				pages.add(
@@ -292,7 +324,7 @@ internal abstract class MangaReaderParser(
 		return@withLock tagMap
 	}
 
-	private fun Element.imageUrl(): String {
+	protected open fun Element.imageUrl(): String {
 		return attrAsAbsoluteUrlOrNull("src")
 			?: attrAsAbsoluteUrlOrNull("data-src")
 			?: attrAsAbsoluteUrlOrNull("data-cfsrc")

@@ -2,17 +2,17 @@ package org.koitharu.kotatsu.parsers.site.mangareader.id
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import java.util.Locale
 
 @MangaSourceParser("KOMIKMANGA", "KomikManga", "id")
 internal class KomikMangaParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KOMIKMANGA, pageSize = 20, searchPageSize = 10) {
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("komikhentai.co")
+	MangaReaderParser(context, MangaSource.KOMIKMANGA, "komikhentai.co", pageSize = 20, searchPageSize = 10) {
 
-	override val listUrl: String
-		get() = "/project"
+	override val listUrl = "/project"
+
+	override val datePattern = "MMM d, yyyy"
+	override val sourceLocale: Locale = Locale.ENGLISH
 
 }

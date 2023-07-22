@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.mangareader.ar
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -20,20 +19,16 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.tryParse
 import java.text.SimpleDateFormat
-import java.util.Locale
 
 @MangaSourceParser("SWATEAM", "Swa Team", "ar")
 internal class SwaTeam(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SWATEAM, pageSize = 42, searchPageSize = 39) {
+	MangaReaderParser(context, MangaSource.SWATEAM, "swatop.club", pageSize = 42, searchPageSize = 39) {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("swatop.club")
-
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale("ar", "AR"))
-
+	override val datePattern = "dd-MM-yyyy"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select("div.bixbox li").mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
@@ -42,7 +37,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 				url = url,
 				number = index + 1,
 				scanlator = null,
-				uploadDate = chapterDateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
+				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
 				branch = null,
 				source = source,
 			)

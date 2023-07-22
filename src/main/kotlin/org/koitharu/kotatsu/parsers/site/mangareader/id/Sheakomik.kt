@@ -2,18 +2,12 @@ package org.koitharu.kotatsu.parsers.site.mangareader.id
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import java.text.SimpleDateFormat
-import java.util.Locale
 
 @MangaSourceParser("SHEAKOMIK", "Sheakomik", "id")
 internal class Sheakomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SHEAKOMIK, pageSize = 40, searchPageSize = 40) {
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("sheakomik.com")
+	MangaReaderParser(context, MangaSource.SHEAKOMIK, "sheakomik.com", pageSize = 40, searchPageSize = 40) {
 
-	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMM d, yyyy", Locale("in", "ID"))
-
+	override val datePattern = "MMM d, yyyy"
 }

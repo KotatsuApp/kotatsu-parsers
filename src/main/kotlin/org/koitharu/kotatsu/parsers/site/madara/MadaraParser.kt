@@ -264,13 +264,14 @@ internal abstract class MadaraParser(
 	protected open val selectgenre = "div.genres-content a"
 	protected open val selectdate = "span.chapter-release-date i"
 	protected open val selectchapter = "li.wp-manga-chapter"
+	protected open val selectTestAsync = "div.listing-chapters_wrap"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body()
 
-		val testchekasync = body.select("div.listing-chapters_wrap")
+		val testchekasync = body.select(selectTestAsync)
 
 		val chaptersDeferred = if (testchekasync.isNullOrEmpty()) {
 			async { loadChapters(manga.url, doc) }
@@ -329,10 +330,10 @@ internal abstract class MadaraParser(
 		)
 	}
 
+
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
-		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
@@ -389,6 +390,8 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	protected open val selectPage = "div.page-break"
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -396,7 +399,7 @@ internal abstract class MadaraParser(
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
 			val root = doc.body().selectFirstOrThrow("div.main-col-inner").selectFirstOrThrow("div.reading-content")
-			return root.select("div.page-break").map { div ->
+			return root.select(selectPage).map { div ->
 				val img = div.selectFirstOrThrow("img")
 				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
 				MangaPage(
@@ -436,30 +439,31 @@ internal abstract class MadaraParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
-				d.startsWith("há ") || // other translated 'ago' in Portuguese.
-				d.endsWith(" hace") || // other translated 'ago' in Spanish
-				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
-				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
-				d.startsWith("il y a") || // Handle translated 'ago' in French.
-				//If there is no ago but just a motion of time
-				// short Hours
-				d.endsWith(" h") ||
-				// short Day
-				d.endsWith(" d") ||
-				// Day in Portuguese
-				d.endsWith(" días") || d.endsWith(" día") ||
-				// Day in French
-				d.endsWith(" jour") || d.endsWith(" jours") ||
-				// Hours in Portuguese
-				d.endsWith(" horas") || d.endsWith(" hora") ||
-				// Hours in french
-				d.endsWith(" heure") || d.endsWith(" heures") ||
-				// Minutes in English
-				d.endsWith(" mins") ||
-				// Minutes in Portuguese
-				d.endsWith(" minutos") || d.endsWith(" minuto") ||
-				//Minutes in French
-				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+					d.startsWith("há ") || // other translated 'ago' in Portuguese.
+					d.endsWith(" hace") || // other translated 'ago' in Spanish
+					d.endsWith(" назад") || // other translated 'ago' in Russian
+					d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
+					d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
+					d.startsWith("il y a") || // Handle translated 'ago' in French.
+					//If there is no ago but just a motion of time
+					// short Hours
+					d.endsWith(" h") ||
+					// short Day
+					d.endsWith(" d") ||
+					// Day in Portuguese
+					d.endsWith(" días") || d.endsWith(" día") ||
+					// Day in French
+					d.endsWith(" jour") || d.endsWith(" jours") ||
+					// Hours in Portuguese
+					d.endsWith(" horas") || d.endsWith(" hora") ||
+					// Hours in french
+					d.endsWith(" heure") || d.endsWith(" heures") ||
+					// Minutes in English
+					d.endsWith(" mins") ||
+					// Minutes in Portuguese
+					d.endsWith(" minutos") || d.endsWith(" minuto") ||
+					//Minutes in French
+					d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {
@@ -505,6 +509,7 @@ internal abstract class MadaraParser(
 				"day",
 				"days",
 				"d",
+				"день",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
 			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h").anyWordIn(date) -> cal.apply {
@@ -523,6 +528,7 @@ internal abstract class MadaraParser(
 				"minuto",
 				"mins",
 				"phút",
+				"минут",
 			).anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
@@ -554,10 +560,10 @@ internal abstract class MadaraParser(
 
 		private fun createRequestTemplate() =
 			("action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
-				"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
-				"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
-				"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
-				"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
+					"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
+					"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
+					"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
+					"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
 				'&',
 			).map {
 				val pos = it.indexOf('=')
