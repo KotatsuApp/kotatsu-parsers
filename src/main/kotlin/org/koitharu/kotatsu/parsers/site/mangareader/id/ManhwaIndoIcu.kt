@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.mangareader.es
+package org.koitharu.kotatsu.parsers.site.mangareader.id
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -8,12 +8,13 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@MangaSourceParser("DRAGONTRANSLATION", "DragonTranslation", "es")
-internal class DragonTranslationParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.DRAGONTRANSLATION, pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("MANHWAINDOICU", "Manhwa Indo Icu", "id")
+internal class ManhwaIndoIcu(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.MANHWAINDOICU, pageSize = 30, searchPageSize = 10) {
+
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("dragontranslation.net")
+		get() = ConfigKey.Domain("manhwaindo.icu")
 
+	override val isNsfwSource = true
 	override val chapterDateFormat: SimpleDateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-
 }

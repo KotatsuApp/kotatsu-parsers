@@ -49,7 +49,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", "japscan.ws")
 
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
 
 	override suspend fun getListPage(
@@ -68,21 +68,19 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 			.build()
 		val root = webClient.httpGet(url).parseHtml()
 			.requireElementById("main")
-			.selectFirstOrThrow(".flex-wrap")
-		return root.select(".mainTitle")
-			.map { p ->
-				val div = checkNotNull(p.parent())
-				val a = div.selectFirstOrThrow("a")
-				val href = a.attrAsRelativeUrl("href")
+			.selectFirstOrThrow(".p-2.row.d-flex")
+		return root.select("div.col-4")
+			.map { div ->
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
 					id = generateUid(href),
-					title = p.text(),
+					title = div.selectFirstOrThrow("p.p-1 a").text(),
 					altTitle = null,
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = false,
-					coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
+					coverUrl = div.selectFirstOrThrow("img.img-fluid").attrAsAbsoluteUrl("src"),
 					tags = setOf(),
 					state = null,
 					author = null,
@@ -128,6 +126,27 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		)
 	}
 
+	private fun extractQuotedContent(input: String): List<String> {
+		val regex = Regex("'(.*?)'")
+		return regex.findAll(input).map { it.groupValues[1] }.toList()
+	}
+
+	private fun listJSToKey(jsList: MutableList<String>, offsettab: Int, listKey: List<String>): MutableList<String> {
+		for (i in 0 until jsList.size) {
+			if (jsList[i].contains("0x")) {
+				var decoupeHexa = jsList[i].split("('")[1]
+				decoupeHexa = decoupeHexa.split("')")[0]
+				var indexkey = Integer.decode(decoupeHexa) - offsettab - 1
+				if (indexkey < 0) {
+					indexkey = listKey.size - 1
+				}
+				jsList[i] = listKey[indexkey]
+			}
+		}
+
+		return jsList
+	}
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(chapterUrl).parseHtml()
@@ -137,20 +156,67 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		val embeddedData = doc.requireElementById("data").attr("data-data")
 		val script = webClient.httpGet(scriptUrl).parseRaw()
 
-		val shortkeyRegex = Regex("""'([\dA-Z]{2})'""", RegexOption.IGNORE_CASE)
-		val longkeyRegex = Regex("""'([\dA-Z]{20})'""", RegexOption.IGNORE_CASE)
+		var tabKey = "'" + script.split("=['")[1]
+		tabKey = tabKey.split("];")[0]
+		val listKey = tabKey.split("','").toMutableList()
 
-		val longTables = longkeyRegex.findAll(script).map {
-			it.groupValues[1]
-		}.toList()
+		var decoupeOffset = script.split("-0x")[1]
+		decoupeOffset = "0x" + decoupeOffset.split(";")[0]
 
-		val shortTables = shortkeyRegex.findAll(script).map {
-			it.groupValues[1]
-		}.toList()
+		val offsettab = Integer.decode(decoupeOffset)
+
+		var decoupeFuncOrder = script.split("while(!![])")[1]
+		decoupeFuncOrder = decoupeFuncOrder.split("if")[0]
+
+		val listKeyOrder = extractQuotedContent(decoupeFuncOrder).toMutableList()
+
+		if (listKeyOrder.size < 3) {
+			throw Exception("L'ordre des clés n'a pas pu être déterminé")
+		}
+		var goodorder = false
+		for (i in 0 until listKey.size) {
+			for (z in 0 until listKeyOrder.size) {
+				if (listKey[Integer.decode(listKeyOrder[z]) - offsettab - 1].contains("[0-9]".toRegex())) {
+					goodorder = true
+				} else {
+					goodorder = false
+					break
+				}
+			}
+
+			if (goodorder) {
+				break
+			}
+
+			val firstElement = listKey.removeAt(0)
+			listKey.add(firstElement)
+		}
+
+		if (!goodorder) {
+			throw Exception("L'ordre des clés n'a pas pu être déterminé")
+		}
+
+		val zjscalc = script.split("/[A-Z0-9]/gi,")[1]
+
+		val calc1 = zjscalc.split(",")[0]
+		var calc1tab = calc1.split("+").toMutableList()
+		calc1tab = listJSToKey(calc1tab, offsettab, listKey)
+
+		val calc2 = zjscalc.split(",")[1]
+		var calc2tab = calc2.split("+").toMutableList()
+		calc2tab = listJSToKey(calc2tab, offsettab, listKey)
+
+		var key1 = calc1tab.joinToString("")
+		var key2 = calc2tab.joinToString("")
+
+		key1 = key1.replace("'", "")
+		key2 = key2.replace("'", "")
+		key1 = key1.replace(" ", "")
+		key2 = key2.replace(" ", "")
 
 		val keyTables = listOf(
-			shortTables[1].reversed() + longTables[1].reversed() + longTables[4].reversed() + longTables[0].reversed(),
-			shortTables[2].reversed() + longTables[3].reversed() + longTables[5].reversed() + longTables[2].reversed(),
+			key1.reversed(),
+			key2.reversed(),
 		)
 
 		var error: Exception? = null
