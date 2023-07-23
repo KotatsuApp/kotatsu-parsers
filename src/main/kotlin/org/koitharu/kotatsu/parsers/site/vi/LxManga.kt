@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.fr
+package org.koitharu.kotatsu.parsers.site.vi
 
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
