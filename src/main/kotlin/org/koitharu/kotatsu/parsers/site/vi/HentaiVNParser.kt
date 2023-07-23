@@ -136,8 +136,12 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val docs = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return docs.requireElementById("image").select("img").map {
+		val ids = chapter.url.removePrefix("/").split('-').take(2)
+		val mangaId = ids[0].toInt()
+		val chapterId = ids[1].toInt()
+		val contentUrl = "/list-loadchapter.php?id_episode=$chapterId&idchapshowz=$mangaId".toAbsoluteUrl(domain)
+		val docs = webClient.httpGet(contentUrl).parseHtml()
+		return docs.select("img").map {
 			val pageUrl = it.attrAsAbsoluteUrl("src")
 			MangaPage(
 				id = generateUid(pageUrl),
