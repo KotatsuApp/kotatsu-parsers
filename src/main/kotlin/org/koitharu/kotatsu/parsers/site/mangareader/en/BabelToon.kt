@@ -21,7 +21,7 @@ internal class BabelToon(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BABELTOON, "babeltoon.com", pageSize = 20, searchPageSize = 10) {
 
 	override val listUrl = "/series"
-	override val selectMangaliste = ".postbody .listupd .maindet .inmain"
+	override val selectMangalist = ".postbody .listupd .maindet .inmain"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

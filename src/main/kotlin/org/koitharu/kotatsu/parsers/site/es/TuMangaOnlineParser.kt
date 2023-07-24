@@ -25,8 +25,11 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
 	override val sortOrders = EnumSet.of(
+		SortOrder.ALPHABETICAL,
+		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
+		SortOrder.RATING
 	)
 
 	override suspend fun getListPage(
@@ -35,16 +38,21 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+
+		val order =
+			when (sortOrder) {
+				SortOrder.POPULARITY -> "likes_count"
+				SortOrder.UPDATED -> "release_date"
+				SortOrder.NEWEST -> "creation"
+				SortOrder.ALPHABETICAL -> "alphabetically"
+				SortOrder.RATING -> "score"
+
+			}
 		val url = buildString {
 			append("/library")
 			if (query.isNullOrEmpty()) {
 				append("?order_item=")
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("likes_count")
-				}
-				if (sortOrder == SortOrder.NEWEST) {
-					append("creation")
-				}
+				append(order)
 				append("&order_dir=desc")
 				append("&filter_by=title")
 				if (tags != null) {

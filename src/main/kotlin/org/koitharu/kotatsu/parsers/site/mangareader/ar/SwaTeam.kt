@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.domain
@@ -18,13 +19,71 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("SWATEAM", "Swa Team", "ar")
 internal class SwaTeam(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SWATEAM, "swatop.club", pageSize = 42, searchPageSize = 39) {
 
-	override val datePattern = "dd-MM-yyyy"
+	override val datePattern = "MMMM dd, yyyy"
+	override val selectMangalist = ".listupd .bs .bsx"
+	override val selectMangaListImg = "img"
+
+	private var lastSearchPage = 1
+
+	// Tag doesn't work on manga page ( it comes from website )
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
+		if (!query.isNullOrEmpty()) {
+			if (page > lastSearchPage) {
+				return emptyList()
+			}
+
+			val url = buildString {
+				append("https://")
+				append(domain)
+				append("/?s=")
+				append(query.urlEncoded())
+				append("&page=")
+				append(page)
+			}
+
+			val docs = webClient.httpGet(url).parseHtml()
+			lastSearchPage = docs.selectFirst(".pagination .next")
+				?.previousElementSibling()
+				?.text()?.toIntOrNull() ?: 1
+			return parseMangaList(docs)
+		}
+
+		val sortQuery = when (sortOrder) {
+			SortOrder.ALPHABETICAL -> "title"
+			SortOrder.NEWEST -> "latest"
+			SortOrder.POPULARITY -> "popular"
+			SortOrder.UPDATED -> "update"
+			else -> ""
+		}
+		val tagKey = "genre[]".urlEncoded()
+		val tagQuery =
+			if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
+		val url = buildString {
+			append("https://")
+			append(domain)
+			append(listUrl)
+			append("/?order=")
+			append(sortQuery)
+			append(tagQuery)
+			append("&page=")
+			append(page)
+		}
+
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -37,7 +96,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 				url = url,
 				number = index + 1,
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
+				uploadDate = dateFormat.tryParse(element.selectFirst(".chapter-date")?.text()),
 				branch = null,
 				source = source,
 			)
@@ -52,22 +111,20 @@ internal class SwaTeam(context: MangaLoaderContext) :
 		val states = docs.selectFirst("div.spe span:contains(Ongoing)")?.text()
 
 		val state = if (states.isNullOrEmpty()) {
-			"Completed"
+			"completed"
 		} else {
-			"Ongoing"
+			"ongoing"
 		}
 
 		val mangaState = state.let {
 			when (it) {
-				"Ongoing" -> MangaState.ONGOING
+				"ongoing" -> MangaState.ONGOING
 
-				"Completed" -> MangaState.FINISHED
+				"completed" -> MangaState.FINISHED
 
 				else -> null
 			}
 		}
-
-
 		val author = docs.selectFirst("span.author i")?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null

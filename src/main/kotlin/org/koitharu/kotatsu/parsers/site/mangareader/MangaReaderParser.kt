@@ -55,10 +55,11 @@ internal abstract class MangaReaderParser(
 	private val mutex = Mutex()
 	private var lastSearchPage = 1
 
+	protected open val selectChapter = "#chapterlist > ul > li"
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		val chapters = docs.select("#chapterlist > ul > li").mapChapters(reversed = true) { index, element ->
+		val chapters = docs.select(selectChapter).mapChapters(reversed = true) { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
@@ -99,7 +100,7 @@ internal abstract class MangaReaderParser(
 				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
 				?: tablemode.selectFirst(".infotable td:contains(الحالة)")
 				?: tablemode.selectFirst(".infotable td:contains(Estado)")
-				?: docs.selectFirst(".infotable td:contains(สถานะ)")
+				?: tablemode.selectFirst(".infotable td:contains(สถานะ)")
 				?: tablemode.selectFirst(".infotable td:contains(Stato )")
 				?: tablemode.selectFirst(".infotable td:contains(Durum)")
 				?: tablemode.selectFirst(".infotable td:contains(Statüsü)")
@@ -210,10 +211,11 @@ internal abstract class MangaReaderParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	protected open val selectMangaliste = ".postbody .listupd .bs .bsx"
+	protected open val selectMangalist = ".postbody .listupd .bs .bsx"
+	protected open val selectMangaListImg = "img.ts-post-image"
 
 	protected open fun parseMangaList(docs: Document): List<Manga> {
-		return docs.select(selectMangaliste).mapNotNull {
+		return docs.select(selectMangalist).mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()
@@ -227,7 +229,7 @@ internal abstract class MangaReaderParser(
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				isNsfw = isNsfwSource,
-				coverUrl = it.selectFirst("img.ts-post-image")?.imageUrl().orEmpty(),
+				coverUrl = it.selectFirst(selectMangaListImg)?.imageUrl().orEmpty(),
 				tags = emptySet(),
 				state = null,
 				author = null,
@@ -239,13 +241,14 @@ internal abstract class MangaReaderParser(
 	protected open val encodedSrc = false
 	protected open val selectScript = "div.wrapper script"
 
+	protected open val selectPage = "div#readerarea img"
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
 
 		val test = docs.select("script:containsData(ts_reader)")
 		if (test.isNullOrEmpty() and !encodedSrc) {
-			return docs.select("div#readerarea img").map { img ->
+			return docs.select(selectPage).map { img ->
 				val url = img.imageUrl()
 				MangaPage(
 					id = generateUid(url),

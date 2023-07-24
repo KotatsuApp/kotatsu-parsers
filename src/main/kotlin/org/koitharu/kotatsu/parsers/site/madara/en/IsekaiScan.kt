@@ -29,7 +29,7 @@ import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 
-@MangaSourceParser("ISEKAISCAN", "Isekai Scan", "en")
+@MangaSourceParser("ISEKAISCAN", "Isekai Scan Top", "en")
 internal class IsekaiScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.top", 16) {
 

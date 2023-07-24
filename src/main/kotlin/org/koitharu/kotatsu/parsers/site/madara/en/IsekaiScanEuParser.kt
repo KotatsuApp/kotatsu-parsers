@@ -21,7 +21,7 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
-@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan", "en")
+@MangaSourceParser("ISEKAISCAN_EU", "Isekai Scan To", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "m.isekaiscan.to") {
 
