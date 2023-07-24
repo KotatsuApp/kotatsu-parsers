@@ -313,8 +313,9 @@ internal abstract class GroupleParser(
 	}
 
 	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
-		val response = webClient.httpHead(url)
-		response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
+		webClient.httpHead(url).use { response ->
+			response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
+		}
 	}.getOrDefault(false)
 
 	private fun Response.checkAuthRequired(): Response {

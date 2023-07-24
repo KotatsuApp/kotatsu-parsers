@@ -27,7 +27,7 @@ internal class CommonHeadersInterceptor() : Interceptor {
 		return if (parser is Interceptor) {
 			parser.intercept(ProxyChain(chain, newRequest))
 		} else {
-			return chain.proceed(newRequest)
+			chain.proceed(newRequest)
 		}
 	}
 

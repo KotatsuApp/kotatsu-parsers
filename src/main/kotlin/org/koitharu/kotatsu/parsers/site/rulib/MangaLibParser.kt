@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.rulib
 
 import androidx.collection.ArraySet
+import kotlinx.coroutines.withTimeoutOrNull
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
@@ -12,32 +13,14 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.ChaptersListBuilder
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.getCookies
-import org.koitharu.kotatsu.parsers.util.host
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.JSONIterator
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.parseJsonArray
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.json.values
 import java.text.SimpleDateFormat
-import java.util.EnumSet
-import java.util.Locale
+import java.util.*
 
 internal open class MangaLibParser(
 	context: MangaLoaderContext,
@@ -207,17 +190,19 @@ internal open class MangaLibParser(
 				val json = JSONObject(
 					raw.substringAfter("window.__info").substringAfter('=').substringBeforeLast(';'),
 				)
-				val domain = json.getJSONObject("servers").run {
-					getStringOrNull("main") ?: getString(
-						json.getJSONObject("img").getString("server"),
-					)
-				}
-				val url = json.getJSONObject("img").getString("url")
+				val servers = json.getJSONObject("servers")
+				val img = json.getJSONObject("img")
+				val defaultServer = servers.getStringOrNull(img.getString("server"))
+				val baseUrl = img.getString("url")
+				val pageJson = JSONObject()
+				pageJson.put("default", defaultServer)
+				pageJson.put("servers", JSONArray(Iterable { servers.values() }))
 				return pages.mapJSON { x ->
-					val pageUrl = "$domain/$url${x.getString("u")}"
+					val pageUrl = concatUrl(baseUrl, x.getString("u"))
+					pageJson.put("url", pageUrl)
 					MangaPage(
 						id = generateUid(pageUrl),
-						url = pageUrl,
+						url = pageJson.toString(),
 						preview = null,
 						source = source,
 					)
@@ -225,6 +210,19 @@ internal open class MangaLibParser(
 			}
 		}
 		throw ParseException("Script with info not found", fullUrl)
+	}
+
+	override suspend fun getPageUrl(page: MangaPage): String {
+		val json = JSONObject(page.url)
+		val defaultServer = json.getString("default")
+		val servers = json.getJSONArray("servers")
+		val pageUrl = json.getString("url")
+		return (0 until servers.length()).firstNotNullOfOrNull { i ->
+			val server = servers.getString(i)
+			concatUrl(server, pageUrl).takeIf {
+				tryHeadImage(it)
+			}
+		} ?: concatUrl(defaultServer, pageUrl)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -264,6 +262,14 @@ internal open class MangaLibParser(
 		}
 		return body.selectFirst(".profile-user__username")?.text() ?: body.parseFailed("Cannot find username")
 	}
+
+	private suspend fun tryHeadImage(url: String): Boolean = runCatchingCancellable {
+		withTimeoutOrNull(3_000) {
+			webClient.httpHead(url).use { response ->
+				response.isSuccessful && response.mimeType?.startsWith("image/") == true
+			}
+		} ?: false
+	}.getOrDefault(false)
 
 	protected open fun isNsfw(doc: Document): Boolean {
 		val modal = doc.body().getElementById("title-caution")

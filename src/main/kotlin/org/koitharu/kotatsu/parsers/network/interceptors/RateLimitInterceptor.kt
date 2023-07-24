@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.network
+package org.koitharu.kotatsu.parsers.network.interceptors
 
 import okhttp3.Interceptor
 import okhttp3.Response
