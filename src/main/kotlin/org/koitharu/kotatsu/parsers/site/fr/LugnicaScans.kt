@@ -142,7 +142,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 				.mapChapters(reversed = true) { i, div ->
 
 					val a = div.selectFirstOrThrow("a")
-					val href = a.attr("href")
+					val href = a.attrAsRelativeUrl("href")
 					val name = a.text()
 
 					val dateText = div.select("span").last()?.text()
