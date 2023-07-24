@@ -58,7 +58,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 			if (sortOrder == SortOrder.ALPHABETICAL) {
 				append("/mangas/")
 				// just to stop the search of the ALPHABETICAL page because it contains all the manga and has no page function ( to change if there is a better method to stop the search )
-				if (page.toString() == "2") {
+				if (page == 2) {
 					append(page.toString()) // juste for break
 				}
 			}
