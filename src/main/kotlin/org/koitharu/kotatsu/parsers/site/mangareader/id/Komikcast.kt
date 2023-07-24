@@ -31,7 +31,6 @@ import java.util.Locale
 internal class Komikcast(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.io", pageSize = 60, searchPageSize = 28) {
 
-
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
@@ -43,7 +42,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = docs.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
+				name = element.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
 				url = url,
 				number = index + 1,
 				scanlator = null,
@@ -79,9 +78,10 @@ internal class Komikcast(context: MangaLoaderContext) :
 
 		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")?.lastElementChild()?.text()
 
-		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+		val nsfw =
+			docs.selectFirst(".restrictcontainer") != null || docs.selectFirst(".info-right .alr") != null || docs.selectFirst(
+				".postbody .alr",
+			) != null
 
 		return manga.copy(
 			description = docs.selectFirst("div.komik_info-description-sinopsis")?.text(),
@@ -98,8 +98,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 		return docs.select("div.list-update_item").mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")
-			val rating = it.selectFirst(".numscore")?.text()
-				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
+			val rating = it.selectFirst(".numscore")?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
 
 			val name = it.selectFirst("h3.title")?.text().orEmpty()
 			Manga(
@@ -136,10 +135,8 @@ internal class Komikcast(context: MangaLoaderContext) :
 			}
 		} else {
 			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
-			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
-				.getJSONArray("sources")
-				.getJSONObject(0)
-				.getJSONArray("images")
+			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')')).getJSONArray("sources")
+				.getJSONObject(0).getJSONArray("images")
 			val pages = ArrayList<MangaPage>(images.length())
 			for (i in 0 until images.length()) {
 				pages.add(
