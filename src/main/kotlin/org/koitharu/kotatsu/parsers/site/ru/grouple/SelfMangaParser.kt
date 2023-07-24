@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.grouple
+package org.koitharu.kotatsu.parsers.site.ru.grouple
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser

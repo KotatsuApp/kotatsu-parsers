@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.multichan
+package org.koitharu.kotatsu.parsers.site.ru.multichan
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser

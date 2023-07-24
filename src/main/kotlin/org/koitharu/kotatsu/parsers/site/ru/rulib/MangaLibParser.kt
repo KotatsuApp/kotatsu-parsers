@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.rulib
+package org.koitharu.kotatsu.parsers.site.ru.rulib
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.withTimeoutOrNull
@@ -256,7 +256,7 @@ internal open class MangaLibParser(
 		}
 
 	override suspend fun getUsername(): String {
-		val body = webClient.httpGet("https://${LIB_SOCIAL_LINK}/messages").parseHtml().body()
+		val body = webClient.httpGet("https://$LIB_SOCIAL_LINK/messages").parseHtml().body()
 		if (body.baseUri().endsWith("/login")) {
 			throw AuthRequiredException(source)
 		}

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.rulib
+package org.koitharu.kotatsu.parsers.site.ru.rulib
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext

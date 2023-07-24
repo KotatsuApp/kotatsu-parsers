@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.grouple
+package org.koitharu.kotatsu.parsers.site.ru.grouple
 
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
