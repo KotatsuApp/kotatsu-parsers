@@ -166,7 +166,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirst("#forgen_reader")
+		val root = doc.body().requireElementById("forgen_reader")
 			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
 			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
