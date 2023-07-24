@@ -75,7 +75,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		return doc.select("div.grid div.manga-vertical")
 			.map { div ->
 				val href = div.selectFirstOrThrow("a").attr("href")
-				val img = div.select(".cover").first()!!.attr("style").substringAfter("url('").substringBefore("')")
+				val img = div.selectFirstOrThrow(".cover").attr("style").substringAfter("url('").substringBefore("')")
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("a.text-ellipsis").text(),
