@@ -196,7 +196,7 @@ internal open class MangaLibParser(
 				val baseUrl = img.getString("url")
 				val pageJson = JSONObject()
 				pageJson.put("default", defaultServer)
-				pageJson.put("servers", JSONArray(Iterable { servers.values() }))
+				pageJson.put("servers", servers.jsonValues())
 				return pages.mapJSON { x ->
 					val pageUrl = concatUrl(baseUrl, x.getString("u"))
 					pageJson.put("url", pageUrl)
@@ -325,6 +325,14 @@ internal open class MangaLibParser(
 		} else {
 			throw AuthRequiredException(source)
 		}
+	}
+
+	private fun JSONObject.jsonValues(): JSONArray {
+		val result = JSONArray()
+		values().forEach { x ->
+			result.put(x)
+		}
+		return result
 	}
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
