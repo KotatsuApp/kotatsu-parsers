@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.site.madara.Manga18Parser
+import org.koitharu.kotatsu.parsers.site.manga18.Manga18Parser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid

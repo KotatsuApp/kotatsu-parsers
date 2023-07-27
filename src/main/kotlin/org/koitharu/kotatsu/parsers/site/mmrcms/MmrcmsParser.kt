@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.madara
+package org.koitharu.kotatsu.parsers.site.mmrcms
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope

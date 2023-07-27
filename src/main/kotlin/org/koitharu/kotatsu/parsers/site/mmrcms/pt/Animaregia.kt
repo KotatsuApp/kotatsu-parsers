@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.site.madara.MmrcmsParser
+import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 import java.util.Locale

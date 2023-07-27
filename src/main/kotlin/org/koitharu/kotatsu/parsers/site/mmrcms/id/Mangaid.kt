@@ -4,7 +4,7 @@ package org.koitharu.kotatsu.parsers.site.mmrcms.id
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.site.madara.MmrcmsParser
+import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
 

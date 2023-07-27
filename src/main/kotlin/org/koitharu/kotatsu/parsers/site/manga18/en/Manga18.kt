@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.site.madara.Manga18Parser
+import org.koitharu.kotatsu.parsers.site.manga18.Manga18Parser
 
 
 @MangaSourceParser("MANGA18", "Manga18", "en", ContentType.HENTAI)
