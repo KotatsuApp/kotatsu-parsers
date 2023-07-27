@@ -9,13 +9,10 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MmrcmsParser
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.EnumSet
 import java.util.Locale
 
 
@@ -26,6 +23,12 @@ internal class Animaregia(context: MangaLoaderContext) :
 	override val selectdate = "div.col-md-4"
 	override val sourceLocale: Locale = Locale.ENGLISH
 
+	//temporary
+	override val sortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.POPULARITY,
+		SortOrder.ALPHABETICAL,
+	)
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -33,15 +36,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.select(selectdesc).let {
-			if (it.select("p").text().isNotEmpty()) {
-				it.select("p").joinToString(separator = "\n\n") { p ->
-					p.text().replace("<br>", "\n")
-				}
-			} else {
-				it.text()
-			}
-		}
+		val desc = doc.select(selectdesc).text()
 
 		val stateDiv = body.selectFirst("li.list-group-item:contains(Status)")?.lastElementChild()
 
@@ -59,7 +54,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 		manga.copy(
 			tags = tags.mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringAfterLast("/"),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)

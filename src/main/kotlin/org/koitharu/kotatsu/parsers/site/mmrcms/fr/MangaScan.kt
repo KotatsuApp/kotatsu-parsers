@@ -12,5 +12,6 @@ import java.util.Locale
 internal class MangaScan(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.MANGA_SCAN, "manga-scan.co") {
 
+	override val imgUpdated = ".jpg"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

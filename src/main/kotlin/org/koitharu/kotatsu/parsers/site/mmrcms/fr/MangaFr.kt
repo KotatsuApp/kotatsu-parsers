@@ -13,5 +13,6 @@ internal class MangaFr(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.MANGAFR, "manga-fr.me") {
 
 
+	override val imgUpdated = ".jpg"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

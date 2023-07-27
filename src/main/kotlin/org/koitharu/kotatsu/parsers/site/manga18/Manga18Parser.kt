@@ -27,8 +27,8 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listeurl = "list-manga"
-	protected open val tagUrl = "manga-list"
+	protected open val listeurl = "list-manga/"
+	protected open val tagUrl = "manga-list/"
 	protected open val isNsfwSource = false
 	protected open val datePattern = "dd-MM-yyyy"
 
@@ -40,12 +40,12 @@ internal abstract class Manga18Parser(
 
 
 	@JvmField
-	protected val ongoing: Set<String> = hashSetOf(
+	protected val ongoing: Set<String> = setOf(
 		"On Going",
 	)
 
 	@JvmField
-	protected val finished: Set<String> = hashSetOf(
+	protected val finished: Set<String> = setOf(
 		"Completed",
 	)
 
@@ -60,7 +60,7 @@ internal abstract class Manga18Parser(
 			append(domain)
 			when {
 				!query.isNullOrEmpty() -> {
-					append("/$listeurl/")
+					append("/$listeurl")
 					append(page.toString())
 					append("?search=")
 					append(query.urlEncoded())
@@ -68,7 +68,7 @@ internal abstract class Manga18Parser(
 				}
 
 				!tags.isNullOrEmpty() -> {
-					append("/$tagUrl/")
+					append("/$tagUrl")
 					for (tag in tags) {
 						append(tag.key)
 					}
@@ -78,7 +78,7 @@ internal abstract class Manga18Parser(
 				}
 
 				else -> {
-					append("/$listeurl/")
+					append("/$listeurl")
 					append(page.toString())
 					append("?")
 				}
@@ -94,7 +94,7 @@ internal abstract class Manga18Parser(
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.story_item").map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -116,7 +116,7 @@ internal abstract class Manga18Parser(
 		val doc = webClient.httpGet("https://$domain/$listeurl/").parseHtml()
 		return doc.select("div.grid_cate li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
-			val href = a.attr("href").substringAfterLast("/")
+			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')
 			MangaTag(
 				key = href,
 				title = a.text(),
@@ -139,15 +139,7 @@ internal abstract class Manga18Parser(
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.select(selectdesc).let {
-			if (it.select("p").text().isNotEmpty()) {
-				it.select("p").joinToString(separator = "\n\n") { p ->
-					p.text().replace("<br>", "\n")
-				}
-			} else {
-				it.text()
-			}
-		}
+		val desc = doc.selectFirstOrThrow(selectdesc).html()
 
 		val stateDiv = body.selectFirst(selectState)
 
@@ -164,7 +156,7 @@ internal abstract class Manga18Parser(
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
@@ -180,8 +172,8 @@ internal abstract class Manga18Parser(
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.selectFirst(selectdate)?.text()
 			MangaChapter(
 				id = generateUid(href),
