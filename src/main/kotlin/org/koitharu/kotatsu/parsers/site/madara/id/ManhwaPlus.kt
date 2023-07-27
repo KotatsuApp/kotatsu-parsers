@@ -3,20 +3,15 @@ package org.koitharu.kotatsu.parsers.site.madara.id
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.Locale
+import java.util.*
 
-@MangaSourceParser("MANHWAPLUS", "Manhwa Plus", "id")
+@MangaSourceParser("MANHWAPLUS", "Manhwa Plus", "id", ContentType.HENTAI)
 internal class ManhwaPlus(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAPLUS, "manhwaplus.pro", 10) {
 
-	override val isNsfwSource = true
 	override val tagPrefix = "genre/"
 	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH

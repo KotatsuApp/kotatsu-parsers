@@ -1,5 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.madara.pt
-
+package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -12,5 +11,4 @@ internal class Toonily(context: MangaLoaderContext) :
 
 	override val tagPrefix = "webtoon-genre/"
 	override val datePattern = "MMMM dd, yyyy"
-	override val isNsfwSource = false
 }

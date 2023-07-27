@@ -3,17 +3,17 @@ package org.koitharu.kotatsu.parsers.site.madara.pt
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("LIMASCANS", "Lima Scans", "pt")
+@MangaSourceParser("LIMASCANS", "Lima Scans", "pt", ContentType.HENTAI)
 internal class LimaScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LIMASCANS, "limascans.xyz/v2", 10) {
 
-	override val isNsfwSource = true
 	override val postreq = true
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 

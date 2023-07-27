@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -13,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
-@MangaSourceParser("ALLHENTAI", "ALlHentai", "ru")
+@MangaSourceParser("ALLHENTAI", "ALlHentai", "ru", type = ContentType.HENTAI)
 internal class AllHentaiParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {

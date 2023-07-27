@@ -1,11 +1,10 @@
-package org.koitharu.kotatsu.parsers.site.madara.pt
-
+package org.koitharu.kotatsu.parsers.site.madara.th
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("MANHUAKEY", "Manhuakey", "th")
 internal class Manhuakey(context: MangaLoaderContext) :

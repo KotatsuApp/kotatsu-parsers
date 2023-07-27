@@ -1,16 +1,12 @@
-package org.koitharu.kotatsu.parsers.site.madara.pt
+package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("MANHWAZ", "Manhwaz", "en")
+@MangaSourceParser("MANHWAZ", "ManhwaZ", "en")
 internal class Manhwaz(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAZ, "manhwaz.com", 40) {
 

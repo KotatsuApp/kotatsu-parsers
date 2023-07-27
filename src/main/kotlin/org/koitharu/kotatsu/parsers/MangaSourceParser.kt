@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
+import org.koitharu.kotatsu.parsers.model.ContentType
+
 /**
  * Annotate each [MangaParser] implementation with this annotation, used by codegen
  */
@@ -17,4 +19,8 @@ annotation class MangaSourceParser(
 	 * Language code (for example "en" or "ru") or blank if parser provide manga on different languages.
 	 */
 	val locale: String = "",
+	/**
+	 * Type of content provided by parser. See [ContentType] for more info
+	 */
+	val type: ContentType = ContentType.MANGA,
 )

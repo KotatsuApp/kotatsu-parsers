@@ -1,37 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
-import org.koitharu.kotatsu.parsers.InternalParsersApi
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
-import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.getCookies
-import org.koitharu.kotatsu.parsers.util.getDomain
-import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.selectOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toIntUp
-import java.util.EnumSet
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 private const val STATUS_ONGOING = "連載"
 private const val STATUS_FINISHED = "完結"
@@ -74,7 +48,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 			!query.isNullOrEmpty() -> return if (offset == 0) getSearchList(query, page) else emptyList()
 			tags.isNullOrEmpty() -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
 			tags.size == 1 -> "https://$domain/manga/list?category=${tags.first().key}&page=$page" +
-					"&sort=${getSortKey(sortOrder)}"
+				"&sort=${getSortKey(sortOrder)}"
 
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 category")
 			else -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
