@@ -10,5 +10,4 @@ internal class Hscans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HSCANS, "hscans.com", 10) {
 
 	override val datePattern = "dd/MM/yyyy"
-
 }

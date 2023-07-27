@@ -3,23 +3,9 @@ package org.koitharu.kotatsu.parsers.site.mangareader.ar
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("SWATEAM", "Swa Team", "ar")
@@ -128,8 +114,8 @@ internal class SwaTeam(context: MangaLoaderContext) :
 		val author = docs.selectFirst("span.author i")?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+			|| docs.selectFirst(".info-right .alr") != null
+			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("span.desc")?.html(),

@@ -3,28 +3,20 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.removeSuffix
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
-@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en")
+@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en", ContentType.HENTAI)
 internal class MangaDistrict(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
 
 	override val tagPrefix = "publication-genre/"
-
-	override val isNsfwSource = true
 
 	override val datePattern = "MMM dd,yyyy"
 

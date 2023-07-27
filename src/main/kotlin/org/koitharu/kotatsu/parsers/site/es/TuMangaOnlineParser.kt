@@ -29,7 +29,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
-		SortOrder.RATING
+		SortOrder.RATING,
 	)
 
 	override suspend fun getListPage(
@@ -99,7 +99,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
 			author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", "),
 			chapters = if (doc.select("div.chapters").isEmpty()) {
-				doc.select(oneShotChapterListSelector()).mapChapters(reversed = true) { i, item ->
+				doc.select(oneShotChapterListSelector()).mapChapters(reversed = true) { _, item ->
 					oneShotChapterFromElement(item)
 				}
 			} else {

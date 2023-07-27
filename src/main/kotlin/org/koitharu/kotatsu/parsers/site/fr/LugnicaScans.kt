@@ -5,15 +5,12 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.EnumSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("LUGNICASCANS", "Lugnica Scans", "fr")
 internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LUGNICASCANS, 10) {
@@ -167,7 +164,6 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().requireElementById("forgen_reader")
-			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
 			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
 			?: img.parseFailed("Image src not found")

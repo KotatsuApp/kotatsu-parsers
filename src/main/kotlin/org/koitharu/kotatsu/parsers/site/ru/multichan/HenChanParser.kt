@@ -3,20 +3,10 @@ package org.koitharu.kotatsu.parsers.site.ru.multichan
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.requireElementById
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("HENCHAN", "Хентай-тян", "ru")
+@MangaSourceParser("HENCHAN", "Хентай-тян", "ru", type = ContentType.HENTAI)
 internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.HENCHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
@@ -26,8 +16,6 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		"hentaichan.live",
 		"hentaichan.pro",
 	)
-
-	override val isNsfwSource = true
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

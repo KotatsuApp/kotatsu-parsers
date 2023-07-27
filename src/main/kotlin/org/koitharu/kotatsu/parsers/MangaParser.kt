@@ -30,6 +30,8 @@ abstract class MangaParser @InternalParsersApi constructor(
 	open val sourceLocale: Locale
 		get() = source.locale?.let { Locale(it) } ?: Locale.ROOT
 
+	val isNsfwSource = source.contentType == ContentType.HENTAI
+
 	/**
 	 * Provide default domain and available alternatives, if any.
 	 *

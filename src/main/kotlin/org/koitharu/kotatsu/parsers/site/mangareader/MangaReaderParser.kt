@@ -9,29 +9,10 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.Base64
-import java.util.EnumSet
+import java.util.*
 
 
 internal abstract class MangaReaderParser(
@@ -48,7 +29,6 @@ internal abstract class MangaReaderParser(
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
 	protected open val listUrl = "/manga"
-	protected open val isNsfwSource = false
 	protected open val datePattern = "MMMM d, yyyy"
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
@@ -146,8 +126,8 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+			|| docs.selectFirst(".info-right .alr") != null
+			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("div.entry-content")?.text(),

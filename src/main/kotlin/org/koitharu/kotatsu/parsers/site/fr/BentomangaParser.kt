@@ -13,8 +13,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
-import java.util.Calendar
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("BENTOMANGA", "Bentomanga", "fr")
 internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BENTOMANGA, 10) {

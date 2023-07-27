@@ -4,23 +4,18 @@ package org.koitharu.kotatsu.parsers.site.madara.vi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
+import org.koitharu.kotatsu.parsers.util.*
 
 
-@MangaSourceParser("HENTAICUBE", "Hentai Cube", "vi")
+@MangaSourceParser("HENTAICUBE", "Hentai Cube", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAICUBE, "hentaicube.net") {
 
-	override val isNsfwSource = true
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "the-loai/"
 	override val postreq = true

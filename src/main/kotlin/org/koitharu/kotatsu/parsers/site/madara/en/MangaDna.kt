@@ -1,27 +1,19 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANGADNA", "MangaDna", "en")
+@MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGADNA, "mangadna.com", 20) {
 
-	override val isNsfwSource = true
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true
 	override val selectdesc = "div.dsct"

@@ -1,25 +1,20 @@
-package org.koitharu.kotatsu.parsers.site.madara.pt
-
+package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("HENTAIXDICKGIRL", "Hentaixdickgirl", "en")
+@MangaSourceParser("HENTAIXDICKGIRL", "Hentai x Dickgirl", "en", ContentType.HENTAI)
 internal class Hentaixdickgirl(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAIXDICKGIRL, "hentaixdickgirl.com", 16) {
 
-	override val isNsfwSource = true
 	override val postreq = true
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {

@@ -76,6 +76,7 @@ class ParserProcessor(
 				
 			""".trimIndent(),
 		)
+		//language=kotlin
 		sourcesWriter?.write(
 			"""
 				package org.koitharu.kotatsu.parsers.model
@@ -83,8 +84,9 @@ class ParserProcessor(
 				enum class MangaSource(
 					val title: String,
 					val locale: String?,
+					val contentType: ContentType,
 				) {
-					LOCAL("Local", null),
+					LOCAL("Local", null, ContentType.OTHER),
 				
 			""".trimIndent(),
 		)
@@ -107,7 +109,7 @@ class ParserProcessor(
 		)
 		sourcesWriter?.write(
 			"""
-				DUMMY("Dummy", null),
+				DUMMY("Dummy", null, ContentType.OTHER),
 				;
 			}
 			""".trimIndent(),
@@ -128,6 +130,7 @@ class ParserProcessor(
 			val name = annotation.arguments.single { it.name?.asString() == "name" }.value as String
 			val title = annotation.arguments.single { it.name?.asString() == "title" }.value as String
 			val locale = annotation.arguments.single { it.name?.asString() == "locale" }.value as String
+			val type = annotation.arguments.single { it.name?.asString() == "type" }.value
 			val localeString = if (locale.isEmpty()) "null" else "\"$locale\""
 			val localeObj = if (locale.isEmpty()) null else Locale(locale)
 			val localeTitle = localeObj?.getDisplayLanguage(localeObj)
@@ -154,7 +157,7 @@ class ParserProcessor(
 				"@Deprecated(\"$reason\") "
 			} else ""
 			val localeComment = localeTitle?.toTitleCase(localeObj)?.let { " /* $it */" }.orEmpty()
-			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment),\n")
+			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment, ContentType.$type),\n")
 		}
 	}
 }
