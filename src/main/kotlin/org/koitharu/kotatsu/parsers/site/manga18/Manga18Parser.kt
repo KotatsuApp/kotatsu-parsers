@@ -29,7 +29,6 @@ internal abstract class Manga18Parser(
 
 	protected open val listeurl = "list-manga/"
 	protected open val tagUrl = "manga-list/"
-	protected open val isNsfwSource = false
 	protected open val datePattern = "dd-MM-yyyy"
 
 

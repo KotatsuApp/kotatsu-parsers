@@ -29,7 +29,6 @@ internal abstract class MmrcmsParser(
 
 	protected open val listeurl = "filterList"
 	protected open val tagUrl = "manga-list"
-	protected open val isNsfwSource = false
 	protected open val datePattern = "dd MMM. yyyy"
 
 

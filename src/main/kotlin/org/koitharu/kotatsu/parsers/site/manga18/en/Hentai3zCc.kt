@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -19,11 +20,9 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
 
-@MangaSourceParser("HENTAI3ZCC", "Hentai3z Cc", "en")
+@MangaSourceParser("HENTAI3ZCC", "Hentai3z Cc", "en", ContentType.HENTAI)
 internal class Hentai3zCc(context: MangaLoaderContext) :
 	Manga18Parser(context, MangaSource.HENTAI3ZCC, "hentai3z.cc") {
-
-	override val isNsfwSource = true
 
 	override suspend fun getListPage(
 		page: Int,
