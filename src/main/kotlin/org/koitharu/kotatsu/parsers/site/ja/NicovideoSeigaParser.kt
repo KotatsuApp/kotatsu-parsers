@@ -48,7 +48,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 			!query.isNullOrEmpty() -> return if (offset == 0) getSearchList(query, page) else emptyList()
 			tags.isNullOrEmpty() -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
 			tags.size == 1 -> "https://$domain/manga/list?category=${tags.first().key}&page=$page" +
-				"&sort=${getSortKey(sortOrder)}"
+					"&sort=${getSortKey(sortOrder)}"
 
 			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 category")
 			else -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
