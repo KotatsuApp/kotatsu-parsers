@@ -68,9 +68,9 @@ internal abstract class MmrcmsParser(
 			buildString {
 				append("https://")
 				append(domain)
-				if (page > 1) {
-					append("/STOP")
-				}
+				append("/latest-release")
+				append("?page=")
+				append(page.toString())
 			}
 		} else {
 			buildString {
