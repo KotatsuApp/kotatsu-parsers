@@ -30,12 +30,12 @@ import java.text.SimpleDateFormat
 internal class Klz9(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.KLZ9, "klz9.com") {
 
-	override val selectdesc = "div.row:contains(Description)"
+	override val selectDesc = "div.row:contains(Description)"
 	override val selectState = "ul.manga-info li:contains(Status) a"
 	override val selectAlt = "ul.manga-info li:contains(Other name (s))"
 	override val selectTag = "ul.manga-info li:contains(Genre(s)) a"
-	override val selectchapter = "tr"
-	override val selectdate = "td i"
+	override val selectChapter = "tr"
+	override val selectDate = "td i"
 	override val selectPage = "img"
 
 	override suspend fun getListPage(
@@ -100,9 +100,9 @@ internal class Klz9(context: MangaLoaderContext) :
 		val docload =
 			webClient.httpGet("https://$domain/app/manga/controllers/cont.listChapter.php?slug=$slug").parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return docload.body().select(selectchapter).mapChapters(reversed = true) { i, a ->
+		return docload.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = "/" + a.selectFirstOrThrow("a.chapter").attrAsRelativeUrl("href")
-			val dateText = a.selectFirst(selectdate)?.text()
+			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("a").text(),

@@ -20,11 +20,11 @@ internal class Hentaixdickgirl(context: MangaLoaderContext) :
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.listing-chapters_wrap")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return root2.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),

@@ -42,7 +42,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.selectFirstOrThrow(selectdesc).html()
+		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
 		val stateDiv = doc.selectFirst(selectState)
 
@@ -74,9 +74,9 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, a ->
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = a.selectFirst(selectdate)?.text()?.substringAfter("- ")
+			val dateText = a.selectFirst(selectDate)?.text()?.substringAfter("- ")
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("div.chapter-name").text(),

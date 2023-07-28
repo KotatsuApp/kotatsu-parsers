@@ -258,11 +258,9 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	protected open val selectdesc =
+	protected open val selectDesc =
 		"div.description-summary div.summary__content, div.summary_content div.post-content_item > h5 + div, div.summary_content div.manga-excerpt, div.post-content div.manga-summary, div.post-content div.desc, div.c-page__content div.summary__content"
-	protected open val selectgenre = "div.genres-content a"
-	protected open val selectdate = "span.chapter-release-date i"
-	protected open val selectchapter = "li.wp-manga-chapter"
+	protected open val selectGenre = "div.genres-content a"
 	protected open val selectTestAsync = "div.listing-chapters_wrap"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
@@ -278,7 +276,7 @@ internal abstract class MadaraParser(
 			async { getChapters(manga, doc) }
 		}
 
-		val desc = body.select(selectdesc).html()
+		val desc = body.select(selectDesc).html()
 
 		val stateDiv = (body.selectFirst("div.post-content_item:contains(Status)")
 			?: body.selectFirst("div.post-content_item:contains(Statut)")
@@ -307,7 +305,7 @@ internal abstract class MadaraParser(
 				.firstOrNull()?.tableValue()?.text()?.trim()
 
 		manga.copy(
-			tags = doc.body().select(selectgenre).mapNotNullToSet { a ->
+			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),
@@ -322,13 +320,16 @@ internal abstract class MadaraParser(
 	}
 
 
+	protected open val selectDate = "span.chapter-release-date i"
+	protected open val selectChapter = "li.wp-manga-chapter"
+
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
@@ -359,11 +360,11 @@ internal abstract class MadaraParser(
 		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
-		return doc.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
@@ -408,7 +409,7 @@ internal abstract class MadaraParser(
 			)
 			val unsaltedCiphertext = context.decodeBase64(chapterData.getString("ct"))
 			val salt = chapterData.getString("s").toString().decodeHex()
-			val ciphertext = SALTED + salt + unsaltedCiphertext
+			val ciphertext = "Salted__".toByteArray(Charsets.UTF_8) + salt + unsaltedCiphertext
 
 			val rawImgArray = CryptoAES(context).decrypt(context.encodeBase64(ciphertext), password)
 			val imgArrayString = rawImgArray.filterNot { c -> c == '[' || c == ']' || c == '\\' || c == '"' }
@@ -567,7 +568,5 @@ internal abstract class MadaraParser(
 			return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
 		}
 
-		const val URL_SEARCH_PREFIX = "slug:"
-		val SALTED = "Salted__".toByteArray(Charsets.UTF_8)
 	}
 }

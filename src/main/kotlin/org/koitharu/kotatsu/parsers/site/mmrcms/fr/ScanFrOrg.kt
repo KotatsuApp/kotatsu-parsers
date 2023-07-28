@@ -14,5 +14,5 @@ internal class ScanFrOrg(context: MangaLoaderContext) :
 
 
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val selectchapter = "ul.chapterszozo li"
+	override val selectChapter = "ul.chapterszozo li"
 }

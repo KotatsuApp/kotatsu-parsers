@@ -27,7 +27,7 @@ internal abstract class MmrcmsParser(
 		SortOrder.UPDATED,
 	)
 
-	protected open val listeurl = "filterList"
+	protected open val listUrl = "filterList"
 	protected open val tagUrl = "manga-list"
 	protected open val datePattern = "dd MMM. yyyy"
 
@@ -68,7 +68,7 @@ internal abstract class MmrcmsParser(
 			buildString {
 				append("https://")
 				append(domain)
-				if (page == 2) {
+				if (page > 1) {
 					append("/STOP")
 				}
 			}
@@ -77,7 +77,7 @@ internal abstract class MmrcmsParser(
 				append("https://")
 				append(domain)
 
-				append("/$listeurl/")
+				append("/$listUrl/")
 				append("?page=")
 				append(page.toString())
 				append("&asc=true&author=&tag=")
@@ -161,7 +161,7 @@ internal abstract class MmrcmsParser(
 		}
 	}
 
-	protected open val selectdesc = "div.well"
+	protected open val selectDesc = "div.well"
 	protected open val selectState = "dt:contains(Statut)"
 	protected open val selectAlt = "dt:contains(Autres noms)"
 	protected open val selectAut = "dt:contains(Auteur(s))"
@@ -174,7 +174,7 @@ internal abstract class MmrcmsParser(
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.selectFirstOrThrow(selectdesc).text()
+		val desc = doc.selectFirstOrThrow(selectDesc).text()
 
 		val stateDiv = body.selectFirst(selectState)?.nextElementSibling()
 
@@ -208,16 +208,16 @@ internal abstract class MmrcmsParser(
 	}
 
 
-	protected open val selectdate = "div.date-chapter-title-rtl"
-	protected open val selectchapter = "ul.chapters > li:not(.btn)"
+	protected open val selectDate = "div.date-chapter-title-rtl"
+	protected open val selectChapter = "ul.chapters > li:not(.btn)"
 
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
-		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow("h5").text(),

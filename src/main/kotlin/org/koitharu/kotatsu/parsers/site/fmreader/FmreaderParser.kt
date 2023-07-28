@@ -88,13 +88,12 @@ internal abstract class FmreaderParser(
 
 		return doc.select("div.thumb-item-flow").map { div ->
 
-			val href = div.selectFirstOrThrow("div.series-title").selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
-					.substringBeforeLast("')"),
+				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('").substringBeforeLast("')"),
 				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
@@ -108,7 +107,7 @@ internal abstract class FmreaderParser(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/$listeurl/").parseHtml()
+		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
 		return doc.select("ul.filter-type li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			val href = a.attr("href").substringAfter("manga-list-genre-").substringBeforeLast(".html")
@@ -120,7 +119,7 @@ internal abstract class FmreaderParser(
 		}
 	}
 
-	protected open val selectdesc = "div.summary-content"
+	protected open val selectDesc = "div.summary-content"
 	protected open val selectState = "ul.manga-info li:contains(Status) a"
 	protected open val selectAlt = "ul.manga-info li:contains(Other names)"
 	protected open val selectAut = "ul.manga-info li:contains(Author(s)) a"
@@ -132,7 +131,7 @@ internal abstract class FmreaderParser(
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.selectFirstOrThrow(selectdesc).html()
+		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
 		val stateDiv = doc.selectFirst(selectState)
 
@@ -163,14 +162,14 @@ internal abstract class FmreaderParser(
 	}
 
 
-	protected open val selectdate = "div.chapter-time"
-	protected open val selectchapter = "ul.list-chapters a"
+	protected open val selectDate = "div.chapter-time"
+	protected open val selectChapter = "ul.list-chapters a"
 
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, a ->
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = a.selectFirst(selectdate)?.text()
+			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("div.chapter-name").text(),
@@ -188,6 +187,7 @@ internal abstract class FmreaderParser(
 	}
 
 	protected open val selectPage = "div.chapter-content img"
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()

@@ -123,7 +123,7 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = body.select(selectdesc).let {
+		val desc = body.select(selectDesc).let {
 			if (it.select("p").text().isNotEmpty()) {
 				it.select("p").joinToString(separator = "\n\n") { p ->
 					p.text().replace("<br>", "\n")
@@ -160,7 +160,7 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 				.firstOrNull()?.tableValue()?.text()?.trim()
 
 		manga.copy(
-			tags = doc.body().select(selectgenre).mapNotNullToSet { a ->
+			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),

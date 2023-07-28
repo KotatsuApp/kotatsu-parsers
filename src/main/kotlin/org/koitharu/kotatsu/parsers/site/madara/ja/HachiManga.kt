@@ -17,9 +17,9 @@ import java.util.*
 internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachiraw.com") {
 
 	override val datePattern = "MMMM dd, yyyy"
-	override val selectchapter = "li.a-h"
-	override val selectdate = "span.chapter-tim"
-	override val selectdesc = "div.dsct"
+	override val selectChapter = "li.a-h"
+	override val selectDate = "span.chapter-tim"
+	override val selectDesc = "div.dsct"
 	override val tagPrefix = "genre/"
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
@@ -119,7 +119,7 @@ internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, M
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = body.select(selectdesc).html()
+		val desc = body.select(selectDesc).html()
 
 		val stateDiv = (body.selectFirst("div.post-content_item:contains(状態)"))?.selectLast("div.summary-content")
 
@@ -135,7 +135,7 @@ internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, M
 			?.text()?.trim()
 
 		manga.copy(
-			tags = doc.body().select(selectgenre).mapNotNullToSet { a ->
+			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),
@@ -152,11 +152,11 @@ internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, M
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.manga-content")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return root2.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),

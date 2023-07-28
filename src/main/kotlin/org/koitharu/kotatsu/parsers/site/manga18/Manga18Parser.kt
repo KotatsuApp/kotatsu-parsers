@@ -124,9 +124,7 @@ internal abstract class Manga18Parser(
 		}
 	}
 
-	protected open val selectdesc = "div.detail_reviewContent"
-	protected open val selectdate = "div.item p"
-	protected open val selectchapter = "div.chapter_box li"
+	protected open val selectDesc = "div.detail_reviewContent"
 	protected open val selectState = "div.item:contains(Status) div.info_value"
 	protected open val selectAlt = "div.item:contains(Other name) div.info_value"
 	protected open val selectTag = "div.item:contains(Categories) div.info_value a"
@@ -138,7 +136,7 @@ internal abstract class Manga18Parser(
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.selectFirstOrThrow(selectdesc).html()
+		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
 		val stateDiv = body.selectFirst(selectState)
 
@@ -168,12 +166,15 @@ internal abstract class Manga18Parser(
 	}
 
 
+	protected open val selectDate = "div.item p"
+	protected open val selectChapter = "div.chapter_box li"
+
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return doc.body().select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = a.text(),

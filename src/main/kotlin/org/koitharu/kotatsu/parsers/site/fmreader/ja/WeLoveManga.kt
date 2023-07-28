@@ -30,9 +30,9 @@ internal class WeLoveManga(context: MangaLoaderContext) :
 		val docload =
 			webClient.httpGet("https://$domain/app/manga/controllers/cont.Listchapter.php?mid=$mid").parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return docload.body().select(selectchapter).mapChapters(reversed = true) { i, a ->
+		return docload.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = a.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			val dateText = a.selectFirst(selectdate)?.text()
+			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("a").text(),

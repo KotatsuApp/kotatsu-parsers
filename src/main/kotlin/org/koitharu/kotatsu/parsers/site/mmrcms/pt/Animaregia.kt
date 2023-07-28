@@ -20,7 +20,7 @@ import java.util.Locale
 internal class Animaregia(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.ANIMAREGIA, "animaregia.net") {
 
-	override val selectdate = "div.col-md-4"
+	override val selectDate = "div.col-md-4"
 	override val sourceLocale: Locale = Locale.ENGLISH
 
 	//temporary
@@ -36,7 +36,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = doc.select(selectdesc).text()
+		val desc = doc.select(selectDesc).text()
 
 		val stateDiv = body.selectFirst("li.list-group-item:contains(Status)")?.lastElementChild()
 
