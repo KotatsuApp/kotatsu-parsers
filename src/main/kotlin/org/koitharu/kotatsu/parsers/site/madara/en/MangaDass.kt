@@ -110,15 +110,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 
 		val chaptersDeferred = async { getChapters(manga, doc) }
 
-		val desc = body.select(selectdesc).let {
-			if (it.select("p").text().isNotEmpty()) {
-				it.select("p").joinToString(separator = "\n\n") { p ->
-					p.text().replace("<br>", "\n")
-				}
-			} else {
-				it.text()
-			}
-		}
+		val desc = body.select(selectdesc).html()
 
 		val stateDiv = (body.selectFirst("div.post-content_item:contains(Status)"))?.selectLast("div.summary-content")
 
