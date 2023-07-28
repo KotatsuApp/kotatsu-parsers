@@ -57,7 +57,7 @@
 				data-bs-toggle="modal" style="cursor: pointer;">
 				<i data-feather="power"></i>
 			</td>
-			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.exception.CloudFlareProtectedException' %}
+			{% elseif case.failure.type == 'org.koitharu.kotatsu.parsers.CloudFlareProtectedException' %}
 			<td class="table-secondary text-center" data-bs-target="#failure_{{ case.hashCode }}"
 				data-bs-toggle="modal" style="cursor: pointer;">
 				<i data-feather="shield"></i>
@@ -99,29 +99,6 @@
 </div>
 <script>
 	feather.replace()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 </script>

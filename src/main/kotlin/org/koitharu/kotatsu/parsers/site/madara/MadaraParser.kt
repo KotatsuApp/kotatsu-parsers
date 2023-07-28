@@ -278,15 +278,7 @@ internal abstract class MadaraParser(
 			async { getChapters(manga, doc) }
 		}
 
-		val desc = body.select(selectdesc).let {
-			if (it.select("p").text().isNotEmpty()) {
-				it.select("p").joinToString(separator = "\n\n") { p ->
-					p.text().replace("<br>", "\n")
-				}
-			} else {
-				it.text()
-			}
-		}
+		val desc = body.select(selectdesc).html()
 
 		val stateDiv = (body.selectFirst("div.post-content_item:contains(Status)")
 			?: body.selectFirst("div.post-content_item:contains(Statut)")
@@ -438,31 +430,31 @@ internal abstract class MadaraParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
-					d.startsWith("há ") || // other translated 'ago' in Portuguese.
-					d.endsWith(" hace") || // other translated 'ago' in Spanish
-					d.endsWith(" назад") || // other translated 'ago' in Russian
-					d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
-					d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
-					d.startsWith("il y a") || // Handle translated 'ago' in French.
-					//If there is no ago but just a motion of time
-					// short Hours
-					d.endsWith(" h") ||
-					// short Day
-					d.endsWith(" d") ||
-					// Day in Portuguese
-					d.endsWith(" días") || d.endsWith(" día") ||
-					// Day in French
-					d.endsWith(" jour") || d.endsWith(" jours") ||
-					// Hours in Portuguese
-					d.endsWith(" horas") || d.endsWith(" hora") ||
-					// Hours in french
-					d.endsWith(" heure") || d.endsWith(" heures") ||
-					// Minutes in English
-					d.endsWith(" mins") ||
-					// Minutes in Portuguese
-					d.endsWith(" minutos") || d.endsWith(" minuto") ||
-					//Minutes in French
-					d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+				d.startsWith("há ") || // other translated 'ago' in Portuguese.
+				d.endsWith(" hace") || // other translated 'ago' in Spanish
+				d.endsWith(" назад") || // other translated 'ago' in Russian
+				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
+				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
+				d.startsWith("il y a") || // Handle translated 'ago' in French.
+				//If there is no ago but just a motion of time
+				// short Hours
+				d.endsWith(" h") ||
+				// short Day
+				d.endsWith(" d") ||
+				// Day in Portuguese
+				d.endsWith(" días") || d.endsWith(" día") ||
+				// Day in French
+				d.endsWith(" jour") || d.endsWith(" jours") ||
+				// Hours in Portuguese
+				d.endsWith(" horas") || d.endsWith(" hora") ||
+				// Hours in french
+				d.endsWith(" heure") || d.endsWith(" heures") ||
+				// Minutes in English
+				d.endsWith(" mins") ||
+				// Minutes in Portuguese
+				d.endsWith(" minutos") || d.endsWith(" minuto") ||
+				//Minutes in French
+				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {
@@ -559,10 +551,10 @@ internal abstract class MadaraParser(
 
 		private fun createRequestTemplate() =
 			("action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5B" +
-					"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
-					"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
-					"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
-					"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
+				"orderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query" +
+				"%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type" +
+				"%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border" +
+				"%5D=desc&vars%5Bmanga_archives_item_layout%5D=default").split(
 				'&',
 			).map {
 				val pos = it.indexOf('=')
