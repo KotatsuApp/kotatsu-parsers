@@ -31,7 +31,7 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
-	override val listeurl = "public/genre/manga/"
+	override val listUrl = "public/genre/manga/"
 
 	override suspend fun getListPage(
 		page: Int,
@@ -66,7 +66,7 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("?page=")
 					append(pages.toString())
 				}

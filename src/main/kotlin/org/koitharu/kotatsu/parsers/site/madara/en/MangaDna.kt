@@ -52,7 +52,7 @@ internal class MangaDna(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("/page/")
 					append(pages.toString())
 					append("?")

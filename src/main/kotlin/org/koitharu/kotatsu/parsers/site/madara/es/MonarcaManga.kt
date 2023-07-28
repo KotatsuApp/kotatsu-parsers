@@ -46,7 +46,7 @@ internal class MonarcaManga(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("/page/")
 					append(pages.toString())
 					append("?")

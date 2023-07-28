@@ -93,7 +93,8 @@ internal abstract class FmreaderParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('").substringBeforeLast("')"),
+				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
+					.substringBeforeLast("')"),
 				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

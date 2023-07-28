@@ -52,7 +52,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("/")
 					append(pages.toString())
 					append("?")
