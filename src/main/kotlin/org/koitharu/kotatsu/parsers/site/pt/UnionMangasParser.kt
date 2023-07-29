@@ -20,7 +20,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("unionleitor.top")
+	override val configKeyDomain = ConfigKey.Domain("guimah.com")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -145,7 +145,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 				.build(),
 		).parseJson()
 		return json.getJSONArray("items").mapJSON { jo ->
-			val href = "/pagina-manga/" + jo.getString("url")
+			val href = "/perfil/" + jo.getString("url")
 			Manga(
 				id = generateUid(href),
 				url = href,
