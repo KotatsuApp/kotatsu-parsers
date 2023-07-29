@@ -16,8 +16,6 @@ internal class SwaTeam(context: MangaLoaderContext) :
 	override val selectMangalist = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
 
-	private var lastSearchPage = 1
-
 	// Tag doesn't work on manga page ( it comes from website )
 	override suspend fun getListPage(
 		page: Int,

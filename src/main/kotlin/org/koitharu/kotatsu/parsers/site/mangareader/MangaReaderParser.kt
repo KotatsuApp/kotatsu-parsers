@@ -33,7 +33,7 @@ internal abstract class MangaReaderParser(
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-	private var lastSearchPage = 1
+	protected open var lastSearchPage = 1
 
 	protected open val selectChapter = "#chapterlist > ul > li"
 	override suspend fun getDetails(manga: Manga): Manga {
