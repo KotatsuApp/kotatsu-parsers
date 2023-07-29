@@ -27,7 +27,7 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listeurl = "list-manga/"
+	protected open val listUrl = "list-manga/"
 	protected open val tagUrl = "manga-list/"
 	protected open val datePattern = "dd-MM-yyyy"
 
@@ -59,7 +59,7 @@ internal abstract class Manga18Parser(
 			append(domain)
 			when {
 				!query.isNullOrEmpty() -> {
-					append("/$listeurl")
+					append("/$listUrl")
 					append(page.toString())
 					append("?search=")
 					append(query.urlEncoded())
@@ -77,7 +77,7 @@ internal abstract class Manga18Parser(
 				}
 
 				else -> {
-					append("/$listeurl")
+					append("/$listUrl")
 					append(page.toString())
 					append("?")
 				}
@@ -112,7 +112,7 @@ internal abstract class Manga18Parser(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/$listeurl/").parseHtml()
+		val doc = webClient.httpGet("https://$domain/$listUrl/").parseHtml()
 		return doc.select("div.grid_cate li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')
