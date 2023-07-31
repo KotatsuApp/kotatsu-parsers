@@ -23,7 +23,7 @@ val Element.host: String?
  * Return an attribute value or null if it is missing or empty
  * @see [Element.attr] which returns empty string instead of null
  */
-fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isEmpty() }
+fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isBlank() }?.trim()
 
 
 /**
@@ -43,7 +43,7 @@ fun Element.attrOrThrow(attributeKey: String): String = if (hasAttr(attributeKey
  * @see attrAsAbsoluteUrl
  */
 fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
-	val attr = attr(attributeKey).trim()
+	val attr = attrOrNull(attributeKey) ?: return null
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
@@ -74,7 +74,7 @@ fun Element.attrAsRelativeUrl(attributeKey: String): String {
  * @see attrAsRelativeUrlOrNull
  */
 fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
-	val attr = attr(attributeKey).trim()
+	val attr = attrOrNull(attributeKey) ?: return null
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
@@ -139,4 +139,28 @@ fun Element.selectFirstParent(query: String): Element? {
 	return parents.firstOrNull {
 		selector.matches(root, it)
 	}
+}
+
+/**
+ * Return a first non-empty attribute value of [names] or null if it is missing or empty
+ */
+fun Element.attrOrNull(vararg names: String): String? {
+	for (name in names) {
+		val value = attr(name)
+		if (value.isNotEmpty()) {
+			return value.trim()
+		}
+	}
+	return null
+}
+
+@JvmOverloads
+fun Element.src(names: Array<String> = arrayOf("data-src", "data-cfsrc", "src")): String? {
+	for (name in names) {
+		val value = attrAsAbsoluteUrlOrNull(name)
+		if (value != null) {
+			return value
+		}
+	}
+	return null
 }

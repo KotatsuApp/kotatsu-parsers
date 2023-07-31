@@ -75,7 +75,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 					?.div(10f)
 					?: RATING_UNKNOWN,
 				isNsfw = div.selectFirst(".badge-adult_content") != null,
-				coverUrl = div.selectFirstOrThrow("img").src(),
+				coverUrl = div.selectFirstOrThrow("img").src().assertNotNull("src").orEmpty(),
 				tags = div.selectFirst(".component-manga-categories")
 					.assertNotNull("tags")
 					?.select("a")
@@ -222,15 +222,5 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		val calendar = Calendar.getInstance()
 		calendar.add(calendarUnit, -count)
 		return calendar.timeInMillis
-	}
-
-	private fun Element.src(): String {
-		return attrAsAbsoluteUrlOrNull("data-cfsrc")
-			?: attrAsAbsoluteUrlOrNull("src")
-			?: attrAsAbsoluteUrlOrNull("data-src")
-			?: run {
-				assert(false) { "Image src not found" }
-				""
-			}
 	}
 }

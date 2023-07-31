@@ -27,11 +27,4 @@ internal class LelManga(context: MangaLoaderContext) :
 			)
 		}
 	}
-
-	private fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-cfsrc")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
-	}
 }

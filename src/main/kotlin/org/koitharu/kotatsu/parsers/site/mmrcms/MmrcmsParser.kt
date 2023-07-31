@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.mmrcms
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -248,13 +247,4 @@ internal abstract class MmrcmsParser(
 			)
 		}
 	}
-
-
-	protected fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-cfsrc")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
-	}
-
 }
