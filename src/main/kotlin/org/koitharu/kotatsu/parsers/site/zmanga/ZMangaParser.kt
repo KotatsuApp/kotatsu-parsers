@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.zmanga
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -159,8 +158,6 @@ internal abstract class ZMangaParser(
 
 		val aut = doc.body().select(selectAut).text()
 
-		val nsfw = doc.getElementById("adt-warning") != null
-
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
@@ -219,14 +216,6 @@ internal abstract class ZMangaParser(
 				source = source,
 			)
 		}
-	}
-
-
-	protected fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-cfsrc")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {

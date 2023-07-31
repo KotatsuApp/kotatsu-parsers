@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.fmreader
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -203,15 +202,6 @@ internal abstract class FmreaderParser(
 				source = source,
 			)
 		}
-	}
-
-
-	protected fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-original")
-		if (result.isEmpty()) result = absUrl("data-sizes")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
