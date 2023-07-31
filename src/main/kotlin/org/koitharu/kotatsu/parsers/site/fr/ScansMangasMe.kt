@@ -4,7 +4,6 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.json.JSONArray
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -16,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("SCANS_MANGAS_ME", "Scans Mangas Me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 1000000) {
+	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 0) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -64,7 +63,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 					}
 				}
 			} else {
-				append("/stop")
+				return emptyList()
 			}
 
 		}
@@ -181,13 +180,5 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		}
 
 		return pages
-	}
-
-
-	private fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-cfsrc")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
 	}
 }
