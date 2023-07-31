@@ -24,7 +24,7 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 	override val configKeyDomain = ConfigKey.Domain("www.japscan.lol", "japscan.ws")
 
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.add("User-Agent", UserAgents.FIREFOX_DESKTOP)
 		.build()
 
 	override suspend fun getListPage(
@@ -41,15 +41,15 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 			.addPathSegment("mangas")
 			.addPathSegment(page.toString())
 			.build()
-		val root = webClient.httpGet(url).parseHtml()
-			.requireElementById("main")
-			.selectFirstOrThrow(".p-2.row.d-flex")
-		return root.select("div.col-4")
+		val doc = webClient.httpGet(url).parseHtml()
+		val root = doc.requireElementById("main")
+			.selectFirstOrThrow("div.d-flex.flex-wrap")
+		return root.select("div.p-2")
 			.map { div ->
 				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
 					id = generateUid(href),
-					title = div.selectFirstOrThrow("p.p-1 a").text(),
+					title = div.selectFirstOrThrow(".mainTitle").text(),
 					altTitle = null,
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
@@ -184,10 +184,8 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		var key1 = calc1tab.joinToString("")
 		var key2 = calc2tab.joinToString("")
 
-		key1 = key1.replace("'", "")
-		key2 = key2.replace("'", "")
-		key1 = key1.replace(" ", "")
-		key2 = key2.replace(" ", "")
+		key1 = key1.filterNot { c -> c == '\'' || c == ' ' }
+		key2 = key2.filterNot { c -> c == '\'' || c == ' ' }
 
 		val keyTables = listOf(
 			key1.reversed(),

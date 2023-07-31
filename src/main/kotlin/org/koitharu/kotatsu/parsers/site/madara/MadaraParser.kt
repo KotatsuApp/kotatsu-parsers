@@ -543,13 +543,6 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	protected fun Element.src(): String? {
-		var result = absUrl("data-src")
-		if (result.isEmpty()) result = absUrl("data-cfsrc")
-		if (result.isEmpty()) result = absUrl("src")
-		return result.ifEmpty { null }
-	}
-
 	private companion object {
 
 		private fun createRequestTemplate() =
