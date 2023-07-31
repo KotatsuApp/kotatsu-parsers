@@ -174,7 +174,7 @@ internal abstract class ZMangaParser(
 			author = aut,
 			state = state,
 			chapters = chaptersDeferred.await(),
-			isNsfw = nsfw || manga.isNsfw,
+			isNsfw = manga.isNsfw || doc.getElementById("adt-warning") != null,
 		)
 	}
 
