@@ -10,6 +10,6 @@ internal class AstrumScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ASTRUMSCANS, "astrumscans.xyz", 20) {
 
 	override val withoutAjax = true
-	override val listeurl = "series/"
+	override val listUrl = "series/"
 	override val datePattern = "dd/MM/yyyy"
 }

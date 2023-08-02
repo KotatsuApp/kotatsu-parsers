@@ -16,7 +16,7 @@ internal class ManhwaPlus(context: MangaLoaderContext) :
 	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true
-	override val listeurl = "series/"
+	override val listUrl = "series/"
 
 	override suspend fun getListPage(
 		page: Int,
@@ -51,7 +51,7 @@ internal class ManhwaPlus(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("/page/")
 					append(pages.toString())
 					append("?")

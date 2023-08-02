@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Mangabilgini(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGABILGINI, "mangabilgini.com", 44) {
 
-	override val selectdesc = "div.ozet__icerik"
+	override val selectDesc = "div.ozet__icerik"
 	override val postreq = true
 	override val datePattern = "d MMMM yyyy"
 }

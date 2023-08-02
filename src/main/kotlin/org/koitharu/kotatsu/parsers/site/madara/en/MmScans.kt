@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class MmScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MMSCANS, "mm-scans.org") {
 
-	override val selectchapter = "li.chapter-li"
-	override val selectdesc = "div.summary-text"
+	override val selectChapter = "li.chapter-li"
+	override val selectDesc = "div.summary-text"
 	override val withoutAjax = true
 }

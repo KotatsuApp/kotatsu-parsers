@@ -11,5 +11,5 @@ internal class Manga247(context: MangaLoaderContext) : MadaraParser(context, Man
 	override val tagPrefix = "manhwa-genre/"
 	override val datePattern = "MMMM dd, yyyy"
 	override val withoutAjax = true
-	override val listeurl = "manhwa/"
+	override val listUrl = "manhwa/"
 }

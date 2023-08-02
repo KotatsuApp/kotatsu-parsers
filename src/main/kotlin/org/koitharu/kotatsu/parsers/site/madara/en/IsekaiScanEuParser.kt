@@ -12,7 +12,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 
 	override val datePattern = "MM/dd/yyyy"
 	override val withoutAjax = true
-	override val listeurl = "mangax/"
+	override val listUrl = "mangax/"
 
 	override suspend fun getListPage(
 		page: Int,
@@ -46,7 +46,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("/page/")
 					append(pages.toString())
 					append("?")

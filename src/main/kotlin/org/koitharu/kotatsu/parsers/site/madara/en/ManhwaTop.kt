@@ -24,11 +24,11 @@ internal class ManhwaTop(context: MangaLoaderContext) :
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
-		return doc.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectdate)?.text()
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			val dateText2 = if (dateText != "Complete") {
 				dateText

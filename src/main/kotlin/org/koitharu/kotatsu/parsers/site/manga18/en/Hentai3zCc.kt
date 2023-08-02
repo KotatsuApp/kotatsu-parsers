@@ -24,7 +24,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 			val pages = page + 1
 			when {
 				!query.isNullOrEmpty() -> {
-					append("/$listeurl/")
+					append("/$listUrl")
 					append(pages.toString())
 					append("?search=")
 					append(query.urlEncoded())
@@ -32,7 +32,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 				}
 
 				!tags.isNullOrEmpty() -> {
-					append("/$tagUrl/")
+					append("/$tagUrl")
 					for (tag in tags) {
 						append(tag.key)
 					}
@@ -42,7 +42,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 				}
 
 				else -> {
-					append("/$listeurl/")
+					append("/$listUrl")
 					append(pages.toString())
 					append("?")
 				}

@@ -109,7 +109,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
-		return doc.select(selectchapter).mapChapters(reversed = true) { i, li ->
+		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylepage
@@ -121,7 +121,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,
-					li.selectFirst(selectdate)?.text(),
+					li.selectFirst(selectDate)?.text(),
 				),
 				scanlator = null,
 				source = source,

@@ -23,7 +23,8 @@ internal class Zahard(context: MangaLoaderContext) :
 
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST)
-	private var lastSearchPage = 1
+
+
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,

@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("WALPURGISCAN", "Walpurgiscan", "it")
 internal class Walpurgiscan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.WALPURGISCAN, "walpurgiscan.it", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaSource.WALPURGISCAN, "www.walpurgiscan.it", pageSize = 20, searchPageSize = 20) {
 
 	override val datePattern = "MMM d, yyyy"
 }

@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class MangaDods(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGADODS, "www.mangadods.com") {
 
-	override val selectdesc = "div.description-summary"
+	override val selectDesc = "div.description-summary"
 	override val datePattern = "dd-MMM"
 }

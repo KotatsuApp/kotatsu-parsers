@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class Manhwaz(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAZ, "manhwaz.com", 40) {
 
-	override val listeurl = "genre/manhwa"
+	override val listUrl = "genre/manhwa"
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
 	override val selectTestAsync = "div.list-chapter"
@@ -48,7 +48,7 @@ internal class Manhwaz(context: MangaLoaderContext) :
 
 				else -> {
 
-					append("/$listeurl")
+					append("/$listUrl")
 					append("?page=")
 					append(pages.toString())
 					append("&")
