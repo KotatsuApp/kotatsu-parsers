@@ -40,7 +40,6 @@ inline fun <T, reified R> Array<T>.mapToArray(transform: (T) -> R): Array<R> = A
 }
 
 fun <K, V> List<Pair<K, V>>.toMutableMap(): MutableMap<K, V> = toMap(ArrayMap(size))
-fun <T : Enum<T>> Array<T>.names() = mapToArray { it.name }
 
 fun <T> MutableList<T>.move(sourceIndex: Int, targetIndex: Int) {
 	if (sourceIndex <= targetIndex) {

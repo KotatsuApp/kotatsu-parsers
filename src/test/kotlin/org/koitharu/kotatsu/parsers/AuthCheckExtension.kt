@@ -11,7 +11,7 @@ class AuthCheckExtension : BeforeAllCallback {
 	private val loaderContext: MangaLoaderContext = MangaLoaderContextMock
 
 	override fun beforeAll(context: ExtensionContext) {
-		for (source in MangaSource.values()) {
+		for (source in MangaSource.entries) {
 			if (source == MangaSource.LOCAL || source == MangaSource.DUMMY) {
 				continue
 			}

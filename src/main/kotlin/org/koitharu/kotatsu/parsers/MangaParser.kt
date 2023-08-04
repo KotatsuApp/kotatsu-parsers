@@ -50,7 +50,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	protected open val defaultSortOrder: SortOrder
 		get() {
 			val supported = sortOrders
-			return SortOrder.values().first { it in supported }
+			return SortOrder.entries.first { it in supported }
 		}
 
 	@JvmField
