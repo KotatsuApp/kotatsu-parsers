@@ -10,5 +10,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Webtoons(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONS, "webtoons.top", 20) {
 
+	override val listUrl = "read/"
 	override val postreq = true
 }

@@ -11,6 +11,6 @@ internal class MangaLeveling(context: MangaLoaderContext) :
 
 	override val postreq = true
 	override val tagPrefix = "comics-genre/"
+	override val listUrl = "comics/"
 	override val datePattern = "MM/dd/yyyy"
-
 }

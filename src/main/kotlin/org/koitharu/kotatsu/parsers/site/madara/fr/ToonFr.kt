@@ -15,6 +15,7 @@ internal class ToonFr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TOONFR, "toonfr.com") {
 
 	override val tagPrefix = "webtoon-genre/"
+	override val listUrl = "webtoon/"
 	override val datePattern = "MMM d"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {

@@ -97,6 +97,7 @@ internal abstract class MadaraParser(
 	@JvmField
 	protected val finished: Set<String> = hashSetOf(
 		"Completed",
+		"Complete",
 		"Completo",
 		"Complété",
 		"Fini",
@@ -108,6 +109,7 @@ internal abstract class MadaraParser(
 		"Hoàn Thành",
 		"مكتملة",
 		"Завершено",
+		"Завершен",
 		"Finished",
 		"Finalizado",
 		"Completata",
@@ -211,7 +213,8 @@ internal abstract class MadaraParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
+				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
+				?: div.selectFirst(".manga-name"))?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
@@ -384,6 +387,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	protected open val selectBodyPage = "div.main-col-inner div.reading-content"
 	protected open val selectPage = "div.page-break"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
@@ -392,7 +396,7 @@ internal abstract class MadaraParser(
 
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
-			val root = doc.body().selectFirstOrThrow("div.main-col-inner").selectFirstOrThrow("div.reading-content")
+			val root = doc.body().selectFirstOrThrow(selectBodyPage)
 			return root.select(selectPage).map { div ->
 				val img = div.selectFirstOrThrow("img")
 				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")

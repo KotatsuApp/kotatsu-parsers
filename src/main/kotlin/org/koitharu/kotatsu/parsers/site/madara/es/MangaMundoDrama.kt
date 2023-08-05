@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGAMUNDODRAMA", "Manga Mundo Drama", "es")
 internal class MangaMundoDrama(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGAMUNDODRAMA, "inmortalscan.com")
+	MadaraParser(context, MangaSource.MANGAMUNDODRAMA, "manga.mundodrama.site") {
+	override val listUrl = "mg/"
+}

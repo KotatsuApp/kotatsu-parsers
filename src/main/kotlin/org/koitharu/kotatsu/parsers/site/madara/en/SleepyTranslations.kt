@@ -10,5 +10,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class SleepyTranslations(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SLEEPYTRANSLATIONS, "sleepytranslations.com", 16) {
 
+	override val listUrl = "series/"
 	override val tagPrefix = "genre/"
 }

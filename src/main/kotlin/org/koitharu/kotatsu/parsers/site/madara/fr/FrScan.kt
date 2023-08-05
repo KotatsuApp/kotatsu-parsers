@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FRSCAN", "FrScan", "fr")
 internal class FrScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.com")
+	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.cc")

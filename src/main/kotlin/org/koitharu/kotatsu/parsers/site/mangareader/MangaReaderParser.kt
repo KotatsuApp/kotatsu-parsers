@@ -5,7 +5,6 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -126,8 +125,8 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-			|| docs.selectFirst(".info-right .alr") != null
-			|| docs.selectFirst(".postbody .alr") != null
+				|| docs.selectFirst(".info-right .alr") != null
+				|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("div.entry-content")?.text(),
@@ -193,6 +192,7 @@ internal abstract class MangaReaderParser(
 
 	protected open val selectMangalist = ".postbody .listupd .bs .bsx"
 	protected open val selectMangaListImg = "img.ts-post-image"
+	protected open val selectMangaListTitle = "div.tt"
 
 	protected open fun parseMangaList(docs: Document): List<Manga> {
 		return docs.select(selectMangalist).mapNotNull {
@@ -204,12 +204,12 @@ internal abstract class MangaReaderParser(
 			Manga(
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
-				title = a.attr("title"),
+				title = it.selectFirstOrThrow(selectMangaListTitle).text() ?: a.attr("title"),
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				isNsfw = isNsfwSource,
-				coverUrl = it.selectFirst(selectMangaListImg)?.imageUrl().orEmpty(),
+				coverUrl = it.selectFirst(selectMangaListImg)?.src().orEmpty(),
 				tags = emptySet(),
 				state = null,
 				author = null,
@@ -229,7 +229,7 @@ internal abstract class MangaReaderParser(
 		val test = docs.select("script:containsData(ts_reader)")
 		if (test.isNullOrEmpty() and !encodedSrc) {
 			return docs.select(selectPage).map { img ->
-				val url = img.imageUrl()
+				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 				MangaPage(
 					id = generateUid(url),
 					url = url,
@@ -307,10 +307,5 @@ internal abstract class MangaReaderParser(
 		return@withLock tagMap
 	}
 
-	protected open fun Element.imageUrl(): String {
-		return attrAsAbsoluteUrlOrNull("src")
-			?: attrAsAbsoluteUrlOrNull("data-src")
-			?: attrAsAbsoluteUrlOrNull("data-cfsrc")
-			?: ""
-	}
+
 }

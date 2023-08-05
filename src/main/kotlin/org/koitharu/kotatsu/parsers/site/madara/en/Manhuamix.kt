@@ -10,4 +10,5 @@ internal class Manhuamix(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHUAMIX, "manhuamix.com", 20) {
 
 	override val tagPrefix = "manhua-genre/"
+	override val listUrl = "manhua/"
 }

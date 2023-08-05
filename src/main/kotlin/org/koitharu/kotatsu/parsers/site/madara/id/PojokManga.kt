@@ -11,6 +11,7 @@ internal class PojokManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.POJOKMANGA, "pojokmanga.net") {
 
 	override val tagPrefix = "komik-genre/"
+	override val listUrl = "komik/"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

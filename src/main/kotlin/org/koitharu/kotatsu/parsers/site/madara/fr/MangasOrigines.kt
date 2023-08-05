@@ -10,4 +10,6 @@ internal class MangasOrigines(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGASORIGINES, "mangas-origines.fr") {
 
 	override val datePattern = "dd/MM/yyyy"
+	override val tagPrefix = "manga-genres/"
+	override val listUrl = "oeuvre/"
 }

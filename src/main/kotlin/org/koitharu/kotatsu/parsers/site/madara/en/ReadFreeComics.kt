@@ -11,4 +11,5 @@ internal class ReadFreeComics(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.READFREECOMICS, "readfreecomics.com") {
 
 	override val tagPrefix = "webtoon-comic-genre/"
+	override val listUrl = "webtoon-comic/"
 }

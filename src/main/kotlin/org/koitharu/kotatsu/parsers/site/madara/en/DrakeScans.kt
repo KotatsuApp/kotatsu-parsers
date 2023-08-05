@@ -11,4 +11,5 @@ internal class DrakeScans(context: MangaLoaderContext) :
 
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "series-genre/"
+	override val listUrl = "series/"
 }

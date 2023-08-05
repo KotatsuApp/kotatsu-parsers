@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("AZORANOV", "Azoranov", "ar")
 internal class Azoranov(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.AZORANOV, "azoranov.com", pageSize = 10) {
-
-	override val tagPrefix = "novel-genre/"
+	override val tagPrefix = "series-genre/"
+	override val listUrl = "series/"
 }

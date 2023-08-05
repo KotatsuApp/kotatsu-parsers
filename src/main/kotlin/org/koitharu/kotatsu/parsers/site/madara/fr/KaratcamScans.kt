@@ -10,5 +10,6 @@ internal class KaratcamScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.KARATCAMSCANS, "karatcam-scans.fr") {
 
 	override val tagPrefix = "webtoon-genre/"
+	override val listUrl = "webtoon/"
 	override val datePattern = "dd/MM/yyyy"
 }

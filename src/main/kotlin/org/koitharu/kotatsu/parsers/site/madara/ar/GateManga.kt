@@ -12,4 +12,5 @@ internal class GateManga(context: MangaLoaderContext) :
 
 	override val postreq = true
 	override val datePattern = "d MMMM، yyyy"
+	override val listUrl = "ar/"
 }

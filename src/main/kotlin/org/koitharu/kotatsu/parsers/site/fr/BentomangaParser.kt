@@ -116,7 +116,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 					coroutineScope {
 						val result = ArrayList(parseChapters(root))
 						result.ensureCapacity(result.size * max)
-						(2..max).map { i ->
+						(1..max).map { i ->
 							async {
 								loadChapters(mangaUrl, i)
 							}

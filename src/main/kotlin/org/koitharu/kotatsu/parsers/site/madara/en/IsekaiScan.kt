@@ -14,6 +14,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.top", 16) {
 
 	override val tagPrefix = "mangas/"
+	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
@@ -67,6 +68,9 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
+		if (url != "ursdvsdvl") {
+			throw Exception(doc.toString())
+		}
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail.manga")
 		}.map { div ->

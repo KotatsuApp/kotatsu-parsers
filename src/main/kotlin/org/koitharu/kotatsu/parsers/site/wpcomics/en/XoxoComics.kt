@@ -10,7 +10,7 @@ import java.util.EnumSet
 
 @MangaSourceParser("XOXOCOMICS", "Xoxo Comics", "vi", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomics.net", 50){
+	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomics.net", 50) {
 
 	override val listUrl = "/genre"
 	override val datePattern = "MM/dd/yyyy"
@@ -19,7 +19,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
-		SortOrder.ALPHABETICAL
+		SortOrder.ALPHABETICAL,
 	)
 
 	override suspend fun getListPage(
@@ -32,32 +32,31 @@ internal class XoxoComics(context: MangaLoaderContext) :
 			append("https://")
 			append(domain)
 
-			if(!query.isNullOrEmpty()){
+			if (!query.isNullOrEmpty()) {
 				append("/search?keyword=")
 				append(query.urlEncoded())
 				append("&page=")
 				append(page.toString())
-			}else
-			{
-			append(listUrl)
-			if(!tags.isNullOrEmpty()){
-				append("/")
-				for (tag in tags) {
-					append(tag.key)
+			} else {
+				append(listUrl)
+				if (!tags.isNullOrEmpty()) {
+					append("/")
+					for (tag in tags) {
+						append(tag.key)
+					}
 				}
-			}
 
-			append("/")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("popular")
-				SortOrder.UPDATED -> append("")
-				SortOrder.NEWEST -> append("newest")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				else -> append("")
-			}
+				append("/")
+				when (sortOrder) {
+					SortOrder.POPULARITY -> append("popular")
+					SortOrder.UPDATED -> append("")
+					SortOrder.NEWEST -> append("newest")
+					SortOrder.ALPHABETICAL -> append("alphabet")
+					else -> append("")
+				}
 
-			append("?page=")
-			append(page.toString())
+				append("?page=")
+				append(page.toString())
 
 			}
 		}
@@ -98,5 +97,4 @@ internal class XoxoComics(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }

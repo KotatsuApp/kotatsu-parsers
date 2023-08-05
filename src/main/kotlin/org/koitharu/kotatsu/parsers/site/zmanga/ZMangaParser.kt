@@ -60,7 +60,7 @@ internal abstract class ZMangaParser(
 			append("https://")
 			append(domain)
 			append("/$listUrl")
-			if(page > 1){
+			if (page > 1) {
 				append("page/")
 				append(page.toString())
 				append("/")

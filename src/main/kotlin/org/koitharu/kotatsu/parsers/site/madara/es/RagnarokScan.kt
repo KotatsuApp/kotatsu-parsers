@@ -10,6 +10,6 @@ internal class RagnarokScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAGNAROKSCAN, "ragnarokscan.com") {
 
 	override val stylepage = ""
+	override val listUrl = "series/"
 	override val tagPrefix = "genero/"
-
 }

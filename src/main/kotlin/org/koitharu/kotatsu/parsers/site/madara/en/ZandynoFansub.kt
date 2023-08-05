@@ -9,5 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class ZandynoFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ZANDYNOFANSUB, "zandynofansub.aishiteru.org", 20) {
 
+	override val listUrl = "series/"
 	override val datePattern = "dd.MM.yyyy"
 }

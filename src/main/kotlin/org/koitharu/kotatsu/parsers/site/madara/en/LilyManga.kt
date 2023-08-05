@@ -11,5 +11,6 @@ internal class LilyManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LILYMANGA, "lilymanga.net") {
 
 	override val tagPrefix = "ys-genre/"
+	override val listUrl = "ys/"
 	override val datePattern = "yyyy-MM-dd"
 }
