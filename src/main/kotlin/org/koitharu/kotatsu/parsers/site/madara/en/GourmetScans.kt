@@ -5,10 +5,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TEMPLESCAN", "TempleScan", "en")
-internal class TempleScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TEMPLESCAN, "templescan.net") {
+@MangaSourceParser("GOURMETSCANS", "Gourmet Scans", "en")
+internal class GourmetScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.GOURMETSCANS, "gourmetscans.net") {
 
-	override val datePattern = "dd.MM.yyyy"
+	override val listUrl = "project/"
 	override val tagPrefix = "genre/"
+	override val stylepage = ""
 }

@@ -11,6 +11,7 @@ internal class Mgkomik(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MGKOMIK, "mgkomik.com", 20) {
 
 	override val tagPrefix = "genres/"
+	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

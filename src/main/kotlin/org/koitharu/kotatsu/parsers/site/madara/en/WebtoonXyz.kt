@@ -12,5 +12,6 @@ internal class WebtoonXyz(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONXYZ, "www.webtoon.xyz", 20) {
 
 	override val tagPrefix = "webtoon-genre/"
+	override val listUrl = "read/"
 	override val datePattern = "d MMM yyyy"
 }

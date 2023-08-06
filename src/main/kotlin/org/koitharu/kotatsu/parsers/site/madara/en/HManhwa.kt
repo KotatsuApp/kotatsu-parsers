@@ -11,7 +11,7 @@ internal class HManhwa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HMANHWA, "hmanhwa.com") {
 
 	override val tagPrefix = "manhwa-genre/"
+	override val listUrl = "manhwa/"
 	override val datePattern = "dd MMM"
 	override val postreq = true
-
 }

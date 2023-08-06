@@ -9,5 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class WebtoonEmpire(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONEMPIRE, "webtoonempire.org", pageSize = 10) {
 
+	override val listUrl = "webtoon/"
 	override val datePattern = "d MMMM yyyy"
 }

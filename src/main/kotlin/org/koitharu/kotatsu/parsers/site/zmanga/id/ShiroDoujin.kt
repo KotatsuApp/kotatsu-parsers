@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("SHIRO_DOUJIN", "Shiro Doujin", "id", ContentType.HENTAI)
 internal class ShiroDoujin(context: MangaLoaderContext) :
-	ZMangaParser(context, MangaSource.SHIRO_DOUJIN, "shirodoujin.com"){
+	ZMangaParser(context, MangaSource.SHIRO_DOUJIN, "shirodoujin.com") {
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
@@ -25,7 +25,8 @@ internal class ShiroDoujin(context: MangaLoaderContext) :
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.selectFirst(selectDate)?.text()
-			val numChapter = li.selectFirstOrThrow(".flexch-infoz span").html().substringAfterLast("Chapter ").substringBefore("<span")
+			val numChapter = li.selectFirstOrThrow(".flexch-infoz span").html().substringAfterLast("Chapter ")
+				.substringBefore("<span")
 			MangaChapter(
 				id = generateUid(href),
 				name = "Chapter $numChapter",

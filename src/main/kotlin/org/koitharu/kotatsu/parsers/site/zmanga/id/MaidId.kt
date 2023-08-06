@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 // Info: Some scans are password-protected
 @MangaSourceParser("MAID_ID", "Maid Id", "id")
 internal class MaidId(context: MangaLoaderContext) :
-	ZMangaParser(context, MangaSource.MAID_ID, "www.maid.my.id"){
+	ZMangaParser(context, MangaSource.MAID_ID, "www.maid.my.id") {
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
@@ -25,7 +25,8 @@ internal class MaidId(context: MangaLoaderContext) :
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.selectFirst(selectDate)?.text()
-			val numChapter = li.selectFirstOrThrow(".flexch-infoz span").html().substringAfterLast("Chapter ").substringBefore("<span")
+			val numChapter = li.selectFirstOrThrow(".flexch-infoz span").html().substringAfterLast("Chapter ")
+				.substringBefore("<span")
 			MangaChapter(
 				id = generateUid(href),
 				name = "Chapter $numChapter",

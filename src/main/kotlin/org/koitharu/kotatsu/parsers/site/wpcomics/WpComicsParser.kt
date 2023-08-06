@@ -40,13 +40,13 @@ internal abstract class WpComicsParser(
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
 		"Đang tiến hành",
-		"Ongoing"
+		"Ongoing",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"Hoàn thành",
-		"Completed "
+		"Completed ",
 	)
 
 	override suspend fun getListPage(
@@ -60,17 +60,17 @@ internal abstract class WpComicsParser(
 			append(domain)
 			append(listUrl)
 
-			if(!tags.isNullOrEmpty()){
-			append("/")
-			for (tag in tags) {
-				append(tag.key)
-			}
+			if (!tags.isNullOrEmpty()) {
+				append("/")
+				for (tag in tags) {
+					append(tag.key)
+				}
 			}
 
 			append("?page=")
 			append(page.toString())
 
-			if(!query.isNullOrEmpty()){
+			if (!query.isNullOrEmpty()) {
 				append("&keyword=")
 				append(query.urlEncoded())
 			}
@@ -171,11 +171,9 @@ internal abstract class WpComicsParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 
 			val findHours = dateText?.contains(":")
-			val dateFormat = if(findHours == true)
-			{
+			val dateFormat = if (findHours == true) {
 				SimpleDateFormat("HH:mm dd/MM", sourceLocale)
-			}else
-			{
+			} else {
 				SimpleDateFormat(datePattern, sourceLocale)
 			}
 
@@ -220,7 +218,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 					d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
-					 -> parseRelativeDate(date)
+			-> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {

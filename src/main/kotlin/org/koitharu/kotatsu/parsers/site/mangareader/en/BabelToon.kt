@@ -41,7 +41,7 @@ internal class BabelToon(context: MangaLoaderContext) :
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
 
 		return docs.select("div.epcontent img").map { img ->
-			val url = img.imageUrl()
+			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,

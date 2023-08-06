@@ -7,4 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGABAZ", "MangaBaz", "en")
 internal class MangaBaz(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGABAZ, "mangabaz.net")
+	MadaraParser(context, MangaSource.MANGABAZ, "mangabaz.net") {
+	override val listUrl = "all-series/"
+	override val tagPrefix = "mangas-genre/"
+}

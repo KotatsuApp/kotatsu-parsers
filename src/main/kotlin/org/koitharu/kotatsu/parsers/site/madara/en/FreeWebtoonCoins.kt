@@ -10,4 +10,5 @@ internal class FreeWebtoonCoins(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FREEWEBTOONCOINS, "freewebtooncoins.com") {
 
 	override val tagPrefix = "webtoon-genre/"
+	override val listUrl = "webtoon/"
 }

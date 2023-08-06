@@ -16,7 +16,6 @@ internal class SwaTeam(context: MangaLoaderContext) :
 	override val selectMangalist = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
 
-	// Tag doesn't work on manga page ( it comes from website )
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -112,21 +111,15 @@ internal class SwaTeam(context: MangaLoaderContext) :
 		val author = docs.selectFirst("span.author i")?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-			|| docs.selectFirst(".info-right .alr") != null
-			|| docs.selectFirst(".postbody .alr") != null
+				|| docs.selectFirst(".info-right .alr") != null
+				|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("span.desc")?.html(),
 			state = mangaState,
 			author = author,
 			isNsfw = manga.isNsfw || nsfw,
-			tags = docs.select("div.spe a[rel*=tag]").mapToSet { a ->
-				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-					title = a.text().toTitleCase(),
-					source = source,
-				)
-			},
+			tags = emptySet(),
 			chapters = chapters,
 		)
 	}

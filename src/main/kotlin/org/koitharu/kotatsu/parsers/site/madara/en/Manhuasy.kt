@@ -11,5 +11,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Manhuasy(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHUASY, "www.manhuasy.com") {
 
+	override val listUrl = "manhua/"
 	override val tagPrefix = "manhua-genre/"
 }

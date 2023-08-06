@@ -11,5 +11,6 @@ internal class BoysLove(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BOYS_LOVE, "boyslove.me", 20) {
 
 	override val tagPrefix = "boyslove-genre/"
+	override val listUrl = "boyslove/"
 	override val postreq = true
 }
