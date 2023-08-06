@@ -134,7 +134,7 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		val dateFormat = SimpleDateFormat("MMM dd yy", sourceLocale)
 		return doc.body().select("dl.chapter-list dd").mapChapters { i, li ->
 			val a = li.selectFirstOrThrow("a")
-			val href = a.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.select("small").last()?.text()?.replace("released ", "")?.replace("'", "")
 			MangaChapter(
 				id = generateUid(href),
