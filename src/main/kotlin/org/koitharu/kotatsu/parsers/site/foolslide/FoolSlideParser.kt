@@ -61,10 +61,6 @@ internal abstract class FoolSlideParser(
 				} else {
 					append(page.toString())
 				}
-
-				if (!query.isNullOrEmpty()) {
-					append(query.urlEncoded())
-				}
 			}
 			webClient.httpGet(url).parseHtml()
 		}
