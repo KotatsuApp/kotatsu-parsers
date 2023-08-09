@@ -43,12 +43,11 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 		val id = docs.location().substringAfterLast("/").substringBefore("-")
 
-		val infoEl = webClient.httpGet("/list-info-all-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml()
-
 		val genreUrl =  Regex(""""(list-info-theloai-mobile\.php?.+)"""").find(docs.toString())?.groupValues?.get(1)
-		val genre = webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag")
+		val genre = async { webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag") }.await()
 
-		val stateDoc = webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml()
+		val infoEl = async { webClient.httpGet("/list-info-all-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
+		val stateDoc =  async { webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
 
 		manga.copy(
 			altTitle = infoEl.infoText("Tên Khác:"),
@@ -182,7 +181,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = el.selectFirst("div.box-cover-2 img").imageUrl(),
+					coverUrl = el.selectFirst("div.box-cover-2 img")?.src().orEmpty(),
 					tags = emptySet(),
 					state = null,
 					author = null,
@@ -242,17 +241,6 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					source = source,
 				)
 			}
-	}
-
-	private fun Element?.imageUrl(): String {
-		if (this == null) {
-			return ""
-		}
-
-		return attrAsRelativeUrlOrNull("data-src")
-			?: attrAsRelativeUrlOrNull("data-srcset")
-			?: attrAsRelativeUrlOrNull("src")
-			?: ""
 	}
 
 	private fun Element.infoText(title: String) = selectFirst("span.info:contains($title)")
