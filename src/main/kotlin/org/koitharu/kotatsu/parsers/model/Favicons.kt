@@ -18,6 +18,11 @@ class Favicons internal constructor(
 
 	override fun iterator(): Iterator<Favicon> = icons.iterator()
 
+	operator fun minus(victim: Favicon): Favicons = Favicons(
+		favicons = icons.filterNot { it == victim },
+		referer = referer,
+	)
+
 	/**
 	 * Finds a favicon whose size in pixels is greater than or equal to the specified size.
 	 * If such icon is not available returns the largest icon
