@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -9,6 +10,7 @@ import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -20,6 +22,11 @@ private const val SEARCH_PAGE_SIZE = 10
 class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIVN) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.autos", "hentaivn.tv")
+
+	// hentaivn has created 2 different interfaces for mobile and desktop, and Cloudflare detects whether it's mobile or not even with a desktop user agent.
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -33,23 +40,25 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chapterDeferred = async { fetchChapters(manga.url) }
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val infoEl = docs.selectFirstOrThrow("div.container")
-			.selectFirstOrThrow("div.page-info")
+
+		val id = docs.location().substringAfterLast("/").substringBefore("-")
+
+		val genreUrl =  Regex(""""(list-info-theloai-mobile\.php?.+)"""").find(docs.toString())?.groupValues?.get(1)
+		val genre = async { webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag") }.await()
+
+		val infoEl = async { webClient.httpGet("/list-info-all-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
+		val stateDoc =  async { webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
 
 		manga.copy(
 			altTitle = infoEl.infoText("Tên Khác:"),
-			author = infoEl.infoText("Tác giả"),
-			description = infoEl.selectFirst("p:contains(Nội dung:)")
-				?.nextElementSibling()
-				?.outerHtml(),
+			author = infoEl.select("p:contains(Tác giả:) a").text(),
+			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tagCache.tryGet().getOrNull()?.let { tagMap ->
-				infoEl.selectFirst("p:contains(Thể Loại:)")
-					?.select("span > a")
-					?.mapNotNullToSet {
-						tagMap[it.text()]
-					}
+				genre.mapNotNullToSet {
+					tagMap[it.text()]
+				}
 			}.orEmpty(),
-			state = infoEl.infoText("Tình Trạng:")?.let {
+			state = stateDoc.select("p:contains(Tình Trạng:) a").firstOrNull()?.text()?.let {
 				when (it) {
 					"Đã hoàn thành" -> MangaState.FINISHED
 					"Đang tiến hành" -> MangaState.ONGOING
@@ -111,13 +120,9 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val ids = chapter.url.removePrefix("/").split('-').take(2)
-		val mangaId = ids[0].toInt()
-		val chapterId = ids[1].toInt()
-		val contentUrl = "/list-loadchapter.php?id_episode=$chapterId&idchapshowz=$mangaId".toAbsoluteUrl(domain)
-		val docs = webClient.httpGet(contentUrl).parseHtml()
-		return docs.select("img").map {
-			val pageUrl = it.attrAsAbsoluteUrl("src")
+		val docs = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		return docs.select("#image > img").map {
+			val pageUrl = it.src() ?: throw Exception(it.html())
 			MangaPage(
 				id = generateUid(pageUrl),
 				url = pageUrl,
@@ -157,7 +162,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	}
 
 	private fun parseMainList(docs: Document, page: Int): List<Manga> {
-		val realPage = docs.selectFirst("ul.pagination > li > b")?.text()?.toIntOrNull() ?: 1
+		val realPage = docs.selectFirst("div.pagination b.pagination-selected")?.text()?.toIntOrNull() ?: 1
 		if (page > realPage) {
 			return emptyList()
 		}
@@ -166,17 +171,17 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			.selectFirstOrThrow("div.block-item")
 			.select("ul > li.item")
 			.map { el ->
-				val relativeUrl = el.selectFirstOrThrow("div.box-cover > a").attrAsRelativeUrl("href")
-				val descriptionsEl = el.selectFirstOrThrow("div.box-description")
+				val relativeUrl = el.selectFirstOrThrow("div.box-cover-2 > a").attrAsRelativeUrl("href")
+				val descriptionsEl = el.selectFirstOrThrow("div.box-description-2")
 				Manga(
 					id = generateUid(relativeUrl),
-					title = descriptionsEl.selectFirst("p > a")?.text().orEmpty(),
+					title = descriptionsEl.selectFirst("a")?.text().orEmpty(),
 					altTitle = null,
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = el.selectFirst("div.box-cover img").imageUrl(),
+					coverUrl = el.selectFirst("div.box-cover-2 img")?.src().orEmpty(),
 					tags = emptySet(),
 					state = null,
 					author = null,
@@ -217,11 +222,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	}
 
 	private suspend fun fetchChapters(mangaUrl: String): List<MangaChapter> {
-		val slug = mangaUrl.substringAfterLast("/")
-			.removeSuffix(".html")
-		val name = slug.substringAfter("-")
-		val id = slug.substringBefore("-").toInt()
-		val chaptersAjax = "/list-showchapter.php?idchapshow=$id&idlinkanime=$name".toAbsoluteUrl(domain)
+		val id = mangaUrl.substringAfterLast("/").substringBefore('-')
+		val chaptersAjax = "/list-showchapter.php?idchapshow=$id".toAbsoluteUrl(domain)
 		val chaptersEl = webClient.httpGet(chaptersAjax).parseHtml()
 		val chapterDateFormat = SimpleDateFormat("dd/MM/yyyy")
 		return chaptersEl.select("tbody > tr")
@@ -239,17 +241,6 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					source = source,
 				)
 			}
-	}
-
-	private fun Element?.imageUrl(): String {
-		if (this == null) {
-			return ""
-		}
-
-		return attrAsRelativeUrlOrNull("data-src")
-			?: attrAsRelativeUrlOrNull("data-srcset")
-			?: attrAsRelativeUrlOrNull("src")
-			?: ""
 	}
 
 	private fun Element.infoText(title: String) = selectFirst("span.info:contains($title)")
