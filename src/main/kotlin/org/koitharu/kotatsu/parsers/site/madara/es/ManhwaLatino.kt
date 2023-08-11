@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 internal class ManhwaLatino(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWALATINO, "manhwa-latino.com", 10) {
 
-	override val datePattern = "MM/dd/yyyy"
+	override val datePattern = "dd 'de' MMMM"
 	override val withoutAjax = true
 
 
