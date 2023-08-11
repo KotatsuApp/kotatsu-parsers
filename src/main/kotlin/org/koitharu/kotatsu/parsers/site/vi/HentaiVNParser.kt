@@ -24,9 +24,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.autos", "hentaivn.tv")
 
 	// hentaivn has created 2 different interfaces for mobile and desktop, and Cloudflare detects whether it's mobile or not even with a desktop user agent.
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
-		.build()
+	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.CHROME_MOBILE).build()
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -40,15 +38,23 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chapterDeferred = async { fetchChapters(manga.url) }
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-
 		val id = docs.location().substringAfterLast("/").substringBefore("-")
 
-		val genreUrl =  Regex(""""(list-info-theloai-mobile\.php?.+)"""").find(docs.toString())?.groupValues?.get(1)
-		val genre = async { webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag") }.await()
+		val genreUrl = Regex(""""(list-info-theloai-mobile\.php?.+)"""").find(docs.toString())?.groupValues?.get(1)
 
-		val infoEl = async { webClient.httpGet("/list-info-all-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
-		val stateDoc =  async { webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml() }.await()
+		val genreDeferred = async {
+			webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag")
+		}
+		val infoElDeferred = async {
+			webClient.httpGet("/list-info-all-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml()
+		}
+		val stateDocDeferred = async {
+			webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml()
+		}
 
+		val genre = genreDeferred.await()
+		val infoEl = infoElDeferred.await()
+		val stateDoc = stateDocDeferred.await()
 		manga.copy(
 			altTitle = infoEl.infoText("Tên Khác:"),
 			author = infoEl.select("p:contains(Tác giả:) a").text(),
@@ -139,9 +145,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private suspend fun fetchTags(): Map<String, MangaTag> {
 		val url = "/forum/search-plus.php".toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(url).parseHtml()
-		return docs.selectFirstOrThrow("ul.ul-search")
-			.select("li")
-			.mapNotNull { el ->
+		return docs.selectFirstOrThrow("ul.ul-search").select("li").mapNotNull { el ->
 				MangaTag(
 					title = el.text(),
 					key = el.selectFirst("input")?.attr("value") ?: return@mapNotNull null,
@@ -167,9 +171,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			return emptyList()
 		}
 
-		return docs.selectFirstOrThrow("div.main")
-			.selectFirstOrThrow("div.block-item")
-			.select("ul > li.item")
+		return docs.selectFirstOrThrow("div.main").selectFirstOrThrow("div.block-item").select("ul > li.item")
 			.map { el ->
 				val relativeUrl = el.selectFirstOrThrow("div.box-cover-2 > a").attrAsRelativeUrl("href")
 				val descriptionsEl = el.selectFirstOrThrow("div.box-description-2")
@@ -196,9 +198,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			return emptyList()
 		}
 
-		return docs.requireElementById("main")
-			.selectFirstOrThrow("ul.search-ul")
-			.select("li.search-li")
+		return docs.requireElementById("main").selectFirstOrThrow("ul.search-ul").select("li.search-li")
 			.mapNotNull { el ->
 				val titleEl = el.selectFirst("div.search-des > a") ?: return@mapNotNull null
 				val relativeUrl = titleEl.attrAsRelativeUrl("href")
@@ -210,9 +210,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = el.selectFirst("div.search-img img")
-						?.attrAsAbsoluteUrlOrNull("data-cfsrc")
-						.orEmpty(),
+					coverUrl = el.selectFirst("div.search-img img")?.attrAsAbsoluteUrlOrNull("data-cfsrc").orEmpty(),
 					tags = emptySet(),
 					state = null,
 					author = null,
@@ -226,8 +224,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val chaptersAjax = "/list-showchapter.php?idchapshow=$id".toAbsoluteUrl(domain)
 		val chaptersEl = webClient.httpGet(chaptersAjax).parseHtml()
 		val chapterDateFormat = SimpleDateFormat("dd/MM/yyyy")
-		return chaptersEl.select("tbody > tr")
-			.mapChapters(reversed = true) { index, element ->
+		return chaptersEl.select("tbody > tr").mapChapters(reversed = true) { index, element ->
 				val titleEl = element.selectFirst("td > a") ?: return@mapChapters null
 				val dateStr = element.selectLast("td")?.text()
 				MangaChapter(
@@ -243,9 +240,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			}
 	}
 
-	private fun Element.infoText(title: String) = selectFirst("span.info:contains($title)")
-		?.parent()
-		?.select("span:not(.info) > a")
-		?.joinToString { it.text() }
+	private fun Element.infoText(title: String) =
+		selectFirst("span.info:contains($title)")?.parent()?.select("span:not(.info) > a")?.joinToString { it.text() }
 }
 
