@@ -6,27 +6,9 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.animebootstrap.AnimeBootstrapParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.removeSuffix
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
@@ -56,6 +38,9 @@ internal class PapScan(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+
+		val tag = tags.oneOrThrowIfMany()
+
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -70,9 +55,7 @@ internal class PapScan(context: MangaLoaderContext) :
 
 			if (!tags.isNullOrEmpty()) {
 				append("&cat=")
-				for (tag in tags) {
-					append(tag.key)
-				}
+				append(tag?.key.orEmpty())
 			}
 			append("&sortBy=")
 			when (sortOrder) {

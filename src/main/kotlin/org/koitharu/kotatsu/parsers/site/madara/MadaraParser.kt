@@ -137,13 +137,12 @@ internal abstract class MadaraParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
+		val tag = tags.oneOrThrowIfMany()
 		val doc = if (withoutAjax) {
 			val url = buildString {
 				append("https://")
 				append(domain)
 				val pages = page + 1
-
 				when {
 					!query.isNullOrEmpty() -> {
 						append("/page/")
@@ -155,9 +154,7 @@ internal abstract class MadaraParser(
 
 					!tags.isNullOrEmpty() -> {
 						append("/$tagPrefix")
-						for (tag in tags) {
-							append(tag.key)
-						}
+						append(tag?.key.orEmpty())
 						append("/page/")
 						append(pages.toString())
 						append("?")
@@ -182,8 +179,6 @@ internal abstract class MadaraParser(
 			}
 			webClient.httpGet(url).parseHtml()
 		} else {
-			val tag = tags.oneOrThrowIfMany()
-
 			val payload = if (sortOrder == SortOrder.RATING) {
 				createRequestTemplate(ratingRequest)
 			} else {
@@ -553,10 +548,13 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	private val ratingRequest = "action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D%5Bquery_avarage_reviews%5D=DESC&vars%5Borderby%5D%5Bquery_total_reviews%5D=DESC&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5B0%5D%5Bquery_avarage_reviews%5D%5Bkey%5D=_manga_avarage_reviews&vars%5Bmeta_query%5D%5B0%5D%5Bquery_total_reviews%5D%5Bkey%5D=_manga_total_votes&vars%5Bmeta_query%5D%5Brelation%5D=AND&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmanga_archives_item_layout%5D=default"
-	private val defaultRequest = "action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
+	private val ratingRequest =
+		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D%5Bquery_avarage_reviews%5D=DESC&vars%5Borderby%5D%5Bquery_total_reviews%5D=DESC&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5B0%5D%5Bquery_avarage_reviews%5D%5Bkey%5D=_manga_avarage_reviews&vars%5Bmeta_query%5D%5B0%5D%5Bquery_total_reviews%5D%5Bkey%5D=_manga_total_votes&vars%5Bmeta_query%5D%5Brelation%5D=AND&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmanga_archives_item_layout%5D=default"
+	private val defaultRequest =
+		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
+
 	private companion object {
-		private fun createRequestTemplate(query : String) =
+		private fun createRequestTemplate(query: String) =
 			(query).split(
 				'&',
 			).map {

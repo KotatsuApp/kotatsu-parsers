@@ -54,6 +54,7 @@ internal abstract class FmreaderParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -69,9 +70,7 @@ internal abstract class FmreaderParser(
 
 				!tags.isNullOrEmpty() -> {
 					append("&genre=")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 				}
 			}
 
@@ -92,8 +91,9 @@ internal abstract class FmreaderParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
-					.substringBeforeLast("')"),
+				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("data-bg")
+					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
+						.substringBeforeLast("')"),
 				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
@@ -106,10 +106,11 @@ internal abstract class FmreaderParser(
 		}
 	}
 
+	protected open val selectBodyTag = "ul.filter-type li a"
+
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
-		return doc.select("ul.filter-type li").mapNotNullToSet { li ->
-			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
+		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfter("manga-list-genre-").substringBeforeLast(".html")
 			MangaTag(
 				key = href,

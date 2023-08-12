@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TENKAISCAN", "Tenkai Scan", "es" , ContentType.HENTAI)
+@MangaSourceParser("TENKAISCAN", "Tenkai Scan", "es", ContentType.HENTAI)
 internal class TenkaiScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TENKAISCAN, "tenkaiscan.net")

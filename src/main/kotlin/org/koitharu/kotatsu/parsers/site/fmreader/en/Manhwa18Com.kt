@@ -6,22 +6,9 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANHWA18COM", "Manhwa18 Com", "en", ContentType.HENTAI)
@@ -35,6 +22,87 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override val selectTag = "div.info-item:contains(Genre) span.info-value a"
 	override val datePattern = "dd/MM/yyyy"
 	override val selectPage = "div#chapter-content img"
+	override val selectBodyTag = "div.genres-menu a"
+
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
+
+		val url = buildString {
+			append("https://")
+			append(domain)
+			if (!tags.isNullOrEmpty()) {
+				append("/genre/")
+				append(tag?.key.orEmpty())
+				append("?page=")
+				append(page.toString())
+				append("&sort=")
+				when (sortOrder) {
+					SortOrder.POPULARITY -> append("views")
+					SortOrder.UPDATED -> append("last_update")
+					SortOrder.ALPHABETICAL -> append("name")
+					else -> append("last_update")
+				}
+			} else {
+				append(listeurl)
+				append("?page=")
+				append(page.toString())
+				when {
+					!query.isNullOrEmpty() -> {
+						append("&q=")
+						append(query.urlEncoded())
+					}
+				}
+
+				append("&sort=")
+				when (sortOrder) {
+					SortOrder.POPULARITY -> append("views")
+					SortOrder.UPDATED -> append("last_update")
+					SortOrder.ALPHABETICAL -> append("name")
+					else -> append("last_update")
+				}
+
+			}
+		}
+		val doc = webClient.httpGet(url).parseHtml()
+
+		return doc.select("div.thumb-item-flow").map { div ->
+
+			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("data-bg")
+					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
+						.substringBeforeLast("')"),
+				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+				isNsfw = isNsfwSource,
+			)
+		}
+	}
+
+	override suspend fun getTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
+		return doc.select(selectBodyTag).mapNotNullToSet { a ->
+			val href = a.attr("href").substringAfterLast("/")
+			MangaTag(
+				key = href,
+				title = a.text(),
+				source = source,
+			)
+		}
+	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

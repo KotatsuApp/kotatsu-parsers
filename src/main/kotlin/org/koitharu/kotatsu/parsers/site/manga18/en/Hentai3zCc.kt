@@ -18,6 +18,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -33,9 +34,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagUrl")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("/")
 					append(pages.toString())
 					append("?")

@@ -31,7 +31,7 @@ internal class BestManhuaCom(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -47,9 +47,7 @@ internal class BestManhuaCom(context: MangaLoaderContext) :
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagPrefix")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("/")
 					append(pages.toString())
 					append("?")
@@ -67,7 +65,7 @@ internal class BestManhuaCom(context: MangaLoaderContext) :
 				SortOrder.UPDATED -> append("latest-updated")
 				SortOrder.NEWEST -> append("release-date")
 				SortOrder.ALPHABETICAL -> append("name-az")
-				else -> append("latest")
+				SortOrder.RATING -> append("rating")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

@@ -14,9 +14,7 @@ import java.util.*
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-	)
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val selectPage = "div#chapter_imgs img"
 
@@ -26,6 +24,8 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+
+		val tag = tags.oneOrThrowIfMany()
 
 		val url = buildString {
 			append("https://")
@@ -42,9 +42,7 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 
 				!tags.isNullOrEmpty() -> {
 					append("/mangas?tag=")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("&page=")
 					append(pages.toString())
 				}

@@ -27,6 +27,7 @@ internal class Klz9(context: MangaLoaderContext) :
 	override val selectChapter = "tr"
 	override val selectDate = "td i"
 	override val selectPage = "img"
+	override val selectBodyTag = "div.panel-body a"
 
 	override suspend fun getListPage(
 		page: Int,
@@ -34,6 +35,7 @@ internal class Klz9(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -49,9 +51,7 @@ internal class Klz9(context: MangaLoaderContext) :
 
 				!tags.isNullOrEmpty() -> {
 					append("&genre=")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 				}
 			}
 
