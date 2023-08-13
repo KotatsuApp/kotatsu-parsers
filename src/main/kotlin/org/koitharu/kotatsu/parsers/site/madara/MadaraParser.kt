@@ -284,8 +284,7 @@ internal abstract class MadaraParser(
 
 		val desc = body.select(selectDesc).html()
 
-		val stateDiv = if(selectState.isEmpty())
-		{
+		val stateDiv = if (selectState.isEmpty()) {
 			(body.selectFirst("div.post-content_item:contains(Status)")
 				?: body.selectFirst("div.post-content_item:contains(Statut)")
 				?: body.selectFirst("div.post-content_item:contains(État)")
@@ -298,8 +297,7 @@ internal abstract class MadaraParser(
 				?: body.selectFirst("div.post-content_item:contains(Статус)")
 				?: body.selectFirst("div.post-content_item:contains(状态)")
 				?: body.selectFirst("div.post-content_item:contains(الحالة)"))?.selectLast("div.summary-content")
-		}else
-		{
+		} else {
 			body.selectFirst(selectState)
 		}
 
