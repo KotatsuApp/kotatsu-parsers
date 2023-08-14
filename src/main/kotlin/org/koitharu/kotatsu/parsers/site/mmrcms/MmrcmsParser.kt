@@ -61,7 +61,7 @@ internal abstract class MmrcmsParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
+		val tag = tags.oneOrThrowIfMany()
 		val url = if (sortOrder == SortOrder.UPDATED) {
 			//the Updated page doesn't really exist, we just use the home page to weight the latest chapters, so it doesn't include tag and page management.
 			buildString {
@@ -75,23 +75,19 @@ internal abstract class MmrcmsParser(
 			buildString {
 				append("https://")
 				append(domain)
-
 				append("/$listUrl/")
 				append("?page=")
 				append(page.toString())
 				append("&asc=true&author=&tag=")
-
 				append("&alpha=")
+
 				if (!query.isNullOrEmpty()) {
 					append(query.urlEncoded())
 				}
 
 				append("&cat=")
 				if (!tags.isNullOrEmpty()) {
-
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 				}
 
 				append("&sortBy=")

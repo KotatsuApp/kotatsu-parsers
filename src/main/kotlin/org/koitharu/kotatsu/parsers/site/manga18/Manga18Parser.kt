@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.manga18
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -54,6 +53,7 @@ internal abstract class Manga18Parser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -68,9 +68,7 @@ internal abstract class Manga18Parser(
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagUrl")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("/")
 					append(page.toString())
 					append("?")

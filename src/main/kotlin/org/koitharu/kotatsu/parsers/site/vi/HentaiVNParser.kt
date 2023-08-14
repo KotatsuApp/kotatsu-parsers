@@ -146,12 +146,12 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val url = "/forum/search-plus.php".toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(url).parseHtml()
 		return docs.selectFirstOrThrow("ul.ul-search").select("li").mapNotNull { el ->
-				MangaTag(
-					title = el.text(),
-					key = el.selectFirst("input")?.attr("value") ?: return@mapNotNull null,
-					source = source,
-				)
-			}.associateBy { it.title }
+			MangaTag(
+				title = el.text(),
+				key = el.selectFirst("input")?.attr("value") ?: return@mapNotNull null,
+				source = source,
+			)
+		}.associateBy { it.title }
 	}
 
 	private fun getSortCookies(sortOrder: SortOrder): Array<String> {
@@ -225,19 +225,19 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val chaptersEl = webClient.httpGet(chaptersAjax).parseHtml()
 		val chapterDateFormat = SimpleDateFormat("dd/MM/yyyy")
 		return chaptersEl.select("tbody > tr").mapChapters(reversed = true) { index, element ->
-				val titleEl = element.selectFirst("td > a") ?: return@mapChapters null
-				val dateStr = element.selectLast("td")?.text()
-				MangaChapter(
-					id = generateUid(titleEl.attrAsRelativeUrl("href")),
-					name = titleEl.text(),
-					number = index + 1,
-					url = titleEl.attrAsRelativeUrl("href"),
-					scanlator = null,
-					uploadDate = chapterDateFormat.tryParse(dateStr),
-					branch = null,
-					source = source,
-				)
-			}
+			val titleEl = element.selectFirst("td > a") ?: return@mapChapters null
+			val dateStr = element.selectLast("td")?.text()
+			MangaChapter(
+				id = generateUid(titleEl.attrAsRelativeUrl("href")),
+				name = titleEl.text(),
+				number = index + 1,
+				url = titleEl.attrAsRelativeUrl("href"),
+				scanlator = null,
+				uploadDate = chapterDateFormat.tryParse(dateStr),
+				branch = null,
+				source = source,
+			)
+		}
 	}
 
 	private fun Element.infoText(title: String) =

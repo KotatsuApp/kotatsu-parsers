@@ -44,6 +44,7 @@ internal abstract class AnimeBootstrapParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -59,9 +60,7 @@ internal abstract class AnimeBootstrapParser(
 
 			if (!tags.isNullOrEmpty()) {
 				append("&categorie=")
-				for (tag in tags) {
-					append(tag.key)
-				}
+				append(tag?.key.orEmpty())
 			}
 
 			append("&sort=")

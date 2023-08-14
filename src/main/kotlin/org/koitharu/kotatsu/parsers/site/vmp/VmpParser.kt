@@ -16,7 +16,6 @@ internal abstract class VmpParser(
 ) : PagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
-
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	protected open val listUrl = "xxx/"
@@ -33,20 +32,15 @@ internal abstract class VmpParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://$domain/")
-			if(!tags.isNullOrEmpty())
-			{
-			append(geneUrl)
-			for (tag in tags) {
-				append(tag.key)
-			}
-			append("/page/")
-			append(page.toString())
-
-			}else
-			{
+			if (!tags.isNullOrEmpty()) {
+				append(geneUrl)
+				append(tag?.key.orEmpty())
+				append("/page/")
+				append(page.toString())
+			} else {
 				append(listUrl)
 				append("/page/")
 				append(page.toString())
@@ -92,10 +86,10 @@ internal abstract class VmpParser(
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
-		val doc= webClient.httpGet(fullUrl).parseHtml()
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 
 		manga.copy(
-			tags =  doc.select("div.tax_box div.links ul:not(.post-categories) li a").mapNotNullToSet { a ->
+			tags = doc.select("div.tax_box div.links ul:not(.post-categories) li a").mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast(geneUrl, ""),
 					title = a.text().toTitleCase(),

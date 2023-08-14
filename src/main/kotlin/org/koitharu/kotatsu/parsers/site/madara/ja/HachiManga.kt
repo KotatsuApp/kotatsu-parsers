@@ -35,6 +35,7 @@ internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, M
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -51,9 +52,7 @@ internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, M
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagPrefix")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("/")
 					append(pages.toString())
 					append("/")

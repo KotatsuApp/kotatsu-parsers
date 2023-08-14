@@ -55,6 +55,7 @@ internal abstract class WpComicsParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -62,9 +63,7 @@ internal abstract class WpComicsParser(
 
 			if (!tags.isNullOrEmpty()) {
 				append("/")
-				for (tag in tags) {
-					append(tag.key)
-				}
+				append(tag?.key.orEmpty())
 			}
 
 			append("?page=")

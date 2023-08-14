@@ -21,7 +21,7 @@ internal class Manhwaz(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -38,9 +38,7 @@ internal class Manhwaz(context: MangaLoaderContext) :
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagPrefix")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 					append("?page=")
 					append(pages.toString())
 					append("&")
@@ -60,7 +58,7 @@ internal class Manhwaz(context: MangaLoaderContext) :
 				SortOrder.UPDATED -> append("latest")
 				SortOrder.NEWEST -> append("new-manga")
 				SortOrder.ALPHABETICAL -> append("alphabet")
-				else -> append("latest")
+				SortOrder.RATING -> append("rating")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

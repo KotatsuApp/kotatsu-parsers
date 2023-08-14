@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 
-@MangaSourceParser("XOXOCOMICS", "Xoxo Comics", "vi", ContentType.COMICS)
+@MangaSourceParser("XOXOCOMICS", "Xoxo Comics", "en", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomics.net", 50) {
 
@@ -28,6 +28,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -41,9 +42,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				append(listUrl)
 				if (!tags.isNullOrEmpty()) {
 					append("/")
-					for (tag in tags) {
-						append(tag.key)
-					}
+					append(tag?.key.orEmpty())
 				}
 
 				append("/")

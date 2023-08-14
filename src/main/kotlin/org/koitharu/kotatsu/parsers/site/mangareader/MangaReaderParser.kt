@@ -220,13 +220,13 @@ internal abstract class MangaReaderParser(
 
 	protected open val encodedSrc = false
 	protected open val selectScript = "div.wrapper script"
-
 	protected open val selectPage = "div#readerarea img"
+	protected open val selectTestScript = "script:containsData(ts_reader)"
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
 
-		val test = docs.select("script:containsData(ts_reader)")
+		val test = docs.select(selectTestScript)
 		if (test.isNullOrEmpty() and !encodedSrc) {
 			return docs.select(selectPage).map { img ->
 				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
@@ -257,7 +257,7 @@ internal abstract class MangaReaderParser(
 					.getJSONArray("images")
 
 			} else {
-				val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
+				val script = docs.selectFirstOrThrow(selectTestScript)
 				JSONObject(script.data().substringAfter('(').substringBeforeLast(')'))
 					.getJSONArray("sources")
 					.getJSONObject(0)

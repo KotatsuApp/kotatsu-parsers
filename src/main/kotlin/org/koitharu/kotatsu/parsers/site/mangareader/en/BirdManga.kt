@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("BIRDMANGA", "Bird Manga", "en")
 internal class BirdManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BIRDMANGA, "birdmanga.com", pageSize = 20, searchPageSize = 10) {
-		override val encodedSrc = true
+	override val encodedSrc = true
 }
