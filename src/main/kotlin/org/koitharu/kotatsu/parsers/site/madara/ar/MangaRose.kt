@@ -5,9 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGASTARZ", "Manga Starz", "ar")
-internal class MangaStarz(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGASTARZ, "mangalike.org", pageSize = 10) {
-
-	override val datePattern = "d MMMM، yyyy"
-}
+@MangaSourceParser("MANGAROSE", "Manga Rose", "ar")
+internal class MangaRose(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGAROSE, "mangarose.net", pageSize = 20)

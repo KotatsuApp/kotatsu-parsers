@@ -38,7 +38,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				append("?page=")
 				append(page.toString())
 
-			}else {
+			} else {
 				append("$listUrl/")
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("?type=topview")
@@ -49,7 +49,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				if (!tags.isNullOrEmpty()) {
 					append("&category=")
 					append(tag?.key.orEmpty())
-				}else{
+				} else {
 					append("&category=all")
 				}
 				append("&state=all&page=")
@@ -89,11 +89,9 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.select(selectDate).last()?.text() ?: "0"
-			val dateFormat = if(dateText.contains("-"))
-			{
+			val dateFormat = if (dateText.contains("-")) {
 				SimpleDateFormat("MMM-dd-yy", sourceLocale)
-			}else
-			{
+			} else {
 				SimpleDateFormat(datePattern, sourceLocale)
 			}
 

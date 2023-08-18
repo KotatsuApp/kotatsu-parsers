@@ -7,7 +7,13 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SKANLACJEFENIKSY", "SkanlacjeFeniksy", "pl")
 internal class SkanlacjeFeniksy(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SKANLACJEFENIKSY, "skanlacje-feniksy.pl", pageSize = 10, searchPageSize = 10) {
+	MangaReaderParser(
+		context,
+		MangaSource.SKANLACJEFENIKSY,
+		"skanlacje-feniksy.pl",
+		pageSize = 10,
+		searchPageSize = 10,
+	) {
 
 	override val datePattern = "d MMMM, yyyy"
 }

@@ -101,97 +101,21 @@ internal class JapScanParser(context: MangaLoaderContext) : PagedMangaParser(con
 		)
 	}
 
-	private fun extractQuotedContent(input: String): List<String> {
-		val regex = Regex("'(.*?)'")
-		return regex.findAll(input).map { it.groupValues[1] }.toList()
-	}
-
-	private fun listJSToKey(jsList: MutableList<String>, offsettab: Int, listKey: List<String>): MutableList<String> {
-		for (i in 0 until jsList.size) {
-			if (jsList[i].contains("0x")) {
-				var decoupeHexa = jsList[i].split("('")[1]
-				decoupeHexa = decoupeHexa.split("')")[0]
-				var indexkey = Integer.decode(decoupeHexa) - offsettab - 1
-				if (indexkey < 0) {
-					indexkey = listKey.size - 1
-				}
-				jsList[i] = listKey[indexkey]
-			}
-		}
-
-		return jsList
-	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(chapterUrl).parseHtml()
-		val scriptUrl = doc.getElementsByTag("script").firstNotNullOf { script ->
-			script.attrAsAbsoluteUrlOrNull("src")?.takeIf { it.contains("/zjs/") }
-		}
+
 		val embeddedData = doc.requireElementById("data").attr("data-data")
-		val script = webClient.httpGet(scriptUrl).parseRaw()
 
-		var tabKey = "'" + script.split("=['")[1]
-		tabKey = tabKey.split("];")[0]
-		val listKey = tabKey.split("','").toMutableList()
-
-		var decoupeOffset = script.split("-0x")[1]
-		decoupeOffset = "0x" + decoupeOffset.split(";")[0]
-
-		val offsettab = Integer.decode(decoupeOffset)
-
-		var decoupeFuncOrder = script.split("while(!![])")[1]
-		decoupeFuncOrder = decoupeFuncOrder.split("if")[0]
-
-		val listKeyOrder = extractQuotedContent(decoupeFuncOrder).toMutableList()
-
-		if (listKeyOrder.size < 3) {
-			throw Exception("L'ordre des clés n'a pas pu être déterminé")
-		}
-		var goodorder = false
-		for (i in 0 until listKey.size) {
-			for (z in 0 until listKeyOrder.size) {
-				if (listKey[Integer.decode(listKeyOrder[z]) - offsettab - 1].contains("[0-9]".toRegex())) {
-					goodorder = true
-				} else {
-					goodorder = false
-					break
-				}
-			}
-
-			if (goodorder) {
-				break
-			}
-
-			val firstElement = listKey.removeAt(0)
-			listKey.add(firstElement)
-		}
-
-		if (!goodorder) {
-			throw Exception("L'ordre des clés n'a pas pu être déterminé")
-		}
-
-		val zjscalc = script.split("/[A-Z0-9]/gi,")[1]
-
-		val calc1 = zjscalc.split(",")[0]
-		var calc1tab = calc1.split("+").toMutableList()
-		calc1tab = listJSToKey(calc1tab, offsettab, listKey)
-
-		val calc2 = zjscalc.split(",")[1]
-		var calc2tab = calc2.split("+").toMutableList()
-		calc2tab = listJSToKey(calc2tab, offsettab, listKey)
-
-		var key1 = calc1tab.joinToString("")
-		var key2 = calc2tab.joinToString("")
-
-		key1 = key1.filterNot { c -> c == '\'' || c == ' ' }
-		key2 = key2.filterNot { c -> c == '\'' || c == ' ' }
+		val jsonkey =
+			webClient.httpGet("https://gist.githubusercontent.com/zormy111/f6abdc7f9385e95203e2b6a64af15ea3/raw/")
+				.parseJsonArray()
 
 		val keyTables = listOf(
-			key1.reversed(),
-			key2.reversed(),
+			jsonkey[0].toString(),
+			jsonkey[1].toString(),
 		)
-
 		var error: Exception? = null
 		repeat(2) { i ->
 			val key = keyTables[i].zip(keyTables[1 - i]).toMap()

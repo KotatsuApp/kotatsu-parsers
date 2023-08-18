@@ -7,12 +7,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
 
-@MangaSourceParser("ISEKAISCAN", "Isekai Scan Top", "en")
-internal class IsekaiScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.top", 16) {
-
+@MangaSourceParser("COFFEE_MANGA_TOP", "Coffee Manga Top", "en")
+internal class CoffeeMangaTop(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.COFFEE_MANGA_TOP, "coffeemanga.top") {
 	override val tagPrefix = "mangas/"
 	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"
@@ -65,9 +64,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 				}
 			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail.manga")
 		}.map { div ->
