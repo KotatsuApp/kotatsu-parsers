@@ -104,7 +104,7 @@ internal abstract class SinmhParser(
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(".filter-item:contains(按剧情) li a:not(.active)").mapNotNullToSet { a ->
-			val href = a.attr("href").removeSuffix("/").substringAfterLast("/")
+			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')
 			MangaTag(
 				key = href,
 				title = a.text(),
@@ -136,7 +136,7 @@ internal abstract class SinmhParser(
 		manga.copy(
 			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
@@ -152,7 +152,7 @@ internal abstract class SinmhParser(
 
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters { i, li ->
-			val href = li.selectFirstOrThrow("a").attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val name = li.selectFirstOrThrow("a").text()
 			MangaChapter(
 				id = generateUid(href),

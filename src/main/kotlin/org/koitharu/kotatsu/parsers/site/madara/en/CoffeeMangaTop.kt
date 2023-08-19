@@ -130,7 +130,7 @@ internal class CoffeeMangaTop(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val urlarray = doc.select("p#arraydata").text().split(",").toTypedArray()
+		val urlarray = doc.select("p#arraydata").text().split(',').toTypedArray()
 		return urlarray.map { url ->
 			MangaPage(
 				id = generateUid(url),

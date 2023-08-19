@@ -86,7 +86,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		val doc = webClient.httpGet("https://$domain/popular-comic").parseHtml()
 		return doc.select("li.tag-item a").mapNotNullToSet { a ->
 			MangaTag(
-				key = a.attr("href").substringAfterLast("/"),
+				key = a.attr("href").substringAfterLast('/'),
 				title = a.text(),
 				source = source,
 			)
@@ -95,6 +95,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat("MM/dd/yy", sourceLocale)
 		return manga.copy(
 			altTitle = doc.selectFirstOrThrow("dt.movie-dt:contains(Alternate name:) + dd").text(),
 			state = when (doc.selectFirstOrThrow("dt.movie-dt:contains(Status:) + dd a").text()) {
@@ -113,16 +114,14 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			description = doc.getElementById("film-content")?.text(),
 			chapters = doc.requireElementById("list").select("tr")
 				.mapChapters(reversed = true) { i, tr ->
-
 					val a = tr.selectFirstOrThrow("a")
 					val url = a.attrAsRelativeUrl("href") + "/full"
 					val name = a.text()
 					val dateText = tr.select("td").last()?.text()
-					val dateFormat = SimpleDateFormat("MM/dd/yy", sourceLocale)
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = i,
+						number = i + 1,
 						url = url,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(dateText),

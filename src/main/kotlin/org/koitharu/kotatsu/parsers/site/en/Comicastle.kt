@@ -126,13 +126,12 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 			description = root.getElementById("comic-desc")?.text(),
 			chapters = root.select("div.card-body > .table-responsive tr a")
 				.mapChapters { i, a ->
-
 					val url = a.attrAsRelativeUrl("href")
 					val name = a.text()
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = i,
+						number = i + 1,
 						url = url,
 						scanlator = null,
 						uploadDate = 0,

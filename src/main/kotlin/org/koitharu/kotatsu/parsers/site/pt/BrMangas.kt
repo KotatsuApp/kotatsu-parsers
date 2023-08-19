@@ -86,7 +86,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		val doc = webClient.httpGet("https://$domain/lista-de-generos-de-manga/").parseHtml()
 		return doc.select(".genres_page a").mapNotNullToSet { a ->
 			MangaTag(
-				key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
+				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 				title = a.text(),
 				source = source,
 			)
@@ -100,7 +100,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 			state = null,
 			tags = doc.select("div.serie-infos li:contains(Categorias:) a").mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)
@@ -115,7 +115,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = i,
+						number = i + 1,
 						url = url,
 						scanlator = null,
 						uploadDate = 0,
@@ -130,7 +130,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val scriptData =
-			doc.selectFirstOrThrow("script:containsData(imageArray)").data().substringAfter("[").substringBefore("]")
+			doc.selectFirstOrThrow("script:containsData(imageArray)").data().substringAfter('[').substringBefore(']')
 				.split(",")
 		return scriptData.map { data ->
 			val url = data.replace("\\\"", "").replace("\\/", "/")

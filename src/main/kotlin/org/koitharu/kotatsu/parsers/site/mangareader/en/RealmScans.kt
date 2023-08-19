@@ -68,9 +68,9 @@ internal class RealmScans(context: MangaLoaderContext) :
 		val selectTag = docs.select(".wd-full .mgen > a")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 		val mangaState = docs.selectFirst(".bs-status")?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				"ongoing" -> MangaState.ONGOING
-				"Completed" -> MangaState.FINISHED
+				"completed" -> MangaState.FINISHED
 				else -> null
 			}
 		}

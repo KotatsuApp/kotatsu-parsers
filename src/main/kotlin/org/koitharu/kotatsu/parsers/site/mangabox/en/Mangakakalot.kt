@@ -42,9 +42,9 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				append("$listUrl/")
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("?type=topview")
-					SortOrder.UPDATED -> append("")
+					SortOrder.UPDATED -> append("?type=latest")
 					SortOrder.NEWEST -> append("?type=newest")
-					else -> append("")
+					else -> append("?type=latest")
 				}
 				if (!tags.isNullOrEmpty()) {
 					append("&category=")
