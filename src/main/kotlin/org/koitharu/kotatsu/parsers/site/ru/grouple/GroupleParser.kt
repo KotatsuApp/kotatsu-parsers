@@ -215,7 +215,7 @@ internal abstract class GroupleParser(
 			}
 		} catch (e: NoSuchElementException) {
 			assert(false) { e.toString() }
-			candidates.random()
+			candidates.randomOrNull() ?: throw ParseException("No page url candidates", page.url, e)
 		}
 	}
 
