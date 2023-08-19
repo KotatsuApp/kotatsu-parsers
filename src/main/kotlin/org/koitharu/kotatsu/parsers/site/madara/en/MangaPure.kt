@@ -7,12 +7,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
 
-@MangaSourceParser("ISEKAISCAN", "Isekai Scan Top", "en")
-internal class IsekaiScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.top", 16) {
-
+@MangaSourceParser("MANGAPURE", "Manga Pure", "en")
+internal class MangaPure(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGAPURE, "mangapure.net") {
 	override val tagPrefix = "mangas/"
 	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"
@@ -91,8 +90,8 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
 					?.lowercase()) {
-					"Ongoing" -> MangaState.ONGOING
-					"Completed " -> MangaState.FINISHED
+					"ongoing" -> MangaState.ONGOING
+					"completed" -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,

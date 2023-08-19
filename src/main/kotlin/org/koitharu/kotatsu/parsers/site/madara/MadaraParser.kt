@@ -155,16 +155,20 @@ internal abstract class MadaraParser(
 					!tags.isNullOrEmpty() -> {
 						append("/$tagPrefix")
 						append(tag?.key.orEmpty())
-						append("/page/")
-						append(pages.toString())
+						if (page > 1) {
+							append("/page/")
+							append(pages.toString())
+						}
 						append("?")
 					}
 
 					else -> {
 
 						append("/$listUrl")
-						append("/page/")
-						append(pages.toString())
+						if (page > 1) {
+							append("page/")
+							append(pages)
+						}
 						append("?")
 					}
 				}
@@ -448,6 +452,7 @@ internal abstract class MadaraParser(
 					d.endsWith(" назад") || // other translated 'ago' in Russian
 					d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
 					d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
+					d.endsWith("مضت") || // Handle translated 'ago' in Arabic
 					d.startsWith("il y a") || // Handle translated 'ago' in French.
 					//If there is no ago but just a motion of time
 					// short Hours
@@ -516,7 +521,17 @@ internal abstract class MadaraParser(
 				"день",
 			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h").anyWordIn(date) -> cal.apply {
+			WordSet(
+				"jam",
+				"saat",
+				"heure",
+				"hora",
+				"horas",
+				"hour",
+				"hours",
+				"h",
+				"ساعات",
+			).anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
 					-number,
@@ -533,6 +548,7 @@ internal abstract class MadaraParser(
 				"mins",
 				"phút",
 				"минут",
+				"دقيقة",
 			).anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
@@ -540,7 +556,7 @@ internal abstract class MadaraParser(
 				)
 			}.timeInMillis
 
-			WordSet("detik", "segundo", "second").anyWordIn(date) -> cal.apply {
+			WordSet("detik", "segundo", "second", "ثوان").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.SECOND,
 					-number,
