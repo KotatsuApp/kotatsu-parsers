@@ -16,10 +16,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 internal abstract class NepnepParser(
-		context: MangaLoaderContext,
-		source: MangaSource,
-		domain: String,
-	) : MangaParser(context, source) {
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+) : MangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
