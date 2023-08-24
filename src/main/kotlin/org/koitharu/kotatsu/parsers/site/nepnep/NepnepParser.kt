@@ -1,11 +1,10 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.nepnep
 
 import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -16,13 +15,16 @@ import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
+internal abstract class NepnepParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+) : MangaParser(context, source) {
 
-@MangaSourceParser("MANGA4LIFE", "Manga4Life", "en")
-internal class Manga4Life(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGA4LIFE) {
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
-	override val configKeyDomain = ConfigKey.Domain("manga4life.com")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -242,14 +244,14 @@ internal class Manga4Life(context: MangaLoaderContext) : MangaParser(context, Ma
 		)
 		val pageTotal = curChapter.getString("Page")!!.toInt()
 		val host = "https://" +
-			script
-				.substringAfter("vm.CurPathName = \"", "")
-				.substringBefore('"')
-				.also {
-					if (it.isEmpty()) {
-						throw Exception("Manga4Life is overloaded and blocking Tachiyomi right now. Wait for unblock.")
+				script
+					.substringAfter("vm.CurPathName = \"", "")
+					.substringBefore('"')
+					.also {
+						if (it.isEmpty()) {
+							throw Exception("Manga4Life is overloaded and blocking kotatsu right now. Wait for unblock.")
+						}
 					}
-				}
 		val titleURI = script.substringAfter("vm.IndexName = \"").substringBefore("\"")
 		val seasonURI = curChapter.getString("Directory")!!
 			.let { if (it.isEmpty()) "" else "$it/" }
