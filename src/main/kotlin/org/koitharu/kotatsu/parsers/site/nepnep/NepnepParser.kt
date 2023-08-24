@@ -25,7 +25,6 @@ internal abstract class NepnepParser(
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
-
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
@@ -37,7 +36,9 @@ internal abstract class NepnepParser(
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
 		val json = JSONArray(
 			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
-				.substringAfter("vm.Directory = ").substringBefore("vm.GetIntValue").trim()
+				.substringAfter("vm.Directory = ")
+				.substringBefore("vm.GetIntValue")
+				.trim()
 				.replace(';', ' '),
 		)
 
@@ -48,36 +49,58 @@ internal abstract class NepnepParser(
 			val m = json.getJSONObject(i)
 			val href = "/manga/" + m.getString("i")
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
-			if (!query.isNullOrEmpty()) {
-				if (m.getString("i").contains(query.urlEncoded(), ignoreCase = true)) {
-					manga.add(
-						Manga(
-							id = generateUid(href),
-							title = m.getString("i").replace('-', ' '),
-							altTitle = null,
-							url = href,
-							publicUrl = href.toAbsoluteUrl(domain),
-							rating = RATING_UNKNOWN,
-							isNsfw = false,
-							coverUrl = imgUrl,
-							tags = emptySet(),
-							state = null,
-							author = null,
-							source = source,
-						),
-					)
+			when {
+				!query.isNullOrEmpty() -> {
+					if (m.getString("i").contains(query.urlEncoded(), ignoreCase = true)) {
+						manga.add(
+							Manga(
+								id = generateUid(href),
+								title = m.getString("i").replace('-', ' '),
+								altTitle = null,
+								url = href,
+								publicUrl = href.toAbsoluteUrl(domain),
+								rating = RATING_UNKNOWN,
+								isNsfw = false,
+								coverUrl = imgUrl,
+								tags = emptySet(),
+								state = null,
+								author = null,
+								source = source,
+							),
+						)
+					}
+
 				}
 
-			} else if (!tags.isNullOrEmpty()) {
-
-				val a = m.getJSONArray("g").toString()
-				var found = true
-				tags.forEach {
-					if (!a.contains(it.key, ignoreCase = true)) {
-						found = false
+				!tags.isNullOrEmpty() -> {
+					val a = m.getJSONArray("g").toString()
+					var found = true
+					tags.forEach {
+						if (!a.contains(it.key, ignoreCase = true)) {
+							found = false
+						}
+					}
+					if (found) {
+						manga.add(
+							Manga(
+								id = generateUid(href),
+								title = m.getString("i").replace('-', ' '),
+								altTitle = null,
+								url = href,
+								publicUrl = href.toAbsoluteUrl(domain),
+								rating = RATING_UNKNOWN,
+								isNsfw = false,
+								coverUrl = imgUrl,
+								tags = emptySet(),
+								state = null,
+								author = null,
+								source = source,
+							),
+						)
 					}
 				}
-				if (found) {
+
+				else -> {
 					manga.add(
 						Manga(
 							id = generateUid(href),
@@ -95,23 +118,6 @@ internal abstract class NepnepParser(
 						),
 					)
 				}
-			} else {
-				manga.add(
-					Manga(
-						id = generateUid(href),
-						title = m.getString("i").replace('-', ' '),
-						altTitle = null,
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						isNsfw = false,
-						coverUrl = imgUrl,
-						tags = emptySet(),
-						state = null,
-						author = null,
-						source = source,
-					),
-				)
 			}
 
 
@@ -123,7 +129,8 @@ internal abstract class NepnepParser(
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
-			.substringAfter("\"Genre\" \t\t: [")
+			.substringAfter("\"Genre\"")
+			.substringAfter('[')
 			.substringBefore(']')
 			.replace("'", "")
 			.split(',')
@@ -143,7 +150,8 @@ internal abstract class NepnepParser(
 		val chapter = JSONArray(
 			JSONArray(
 				doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
-					.substringAfter("vm.Chapters = ").substringBefore(';'),
+					.substringAfter("vm.Chapters = ")
+					.substringBefore(';'),
 			).toJSONList().reversed(),
 		)
 
@@ -243,18 +251,14 @@ internal abstract class NepnepParser(
 				.substringBefore(';'),
 		)
 		val pageTotal = curChapter.getString("Page")!!.toInt()
-		val host = "https://" +
-				script
-					.substringAfter("vm.CurPathName = \"", "")
-					.substringBefore('"')
-					.also {
-						if (it.isEmpty()) {
-							throw Exception("Manga4Life is overloaded and blocking kotatsu right now. Wait for unblock.")
-						}
-					}
+		val host = "https://" + script
+			.substringAfter("vm.CurPathName = \"", "")
+			.substringBefore('"')
+		check(host.isNotEmpty()) {
+			"Manga4Life is overloaded and blocking Kotatsu right now. Wait for unblock."
+		}
 		val titleURI = script.substringAfter("vm.IndexName = \"").substringBefore("\"")
-		val seasonURI = curChapter.getString("Directory")!!
-			.let { if (it.isEmpty()) "" else "$it/" }
+		val seasonURI = curChapter.getString("Directory")!!.let { if (it.isEmpty()) "" else "$it/" }
 		val path = "$host/manga/$titleURI/$seasonURI"
 		val chNum = chapterImage(curChapter.getString("Chapter")!!)
 
