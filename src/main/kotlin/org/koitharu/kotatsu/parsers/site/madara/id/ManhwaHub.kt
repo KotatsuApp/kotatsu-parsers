@@ -1,8 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.id
 
-
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
