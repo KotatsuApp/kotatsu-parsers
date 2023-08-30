@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MI2MANGA", "Mi2Manga", "vi")
 internal class Mi2Manga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MI2MANGA, "www.mi2manga2.com"){
+	MadaraParser(context, MangaSource.MI2MANGA, "www.mi2manga2.com") {
 	override val listUrl = "truyen-tranh/"
 	override val tagPrefix = "the-loai/"
 	override val datePattern = "d MMMM, yyyy"

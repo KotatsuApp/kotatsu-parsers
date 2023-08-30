@@ -155,7 +155,7 @@ internal abstract class MadaraParser(
 					!tags.isNullOrEmpty() -> {
 						append("/$tagPrefix")
 						append(tag?.key.orEmpty())
-						if (page > 1) {
+						if (pages > 1) {
 							append("/page/")
 							append(pages.toString())
 						}
@@ -165,7 +165,7 @@ internal abstract class MadaraParser(
 					else -> {
 
 						append("/$listUrl")
-						if (page > 1) {
+						if (pages > 1) {
 							append("page/")
 							append(pages)
 						}
@@ -278,9 +278,9 @@ internal abstract class MadaraParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body()
 
-		val testchekasync = body.select(selectTestAsync)
+		val testCheckAsync = body.select(selectTestAsync)
 
-		val chaptersDeferred = if (testchekasync.isNullOrEmpty()) {
+		val chaptersDeferred = if (testCheckAsync.isNullOrEmpty()) {
 			async { loadChapters(manga.url, doc) }
 		} else {
 			async { getChapters(manga, doc) }
@@ -373,6 +373,7 @@ internal abstract class MadaraParser(
 			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 			webClient.httpPost(url, emptyMap()).parseHtml()
 		}
+
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
@@ -563,7 +564,13 @@ internal abstract class MadaraParser(
 				)
 			}.timeInMillis
 
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+			WordSet("month", "months", "أشهر").anyWordIn(date) -> cal.apply {
+				add(
+					Calendar.MONTH,
+					-number,
+				)
+			}.timeInMillis
+
 			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}

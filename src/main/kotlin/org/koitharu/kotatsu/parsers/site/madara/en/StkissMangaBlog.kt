@@ -5,6 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAGREAT", "MangaGreat", "en")
-internal class MangaGreat(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGAGREAT, "mangagreat.org")
+@MangaSourceParser("STKISSMANGABLOG", "StkissManga Blog", "en")
+internal class StkissMangaBlog(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.STKISSMANGABLOG, "1stkissmanga.blog", 10) {
+	override val postreq = true
+}

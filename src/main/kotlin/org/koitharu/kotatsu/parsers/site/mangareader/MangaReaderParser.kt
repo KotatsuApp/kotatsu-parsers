@@ -204,7 +204,7 @@ internal abstract class MangaReaderParser(
 			Manga(
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
-				title = it.selectFirstOrThrow(selectMangaListTitle).text() ?: a.attr("title"),
+				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,

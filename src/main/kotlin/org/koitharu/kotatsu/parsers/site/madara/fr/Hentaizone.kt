@@ -31,11 +31,12 @@ internal class Hentaizone(context: MangaLoaderContext) :
 			// correct parse date missing a "."
 			val dateOrg = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
 			val dateCorrectParse = dateOrg
-				.replace("janv", "janv.")
-				.replace("févr", "févr.")
+				.replace("Jan", "janv.")
+				.replace("Fév", "févr.")
+				.replace("Mar", "mars")
 				.replace("avr", "avr.")
 				.replace("juil", "juil.")
-				.replace("sept", "sept.")
+				.replace("Sep", "sept.")
 				.replace("nov", "nov.")
 				.replace("oct", "oct.")
 				.replace("déc", "déc.")

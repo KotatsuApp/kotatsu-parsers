@@ -7,8 +7,8 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MANGASCHAN", "Mangaschan", "pt")
 internal class Mangaschan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANGASCHAN, "mangaschan.com", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaSource.MANGASCHAN, "mangaschan.net", pageSize = 20, searchPageSize = 20) {
 
-	override val datePattern = "MMM d, yyyy"
+	override val datePattern = "MMMM d, yyyy"
 
 }

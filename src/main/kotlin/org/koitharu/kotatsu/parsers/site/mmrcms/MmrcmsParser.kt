@@ -43,6 +43,7 @@ internal abstract class MmrcmsParser(
 		"Ongoing",
 		"En cours",
 		"En curso",
+		"DEVAM EDİYOR",
 	)
 
 	@JvmField
@@ -51,6 +52,7 @@ internal abstract class MmrcmsParser(
 		"Completo",
 		"Complete",
 		"Terminé",
+		"TAMAMLANDI",
 	)
 
 	protected open val imgUpdated = "/cover/cover_250x350.jpg"
