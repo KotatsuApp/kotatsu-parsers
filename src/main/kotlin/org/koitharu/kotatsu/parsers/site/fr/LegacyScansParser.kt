@@ -17,7 +17,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.LEGACY_SCANS, 18) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.ALPHABETICAL,
+		SortOrder.POPULARITY,
 	)
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
