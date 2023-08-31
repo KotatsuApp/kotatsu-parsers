@@ -4,7 +4,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.*
+import java.util.Locale
 
 @MangaSourceParser("IMMORTALUPDATESID", "Immortal Updates Id", "id")
 internal class ImmortalUpdatesId(context: MangaLoaderContext) :
