@@ -113,7 +113,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					val a = li.selectFirstOrThrow("a")
 					val url = a.attrAsRelativeUrl("href")
 					val name = li.selectFirstOrThrow(".chapter-title").text()
-					val dateText = li.select(".chapter-update").attr("datetime").substringBeforeLast(",")
+					val dateText = li.select(".chapter-update").attr("datetime").substringBeforeLast(',')
 						.replace(".", "").replace("Sept", "Sep")
 					MangaChapter(
 						id = generateUid(url),

@@ -17,6 +17,11 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val listUrl = "genre/manhwa"
 	override val selectTestAsync = "ul.box-list-chapter"
+
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -27,21 +32,20 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-
 			when {
 				!query.isNullOrEmpty() -> {
 					append("/search?s=")
 					append(query.urlEncoded())
 					append("&page=")
-					append(pages)
+					append(page)
+					append("&")
 				}
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagPrefix")
 					append(tag?.key.orEmpty())
 					append("?page=")
-					append(pages)
+					append(page)
 					append("&")
 				}
 
@@ -49,7 +53,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 
 					append("/$listUrl")
 					append("?page=")
-					append(pages)
+					append(page)
 					append("&")
 				}
 
@@ -69,7 +73,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
 		}.map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			Manga(
 				id = generateUid(href),

@@ -49,10 +49,9 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				if (!tags.isNullOrEmpty()) {
 					for (tag in tags) {
 						append(tag.key)
-						append(",")
+						append(',')
 					}
 				}
-
 				append("&type=&start=")
 				append(start)
 				append("&end=")
