@@ -125,8 +125,8 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+			|| docs.selectFirst(".info-right .alr") != null
+			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("div.entry-content")?.text(),

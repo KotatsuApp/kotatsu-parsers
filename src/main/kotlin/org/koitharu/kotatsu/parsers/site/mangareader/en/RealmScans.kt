@@ -76,8 +76,8 @@ internal class RealmScans(context: MangaLoaderContext) :
 		}
 		val author = docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+			|| docs.selectFirst(".info-right .alr") != null
+			|| docs.selectFirst(".postbody .alr") != null
 
 		// Description in markdown renders it unattractive and unclear on the synopsis
 		// val desc = docs.selectFirstOrThrow("script:containsData(var description)").data().substringAfter("var description = \"").substringBefore("\";")

@@ -448,32 +448,32 @@ internal abstract class MadaraParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
-					d.startsWith("há ") || // other translated 'ago' in Portuguese.
-					d.endsWith(" hace") || // other translated 'ago' in Spanish
-					d.endsWith(" назад") || // other translated 'ago' in Russian
-					d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
-					d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
-					d.endsWith("مضت") || // Handle translated 'ago' in Arabic
-					d.startsWith("il y a") || // Handle translated 'ago' in French.
-					//If there is no ago but just a motion of time
-					// short Hours
-					d.endsWith(" h") ||
-					// short Day
-					d.endsWith(" d") ||
-					// Day in Portuguese
-					d.endsWith(" días") || d.endsWith(" día") ||
-					// Day in French
-					d.endsWith(" jour") || d.endsWith(" jours") ||
-					// Hours in Portuguese
-					d.endsWith(" horas") || d.endsWith(" hora") ||
-					// Hours in french
-					d.endsWith(" heure") || d.endsWith(" heures") ||
-					// Minutes in English
-					d.endsWith(" mins") ||
-					// Minutes in Portuguese
-					d.endsWith(" minutos") || d.endsWith(" minuto") ||
-					//Minutes in French
-					d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+				d.startsWith("há ") || // other translated 'ago' in Portuguese.
+				d.endsWith(" hace") || // other translated 'ago' in Spanish
+				d.endsWith(" назад") || // other translated 'ago' in Russian
+				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
+				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
+				d.endsWith("مضت") || // Handle translated 'ago' in Arabic
+				d.startsWith("il y a") || // Handle translated 'ago' in French.
+				//If there is no ago but just a motion of time
+				// short Hours
+				d.endsWith(" h") ||
+				// short Day
+				d.endsWith(" d") ||
+				// Day in Portuguese
+				d.endsWith(" días") || d.endsWith(" día") ||
+				// Day in French
+				d.endsWith(" jour") || d.endsWith(" jours") ||
+				// Hours in Portuguese
+				d.endsWith(" horas") || d.endsWith(" hora") ||
+				// Hours in french
+				d.endsWith(" heure") || d.endsWith(" heures") ||
+				// Minutes in English
+				d.endsWith(" mins") ||
+				// Minutes in Portuguese
+				d.endsWith(" minutos") || d.endsWith(" minuto") ||
+				//Minutes in French
+				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {

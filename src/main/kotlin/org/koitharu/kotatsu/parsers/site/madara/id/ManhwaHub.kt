@@ -22,6 +22,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
