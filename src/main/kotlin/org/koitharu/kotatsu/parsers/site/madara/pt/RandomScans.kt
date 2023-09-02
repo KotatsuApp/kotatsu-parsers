@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RANDOMSCANS", "Random Scans", "pt")
 internal class RandomScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RANDOMSCANS, "randomscans.com")
+	MadaraParser(context, MangaSource.RANDOMSCANS, "randomscanlators.net")
