@@ -10,7 +10,8 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("NIVERAFANSUB", "Nivera Fansub", "tr", ContentType.HENTAI)
 internal class NiveraFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.NIVERAFANSUB, "niverafansub.com") {
+	MadaraParser(context, MangaSource.NIVERAFANSUB, "niverafansub.co") {
 
 	override val datePattern = "d MMMM yyyy"
+	override val selectPage = "div.page-break, div.login-required"
 }
