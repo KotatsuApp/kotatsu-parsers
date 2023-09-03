@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.parsers.site.ru.rulib
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.withTimeoutOrNull
+import okhttp3.Response
+import okhttp3.internal.headersContentLength
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
@@ -30,7 +32,7 @@ internal open class MangaLibParser(
 	override val configKeyDomain = ConfigKey.Domain("mangalib.me")
 
 	override val authUrl: String
-		get() = "https://${domain}/login"
+		get() = "https://$domain/login"
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.RATING,
@@ -163,7 +165,9 @@ internal open class MangaLibParser(
 						key = href.substringAfterLast('='),
 						source = source,
 					)
-				} else null
+				} else {
+					null
+				}
 			} ?: manga.tags,
 			isNsfw = isNsfw(doc),
 			description = info?.selectFirst("div.media-description__text")?.html(),
@@ -226,7 +230,7 @@ internal open class MangaLibParser(
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val url = "https://${domain}/manga-list"
+		val url = "https://$domain/manga-list"
 		val doc = webClient.httpGet(url).parseHtml()
 		val scripts = doc.body().select("script")
 		for (script in scripts) {
@@ -266,7 +270,7 @@ internal open class MangaLibParser(
 	private suspend fun tryHeadImage(url: String): Boolean = runCatchingCancellable {
 		withTimeoutOrNull(3_000) {
 			webClient.httpHead(url).use { response ->
-				response.isSuccessful && response.mimeType?.startsWith("image/") == true
+				response.isValidImage()
 			}
 		} ?: false
 	}.getOrDefault(false)
@@ -333,6 +337,10 @@ internal open class MangaLibParser(
 			result.put(x)
 		}
 		return result
+	}
+
+	private fun Response.isValidImage(): Boolean {
+		return isSuccessful && mimeType?.startsWith("image/") == true && headersContentLength() >= 1024L
 	}
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
