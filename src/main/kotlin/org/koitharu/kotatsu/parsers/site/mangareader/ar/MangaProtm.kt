@@ -5,9 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANGAPROTM", "MangaProtm", "ar")
+@MangaSourceParser("MANGAPROTM", "Manga Pro", "ar")
 internal class MangaProtm(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANGAPROTM, "mangaprotm.com", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaSource.MANGAPROTM, "mangapro.co", pageSize = 20, searchPageSize = 20) {
 
 	override val listUrl = "/series"
 }

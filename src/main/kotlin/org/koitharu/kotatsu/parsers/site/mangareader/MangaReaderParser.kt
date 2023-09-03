@@ -125,8 +125,8 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
-				|| docs.selectFirst(".info-right .alr") != null
-				|| docs.selectFirst(".postbody .alr") != null
+			|| docs.selectFirst(".info-right .alr") != null
+			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
 			description = docs.selectFirst("div.entry-content")?.text(),
@@ -204,7 +204,7 @@ internal abstract class MangaReaderParser(
 			Manga(
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
-				title = it.selectFirstOrThrow(selectMangaListTitle).text() ?: a.attr("title"),
+				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,

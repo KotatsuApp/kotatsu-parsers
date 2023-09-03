@@ -19,6 +19,8 @@ class NetTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.NETTRUYEN, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"www.nettruyenlive.com",
+		"www.nettruyenio.com",
 		"www.nettruyento.com",
 		"nettruyento.com",
 		"nettruyenin.com",

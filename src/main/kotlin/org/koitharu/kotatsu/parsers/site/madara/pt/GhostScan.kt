@@ -5,9 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("NINJASCAN", "Ninja Scan", "pt")
-internal class NinjaScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.NINJASCAN, "ninjascan.site") {
+@MangaSourceParser("GHOSTSCAN", "GhostScan", "pt")
+internal class GhostScan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.GHOSTSCAN, "ghostscan.com.br", 24) {
 
-	override val datePattern = "dd 'de' MMMMM 'de' yyyy"
+	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 }

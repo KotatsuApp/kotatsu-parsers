@@ -392,26 +392,26 @@ internal abstract class OtakuSanctuaryParser(
 				}.build().toString()
 		} else if (
 			(
-					url.contains("merakiscans") ||
-							url.contains("mangazuki") ||
-							url.contains("ninjascans") ||
-							url.contains("anyacg.co") ||
-							url.contains("mangakatana") ||
-							url.contains("zeroscans") ||
-							url.contains("mangapark") ||
-							url.contains("mangadex") ||
-							url.contains("uptruyen") ||
-							url.contains("hocvientruyentranh") ||
-							url.contains("ntruyen.info") ||
-							url.contains("chancanvas") ||
-							url.contains("bato.to")
-					) &&
+				url.contains("merakiscans") ||
+					url.contains("mangazuki") ||
+					url.contains("ninjascans") ||
+					url.contains("anyacg.co") ||
+					url.contains("mangakatana") ||
+					url.contains("zeroscans") ||
+					url.contains("mangapark") ||
+					url.contains("mangadex") ||
+					url.contains("uptruyen") ||
+					url.contains("hocvientruyentranh") ||
+					url.contains("ntruyen.info") ||
+					url.contains("chancanvas") ||
+					url.contains("bato.to")
+				) &&
 			(
-					!url.contains("googleusercontent") &&
-							!url.contains("otakusan") &&
-							!url.contains("otakuscan") &&
-							!url.contains("shopotaku")
-					)
+				!url.contains("googleusercontent") &&
+					!url.contains("otakusan") &&
+					!url.contains("otakuscan") &&
+					!url.contains("shopotaku")
+				)
 		) {
 			url =
 				"https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&gadget=a&no_expand=1&resize_h=0&rewriteMime=image%2F*".toHttpUrl()

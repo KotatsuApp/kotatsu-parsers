@@ -210,10 +210,10 @@ internal abstract class FmreaderParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") ||
-					// short Hours
-					d.endsWith(" h") ||
-					// short Day
-					d.endsWith(" d") -> parseRelativeDate(date)
+				// short Hours
+				d.endsWith(" h") ||
+				// short Day
+				d.endsWith(" d") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {

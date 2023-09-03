@@ -216,7 +216,7 @@ internal abstract class WpComicsParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") ||
-					d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
+				d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
 			-> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight

@@ -131,12 +131,12 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.startsWith("il y a") || // Handle translated 'ago' in French.
-					d.endsWith(" an") || d.endsWith(" ans") ||
-					d.endsWith(" mois") ||
-					d.endsWith(" jour") || d.endsWith(" jours") ||
-					d.endsWith(" heure") || d.endsWith(" heures") ||
-					d.endsWith(" seconde") || d.endsWith(" secondes") ||
-					d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+				d.endsWith(" an") || d.endsWith(" ans") ||
+				d.endsWith(" mois") ||
+				d.endsWith(" jour") || d.endsWith(" jours") ||
+				d.endsWith(" heure") || d.endsWith(" heures") ||
+				d.endsWith(" seconde") || d.endsWith(" secondes") ||
+				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
 
 			else -> dateFormat.tryParse(date)
 		}

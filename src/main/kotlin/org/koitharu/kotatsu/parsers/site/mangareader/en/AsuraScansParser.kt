@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ASURASCANS", "Asura Scans", "en")
 internal class AsuraScansParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ASURASCANS, "asura.nacm.xyz", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.ASURASCANS, "asuracomics.com", pageSize = 20, searchPageSize = 10) {
 
 	override val datePattern = "MMM d, yyyy"
 	override val selectPage = "div#readerarea p img"

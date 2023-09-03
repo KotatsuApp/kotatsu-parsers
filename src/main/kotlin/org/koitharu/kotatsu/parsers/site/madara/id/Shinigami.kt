@@ -4,11 +4,11 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.*
+import java.util.Locale
 
 @MangaSourceParser("SHINIGAMI", "Shinigami", "id")
 internal class Shinigami(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHINIGAMI, "shinigami.id", 10) {
+	MadaraParser(context, MangaSource.SHINIGAMI, "shinigami.ae", 10) {
 
 	override val tagPrefix = "genre/"
 	override val listUrl = "series/"
