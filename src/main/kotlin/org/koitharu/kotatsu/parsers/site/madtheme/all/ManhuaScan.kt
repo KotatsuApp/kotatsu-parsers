@@ -5,7 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.ArrayList
 import java.util.Locale
 
 @MangaSourceParser("MANHUASCAN", "ManhuaScan", "")
