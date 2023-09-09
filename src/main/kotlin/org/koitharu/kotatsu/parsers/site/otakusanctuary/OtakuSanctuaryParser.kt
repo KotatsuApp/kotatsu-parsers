@@ -290,7 +290,7 @@ internal abstract class OtakuSanctuaryParser(
 	}
 
 
-	fun processUrl(url: String, vi: String = ""): String {
+	private fun processUrl(url: String, vi: String = ""): String {
 		var url = url.replace("_h_", "http")
 			.replace("_e_", "/extendContent/Manga")
 			.replace("_r_", "/extendContent/MangaRaw")

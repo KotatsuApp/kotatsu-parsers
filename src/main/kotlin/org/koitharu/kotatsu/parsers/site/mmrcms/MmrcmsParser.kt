@@ -44,6 +44,7 @@ internal abstract class MmrcmsParser(
 		"En cours",
 		"En curso",
 		"DEVAM EDİYOR",
+		"مستمرة",
 	)
 
 	@JvmField
@@ -53,6 +54,7 @@ internal abstract class MmrcmsParser(
 		"Complete",
 		"Terminé",
 		"TAMAMLANDI",
+		"مكتملة",
 	)
 
 	protected open val imgUpdated = "/cover/cover_250x350.jpg"
@@ -65,7 +67,6 @@ internal abstract class MmrcmsParser(
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
 		val url = if (sortOrder == SortOrder.UPDATED) {
-			//the Updated page doesn't really exist, we just use the home page to weight the latest chapters, so it doesn't include tag and page management.
 			buildString {
 				append("https://")
 				append(domain)

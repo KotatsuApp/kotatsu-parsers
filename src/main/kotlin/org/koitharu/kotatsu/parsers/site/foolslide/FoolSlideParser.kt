@@ -72,7 +72,7 @@ internal abstract class FoolSlideParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),// in search no img
-				title = div.selectFirstOrThrow(".title").text().orEmpty(),
+				title = div.selectFirstOrThrow(".title a").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

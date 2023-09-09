@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.mangareader.en
+package org.koitharu.kotatsu.parsers.site.mangareader.fr
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -155,7 +155,7 @@ internal class ManhwaFreakFr(context: MangaLoaderContext) :
 		)
 	}
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 		val d = date?.lowercase() ?: return 0
 		return when {

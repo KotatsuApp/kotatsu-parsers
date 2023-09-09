@@ -125,6 +125,19 @@ internal abstract class MadaraParser(
 		"End",
 	)
 
+	@JvmField
+	protected val abandoned: Set<String> = hashSetOf(
+		"Canceled",
+		"Cancelled",
+		"Cancelado",
+		"cancellato",
+		"Cancelados",
+		"Dropped",
+		"Discontinued",
+		"abandonné",
+		"Abandonné",
+	)
+
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
 
@@ -234,6 +247,7 @@ internal abstract class MadaraParser(
 					?.lowercase()) {
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
+					in abandoned -> MangaState.ABANDONED
 					else -> null
 				},
 				source = source,
@@ -310,6 +324,7 @@ internal abstract class MadaraParser(
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
+				in abandoned -> MangaState.ABANDONED
 				else -> null
 			}
 		}
@@ -399,7 +414,7 @@ internal abstract class MadaraParser(
 	}
 
 	protected open val selectBodyPage = "div.main-col-inner div.reading-content"
-	protected open val selectPage = "div.page-break"
+	protected open val selectPage = "div.page-break, div.login-required"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)

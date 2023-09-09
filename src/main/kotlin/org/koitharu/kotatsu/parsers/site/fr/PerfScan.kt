@@ -130,7 +130,7 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getTags(): Set<MangaTag> = emptySet()
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") -> parseRelativeDate(date)

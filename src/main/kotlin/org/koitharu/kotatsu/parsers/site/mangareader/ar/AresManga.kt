@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ARESMANGA", "AresManga", "ar")
 internal class AresManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ARESMANGA, "aresmanga.org", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.ARESMANGA, "aresnov.org", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
 }
