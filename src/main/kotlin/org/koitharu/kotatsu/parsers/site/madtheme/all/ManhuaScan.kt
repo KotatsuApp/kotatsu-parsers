@@ -23,7 +23,9 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/$listUrl?sort=")
+			append('/')
+			append(listUrl)
+			append("?sort=")
 			when (sortOrder) {
 				SortOrder.POPULARITY -> append("views")
 				SortOrder.UPDATED -> append("updated_at")
@@ -84,19 +86,14 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 
 		val script = docs.selectFirstOrThrow("script:containsData(var chapImages)")
 		val images = script.data().substringAfter("= \"").substringBefore("\";").split(",")
-
-		val pages = ArrayList<MangaPage>()
-		images.map {
-			pages.add(
-				MangaPage(
-					id = generateUid(it),
-					url = it,
-					preview = null,
-					source = source,
-				),
+		return images.map {
+			MangaPage(
+				id = generateUid(it),
+				url = it,
+				preview = null,
+				source = source,
 			)
 		}
-		return pages
 	}
 
 }

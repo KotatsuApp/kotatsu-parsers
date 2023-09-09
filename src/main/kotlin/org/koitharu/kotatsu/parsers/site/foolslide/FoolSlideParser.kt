@@ -114,7 +114,7 @@ internal abstract class FoolSlideParser(
 
 		manga.copy(
 			tags = emptySet(),
-			coverUrl = doc.selectFirst(".thumbnail img")?.src().orEmpty(),// for manga result on search
+			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
 			description = desc,
 			altTitle = null,
 			author = author,

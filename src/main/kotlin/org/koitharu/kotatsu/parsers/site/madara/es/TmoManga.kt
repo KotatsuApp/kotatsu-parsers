@@ -65,7 +65,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.page-item-detail").map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -85,8 +85,8 @@ internal class TmoManga(context: MangaLoaderContext) :
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			val link = href + stylepage
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(

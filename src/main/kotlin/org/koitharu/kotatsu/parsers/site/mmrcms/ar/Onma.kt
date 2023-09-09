@@ -72,7 +72,7 @@ internal class Onma(context: MangaLoaderContext) :
 
 			return doc.select("div.manga-item").map { div ->
 				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				val deeplink = href.substringAfterLast("/")
+				val deeplink = href.substringAfterLast('/')
 				Manga(
 					id = generateUid(href),
 					url = href,

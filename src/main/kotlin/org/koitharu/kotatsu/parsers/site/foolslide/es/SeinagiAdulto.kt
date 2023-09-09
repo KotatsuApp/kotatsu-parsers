@@ -44,7 +44,6 @@ internal class SeinagiAdulto(context: MangaLoaderContext) :
 		}
 
 		manga.copy(
-			tags = emptySet(),
 			coverUrl = doc.selectFirst(".thumbnail img")?.src().orEmpty(),// for manga result on search
 			description = desc,
 			altTitle = null,

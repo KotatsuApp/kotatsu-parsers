@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.ArrayList
 
 
 @MangaSourceParser("ASSORTEDSCANS", "AssortedScans", "en")
@@ -28,13 +27,17 @@ internal class AssortedScans(context: MangaLoaderContext) :
 
 		val doc = if (!query.isNullOrEmpty()) {
 
+			if (page > 1) {
+				return emptyList()
+			}
+
 			val url = buildString {
-				append("https://$domain/$searchUrl")
+				append("https://")
+				append(domain)
+				append('/')
+				append(searchUrl)
 				append("?q=")
 				append(query.urlEncoded())
-				if (page > 1) {
-					return emptyList()
-				}
 			}
 			webClient.httpGet(url).parseHtml()
 		} else {
@@ -87,8 +90,7 @@ internal class AssortedScans(context: MangaLoaderContext) :
 		val author = doc.getElementById("series-authors")?.selectFirst("div.author")?.text()
 		val state = doc.getElementById("series-status")?.selectFirst("span")?.text()
 		manga.copy(
-			tags = emptySet(),
-			coverUrl = doc.selectFirst(".cover")?.src().orEmpty(),// for manga result on search
+			coverUrl = doc.selectFirst(".cover")?.src() ?: manga.coverUrl,
 			description = desc,
 			altTitle = alt,
 			author = author,
@@ -120,22 +122,23 @@ internal class AssortedScans(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
-		val docs = webClient.httpGet(chapterUrl).parseHtml()
-		val max = docs.selectFirstOrThrow(".curr-page input").attr("data-max").toInt() + 1
-		val pages = ArrayList<MangaPage>(max)
-		for (i in 1 until max) {
-			val pagesUrl = chapterUrl + i
-			val page = webClient.httpGet(pagesUrl).parseHtml().requireElementById("page-image").attr("src")
-			pages.add(
-				MangaPage(
-					id = generateUid(page),
-					url = page,
-					preview = null,
-					source = source,
-				),
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		return doc.body().select(".page-list .dropdown-list li a").map { a ->
+			val url = a.attr("href").toRelativeUrl(domain)
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
 			)
 		}
-		return pages
 	}
+
+	override suspend fun getPageUrl(page: MangaPage): String {
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
+		val root = doc.body()
+		return root.requireElementById("page-image").attr("src") ?: doc.parseFailed("Page image not found")
+	}
+
+
 }

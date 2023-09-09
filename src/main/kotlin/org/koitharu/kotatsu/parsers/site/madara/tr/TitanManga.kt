@@ -18,8 +18,8 @@ internal class TitanManga(context: MangaLoaderContext) :
 		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			val link = href + stylepage
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(

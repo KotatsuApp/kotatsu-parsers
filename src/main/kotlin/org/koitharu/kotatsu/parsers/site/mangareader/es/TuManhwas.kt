@@ -57,7 +57,7 @@ internal class TuManhwas(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst(".chapternum")?.text() ?: "Chapter ${index + 1}",
+				name = element.selectFirst(".chapternum")?.textOrNull() ?: "Chapter ${index + 1}",
 				url = url,
 				number = index + 1,
 				scanlator = null,
@@ -77,9 +77,9 @@ internal class TuManhwas(context: MangaLoaderContext) :
 		val stateSelect = docs.selectFirst(".tsinfo div:contains(Estado)")
 		val state = stateSelect?.lastElementChild()
 		val mangaState = state?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				"publishing" -> MangaState.ONGOING
-				"Terminado" -> MangaState.FINISHED
+				"terminado" -> MangaState.FINISHED
 				else -> null
 			}
 		}
