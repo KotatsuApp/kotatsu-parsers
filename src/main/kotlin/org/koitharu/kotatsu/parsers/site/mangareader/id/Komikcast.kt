@@ -19,7 +19,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 
-
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -94,8 +93,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 	}
 
 	override suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-
-		/// set if is table
+		// / set if is table
 
 		val tagMap = getOrCreateTagMap()
 
@@ -110,7 +108,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-
 
 		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")?.lastElementChild()?.text()
 
@@ -128,7 +125,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 			chapters = chapters,
 		)
 	}
-
 
 	override fun parseMangaList(docs: Document): List<Manga> {
 		return docs.select("div.list-update_item").mapNotNull {
@@ -186,9 +182,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 			}
 
 			return pages
-
 		}
-
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
