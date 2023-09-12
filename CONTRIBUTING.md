@@ -35,11 +35,11 @@ If it does not contain any documentation about
 API, [explore network requests](https://firefox-source-docs.mozilla.org/devtools-user/):
 some websites use ajax.
 
-- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/DesuMeParser.kt)
+- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/ru/DesuMeParser.kt)
   of Json API usage.
-- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/AnibelParser.kt)
+- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/be/AnibelParser.kt)
   of GraphQL API usage
-- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/MangaTownParser.kt)
+- [Example](https://github.com/KotatsuApp/kotatsu-parsers/blob/master/src/main/kotlin/org/koitharu/kotatsu/parsers/site/en/MangaTownParser.kt)
   of pure HTML parsing.
 
 If website is based on some engine it is rationally to use common base class for this one (for example, Madara wordress
