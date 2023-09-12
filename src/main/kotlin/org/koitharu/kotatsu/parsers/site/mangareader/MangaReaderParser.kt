@@ -113,6 +113,9 @@ internal abstract class MangaReaderParser(
 				"Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído", "Concluido", "已完结", "Bitmiş",
 				-> MangaState.FINISHED
 
+				"Canceled", "Cancelled", "Cancelado", "cancellato", "Cancelados", "Dropped", "Discontinued", "abandonné", "Abandonné",
+				-> MangaState.ABANDONED
+
 				else -> null
 			}
 		}

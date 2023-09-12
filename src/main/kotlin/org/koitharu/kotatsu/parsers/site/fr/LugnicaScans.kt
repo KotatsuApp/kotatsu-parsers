@@ -178,7 +178,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	override suspend fun getTags(): Set<MangaTag> = emptySet()
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.startsWith("il y a") -> parseRelativeDate(date)

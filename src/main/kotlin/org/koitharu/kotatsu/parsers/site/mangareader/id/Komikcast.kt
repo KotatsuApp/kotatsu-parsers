@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("KOMIKCAST", "Komikcast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.io", pageSize = 60, searchPageSize = 28) {
+	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.vip", pageSize = 60, searchPageSize = 28) {
 
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
@@ -63,7 +63,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 			append(listUrl)
 			append("/page/")
 			append(page)
-			append("/?order=")
+			append("/?orderby=")
 			append(sortQuery)
 			append(tagQuery)
 		}
@@ -75,7 +75,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val chapters = docs.select("#chapter-wrapper > li").mapChapters(reversed = true) { index, element ->
-			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
+			val url = element.selectFirst("a.chapter-link-item")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
 				name = element.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
@@ -132,7 +132,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 
 	override fun parseMangaList(docs: Document): List<Manga> {
 		return docs.select("div.list-update_item").mapNotNull {
-			val a = it.selectFirst("a") ?: return@mapNotNull null
+			val a = it.selectFirstOrThrow("a.data-tooltip")
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
 
@@ -191,7 +191,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 
 	}
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		date ?: return 0
 		return when {
 			date.endsWith(" ago", ignoreCase = true) -> {

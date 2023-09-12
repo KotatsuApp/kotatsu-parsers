@@ -72,7 +72,7 @@ internal abstract class FoolSlideParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),// in search no img
-				title = div.selectFirstOrThrow(".title").text().orEmpty(),
+				title = div.selectFirstOrThrow(".title a").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -113,8 +113,7 @@ internal abstract class FoolSlideParser(
 		}
 
 		manga.copy(
-			tags = emptySet(),
-			coverUrl = doc.selectFirst(".thumbnail img")?.src().orEmpty(),// for manga result on search
+			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
 			description = desc,
 			altTitle = null,
 			author = author,

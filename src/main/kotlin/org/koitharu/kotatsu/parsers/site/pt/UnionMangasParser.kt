@@ -15,7 +15,7 @@ import java.util.*
 @MangaSourceParser("UNION_MANGAS", "Union Mangás", "pt")
 class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.UNION_MANGAS, 40) {
 
-	override val sortOrders = EnumSet.of(
+	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.POPULARITY,
 	)

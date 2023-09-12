@@ -13,5 +13,4 @@ internal class NiveraFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NIVERAFANSUB, "niverafansub.co") {
 
 	override val datePattern = "d MMMM yyyy"
-	override val selectPage = "div.page-break, div.login-required"
 }

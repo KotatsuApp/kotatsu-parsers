@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("KOMIKTAP", "KomikTap", "id")
 internal class KomikTapParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KOMIKTAP, "komiktap.in", pageSize = 25, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.KOMIKTAP, "92.87.6.124", pageSize = 25, searchPageSize = 10) {
 
 	override val datePattern = "MMM d, yyyy"
 }

@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("LSHISTORIA", "Lshistoria", "tr")
 internal class Lshistoria(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LSHISTORIA, "omkomik.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.LSHISTORIA, "lshistoria.com", pageSize = 20, searchPageSize = 10)

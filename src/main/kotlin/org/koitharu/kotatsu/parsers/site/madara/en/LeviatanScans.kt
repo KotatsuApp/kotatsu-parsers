@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LEVIATANSCANS", "Leviatan Scans", "en")
+@MangaSourceParser("LEVIATANSCANS", "Ls Comic", "en")
 internal class LeviatanScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.LEVIATANSCANS, "en.leviatanscans.com", 10)
+	MadaraParser(context, MangaSource.LEVIATANSCANS, "lscomic.com", 10)

@@ -154,7 +154,7 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 		)
 	}
 
-	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 		val d = date?.lowercase() ?: return 0
 		return when {

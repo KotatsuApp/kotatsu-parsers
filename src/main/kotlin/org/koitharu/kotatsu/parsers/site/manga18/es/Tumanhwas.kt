@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.madara.es
+package org.koitharu.kotatsu.parsers.site.manga18.es
 
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext

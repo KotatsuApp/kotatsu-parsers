@@ -24,7 +24,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
-	override val sortOrders = EnumSet.of(
+	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
