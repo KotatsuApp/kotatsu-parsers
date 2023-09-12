@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("DESUME", "Desu.me", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.me")
+	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -162,7 +162,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		}
 
 	private suspend fun fetchTags(): Map<String, MangaTag> {
-		val doc = webClient.httpGet("https://${domain}/manga/").parseHtml()
+		val doc = webClient.httpGet("https://$domain/manga/").parseHtml()
 		val root = doc.body().requireElementById("animeFilter")
 			.selectFirstOrThrow(".catalog-genres")
 		val li = root.select("li")
