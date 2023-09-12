@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
-@MangaSourceParser("ALLHENTAI", "ALlHentai", "ru", type = ContentType.HENTAI)
+@MangaSourceParser("ALLHENTAI", "AllHentai", "ru", type = ContentType.HENTAI)
 internal class AllHentaiParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {
@@ -24,7 +24,7 @@ internal class AllHentaiParser(
 
 	override val authUrl: String
 		get() {
-			val targetUri = "https://${domain}/".urlEncoded()
+			val targetUri = "https://$domain/".urlEncoded()
 			return "https://qawa.org/internal/auth/login?targetUri=$targetUri&siteId=1"
 		}
 
@@ -46,6 +46,8 @@ internal class AllHentaiParser(
 		val res = element.parent()?.text()
 		return if (res.isNullOrEmpty()) {
 			root.parseFailed("Cannot find username")
-		} else res
+		} else {
+			res
+		}
 	}
 }
