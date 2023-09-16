@@ -9,5 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class MurimScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MURIMSCAN, "murimscan.run", 100) {
 
+	override val withoutAjax = true
 	override val postreq = true
 }

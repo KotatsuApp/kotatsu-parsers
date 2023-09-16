@@ -1,20 +1,24 @@
-package org.koitharu.kotatsu.parsers.site.fr
+package org.koitharu.kotatsu.parsers.site.heancms
 
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("PERF_SCAN", "Perf Scan", "fr")
-internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.PERF_SCAN, 12) {
+internal abstract class HeanCms(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+	pageSize: Int = 20,
+) : PagedMangaParser(context, source, pageSize) {
+
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -23,12 +27,11 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("perf-scan.fr")
-
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	//For some sources, you need to send a json. For the moment, this part only works in Get. ( ex source need json gloriousscan.com , omegascans.org )
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -36,8 +39,11 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		sortOrder: SortOrder,
 	): List<Manga> {
 
+		var firstTag = false
 		val url = buildString {
-			append("https://api.$domain/query?query_string=")
+			append("https://api.")
+			append(domain)
+			append("/query?query_string=")
 
 			if (!query.isNullOrEmpty()) {
 				append(query.urlEncoded())
@@ -55,12 +61,29 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 			append("&series_type=Comic&page=")
 			append(page)
 			append("&perPage=12&tags_ids=")
-			append("[]".urlEncoded())
+			append("[".urlEncoded())
+			if (!tags.isNullOrEmpty()) {
+				for (tag in tags) {
+					// Just to make it fit [1,2,44] ect
+					if (!firstTag) {
+						firstTag = true
+					} else {
+						append(",")
+					}
+					append(tag.key)
+				}
+			}
+			append("]".urlEncoded())
 		}
 		val json = webClient.httpGet(url).parseJson()
 		return json.getJSONArray("data").mapJSON { j ->
 			val slug = j.getString("series_slug")
 			val urlManga = "https://$domain/series/$slug"
+			val cover = if (j.getString("thumbnail").contains('/')) {
+				j.getString("thumbnail")
+			} else {
+				"https://api.$domain/${j.getString("thumbnail")}"
+			}
 			Manga(
 				id = generateUid(urlManga),
 				title = j.getString("title"),
@@ -69,11 +92,12 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 				publicUrl = urlManga,
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = j.getString("thumbnail"),
+				coverUrl = cover,
 				tags = setOf(),
 				state = when (j.getString("status")) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
+					"Dropped" -> MangaState.ABANDONED
 					else -> null
 				},
 				author = null,
@@ -82,35 +106,40 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
+	protected open val datePattern = "yyyy-MM-dd"
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val dateFormat = SimpleDateFormat("MM/DD/yyyy", Locale.ENGLISH)
+		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
+
+		val slug = manga.url.substringAfterLast('/')
+		val chapter = root.selectFirstOrThrow("script:containsData(chapter_slug)").data()
+			.replace("\\", "")
+			.substringAfter("\"seasons\":")
+			.substringBefore("}]}],\"children\"")
+			.split("chapter_name")
+			.drop(1)
 
 		return manga.copy(
 			altTitle = root.selectFirstOrThrow("p.text-center.text-gray-400").text(),
 			tags = emptySet(),
 			author = root.select("div.flex.flex-col.gap-y-2 p:contains(Autor:) strong").text(),
-			description = root.selectFirst(".datas_synopsis")?.html(),
-			chapters = root.select("ul.grid a")
-				.mapChapters(reversed = true) { i, a ->
-
-					val href = a.attrAsRelativeUrl("href")
-					val name = a.selectFirstOrThrow("span").text()
-					val dateText = a.selectLast("span")?.text() ?: "0"
-					MangaChapter(
-						id = generateUid(href),
-						name = name,
-						number = i + 1,
-						url = href,
-						scanlator = null,
-						uploadDate = parseChapterDate(
-							dateFormat,
-							dateText,
-						),
-						branch = null,
-						source = source,
-					)
-				},
+			description = root.selectFirst("h5:contains(Desc) + .bg-gray-800")?.html(),
+			chapters = chapter.mapChapters(reversed = true) { i, it ->
+				val slugChapter = it.substringAfter("chapter_slug\":\"").substringBefore("\",\"")
+				val url = "https://$domain/series/$slug/$slugChapter"
+				val date = it.substringAfter("created_at\":\"").substringBefore("\",\"").substringBefore("T")
+				val name = slugChapter.replace("-", " ")
+				MangaChapter(
+					id = generateUid(url),
+					name = name,
+					number = i + 1,
+					url = url,
+					scanlator = null,
+					uploadDate = dateFormat.tryParse(date),
+					branch = null,
+					source = source,
+				)
+			},
 		)
 	}
 
@@ -128,36 +157,21 @@ internal class PerfScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 
-	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		val d = date?.lowercase() ?: return 0
-		return when {
-			d.endsWith(" ago") -> parseRelativeDate(date)
+		val tags = doc.selectFirstOrThrow("script:containsData(Genres)").data()
+			.replace("\\", "")
+			.substringAfterLast("\"Genres\"")
+			.split("\",{\"")
+			.drop(1)
 
-			else -> dateFormat.tryParse(date)
-		}
-	}
-
-	private fun parseRelativeDate(date: String): Long {
-		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
-		val cal = Calendar.getInstance()
-
-		return when {
-			WordSet("day", "days").anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-			WordSet("hour", "hours").anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
-			WordSet("minute", "minutes").anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
-			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
-			WordSet("week").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.WEEK_OF_MONTH,
-					-number,
-				)
-			}.timeInMillis
-
-			else -> 0
+		return tags.mapNotNullToSet {
+			MangaTag(
+				key = it.substringAfter("id\":").substringBefore(",\""),
+				title = it.substringAfter("name\":\"").substringBefore("\"}]"),
+				source = source,
+			)
 		}
 	}
 }

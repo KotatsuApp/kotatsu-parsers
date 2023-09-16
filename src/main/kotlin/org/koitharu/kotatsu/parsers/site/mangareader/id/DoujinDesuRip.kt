@@ -8,7 +8,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DOUJINDESURIP", "Doujin Desu Rip", "id", ContentType.HENTAI)
 internal class DoujinDesuRip(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.DOUJINDESURIP, "doujindesu.rip", pageSize = 10, searchPageSize = 10) {
-
-	override val datePattern = "MMM d, yyyy"
-}
+	MangaReaderParser(context, MangaSource.DOUJINDESURIP, "doujindesu.cfd", pageSize = 20, searchPageSize = 10)

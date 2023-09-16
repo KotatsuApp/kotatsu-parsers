@@ -17,7 +17,7 @@ import java.util.*
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
-	override val configKeyDomain = ConfigKey.Domain("teamxnovel.com")
+	override val configKeyDomain = ConfigKey.Domain("team1x12.com")
 
 	override suspend fun getListPage(
 		page: Int,
