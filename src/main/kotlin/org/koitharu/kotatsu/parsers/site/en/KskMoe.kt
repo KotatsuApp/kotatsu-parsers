@@ -17,7 +17,8 @@ import java.util.*
 @MangaSourceParser("KSKMOE", "Ksk Moe", "en")
 internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.KSKMOE, 35) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL)
+	override val sortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("ksk.moe")
 
 	override suspend fun getListPage(
@@ -35,8 +36,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 			if (!tags.isNullOrEmpty()) {
 				append("/tags/")
 				append(tag?.key.orEmpty())
-			}else
-			{
+			} else {
 				append("/browse")
 			}
 
@@ -60,8 +60,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 
-		if(!doc.html().contains("pagination") && page > 1)
-		{
+		if (!doc.html().contains("pagination") && page > 1) {
 			return emptyList()
 		}
 		return doc.requireElementById("galleries").select("article").map { div ->
@@ -98,12 +97,10 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val root =  if(page == 1)
-		{
+		val root = if (page == 1) {
 			webClient.httpGet("https://${domain}/tags").parseHtml().body()
 				.getElementById("tags")
-		}else
-		{
+		} else {
 			webClient.httpGet("https://${domain}/tags/page/$page").parseHtml().body()
 				.getElementById("tags")
 		}
@@ -122,6 +119,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 	private val date = SimpleDateFormat("dd.MM.yyyy hh:mm 'UTC'", Locale.US)
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+
 		return manga.copy(
 			tags = doc.requireElementById("metadata").select("main div:contains(Tag) a").mapNotNullToSet { a ->
 				MangaTag(
@@ -131,19 +129,25 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 				)
 			},
 			author = doc.requireElementById("metadata").selectFirstOrThrow("main div:contains(Artist) a span").text(),
-			chapters = listOf(
-				MangaChapter(
-					id = generateUid(manga.id),
-					name = manga.title,
-					number = 1,
-					url = manga.url,
-					scanlator = null,
-					uploadDate = date.tryParse(doc.selectFirstOrThrow("time.updated").text()),
-					branch = null,
-					source = source,
-				),
-			),
-		)
+			chapters =
+			if ((doc.html().contains("previews"))) {
+				listOf(
+					MangaChapter(
+						id = generateUid(manga.id),
+						name = manga.title,
+						number = 1,
+						url = manga.url,
+						scanlator = null,
+						uploadDate = date.tryParse(doc.selectFirstOrThrow("time.updated").text()),
+						branch = null,
+						source = source,
+					),
+				)
+			} else {
+				emptyList()
+			},
+
+			)
 	}
 
 
