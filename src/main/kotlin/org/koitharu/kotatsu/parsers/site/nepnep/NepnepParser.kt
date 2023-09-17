@@ -53,10 +53,11 @@ internal abstract class NepnepParser(
 				!query.isNullOrEmpty() -> {
 					if (m.getString("i").contains(query.urlEncoded(), ignoreCase = true)) {
 						manga.add(
-							addManga(href, imgUrl, m)
+							addManga(href, imgUrl, m),
 						)
 					}
 				}
+
 				!tags.isNullOrEmpty() -> {
 					val a = m.getJSONArray("g").toString()
 					var found = true
@@ -67,14 +68,14 @@ internal abstract class NepnepParser(
 					}
 					if (found) {
 						manga.add(
-							addManga(href, imgUrl, m)
+							addManga(href, imgUrl, m),
 						)
 					}
 				}
 
 				else -> {
 					manga.add(
-						addManga(href, imgUrl, m)
+						addManga(href, imgUrl, m),
 					)
 				}
 			}
@@ -84,7 +85,7 @@ internal abstract class NepnepParser(
 		return manga
 	}
 
-	private fun addManga(href : String, imgUrl : String, m : JSONObject): Manga {
+	private fun addManga(href: String, imgUrl: String, m: JSONObject): Manga {
 		return Manga(
 			id = generateUid(href),
 			title = m.getString("i").replace('-', ' '),

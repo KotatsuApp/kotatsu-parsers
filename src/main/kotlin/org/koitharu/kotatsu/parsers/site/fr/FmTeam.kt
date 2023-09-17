@@ -26,15 +26,15 @@ internal class FmTeam(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		if (page > 1) { return emptyList() }
+		if (page > 1) {
+			return emptyList()
+		}
 
-		val jsonManga = if(!query.isNullOrEmpty())
-		{
+		val jsonManga = if (!query.isNullOrEmpty()) {
 			//3 letters minimum
 			webClient.httpGet("https://$domain/api/search/${query.urlEncoded()}").parseJson().getJSONArray("comics")
 
-		}else
-		{
+		} else {
 			webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
 		}
 
@@ -53,14 +53,14 @@ internal class FmTeam(context: MangaLoaderContext) :
 					}
 					if (found) {
 						manga.add(
-							addManga(href, j)
+							addManga(href, j),
 						)
 					}
 				}
 
 				else -> {
 					manga.add(
-						addManga(href, j)
+						addManga(href, j),
 					)
 				}
 			}
@@ -68,34 +68,34 @@ internal class FmTeam(context: MangaLoaderContext) :
 		return manga
 	}
 
-	private fun addManga(href : String, j : JSONObject): Manga {
+	private fun addManga(href: String, j: JSONObject): Manga {
 		return Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = j.getString("thumbnail"),
-				title = j.getString("title"),
-				description = j.getString("description"),
-				altTitle = j.getJSONArray("alt_titles").toString()
-					.replace("[\"", "")
-					.replace("\"]", "")
-					.replace("\",\"", " , "),
-				rating = j.getString("rating").toFloatOrNull()?.div(10f)
-					?: RATING_UNKNOWN,
-				tags = emptySet(),
-				author = j.getString("author"),
-				state = when (j.getString("status").lowercase()) {
-					"en cours" -> MangaState.ONGOING
-					"terminé" -> MangaState.FINISHED
-					else -> null
-				},
-				source = source,
-				isNsfw = when (j.getString("adult").toInt()) {
-					0 -> false
-					1 -> true
-					else -> true
-				},
-			)
+			id = generateUid(href),
+			url = href,
+			publicUrl = href.toAbsoluteUrl(domain),
+			coverUrl = j.getString("thumbnail"),
+			title = j.getString("title"),
+			description = j.getString("description"),
+			altTitle = j.getJSONArray("alt_titles").toString()
+				.replace("[\"", "")
+				.replace("\"]", "")
+				.replace("\",\"", " , "),
+			rating = j.getString("rating").toFloatOrNull()?.div(10f)
+				?: RATING_UNKNOWN,
+			tags = emptySet(),
+			author = j.getString("author"),
+			state = when (j.getString("status").lowercase()) {
+				"en cours" -> MangaState.ONGOING
+				"terminé" -> MangaState.FINISHED
+				else -> null
+			},
+			source = source,
+			isNsfw = when (j.getString("adult").toInt()) {
+				0 -> false
+				1 -> true
+				else -> true
+			},
+		)
 	}
 
 
@@ -115,7 +115,7 @@ internal class FmTeam(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			chapters = chapters.mapJSONIndexed { i,j ->
+			chapters = chapters.mapJSONIndexed { i, j ->
 				val url = "/api" + j.getString("url").toRelativeUrl(domain)
 				val name = j.getString("full_title")
 				val date = j.getStringOrNull("updated_at")

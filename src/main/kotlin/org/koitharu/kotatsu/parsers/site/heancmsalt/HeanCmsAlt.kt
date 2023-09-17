@@ -42,8 +42,7 @@ internal abstract class HeanCmsAlt(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		//No search or tag
-		if(!query.isNullOrEmpty())
-		{
+		if (!query.isNullOrEmpty()) {
 			return emptyList()
 		}
 		val url = buildString {
