@@ -6,9 +6,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("FRSCANSCOM", "FrScansCom", "fr")
+@MangaSourceParser("FRSCANSCOM", "Fr Scans Com", "fr")
 internal class FrScansCom(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.FRSCANSCOM, "frscans.com") {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

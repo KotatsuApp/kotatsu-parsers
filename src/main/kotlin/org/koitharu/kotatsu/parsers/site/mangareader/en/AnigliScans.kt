@@ -7,8 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ANIGLISCANS", "Anigli Scans", "en")
 internal class AnigliScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ANIGLISCANS, "anigliscans.com", pageSize = 47, searchPageSize = 47) {
-
+	MangaReaderParser(context, MangaSource.ANIGLISCANS, "anigliscans.xyz", pageSize = 47, searchPageSize = 47) {
 	override val listUrl = "/series"
-	override val datePattern = "MMM d, yyyy"
 }

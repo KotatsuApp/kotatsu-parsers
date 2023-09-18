@@ -15,13 +15,10 @@ import java.util.*
 internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.GOLDENMANGA, 36) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
-
-	override val configKeyDomain = ConfigKey.Domain("goldenmanga.top")
-
+	override val configKeyDomain = ConfigKey.Domain("www.goldenmangas.top")
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
-
 
 	override suspend fun getListPage(
 		page: Int,
@@ -36,12 +33,10 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 			append("/mangas")
 			append("?pagina=")
 			append(page.toString())
-
 			if (!query.isNullOrEmpty()) {
 				append("&search=")
 				append(query.urlEncoded())
 			}
-
 			if (!tags.isNullOrEmpty()) {
 				append("&genero=")
 				for (tag in tags) {

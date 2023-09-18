@@ -5,9 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ASURATR", "Asura Scans (tr)", "tr")
+@MangaSourceParser("ASURATR", "Armoni Scans", "tr")
 internal class AsuraTRParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ASURATR, "asurascanstr.com", pageSize = 30, searchPageSize = 10) {
-
-	override val datePattern = "MMM d, yyyy"
-}
+	MangaReaderParser(context, MangaSource.ASURATR, "armoniscans.com", pageSize = 30, searchPageSize = 10)
