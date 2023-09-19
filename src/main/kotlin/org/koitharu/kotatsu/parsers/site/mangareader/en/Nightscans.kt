@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("NIGHTSCANS", "Night scans", "en")
 internal class Nightscans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.NIGHTSCANS, "nightscans.org", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaSource.NIGHTSCANS, "nightscans.net", pageSize = 20, searchPageSize = 10) {
+	override val listUrl = "/series"
 	override val selectMangaListImg = "img.ts-post-image, picture img"
 }

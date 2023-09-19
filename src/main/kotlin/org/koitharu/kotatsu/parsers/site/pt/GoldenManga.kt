@@ -15,7 +15,7 @@ import java.util.*
 internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.GOLDENMANGA, 36) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
-	override val configKeyDomain = ConfigKey.Domain("www.goldenmangas.top")
+	override val configKeyDomain = ConfigKey.Domain("goldenmanga.top")
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()

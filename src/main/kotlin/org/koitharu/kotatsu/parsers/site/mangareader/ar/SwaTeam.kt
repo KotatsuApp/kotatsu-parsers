@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("SWATEAM", "Swa Team", "ar")
 internal class SwaTeam(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SWATEAM, "swatmanga.co", pageSize = 42, searchPageSize = 39) {
+	MangaReaderParser(context, MangaSource.SWATEAM, "stmanga.me", pageSize = 42, searchPageSize = 39) {
 
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectMangalist = ".listupd .bs .bsx"
@@ -44,8 +44,8 @@ internal class SwaTeam(context: MangaLoaderContext) :
 		}
 
 		val sortQuery = when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "title"
-			SortOrder.NEWEST -> "latest"
+			SortOrder.ALPHABETICAL -> "a-z"
+			SortOrder.NEWEST -> "added"
 			SortOrder.POPULARITY -> "popular"
 			SortOrder.UPDATED -> "update"
 			else -> ""
