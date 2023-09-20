@@ -6,6 +6,7 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.Interceptor
 import okhttp3.Response
 import org.json.JSONArray
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -21,7 +22,7 @@ import java.util.*
 private const val HEADER_ENCODING = "Content-Encoding"
 private const val PAGE_SIZE = 60
 
-@MangaSourceParser("HENTAIUKR", "Hentaiukr", "uk", ContentType.HENTAI)
+@MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
 class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIUKR), Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
@@ -78,14 +79,14 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			val ids = tags.mapToSet { it.key }
 			json.retainAll { item ->
 				item.getJSONArray("tags")
-					.mapJSON { it.getInt("id").toString() }
+					.mapJSON { it.getAsString("id") }
 					.any { x -> x in ids }
 			}
 		}
 
 		// Return to app
 		return json.drop(offset).take(PAGE_SIZE).map { jo ->
-			val id = jo.getLong("id")
+			val id = jo.getAsLong("id")
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("name"),
@@ -123,7 +124,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			x.getJSONArray("tags").mapJSON { t ->
 				MangaTag(
 					title = t.getString("name"),
-					key = t.getInt("id").toString(),
+					key = t.getAsString("id"),
 					source = source,
 				)
 			}
@@ -137,7 +138,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			tagsSet.add(
 				MangaTag(
 					title = item.getString("name"),
-					key = item.getString("id"),
+					key = item.getAsString("id"),
 					source = source,
 				),
 			)
@@ -154,5 +155,20 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			request
 		}
 		return chain.proceed(newRequest)
+	}
+
+	private fun JSONObject.getAsLong(name: String): Long {
+		val rawValue = opt(name)
+		return when (rawValue) {
+			null, JSONObject.NULL -> null
+			is Long -> rawValue
+			is Number -> rawValue.toLong()
+			is String -> rawValue.toLong()
+			else -> null
+		} ?: error("Cannot read value $rawValue as Long")
+	}
+
+	private fun JSONObject.getAsString(name: String): String {
+		return get(name).toString()
 	}
 }
