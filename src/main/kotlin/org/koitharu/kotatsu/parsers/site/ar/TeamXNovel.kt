@@ -17,7 +17,7 @@ import java.util.*
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
-	override val configKeyDomain = ConfigKey.Domain("teamxnovel.com")
+	override val configKeyDomain = ConfigKey.Domain("team1x12.com")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -61,7 +61,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		return doc.select("div.listupd .bs .bsx").ifEmpty {
 			doc.select("div.post-body .box")
 		}.map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.select(".tt, h3").text(),

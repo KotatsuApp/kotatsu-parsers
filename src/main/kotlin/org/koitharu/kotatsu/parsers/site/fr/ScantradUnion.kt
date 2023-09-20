@@ -41,7 +41,6 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 					append(page.toString())
 					append("/?s=")
 					append(query.urlEncoded())
-
 				}
 
 				!tags.isNullOrEmpty() -> {
@@ -55,7 +54,6 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 				}
 
 				else -> {
-
 					if (sortOrder == SortOrder.ALPHABETICAL) {
 						append("/manga/")
 						append("/page/")
@@ -65,7 +63,6 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 					if (sortOrder == SortOrder.UPDATED) {
 						append("")
 					}
-
 				}
 			}
 		}
@@ -74,7 +71,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 			val root = doc.requireElementById("dernierschapitres")
 			return root.select("div.colonne")
 				.map { article ->
-					val href = article.selectFirstOrThrow("a.index-top4-a").attrAsAbsoluteUrl("href")
+					val href = article.selectFirstOrThrow("a.index-top4-a").attrAsRelativeUrl("href")
 					Manga(
 						id = generateUid(href),
 						title = article.select(".carteinfos a").text(),
@@ -94,7 +91,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 			val root = doc.requireElementById("main")
 			return root.select("article.post-outer")
 				.map { article ->
-					val href = article.selectFirstOrThrow("a.thumb-link").attrAsAbsoluteUrl("href")
+					val href = article.selectFirstOrThrow("a.thumb-link").attrAsRelativeUrl("href")
 					Manga(
 						id = generateUid(href),
 						title = article.select(".index-post-header a").text(),
@@ -111,8 +108,6 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 					)
 				}
 		}
-
-
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -169,7 +164,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
 			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
-			?: img.parseFailed("Image src not found")
+				?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,

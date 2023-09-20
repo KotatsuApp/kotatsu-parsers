@@ -42,7 +42,6 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 				}
 				append("/?s=")
 				append(query.urlEncoded())
-
 			} else {
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("/")
@@ -64,7 +63,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 
 		return item.map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h2").text(),

@@ -8,4 +8,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MOONDAISY_SCANS", "MoonDaisyScans", "tr", ContentType.HENTAI)
 internal class MoonDaisyScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MOONDAISY_SCANS, "moondaisyscans.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.MOONDAISY_SCANS, "moondaisyscans.biz", pageSize = 20, searchPageSize = 10)

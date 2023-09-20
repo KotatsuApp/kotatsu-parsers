@@ -23,7 +23,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(
 			listOf(
-				Favicon("https://${domain}/uploads/logos/logo-mini.png", 92, null),
+				Favicon("https://$domain/uploads/logos/logo-mini.png", 92, null),
 			),
 			domain,
 		)
@@ -32,19 +32,19 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val cardInfoElement = docs.selectFirst("div.series-information")
-		val author = cardInfoElement?.selectFirst(".info-name:contains(Author(s))")?.parent()
+		val author = cardInfoElement?.selectFirst(".info-name:contains(Author)")?.parent()
 			?.select("a")
 			?.joinToString(", ") { it.text() }
 		val availableTags = tagsMap.get()
-		val tags = cardInfoElement?.selectFirst(".info-name:contains(Genre(s))")?.parent()
+		val tags = cardInfoElement?.selectFirst(".info-name:contains(Genre)")?.parent()
 			?.select("a")
 			?.mapNotNullToSet { availableTags[it.text().lowercase(Locale.ENGLISH)] }
 		val state = cardInfoElement?.selectFirst(".info-name:contains(Status)")?.parent()
 			?.selectFirst("a")
 			?.let {
-				when (it.text()) {
-					"On going" -> MangaState.ONGOING
-					"Completed" -> MangaState.FINISHED
+				when (it.text().lowercase()) {
+					"on going" -> MangaState.ONGOING
+					"completed" -> MangaState.FINISHED
 					else -> null
 				}
 			}
@@ -56,7 +56,6 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 			tags = tags.orEmpty(),
 			state = state,
 			chapters = docs.select(".card-body > .list-chapters > a").mapChapters(reversed = true) { index, element ->
-				// attrAsRelativeUrl only return page url without the '/'
 				val chapterUrl = element.attrAsAbsoluteUrlOrNull("href")?.toRelativeUrl(domain)
 					?: return@mapChapters null
 				val uploadDate = parseUploadDate(element.selectFirst(".chapter-time")?.text())

@@ -5,12 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import java.util.*
 
-@MangaSourceParser("MIRRORDESU", "Mirrordesu", "id", ContentType.HENTAI)
-internal class Mirrordesu(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MIRRORDESU, "mirrordesu.ink", pageSize = 20, searchPageSize = 20) {
-
-	override val listUrl = "/komik"
-	override val datePattern = "MMM d, yyyy"
-
+@MangaSourceParser("MANHWALAND", "Manhwa Land", "id", ContentType.HENTAI)
+internal class ManhwaLand(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.MANHWALAND, "manhwaland.lat", pageSize = 20, searchPageSize = 10) {
+	override val sourceLocale: Locale = Locale.ENGLISH
 }

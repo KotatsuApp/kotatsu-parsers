@@ -13,7 +13,6 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -33,6 +32,84 @@ internal abstract class MangaReaderParser(
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
 	protected open var lastSearchPage = 1
+
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
+		if (!query.isNullOrEmpty()) {
+			if (page > lastSearchPage) {
+				return emptyList()
+			}
+
+			val url = buildString {
+				append("https://")
+				append(domain)
+				append("/page/")
+				append(page)
+				append("/?s=")
+				append(query.urlEncoded())
+			}
+
+			val docs = webClient.httpGet(url).parseHtml()
+			lastSearchPage = docs.selectFirst(".pagination .next")
+				?.previousElementSibling()
+				?.text()?.toIntOrNull() ?: 1
+			return parseMangaList(docs)
+		}
+
+		val sortQuery = when (sortOrder) {
+			SortOrder.ALPHABETICAL -> "title"
+			SortOrder.NEWEST -> "latest"
+			SortOrder.POPULARITY -> "popular"
+			SortOrder.UPDATED -> "update"
+			else -> ""
+		}
+		val tagKey = "genre[]".urlEncoded()
+		val tagQuery =
+			if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
+		val url = buildString {
+			append("https://")
+			append(domain)
+			append(listUrl)
+			append("/?order=")
+			append(sortQuery)
+			append(tagQuery)
+			append("&page=")
+			append(page)
+		}
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
+	protected open val selectMangalist = ".postbody .listupd .bs .bsx"
+	protected open val selectMangaListImg = "img.ts-post-image"
+	protected open val selectMangaListTitle = "div.tt"
+
+	protected open fun parseMangaList(docs: Document): List<Manga> {
+		return docs.select(selectMangalist).mapNotNull {
+			val a = it.selectFirst("a") ?: return@mapNotNull null
+			val relativeUrl = a.attrAsRelativeUrl("href")
+			val rating = it.selectFirst(".numscore")?.text()
+				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
+
+			Manga(
+				id = generateUid(relativeUrl),
+				url = relativeUrl,
+				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
+				altTitle = null,
+				publicUrl = a.attrAsAbsoluteUrl("href"),
+				rating = rating,
+				isNsfw = isNsfwSource,
+				coverUrl = it.selectFirst(selectMangaListImg)?.src().orEmpty(),
+				tags = emptySet(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
+	}
 
 	protected open val selectChapter = "#chapterlist > ul > li"
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -61,7 +138,6 @@ internal abstract class MangaReaderParser(
 			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?: docs.selectFirst("div.seriestucontentr")
 			?: docs.selectFirst("div.seriestucon")
 
-
 		val tagMap = getOrCreateTagMap()
 
 		val selectTag = if (tablemode != null) {
@@ -71,7 +147,6 @@ internal abstract class MangaReaderParser(
 		}
 
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
-
 
 		val stateSelect = if (tablemode != null) {
 			tablemode.selectFirst(".infotable td:contains(Status)")
@@ -141,86 +216,6 @@ internal abstract class MangaReaderParser(
 		)
 	}
 
-
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			if (page > lastSearchPage) {
-				return emptyList()
-			}
-
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append("/page/")
-				append(page)
-				append("/?s=")
-				append(query.urlEncoded())
-			}
-
-			val docs = webClient.httpGet(url).parseHtml()
-			lastSearchPage = docs.selectFirst(".pagination .next")
-				?.previousElementSibling()
-				?.text()?.toIntOrNull() ?: 1
-			return parseMangaList(docs)
-		}
-
-		val sortQuery = when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "title"
-			SortOrder.NEWEST -> "latest"
-			SortOrder.POPULARITY -> "popular"
-			SortOrder.UPDATED -> "update"
-			else -> ""
-		}
-		val tagKey = "genre[]".urlEncoded()
-		val tagQuery =
-			if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
-		val url = buildString {
-			append("https://")
-			append(domain)
-			append(listUrl)
-			append("/?order=")
-			append(sortQuery)
-			append(tagQuery)
-			append("&page=")
-			append(page)
-		}
-
-		return parseMangaList(webClient.httpGet(url).parseHtml())
-	}
-
-	protected open val selectMangalist = ".postbody .listupd .bs .bsx"
-	protected open val selectMangaListImg = "img.ts-post-image"
-	protected open val selectMangaListTitle = "div.tt"
-
-	protected open fun parseMangaList(docs: Document): List<Manga> {
-		return docs.select(selectMangalist).mapNotNull {
-			val a = it.selectFirst("a") ?: return@mapNotNull null
-			val relativeUrl = a.attrAsRelativeUrl("href")
-			val rating = it.selectFirst(".numscore")?.text()
-				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
-
-			Manga(
-				id = generateUid(relativeUrl),
-				url = relativeUrl,
-				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
-				altTitle = null,
-				publicUrl = a.attrAsAbsoluteUrl("href"),
-				rating = rating,
-				isNsfw = isNsfwSource,
-				coverUrl = it.selectFirst(selectMangaListImg)?.src().orEmpty(),
-				tags = emptySet(),
-				state = null,
-				author = null,
-				source = source,
-			)
-		}
-	}
-
 	protected open val encodedSrc = false
 	protected open val selectScript = "div.wrapper script"
 	protected open val selectPage = "div#readerarea img"
@@ -280,10 +275,7 @@ internal abstract class MangaReaderParser(
 			}
 
 			return pages
-
 		}
-
-
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
@@ -293,22 +285,17 @@ internal abstract class MangaReaderParser(
 	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
-
 		val url = listUrl.toAbsoluteUrl(domain)
 		val tagElements = webClient.httpGet(url).parseHtml().select("ul.genrez > li")
 		for (el in tagElements) {
 			if (el.text().isEmpty()) continue
-
 			tagMap[el.text()] = MangaTag(
 				title = el.text(),
 				key = el.selectFirst("input")?.attr("value") ?: continue,
 				source = source,
 			)
 		}
-
 		tagCache = tagMap
 		return@withLock tagMap
 	}
-
-
 }

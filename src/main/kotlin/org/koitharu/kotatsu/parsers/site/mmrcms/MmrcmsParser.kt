@@ -114,7 +114,7 @@ internal abstract class MmrcmsParser(
 					url = href,
 					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 					coverUrl = "https://$domain/uploads/manga/$deeplink$imgUpdated",
-					title = div.selectFirstOrThrow("a").text().orEmpty(),
+					title = div.selectFirstOrThrow("h3 a").text().orEmpty(),
 					altTitle = null,
 					rating = RATING_UNKNOWN,
 					tags = emptySet(),

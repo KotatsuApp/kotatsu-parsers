@@ -59,7 +59,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("li.novel-item").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h4").text(),
@@ -76,7 +76,6 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 			)
 		}
 	}
-
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
@@ -143,5 +142,4 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 			)
 		}
 	}
-
 }

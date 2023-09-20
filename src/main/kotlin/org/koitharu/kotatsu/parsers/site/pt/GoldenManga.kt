@@ -15,13 +15,10 @@ import java.util.*
 internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.GOLDENMANGA, 36) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
-
 	override val configKeyDomain = ConfigKey.Domain("goldenmanga.top")
-
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
-
 
 	override suspend fun getListPage(
 		page: Int,
@@ -29,19 +26,16 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/mangas")
 			append("?pagina=")
 			append(page.toString())
-
 			if (!query.isNullOrEmpty()) {
 				append("&search=")
 				append(query.urlEncoded())
 			}
-
 			if (!tags.isNullOrEmpty()) {
 				append("&genero=")
 				for (tag in tags) {
@@ -53,7 +47,7 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("section.row div.mangas")
 			.map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("a h3").text(),
@@ -107,7 +101,6 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 			author = root.select("h5.cg_color a")[1].text(),
 			description = root.getElementById("manga_capitulo_descricao")?.html(),
 			chapters = root.requireElementById("capitulos").select("li")
-
 				.mapChapters(reversed = true) { i, div ->
 					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					val dateText = div.selectFirstOrThrow("div.col-sm-5 span").text()

@@ -59,7 +59,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.movie-list-index div.cartoon-box").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h3").text(),
@@ -80,7 +80,6 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			)
 		}
 	}
-
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/popular-comic").parseHtml()
@@ -146,5 +145,4 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			)
 		}
 	}
-
 }

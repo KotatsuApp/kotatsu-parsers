@@ -1,0 +1,144 @@
+package org.koitharu.kotatsu.parsers.site.fr
+
+import okhttp3.Headers
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
+import java.util.*
+
+@MangaSourceParser("LIRESCAN", "Lire Scan", "fr")
+internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LIRESCAN, 20) {
+
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+
+	override val configKeyDomain = ConfigKey.Domain("lire-scan.me")
+
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.build()
+
+	override suspend fun getListPage(
+		page: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
+		val tag = tags.oneOrThrowIfMany()
+		val doc =
+			if (!query.isNullOrEmpty()) { // search only works with 4 or more letters
+				if (page > 1) {
+					return emptyList()
+				}
+				val q = query.urlEncoded().replace("%20", "+")
+				val post = "do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=$q"
+				webClient.httpPost("https://$domain/index.php?do=search", post).parseHtml()
+			} else {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					if (!tags.isNullOrEmpty()) {
+						append("/manga/")
+						append(tag?.key.orEmpty())
+					}
+					if (page > 1) {
+						append("/page/")
+						append(page)
+						append('/')
+					}
+				}
+				webClient.httpGet(url).parseHtml()
+			}
+
+		return doc.select("div.sect__content.grid-items div.item-poster").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				title = div.select(".item-poster__title").text(),
+				altTitle = null,
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				rating = div.selectFirstOrThrow(".item__rating").ownText().toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
+				isNsfw = false,
+				coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
+				tags = setOf(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
+	}
+
+	override suspend fun getDetails(manga: Manga): Manga {
+		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
+		return manga.copy(
+			altTitle = root.select("ul.pmovie__list li:contains(Nom Alternatif:)").text()
+				.replace("Nom Alternatif:", ""),
+			state = when (root.select("ul.pmovie__list li:contains(Status:)").text()) {
+				"Status: OnGoing", "Status: En cours" -> MangaState.ONGOING
+				"Status: Fini" -> MangaState.FINISHED
+				else -> null
+			},
+			tags = root.select("ul.pmovie__list li:contains(Genre:)").text()
+				.replace("Genre:", "").split(" / ").mapNotNullToSet { tag ->
+					MangaTag(
+						key = tag.lowercase(),
+						title = tag,
+						source = source,
+					)
+				},
+			author = root.select("ul.pmovie__list li:contains(Artist(s):)").text().replace("Artist(s):", ""),
+			description = root.selectFirst("div.pmovie__text")?.html(),
+			chapters = root.select("ul li div.chapter")
+				.mapChapters(reversed = true) { i, div ->
+					val a = div.selectFirstOrThrow("a")
+					val href = a.attrAsRelativeUrl("href")
+					val name = a.text()
+					val dateText = div.select("p").last()?.text()
+					MangaChapter(
+						id = generateUid(href),
+						name = name,
+						number = i,
+						url = href,
+						scanlator = null,
+						uploadDate = dateFormat.tryParse(dateText),
+						branch = null,
+						source = source,
+					)
+				},
+		)
+	}
+
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val pages = doc.selectFirstOrThrow("script:containsData(const manga = )").data()
+			.substringAfter("chapter1: [\"").substringBefore("\"]")
+			.split("\",\"")
+		return pages.map { img ->
+			MangaPage(
+				id = generateUid(img),
+				url = img,
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
+	override suspend fun getTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/").parseHtml()
+		return doc.select(".nav-menu li a").mapNotNullToSet { a ->
+			val key = a.attr("href").removeSuffix('/').substringAfterLast("manga/", "")
+			MangaTag(
+				key = key,
+				title = a.text(),
+				source = source,
+			)
+		}
+	}
+}

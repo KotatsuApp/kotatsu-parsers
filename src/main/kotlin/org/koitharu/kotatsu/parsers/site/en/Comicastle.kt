@@ -49,7 +49,6 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 			}
 			val postdata = "submit=Submit&search=" + query.urlEncoded()
 			webClient.httpPost(url, postdata).parseHtml()
-
 		} else if (!tags.isNullOrEmpty()) {
 			val url = buildString {
 				append("https://$domain/library/search/genre/")
@@ -57,7 +56,6 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 			}
 			val postdata = "submit=Submit&search=" + tag?.key.orEmpty()
 			webClient.httpPost(url, postdata).parseHtml()
-
 		} else {
 			val url = buildString {
 				append("https://$domain")
@@ -75,7 +73,7 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 
 		return doc.select("div.card-body div.match-height div.col-6")
 			.map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("p").text(),
@@ -92,7 +90,6 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 				)
 			}
 	}
-
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library/").parseHtml()
@@ -156,5 +153,4 @@ internal class Comicastle(context: MangaLoaderContext) : PagedMangaParser(contex
 			)
 		}
 	}
-
 }

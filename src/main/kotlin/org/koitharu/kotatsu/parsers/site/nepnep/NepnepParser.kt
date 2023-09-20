@@ -53,23 +53,9 @@ internal abstract class NepnepParser(
 				!query.isNullOrEmpty() -> {
 					if (m.getString("i").contains(query.urlEncoded(), ignoreCase = true)) {
 						manga.add(
-							Manga(
-								id = generateUid(href),
-								title = m.getString("i").replace('-', ' '),
-								altTitle = null,
-								url = href,
-								publicUrl = href.toAbsoluteUrl(domain),
-								rating = RATING_UNKNOWN,
-								isNsfw = false,
-								coverUrl = imgUrl,
-								tags = emptySet(),
-								state = null,
-								author = null,
-								source = source,
-							),
+							addManga(href, imgUrl, m),
 						)
 					}
-
 				}
 
 				!tags.isNullOrEmpty() -> {
@@ -82,48 +68,38 @@ internal abstract class NepnepParser(
 					}
 					if (found) {
 						manga.add(
-							Manga(
-								id = generateUid(href),
-								title = m.getString("i").replace('-', ' '),
-								altTitle = null,
-								url = href,
-								publicUrl = href.toAbsoluteUrl(domain),
-								rating = RATING_UNKNOWN,
-								isNsfw = false,
-								coverUrl = imgUrl,
-								tags = emptySet(),
-								state = null,
-								author = null,
-								source = source,
-							),
+							addManga(href, imgUrl, m),
 						)
 					}
 				}
 
 				else -> {
 					manga.add(
-						Manga(
-							id = generateUid(href),
-							title = m.getString("i").replace('-', ' '),
-							altTitle = null,
-							url = href,
-							publicUrl = href.toAbsoluteUrl(domain),
-							rating = RATING_UNKNOWN,
-							isNsfw = false,
-							coverUrl = imgUrl,
-							tags = emptySet(),
-							state = null,
-							author = null,
-							source = source,
-						),
+						addManga(href, imgUrl, m),
 					)
 				}
 			}
 
 
 		}
-
 		return manga
+	}
+
+	private fun addManga(href: String, imgUrl: String, m: JSONObject): Manga {
+		return Manga(
+			id = generateUid(href),
+			title = m.getString("i").replace('-', ' '),
+			altTitle = null,
+			url = href,
+			publicUrl = href.toAbsoluteUrl(domain),
+			rating = RATING_UNKNOWN,
+			isNsfw = false,
+			coverUrl = imgUrl,
+			tags = emptySet(),
+			state = null,
+			author = null,
+			source = source,
+		)
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
