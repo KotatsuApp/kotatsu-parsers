@@ -137,7 +137,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			tagsSet.add(
 				MangaTag(
 					title = item.getString("name"),
-					key = item.getInt("id").toString(),
+					key = item.getString("id"),
 					source = source,
 				),
 			)
