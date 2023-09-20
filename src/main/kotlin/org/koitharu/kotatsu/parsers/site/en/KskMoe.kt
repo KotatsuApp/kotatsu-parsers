@@ -64,7 +64,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 			return emptyList()
 		}
 		return doc.requireElementById("galleries").select("article").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectLastOrThrow("h3 span").text(),
@@ -72,7 +72,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				isNsfw = true,
 				coverUrl = div.selectFirstOrThrow("img").src()?.toAbsoluteUrl(domain).orEmpty(),
 				tags = div.select("footer span").mapNotNullToSet { span ->
 					MangaTag(
@@ -97,24 +97,22 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val root = if (page == 1) {
-			webClient.httpGet("https://${domain}/tags").parseHtml().body()
-				.getElementById("tags")
+		val url = if (page == 1) {
+			"https://$domain/tags"
 		} else {
-			webClient.httpGet("https://${domain}/tags/page/$page").parseHtml().body()
-				.getElementById("tags")
+			"https://$domain/tags/page/$page"
 		}
+		val root = webClient.httpGet(url).parseHtml().body().getElementById("tags")
 		return root?.parseTags().orEmpty()
 	}
 
 	private fun Element.parseTags() = select("section.tags div a").mapToSet { a ->
 		MangaTag(
-			key = a.attr("href").substringAfter("/tags/"),
+			key = a.attr("href").substringAfterLast("/tags/"),
 			title = a.selectFirstOrThrow("span").text(),
 			source = source,
 		)
 	}
-
 
 	private val date = SimpleDateFormat("dd.MM.yyyy hh:mm 'UTC'", Locale.US)
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -123,7 +121,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 		return manga.copy(
 			tags = doc.requireElementById("metadata").select("main div:contains(Tag) a").mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringAfter("/tags/"),
+					key = a.attr("href").substringAfterLast("/tags/"),
 					title = a.selectFirstOrThrow("span").text(),
 					source = source,
 				)
@@ -147,11 +145,10 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 				emptyList()
 			},
 
-			)
+		)
 	}
 
-
-	//For the moment the pages are in poor quality.
+	// For the moment the pages are in poor quality.
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()

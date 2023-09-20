@@ -55,7 +55,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 			}
 
 		return doc.select("div.sect__content.grid-items div.item-poster").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.select(".item-poster__title").text(),

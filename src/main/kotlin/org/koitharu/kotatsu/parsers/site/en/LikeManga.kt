@@ -58,7 +58,7 @@ internal class LikeManga(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("div.card-body div.video").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("p.title-manga").text(),
@@ -134,7 +134,9 @@ internal class LikeManga(context: MangaLoaderContext) : PagedMangaParser(context
 
 	private suspend fun loadChapters(mangaId: Int, page: Int): List<MangaChapter> {
 		val json =
-			webClient.httpGet("https://$domain/?act=ajax&code=load_list_chapter&manga_id=$mangaId&page_num=$page&chap_id=0&keyword=")
+			webClient.httpGet(
+				"https://$domain/?act=ajax&code=load_list_chapter&manga_id=$mangaId&page_num=$page&chap_id=0&keyword=",
+			)
 				.parseJson().getString("list_chap")
 		val chapters = json.split("wp-manga-chapter").drop(1)
 		return chapters.map { chapter ->

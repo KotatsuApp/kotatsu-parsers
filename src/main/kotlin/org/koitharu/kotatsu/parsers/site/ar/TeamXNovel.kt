@@ -61,7 +61,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		return doc.select("div.listupd .bs .bsx").ifEmpty {
 			doc.select("div.post-body .box")
 		}.map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.select(".tt, h3").text(),

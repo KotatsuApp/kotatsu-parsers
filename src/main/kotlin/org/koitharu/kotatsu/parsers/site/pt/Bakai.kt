@@ -27,7 +27,6 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -45,7 +44,6 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 				}
 				append("&quick=1&type=cms_records1&page=")
 				append(page.toString())
-
 			} else {
 				append("/hentai/")
 				append("page/")
@@ -54,10 +52,9 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		if (!tags.isNullOrEmpty() or !query.isNullOrEmpty()) {
-
 			return doc.select("ol.ipsStream li.ipsStreamItem")
 				.map { div ->
-					val href = div.selectFirstOrThrow("div.ipsStreamItem_snippet a").attrAsAbsoluteUrl("href")
+					val href = div.selectFirstOrThrow("div.ipsStreamItem_snippet a").attrAsRelativeUrl("href")
 					Manga(
 						id = generateUid(href),
 						title = div.selectFirstOrThrow("h2.ipsStreamItem_title").text(),

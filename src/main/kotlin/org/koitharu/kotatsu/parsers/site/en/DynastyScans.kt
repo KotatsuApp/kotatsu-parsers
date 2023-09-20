@@ -52,11 +52,11 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 
-		//There are no images on the search page
+		// There are no images on the search page
 		if (!query.isNullOrEmpty()) {
 			return doc.select("dl.chapter-list dd")
 				.map { div ->
-					val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					Manga(
 						id = generateUid(href),
 						title = div.selectFirstOrThrow("a").text(),
@@ -81,7 +81,7 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		} else {
 			return doc.select("li.span2")
 				.map { div ->
-					val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					Manga(
 						id = generateUid(href),
 						title = div.selectFirstOrThrow("div.caption").text(),
@@ -98,7 +98,6 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 					)
 				}
 		}
-
 	}
 
 	override suspend fun getTags(): Set<MangaTag> = emptySet()
@@ -169,4 +168,3 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		return pages
 	}
 }
-

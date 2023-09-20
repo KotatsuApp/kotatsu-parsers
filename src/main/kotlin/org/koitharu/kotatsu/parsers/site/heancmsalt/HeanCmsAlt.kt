@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.heancmsalt
 
-import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -26,7 +25,6 @@ internal abstract class HeanCmsAlt(
 	protected open val listUrl = "/comics"
 	protected open val datePattern = "MMMM d, yyyy"
 
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
@@ -41,7 +39,7 @@ internal abstract class HeanCmsAlt(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		//No search or tag
+		// No search or tag
 		if (!query.isNullOrEmpty()) {
 			return emptyList()
 		}
@@ -82,11 +80,12 @@ internal abstract class HeanCmsAlt(
 	protected open val selectChapter = "ul.MuiList-root a"
 	protected open val selectChapterTitle = "div.MuiListItemText-multiline span"
 	protected open val selectChapterDate = "div.MuiListItemText-multiline p"
-	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
+
+	override suspend fun getDetails(manga: Manga): Manga {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		manga.copy(
+		return manga.copy(
 			altTitle = doc.selectFirst(selectAlt)?.text().orEmpty(),
 			description = doc.selectFirstOrThrow(selectDesc).html(),
 			chapters = doc.select(selectChapter)

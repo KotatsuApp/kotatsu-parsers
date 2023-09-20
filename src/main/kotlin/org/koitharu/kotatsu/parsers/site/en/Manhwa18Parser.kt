@@ -23,7 +23,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(
 			listOf(
-				Favicon("https://${domain}/uploads/logos/logo-mini.png", 92, null),
+				Favicon("https://$domain/uploads/logos/logo-mini.png", 92, null),
 			),
 			domain,
 		)

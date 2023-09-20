@@ -26,7 +26,6 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -48,7 +47,7 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("section.row div.mangas")
 			.map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("a h3").text(),
@@ -102,7 +101,6 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 			author = root.select("h5.cg_color a")[1].text(),
 			description = root.getElementById("manga_capitulo_descricao")?.html(),
 			chapters = root.requireElementById("capitulos").select("li")
-
 				.mapChapters(reversed = true) { i, div ->
 					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					val dateText = div.selectFirstOrThrow("div.col-sm-5 span").text()

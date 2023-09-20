@@ -23,17 +23,17 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 		if (query != null || offset > 0) {
 			return emptyList()
 		}
-		val link = "https://${domain}/viewer_landing.php"
+		val link = "https://$domain/viewer_landing.php"
 		val doc = webClient.httpGet(link).parseHtml()
 		val mangas = doc.getElementsByClass("comicPreviewContainer")
 		return mangas.mapNotNull { item ->
 			val background = item.selectFirstOrThrow(".comicPreview").styleValueOrNull("background")
-			val href = item.selectFirst("a")?.attrAsAbsoluteUrl("href") ?: return@mapNotNull null
+			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
 			val cover = background?.substring(background.indexOf("site/themes"), background.indexOf(")"))
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h3")?.text() ?: return@mapNotNull null,
-				coverUrl = "https://${domain}/$cover",
+				coverUrl = "https://$domain/$cover",
 				altTitle = null,
 				author = "Dan Kim",
 				rating = RATING_UNKNOWN,

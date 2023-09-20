@@ -28,7 +28,7 @@ internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, Mang
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select(".series-list").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h2").text(),
