@@ -12,8 +12,6 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
-import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANJANOON", "Manjanoon", "ar")
 internal class Manjanoon(context: MangaLoaderContext) :
