@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.mangabox.en
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -15,8 +14,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 
-
-@MangaSourceParser("MANGAIRO", "Mangairo", "en")
+@MangaSourceParser("MANGAIRO", "Manga Iro", "en")
 internal class Mangairo(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaSource.MANGAIRO) {
 

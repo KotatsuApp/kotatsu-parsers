@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.mmrcms.pt
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -14,7 +13,6 @@ import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 import java.util.Locale
-
 
 @MangaSourceParser("ANIMAREGIA", "Animaregia", "pt")
 internal class Animaregia(context: MangaLoaderContext) :
@@ -33,13 +31,9 @@ internal class Animaregia(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("ul.list-group")
-
 		val chaptersDeferred = async { getChapters(manga, doc) }
-
 		val desc = doc.select(selectDesc).text()
-
 		val stateDiv = body.selectFirst("li.list-group-item:contains(Status)")?.lastElementChild()
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -48,9 +42,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 			}
 		}
 		val auth = doc.body().selectFirst("li.list-group-item:contains(Autor(es)) a")?.text()
-
 		val tags = doc.body().select("li.list-group-item:contains(Autor(es)) a") ?: emptySet()
-
 		manga.copy(
 			tags = tags.mapNotNullToSet { a ->
 				MangaTag(

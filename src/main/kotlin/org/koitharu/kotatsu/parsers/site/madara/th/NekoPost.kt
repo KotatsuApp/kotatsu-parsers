@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NEKOPOST", "Neko Post", "th")
 internal class NekoPost(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NEKOPOST, "www.nekopost.co") {
-
 	override val postreq = true
 	override val datePattern = "d MMMM yyyy"
 }

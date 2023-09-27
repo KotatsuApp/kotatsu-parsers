@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GOURMETSCANS", "Gourmet Scans", "en")
 internal class GourmetScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GOURMETSCANS, "gourmetscans.net") {
-
 	override val listUrl = "project/"
 	override val tagPrefix = "genre/"
 	override val stylepage = ""

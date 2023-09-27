@@ -9,7 +9,6 @@ import java.util.Locale
 @MangaSourceParser("SHINIGAMI", "Shinigami", "id")
 internal class Shinigami(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SHINIGAMI, "shinigami.ae", 10) {
-
 	override val tagPrefix = "genre/"
 	override val listUrl = "series/"
 	override val sourceLocale: Locale = Locale.ENGLISH

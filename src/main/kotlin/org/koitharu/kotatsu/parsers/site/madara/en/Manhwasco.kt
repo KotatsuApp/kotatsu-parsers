@@ -8,7 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANHWASCO", "Manhwasco", "en")
 internal class Manhwasco(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWASCO, "manhwasco.net") {
-
 	override val selectGenre = "div.mg_genres a"
-
 }

@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ALLIED_FANSUB", "Allied Fansub", "tr", ContentType.HENTAI)
 internal class AlliedFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ALLIED_FANSUB, "alliedfansub.online", 20) {
+	MadaraParser(context, MangaSource.ALLIED_FANSUB, "alliedfansub.net", 20) {
 	override val datePattern = "dd/MM/yyyy"
 }

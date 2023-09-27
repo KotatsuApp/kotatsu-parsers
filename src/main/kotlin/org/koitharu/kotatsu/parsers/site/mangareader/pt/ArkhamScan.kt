@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ARKHAMSCAN", "ArkhamScan", "pt")
+@MangaSourceParser("ARKHAMSCAN", "Arkham Scan", "pt")
 internal class ArkhamScan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ARKHAMSCAN, "arkhamscan.com", pageSize = 20, searchPageSize = 10)

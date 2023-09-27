@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.zmanga.id
 
-
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser

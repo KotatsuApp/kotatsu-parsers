@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.foolslide.en
 
-
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -9,8 +8,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 import org.koitharu.kotatsu.parsers.util.*
 
-
-@MangaSourceParser("ASSORTEDSCANS", "AssortedScans", "en")
+@MangaSourceParser("ASSORTEDSCANS", "Assorted Scans", "en")
 internal class AssortedScans(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.ASSORTEDSCANS, "assortedscans.com", 56) {
 
@@ -26,11 +24,9 @@ internal class AssortedScans(context: MangaLoaderContext) :
 	): List<Manga> {
 
 		val doc = if (!query.isNullOrEmpty()) {
-
 			if (page > 1) {
 				return emptyList()
 			}
-
 			val url = buildString {
 				append("https://")
 				append(domain)
@@ -54,7 +50,6 @@ internal class AssortedScans(context: MangaLoaderContext) :
 			}
 			webClient.httpGet(url).parseHtml()
 		}
-
 		return doc.select("section.series, tr.result").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -77,14 +72,12 @@ internal class AssortedScans(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val testAdultPage = webClient.httpGet(fullUrl).parseHtml()
-
 		val doc = if (testAdultPage.selectFirst("div.info form") != null) {
 			webClient.httpPost(fullUrl, "adult=true").parseHtml()
 		} else {
 			testAdultPage
 		}
 		val chapters = getChapters(manga, doc)
-
 		val desc = doc.getElementById("series-desc")?.selectFirst("div")?.html()
 		val alt = doc.getElementById("series-aliases")?.selectFirst("div.alias")?.text()
 		val author = doc.getElementById("series-authors")?.selectFirst("div.author")?.text()
@@ -139,6 +132,4 @@ internal class AssortedScans(context: MangaLoaderContext) :
 		val root = doc.body()
 		return root.requireElementById("page-image").attr("src") ?: doc.parseFailed("Page image not found")
 	}
-
-
 }

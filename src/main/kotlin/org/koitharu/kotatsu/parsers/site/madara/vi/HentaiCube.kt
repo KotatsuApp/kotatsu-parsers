@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.vi
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -10,7 +9,6 @@ import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-
 
 @MangaSourceParser("HENTAICUBE", "Hentai Cube", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :

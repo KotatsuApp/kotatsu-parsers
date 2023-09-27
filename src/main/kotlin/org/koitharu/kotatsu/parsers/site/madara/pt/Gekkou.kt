@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GEKKOU", "Gekkou", "pt")
 internal class Gekkou(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GEKKOU, "gekkou.com.br", 10) {
-
 	override val tagPrefix = "genero/"
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 }

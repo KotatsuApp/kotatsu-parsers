@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("CARTELDEMANHWAS", "Cartel De Manhwas", "es")
 internal class CartelDeManhwas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.CARTELDEMANHWAS, "carteldemanhwas.com", pageSize = 20, searchPageSize = 20) {
-
 	override val listUrl = "/series"
 	override val datePattern = "MMM d, yyyy"
 }

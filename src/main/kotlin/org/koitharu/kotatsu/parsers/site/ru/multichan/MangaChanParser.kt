@@ -7,6 +7,5 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 
 @MangaSourceParser("MANGACHAN", "Манга-тян", "ru")
 internal class MangaChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.MANGACHAN) {
-
 	override val configKeyDomain = ConfigKey.Domain("manga-chan.me")
 }

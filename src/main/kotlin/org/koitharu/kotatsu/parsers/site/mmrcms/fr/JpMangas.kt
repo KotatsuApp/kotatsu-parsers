@@ -9,6 +9,5 @@ import java.util.*
 @MangaSourceParser("JPMANGAS", "JpMangas", "fr")
 internal class JpMangas(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.JPMANGAS, "jpmangas.xyz") {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

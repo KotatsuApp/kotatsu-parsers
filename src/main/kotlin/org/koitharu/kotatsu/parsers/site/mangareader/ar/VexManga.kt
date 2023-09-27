@@ -12,7 +12,7 @@ import java.util.Calendar
 @MangaSourceParser("VEXMANGA", "Vex Manga", "ar")
 internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.VEXMANGA, "vexmanga.net", pageSize = 10, searchPageSize = 10) {
-	override val selectMangalist = ".listupd .latest-series"
+	override val selectMangaList = ".listupd .latest-series"
 	override val selectChapter = ".ulChapterList > a"
 
 	override suspend fun getDetails(manga: Manga): Manga {

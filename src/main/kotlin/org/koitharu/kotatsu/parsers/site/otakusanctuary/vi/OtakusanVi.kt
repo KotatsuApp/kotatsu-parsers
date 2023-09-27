@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.otakusanctuary.OtakuSanctuaryParser
 
 
-@MangaSourceParser("OTAKUSAN_VI", "Otakusan Vi", "vi")
+@MangaSourceParser("OTAKUSAN_VI", "Otaku San", "vi")
 internal class OtakusanVi(context: MangaLoaderContext) :
 	OtakuSanctuaryParser(context, MangaSource.OTAKUSAN_VI, "otakusan.net") {
 

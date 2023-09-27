@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.fmreader.ja
 
-
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -14,7 +13,6 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-
 
 @MangaSourceParser("KLZ9", "Klz9", "ja")
 internal class Klz9(context: MangaLoaderContext) :
@@ -54,7 +52,6 @@ internal class Klz9(context: MangaLoaderContext) :
 					append(tag?.key.orEmpty())
 				}
 			}
-
 			append("&sort=")
 			when (sortOrder) {
 				SortOrder.POPULARITY -> append("views")
@@ -64,7 +61,6 @@ internal class Klz9(context: MangaLoaderContext) :
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.thumb-item-flow").map { div ->
 			val href = "/" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -112,10 +108,8 @@ internal class Klz9(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val cid = doc.selectFirstOrThrow("#chapter").attr("value")
 		val docload = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
-
 		return docload.select(selectPage).map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 

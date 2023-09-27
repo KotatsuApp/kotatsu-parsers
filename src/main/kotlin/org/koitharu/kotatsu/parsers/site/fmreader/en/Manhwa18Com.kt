@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.fmreader.en
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
@@ -11,12 +10,11 @@ import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWA18COM", "Manhwa18 Com", "en", ContentType.HENTAI)
+@MangaSourceParser("MANHWA18COM", "Manhwa18 .Com", "en", ContentType.HENTAI)
 internal class Manhwa18Com(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.MANHWA18COM, "manhwa18.com") {
 
 	override val listeurl = "/tim-kiem"
-
 	override val selectState = "div.info-item:contains(Status) span.info-value "
 	override val selectAlt = "div.info-item:contains(Other name) span.info-value "
 	override val selectTag = "div.info-item:contains(Genre) span.info-value a"
@@ -31,7 +29,6 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -57,7 +54,6 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 						append(query.urlEncoded())
 					}
 				}
-
 				append("&sort=")
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("views")
@@ -69,9 +65,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.thumb-item-flow").map { div ->
-
 			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
@@ -107,13 +101,9 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = async { getChapters(manga, doc) }
-
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
 		val stateDiv = doc.selectFirst(selectState)
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -121,7 +111,6 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-
 		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other name", "")
 		val auth = doc.body().selectFirst(selectAut)?.text()
 		manga.copy(

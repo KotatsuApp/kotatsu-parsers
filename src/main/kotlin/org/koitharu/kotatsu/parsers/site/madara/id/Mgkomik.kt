@@ -9,7 +9,6 @@ import java.util.Locale
 @MangaSourceParser("MGKOMIK", "Mgkomik", "id")
 internal class Mgkomik(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MGKOMIK, "mgkomik.id", 20) {
-
 	override val tagPrefix = "genres/"
 	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"

@@ -10,12 +10,12 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("BABELTOON", "BabelToon", "en")
+@MangaSourceParser("BABELTOON", "Babel Toon", "en")
 internal class BabelToon(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BABELTOON, "babeltoon.com", pageSize = 20, searchPageSize = 10) {
 
 	override val listUrl = "/series"
-	override val selectMangalist = ".postbody .listupd .maindet .inmain"
+	override val selectMangaList = ".postbody .listupd .maindet .inmain"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

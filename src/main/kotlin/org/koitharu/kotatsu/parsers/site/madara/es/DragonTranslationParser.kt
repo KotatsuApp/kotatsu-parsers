@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("DRAGONTRANSLATION", "DragonTranslation", "es")
+@MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
 

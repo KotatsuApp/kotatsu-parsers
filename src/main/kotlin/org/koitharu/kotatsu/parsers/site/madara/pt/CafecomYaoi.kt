@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("CAFECOMYAOI", "Cafecom Yaoi", "pt")
 internal class CafecomYaoi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.CAFECOMYAOI, "cafecomyaoi.com.br") {
-
 	override val datePattern = "dd/MM/yyyy"
 	override val postreq = true
 }

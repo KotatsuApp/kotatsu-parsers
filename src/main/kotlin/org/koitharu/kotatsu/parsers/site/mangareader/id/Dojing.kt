@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("DOJING", "Dojing", "id", ContentType.HENTAI)
 internal class Dojing(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DOJING, "dojing.net", pageSize = 12, searchPageSize = 12) {
-
 	override val datePattern = "MMM d, yyyy"
 }

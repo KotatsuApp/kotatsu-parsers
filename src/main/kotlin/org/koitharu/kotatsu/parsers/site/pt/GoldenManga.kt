@@ -29,12 +29,15 @@ internal class GoldenManga(context: MangaLoaderContext) : PagedMangaParser(conte
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/mangas")
-			append("?pagina=")
-			append(page.toString())
 			if (!query.isNullOrEmpty()) {
-				append("&search=")
+				append("/mangabr?pagina=")
+				append(page.toString())
+				append("&busca=")
 				append(query.urlEncoded())
+			} else {
+				append("/mangas")
+				append("?pagina=")
+				append(page.toString())
 			}
 			if (!tags.isNullOrEmpty()) {
 				append("&genero=")

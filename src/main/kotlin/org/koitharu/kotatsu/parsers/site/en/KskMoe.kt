@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("KSKMOE", "Ksk Moe", "en", ContentType.HENTAI)
+@MangaSourceParser("KSKMOE", "Ksk .Moe", "en", ContentType.HENTAI)
 internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.KSKMOE, 35) {
 
 	override val sortOrders: Set<SortOrder> =
@@ -145,7 +145,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 				emptyList()
 			},
 
-		)
+			)
 	}
 
 	// For the moment the pages are in poor quality.

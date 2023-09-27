@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("BESTMANHUACOM", "BestManhua Com", "en")
+@MangaSourceParser("BESTMANHUACOM", "Best Manhua .Com", "en")
 internal class BestManhuaCom(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BESTMANHUACOM, "bestmanhua.com", 20) {
 	override val datePattern = "dd MMMM yyyy"

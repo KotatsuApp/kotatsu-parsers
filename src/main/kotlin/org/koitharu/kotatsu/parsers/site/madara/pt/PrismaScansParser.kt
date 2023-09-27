@@ -8,7 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("PRISMA_SCANS", "Prisma Scans", "pt")
 internal class PrismaScansParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PRISMA_SCANS, "prismascans.net", 10) {
-
 	override val datePattern = "MMM dd, yyyy"
-
 }

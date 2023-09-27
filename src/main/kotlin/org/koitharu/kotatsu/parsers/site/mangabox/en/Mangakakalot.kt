@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.mangabox.en
 
-
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -9,7 +8,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-
 
 @MangaSourceParser("MANGAKAKALOT", "Mangakakalot", "en")
 internal class Mangakakalot(context: MangaLoaderContext) :

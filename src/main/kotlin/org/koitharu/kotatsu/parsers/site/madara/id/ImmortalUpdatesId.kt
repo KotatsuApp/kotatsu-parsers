@@ -6,10 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("IMMORTALUPDATESID", "Immortal Updates Id", "id")
+@MangaSourceParser("IMMORTALUPDATESID", "Immortal Updates", "id")
 internal class ImmortalUpdatesId(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.IMMORTALUPDATESID, "immortalupdates.id") {
-
 	override val datePattern = "d MMMM yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

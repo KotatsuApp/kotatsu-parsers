@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GRABBER", "Grabber", "en")
 internal class Grabber(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GRABBER, "grabber.zone", 20) {
-
 	override val tagPrefix = "type/"
 	override val listUrl = "comics/"
 	override val datePattern = "dd.MM.yyyy"

@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANHUAZONGHE", "Manhua Zonghe", "en")
 internal class ManhuaZonghe(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHUAZONGHE, "manhuazonghe.com") {
+	MadaraParser(context, MangaSource.MANHUAZONGHE, "www.manhuazonghe.com") {
 	override val tagPrefix = "genre/"
 	override val listUrl = "manhua/"
 }

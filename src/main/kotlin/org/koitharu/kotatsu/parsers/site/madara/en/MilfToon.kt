@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MILFTOON", "Milf Toon", "en", ContentType.HENTAI)
 internal class MilfToon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MILFTOON, "milftoon.xxx", 20) {
-
 	override val postreq = true
 	override val datePattern = "d MMMM, yyyy"
 }

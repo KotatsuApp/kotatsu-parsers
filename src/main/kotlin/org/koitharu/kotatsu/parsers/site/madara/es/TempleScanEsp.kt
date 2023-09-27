@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("TEMPLESCANESP", "TempleScanEsp", "es", ContentType.HENTAI)
 internal class TempleScanEsp(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TEMPLESCANESP, "templescanesp.com") {
-
 	override val listUrl = "series/"
 	override val tagPrefix = "genero/"
 	override val datePattern = "dd.MM.yyyy"

@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
+@MangaSourceParser("MANGADNA", "Manga Dna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGADNA, "mangadna.com", 20) {
 

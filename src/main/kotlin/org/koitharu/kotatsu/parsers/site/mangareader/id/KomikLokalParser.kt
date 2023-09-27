@@ -9,8 +9,6 @@ import java.util.*
 @MangaSourceParser("KOMIKLOKAL", "Komik Lokal", "id")
 internal class KomikLokalParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKLOKAL, "komikmirror.art", pageSize = 20, searchPageSize = 10) {
-
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
-
 }

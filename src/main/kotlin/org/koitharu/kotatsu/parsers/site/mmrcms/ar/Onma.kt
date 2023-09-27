@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.mmrcms.ar
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -10,14 +9,11 @@ import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.Locale
 
-
-@MangaSourceParser("ONMA", "Onma", "es")
+@MangaSourceParser("ONMA", "Onma", "ar")
 internal class Onma(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.ONMA, "onma.me") {
 
-
 	override val sourceLocale: Locale = Locale.ENGLISH
-
 	override val selectState = "h3:contains(الحالة) .text"
 	override val selectAlt = "h3:contains(أسماء أخرى) .text"
 	override val selectAut = "h3:contains(المؤلف) .text"
@@ -47,16 +43,13 @@ internal class Onma(context: MangaLoaderContext) :
 				append(page.toString())
 				append("&asc=true&author=&tag=")
 				append("&alpha=")
-
 				if (!query.isNullOrEmpty()) {
 					append(query.urlEncoded())
 				}
-
 				append("&cat=")
 				if (!tags.isNullOrEmpty()) {
 					append(tag?.key.orEmpty())
 				}
-
 				append("&sortBy=")
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("views")
@@ -65,11 +58,8 @@ internal class Onma(context: MangaLoaderContext) :
 				}
 			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
 		if (sortOrder == SortOrder.UPDATED) {
-
 			return doc.select("div.manga-item").map { div ->
 				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				val deeplink = href.substringAfterLast('/')
@@ -113,13 +103,9 @@ internal class Onma(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("div.panel-body")
-
 		val chaptersDeferred = async { getChapters(manga, doc) }
-
 		val desc = doc.selectFirst(selectDesc)?.text().orEmpty()
-
 		val stateDiv = body.selectFirst(selectState)
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -127,12 +113,9 @@ internal class Onma(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-
 		val alt = doc.body().selectFirst(selectAlt)?.text()
 		val auth = doc.body().selectFirst(selectAut)?.text()
-
 		val tags = doc.body().selectFirst(selectTag)?.select("a") ?: emptySet()
-
 		manga.copy(
 			tags = tags.mapNotNullToSet { a ->
 				MangaTag(

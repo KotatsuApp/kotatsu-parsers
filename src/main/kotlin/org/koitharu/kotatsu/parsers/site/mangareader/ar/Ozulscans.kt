@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("OZULSCANS", "Ozulscans", "ar")
+@MangaSourceParser("OZULSCANS", "Ozul Scans", "ar")
 internal class Ozulscans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.OZULSCANS, "ozulscans.xyz", pageSize = 30, searchPageSize = 30)
+	MangaReaderParser(context, MangaSource.OZULSCANS, "ozulscans.net", pageSize = 30, searchPageSize = 30)

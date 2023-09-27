@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("PEACESCANS", "PeaceScans", "en")
+@MangaSourceParser("PEACESCANS", "Peace Scans", "en")
 internal class PeaceScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.PEACESCANS, "peacescans.com", pageSize = 14, searchPageSize = 10)

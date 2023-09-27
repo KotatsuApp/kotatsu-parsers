@@ -108,7 +108,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 			description = doc.select(".serie-texto p").text(),
 			isNsfw = doc.select("div.serie-infos li:contains(Categorias:)").text().contains("Hentai"),
 			chapters = doc.select(".capitulos li a")
-				.mapChapters(reversed = true) { i, a ->
+				.mapChapters { i, a ->
 					val url = a.attrAsRelativeUrl("href")
 					val name = a.text()
 					MangaChapter(

@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("RAIKISCAN", "Raikiscan", "es")
 internal class Raikiscan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.RAIKISCAN, "raikiscan.com", pageSize = 20, searchPageSize = 20) {
-
 	override val datePattern = "MMM d, yyyy"
 }

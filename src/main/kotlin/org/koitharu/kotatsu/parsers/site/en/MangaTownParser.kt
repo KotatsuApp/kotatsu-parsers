@@ -10,7 +10,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGATOWN", "MangaTown", "en")
+@MangaSourceParser("MANGATOWN", "Manga Town", "en")
 internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGATOWN) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com")

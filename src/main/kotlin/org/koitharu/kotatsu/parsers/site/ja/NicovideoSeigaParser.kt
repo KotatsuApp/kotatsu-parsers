@@ -1,19 +1,25 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 private const val STATUS_ONGOING = "連載"
 private const val STATUS_FINISHED = "完結"
 
-@MangaSourceParser("NICOVIDEO_SEIGA", "Nicovideo Seiga", "ja")
+@MangaSourceParser("NICOVIDEO_SEIGA", "NicoVideo Seiga", "ja")
 class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
+
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.build()
 
 	override val authUrl: String
 		get() = "https://${getDomain("account")}/login?site=seiga"
@@ -89,7 +95,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(getDomain("seiga"))).parseHtml()
-		val contents = doc.body().selectFirstOrThrow("#contents")
+		val contents = doc.body().requireElementById("contents")
 		val statusText = contents
 			.select("div.mg_work_detail > div > div:nth-child(2) > div.tip.content_status.status_series > span")
 			.text()

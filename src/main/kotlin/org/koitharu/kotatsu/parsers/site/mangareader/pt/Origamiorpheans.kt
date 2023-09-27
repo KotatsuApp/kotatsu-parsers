@@ -14,7 +14,5 @@ internal class Origamiorpheans(context: MangaLoaderContext) :
 		pageSize = 20,
 		searchPageSize = 20,
 	) {
-
 	override val datePattern = "MMM d, yyyy"
-
 }

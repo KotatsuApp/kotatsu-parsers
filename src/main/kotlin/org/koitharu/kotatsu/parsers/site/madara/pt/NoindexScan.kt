@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NOINDEXSCAN", "Noindex Scan", "pt", ContentType.HENTAI)
 internal class NoindexScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NOINDEXSCAN, "noindexscan.com") {
-
 	override val datePattern: String = "dd/MM/yyyy"
 }

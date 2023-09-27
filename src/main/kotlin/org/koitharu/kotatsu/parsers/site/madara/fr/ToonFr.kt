@@ -22,11 +22,9 @@ internal class ToonFr(context: MangaLoaderContext) :
 		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
-
 		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href") + "?style=list"
-
 			// correct parse date missing a "."
 			val dateOrg = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
 			val dateCorrectParse = dateOrg

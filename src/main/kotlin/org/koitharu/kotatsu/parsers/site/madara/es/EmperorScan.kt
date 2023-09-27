@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("EMPERORSCAN", "Emperor Scan", "es")
 internal class EmperorScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.EMPERORSCAN, "dokkomanga.com")
+	MadaraParser(context, MangaSource.EMPERORSCAN, "emperorscan.com")

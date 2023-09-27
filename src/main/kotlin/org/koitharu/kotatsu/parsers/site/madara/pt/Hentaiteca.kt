@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HENTAITECA", "Hentaiteca", "pt", ContentType.HENTAI)
 internal class Hentaiteca(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAITECA, "hentaiteca.net", pageSize = 10) {
-
 	override val datePattern = "MM/dd/yyyy"
 	override val tagPrefix = "genero/"
 }

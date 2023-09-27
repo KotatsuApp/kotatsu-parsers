@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.ja
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
@@ -13,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
+@MangaSourceParser("HACHIMANGA", "Hachi Manga", "ja")
 internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachiraw.com") {
 
 	override val datePattern = "MMMM dd, yyyy"

@@ -6,9 +6,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 
-@MangaSourceParser("INFRAFANDUB", "infrafandub", "es")
+@MangaSourceParser("INFRAFANDUB", "infra Fandub", "es")
 internal class Infrafandub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.INFRAFANDUB, "infrafandub.xyz", 10) {
-
 	override val datePattern = "dd/MM/yyyy"
 }

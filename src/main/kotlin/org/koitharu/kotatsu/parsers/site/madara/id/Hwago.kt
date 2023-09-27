@@ -6,10 +6,10 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("WORLDMANHWAS", "Worldmanhwas", "id")
-internal class Worldmanhwas(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.WORLDMANHWAS, "worldmanhwas.bar", 10) {
-
-	override val tagPrefix = "komik-genre/"
+@MangaSourceParser("HWAGO", "Hwago", "id")
+internal class Hwago(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.HWAGO, "hwago.id", 10) {
+	override val listUrl = "komik/"
+	override val tagPrefix = "genre/"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

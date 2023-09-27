@@ -16,7 +16,6 @@ internal class Hentaixdickgirl(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAIXDICKGIRL, "hentaixdickgirl.com", 16) {
 
 	override val postreq = true
-
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.listing-chapters_wrap")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

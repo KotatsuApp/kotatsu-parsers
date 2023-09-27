@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("FREEWEBTOONCOINS", "Free Webtoon Coins", "en")
 internal class FreeWebtoonCoins(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FREEWEBTOONCOINS, "freewebtooncoins.com") {
-
 	override val tagPrefix = "webtoon-genre/"
 	override val listUrl = "webtoon/"
 }

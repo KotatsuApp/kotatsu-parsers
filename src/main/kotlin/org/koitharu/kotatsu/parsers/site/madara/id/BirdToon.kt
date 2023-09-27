@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("BIRDTOON", "BirdToon", "id", ContentType.HENTAI)
+@MangaSourceParser("BIRDTOON", "Bird Toon", "id", ContentType.HENTAI)
 internal class BirdToon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BIRDTOON, "birdtoon.net", 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH

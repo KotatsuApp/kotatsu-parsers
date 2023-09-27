@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 
-@MangaSourceParser("MANGANELO_COM", "MangaNelo Com", "en")
+@MangaSourceParser("MANGANELO_COM", "Manga Nelo .Com", "en")
 internal class MangaNeloCom(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaSource.MANGANELO_COM) {
 	override val configKeyDomain = ConfigKey.Domain("m.manganelo.com", "chapmanganelo.com")

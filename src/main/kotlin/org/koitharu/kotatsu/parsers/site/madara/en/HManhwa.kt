@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HMANHWA", "HManhwa", "en", ContentType.HENTAI)
 internal class HManhwa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HMANHWA, "hmanhwa.com") {
-
 	override val tagPrefix = "manhwa-genre/"
 	override val listUrl = "manhwa/"
 	override val datePattern = "dd MMM"

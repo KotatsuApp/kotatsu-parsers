@@ -5,6 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ENRYUMANGA", "Enryu Manga", "en")
-internal class EnryuManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ENRYUMANGA, "enryumanga.com", pageSize = 30, searchPageSize = 10)
+@MangaSourceParser("KAISCANS", "Kai Scans", "en")
+internal class KaiScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.KAISCANS, "kaiscans.com", pageSize = 20, searchPageSize = 10) {
+	override val listUrl = "/series"
+}

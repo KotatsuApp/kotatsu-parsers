@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("INDO18H", "Indo18h", "id", ContentType.HENTAI)
 internal class Indo18h(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.INDO18H, "indo18h.com", 24) {
-
 	override val withoutAjax = true
 }

@@ -18,7 +18,6 @@ internal class ManhwaLatino(context: MangaLoaderContext) :
 	override val datePattern = "dd 'de' MMMM"
 	override val withoutAjax = true
 
-
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

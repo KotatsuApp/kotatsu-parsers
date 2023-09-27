@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("SCANS_MANGAS_ME", "Scans Mangas Me", "fr")
+@MangaSourceParser("SCANS_MANGAS_ME", "Scans Mangas .Me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 0) {
 

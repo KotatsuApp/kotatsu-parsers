@@ -29,7 +29,6 @@ internal class CosmicScans(context: MangaLoaderContext) :
 			if (page > lastSearchPage) {
 				return emptyList()
 			}
-
 			val url = buildString {
 				append("https://")
 				append(domain)
@@ -38,14 +37,12 @@ internal class CosmicScans(context: MangaLoaderContext) :
 				append("/?s=")
 				append(query.urlEncoded())
 			}
-
 			val docs = webClient.httpGet(url).parseHtml()
 			lastSearchPage = docs.selectFirst(".pagination .next")
 				?.previousElementSibling()
 				?.text()?.toIntOrNull() ?: 1
 			return parseMangaList(docs)
 		}
-
 		if (page > 1) {
 			return emptyList()
 		}
@@ -69,7 +66,6 @@ internal class CosmicScans(context: MangaLoaderContext) :
 			append("&page=")
 			append(page)
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 }

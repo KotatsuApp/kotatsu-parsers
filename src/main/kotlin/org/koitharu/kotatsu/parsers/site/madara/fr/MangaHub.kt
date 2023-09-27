@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGAHUB", "Manga Hub", "fr", ContentType.HENTAI)
 internal class MangaHub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAHUB, "mangahub.fr") {
-
 	override val datePattern = "d MMMM yyyy"
 }

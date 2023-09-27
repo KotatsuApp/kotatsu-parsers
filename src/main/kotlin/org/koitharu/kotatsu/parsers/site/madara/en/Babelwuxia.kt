@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("BABELWUXIA", "Babelwuxia", "en")
 internal class Babelwuxia(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.BABELWUXIA, "read.babelwuxia.com")
+	MadaraParser(context, MangaSource.BABELWUXIA, "babelwuxia.com")

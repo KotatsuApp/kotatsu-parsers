@@ -16,7 +16,6 @@ internal class KomikSan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKSAN, "komiksan.link", pageSize = 40, searchPageSize = 10) {
 
 	override val selectMangaListImg = "img.attachment-medium"
-
 	override val listUrl = "/list"
 	override val datePattern = "MMM d, yyyy"
 
@@ -38,16 +37,13 @@ internal class KomikSan(context: MangaLoaderContext) :
 				append(query.urlEncoded())
 				append("&page=")
 				append(page)
-
 			}
-
 			val docs = webClient.httpGet(url).parseHtml()
 			lastSearchPage = docs.selectFirst(".pagination .next")
 				?.previousElementSibling()
 				?.text()?.toIntOrNull() ?: 1
 			return parseMangaList(docs)
 		}
-
 		val sortQuery = when (sortOrder) {
 			SortOrder.ALPHABETICAL -> "title"
 			SortOrder.NEWEST -> "latest"
@@ -68,8 +64,6 @@ internal class KomikSan(context: MangaLoaderContext) :
 			append("&page=")
 			append(page)
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
-
 }

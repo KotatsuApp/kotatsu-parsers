@@ -40,10 +40,8 @@ internal abstract class FoolSlideParser(
 	): List<Manga> {
 
 		val doc = if (!query.isNullOrEmpty()) {
-
 			val url = buildString {
 				append("https://$domain/$searchUrl")
-
 				if (page > 1) {
 					return emptyList()
 				}

@@ -164,7 +164,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
 			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
-				?: img.parseFailed("Image src not found")
+			?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
