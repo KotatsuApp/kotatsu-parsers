@@ -29,9 +29,12 @@ internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
-	private val baseHeaders = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
-		.build()
+	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+
+	private val baseHeaders: Headers
+		get() = Headers.Builder()
+			.add("User-Agent", config[userAgentKey])
+			.build()
 
 	override val headers
 		get() = getApiHeaders()
@@ -222,6 +225,11 @@ internal class RemangaParser(
 			url = "https://api.${domain}/api/users/current/",
 		).parseJson()
 		return jo.getJSONObject("content").getString("username")
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 	}
 
 	private fun getApiHeaders(): Headers {
