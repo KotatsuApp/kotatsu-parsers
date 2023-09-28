@@ -47,7 +47,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 			).addPathSegment(page.toString())
 		val doc = webClient.httpGet(url.build()).parseHtml()
 		val root = doc.selectFirstOrThrow("div.tamanho-bloco-perfil")
-		return root.select(".lista-mangas-novos").map { div ->
+		return root.select(".lista-perfil-mangas-novos").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectFirstOrThrow("img")
 			val href = a.attrAsRelativeUrl("href")
@@ -71,7 +71,11 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.selectFirstOrThrow(".perfil-manga")
+		val root = if (doc.selectFirst(".perfil-d-manga") == null) {
+			doc.selectFirstOrThrow(".perfil-p-manga")
+		} else {
+			doc.selectFirstOrThrow(".perfil-d-manga")
+		}
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
 			rating = root.select("h2")

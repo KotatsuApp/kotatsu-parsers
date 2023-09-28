@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("SILENCESCAN", "Silence Scan", "pt", ContentType.HENTAI)
 internal class Silencescan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SILENCESCAN, "silencescan.com.br", pageSize = 35, searchPageSize = 35) {
-
 	override val datePattern = "MMM d, yyyy"
 }
