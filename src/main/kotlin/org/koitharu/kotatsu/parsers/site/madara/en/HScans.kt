@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("HSCANS", "Hscans", "en")
+@MangaSourceParser("HSCANS", "HScans", "en")
 internal class HScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HSCANS, "hscans.com", 10) {
 

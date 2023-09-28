@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("SILENCESCAN", "Silencescan", "pt", ContentType.HENTAI)
+@MangaSourceParser("SILENCESCAN", "Silence Scan", "pt", ContentType.HENTAI)
 internal class Silencescan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SILENCESCAN, "silencescan.com.br", pageSize = 35, searchPageSize = 35) {
 

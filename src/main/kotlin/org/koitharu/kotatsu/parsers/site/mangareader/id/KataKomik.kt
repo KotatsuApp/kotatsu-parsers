@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("KATAKOMIK", "Katakomik", "id")
+@MangaSourceParser("KATAKOMIK", "Kata Komik", "id")
 internal class KataKomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KATAKOMIK, "katakomik.online", pageSize = 20, searchPageSize = 20) {
 
