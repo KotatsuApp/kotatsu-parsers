@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("DUNIAKOMIK", "Duniakomik", "id", ContentType.HENTAI)
 internal class Duniakomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DUNIAKOMIK, "duniakomik.org", pageSize = 12, searchPageSize = 12) {
-
 	override val datePattern = "MMM d, yyyy"
 }
