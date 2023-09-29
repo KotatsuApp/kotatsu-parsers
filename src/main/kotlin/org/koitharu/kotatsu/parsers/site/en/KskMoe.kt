@@ -135,9 +135,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 					id = generateUid(manga.id),
 					name = manga.title,
 					number = 1,
-					url = manga.url
-						.replace("/view/", "/read/")
-						.let { "$it/1" },
+					url = manga.url,
 					scanlator = null,
 					uploadDate = date.tryParse(doc.selectFirstOrThrow("time.updated").text()),
 					branch = null,
@@ -148,7 +146,10 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val fullUrl = chapter.url
+			.replace("/view/", "/read/")
+			.let { "$it/1" }
+			.toAbsoluteUrl(domain)
 		val document = webClient.httpGet(fullUrl).parseHtml()
 
 		val id = fullUrl
