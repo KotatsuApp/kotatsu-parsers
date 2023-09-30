@@ -4,6 +4,8 @@ import androidx.collection.ArraySet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.json.JSONArray
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -11,6 +13,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -127,37 +130,55 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 				)
 			},
 			author = doc.requireElementById("metadata").selectFirstOrThrow("main div:contains(Artist) a span").text(),
-			chapters =
-			if ((doc.html().contains("previews"))) {
-				listOf(
-					MangaChapter(
-						id = generateUid(manga.id),
-						name = manga.title,
-						number = 1,
-						url = manga.url,
-						scanlator = null,
-						uploadDate = date.tryParse(doc.selectFirstOrThrow("time.updated").text()),
-						branch = null,
-						source = source,
-					),
-				)
-			} else {
-				emptyList()
-			},
-
-			)
+			chapters = listOf(
+				MangaChapter(
+					id = generateUid(manga.id),
+					name = manga.title,
+					number = 1,
+					url = manga.url,
+					scanlator = null,
+					uploadDate = date.tryParse(doc.selectFirstOrThrow("time.updated").text()),
+					branch = null,
+					source = source,
+				),
+			),
+		)
 	}
 
-	// For the moment the pages are in poor quality.
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.requireElementById("previews").select("main div img").map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
+		val fullUrl = chapter.url
+			.replace("/view/", "/read/")
+			.let { "$it/1" }
+			.toAbsoluteUrl(domain)
+		val document = webClient.httpGet(fullUrl).parseHtml()
+
+		val id = fullUrl
+			.substringAfter("/read/")
+			.substringBeforeLast("/")
+
+		val cdnUrl = document.selectFirst("meta[itemprop=image]")
+			?.attr("content")
+			?.toHttpUrlOrNull()
+			?.host
+			.let { "https://" + (it ?: domain) }
+
+		val script = document.select("script:containsData(window.metadata)").html()
+
+		val rawJson = script
+			.substringAfter("original:")
+			.substringBefore("resampled:")
+			.substringBeforeLast(",")
+
+		return JSONArray(rawJson).mapJSON {
+			val fileName = it.getString("n")
+
+			val url = "$cdnUrl/original/$id/$fileName"
+			val preview = "$cdnUrl/t/$id/320/$fileName"
+
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				preview = null,
+				preview = preview,
 				source = source,
 			)
 		}
