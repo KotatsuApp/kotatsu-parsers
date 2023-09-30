@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("PROJETOSCANLATOR", "Projeto Scanlator", "pt")
 internal class ProjetoScanlator(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PROJETOSCANLATOR, "projetoscanlator.com", 10) {
-
 	override val datePattern: String = "dd/MM/yyyy"
 }

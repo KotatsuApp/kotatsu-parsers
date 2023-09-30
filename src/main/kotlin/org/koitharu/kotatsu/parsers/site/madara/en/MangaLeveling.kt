@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGALEVELING", "Manga Leveling", "en")
 internal class MangaLeveling(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGALEVELING, "mangaleveling.com", 30) {
-
 	override val postreq = true
 	override val tagPrefix = "comics-genre/"
 	override val listUrl = "comics/"

@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("ALLPORN_COMIC", "All Porn Comic", "en", ContentType.HENTAI)
 internal class AllPornComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ALLPORN_COMIC, "allporncomic.com", pageSize = 24) {
-
 	override val tagPrefix = "porncomic-genre/"
 	override val datePattern = "MMMM dd, yyyy"
 }

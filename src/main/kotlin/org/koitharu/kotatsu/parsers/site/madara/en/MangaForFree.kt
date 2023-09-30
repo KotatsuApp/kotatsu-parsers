@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAFORFREE", "MangaForFree", "en", ContentType.HENTAI)
+@MangaSourceParser("MANGAFORFREE", "Manga For Free", "en", ContentType.HENTAI)
 internal class MangaForFree(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAFORFREE, "mangaforfree.com", 10) {
 

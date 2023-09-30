@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.HashSet
 import java.util.Locale
 
-@MangaSourceParser("MANHWA18CC", "Manhwa 18 Cc", "", ContentType.HENTAI)
+@MangaSourceParser("MANHWA18CC", "Manhwa 18 .Cc", "", ContentType.HENTAI)
 internal class Manhwa18Cc(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWA18CC, "manhwa18.cc", 24) {
 	override val datePattern = "dd MMM yyyy"
@@ -21,6 +21,11 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 	override val selectChapter = "li.a-h"
 	override val selectBodyPage = "div.read-content"
 
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -28,36 +33,30 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
 			when {
 				!query.isNullOrEmpty() -> {
-					append("/page/")
-					append(pages.toString())
-					append("/?s=")
+					append("/search?q=")
 					append(query.urlEncoded())
-					append("&post_type=wp-manga&")
+					append("&page=")
+					append(page.toString())
 				}
 
 				!tags.isNullOrEmpty() -> {
 					append("/$tagPrefix")
 					append(tag?.key.orEmpty())
-					if (pages > 1) {
-						append("/page/")
-						append(pages.toString())
+					if (page > 1) {
+						append(page.toString())
 					}
 					append("?")
 				}
 
 				else -> {
-
 					append("/$listUrl")
-					if (pages > 1) {
-						append("page/")
-						append(pages)
+					if (page > 1) {
+						append(page)
 					}
 					append("?")
 				}
@@ -72,7 +71,6 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.manga-lists div.manga-item").map { div ->
 			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
 			Manga(
@@ -126,5 +124,4 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }

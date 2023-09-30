@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ORIGAMIORPHEANS", "Origami orpheans", "pt")
+@MangaSourceParser("ORIGAMIORPHEANS", "Origami Orpheans", "pt")
 internal class Origamiorpheans(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
@@ -14,7 +14,5 @@ internal class Origamiorpheans(context: MangaLoaderContext) :
 		pageSize = 20,
 		searchPageSize = 20,
 	) {
-
 	override val datePattern = "MMM d, yyyy"
-
 }

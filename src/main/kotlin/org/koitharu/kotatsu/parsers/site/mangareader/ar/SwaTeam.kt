@@ -10,10 +10,10 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("SWATEAM", "Swa Team", "ar")
 internal class SwaTeam(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SWATEAM, "stmanga.me", pageSize = 42, searchPageSize = 39) {
+	MangaReaderParser(context, MangaSource.SWATEAM, "goldragon.me", pageSize = 42, searchPageSize = 39) {
 
 	override val datePattern = "MMMM dd, yyyy"
-	override val selectMangalist = ".listupd .bs .bsx"
+	override val selectMangaList = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
 
 	override suspend fun getListPage(

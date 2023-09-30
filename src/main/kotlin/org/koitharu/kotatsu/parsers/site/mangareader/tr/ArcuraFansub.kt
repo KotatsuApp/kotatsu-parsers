@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("ARCURAFANSUB", "Arcura Fansub", "tr", ContentType.HENTAI)
 internal class ArcuraFansub(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ARCURAFANSUB, "arcurafansub.com", pageSize = 20, searchPageSize = 10) {
-
 	override val listUrl = "/seri"
 }

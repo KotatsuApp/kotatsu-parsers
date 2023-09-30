@@ -14,6 +14,5 @@ internal class SkanlacjeFeniksy(context: MangaLoaderContext) :
 		pageSize = 10,
 		searchPageSize = 10,
 	) {
-
 	override val datePattern = "d MMMM, yyyy"
 }

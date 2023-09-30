@@ -9,8 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANYCOMIC", "Many Comic", "en", ContentType.HENTAI)
 internal class ManyComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANYCOMIC, "manycomic.com") {
-
 	override val postreq = true
 	override val tagPrefix = "comic-genre/"
-
 }

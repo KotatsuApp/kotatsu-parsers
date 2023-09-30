@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.vi
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -8,7 +7,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-
 
 @MangaSourceParser("SAYTRUYENHAY", "Saytruyenhay", "vi")
 internal class Saytruyenhay(context: MangaLoaderContext) :

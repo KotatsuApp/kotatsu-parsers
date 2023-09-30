@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("MANHWAX", "Manhwax", "en", ContentType.HENTAI)
 internal class Manhwax(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWAX, "manhwax.org", pageSize = 20, searchPageSize = 20) {
-
 	override val datePattern = "MMM d, yyyy"
 }

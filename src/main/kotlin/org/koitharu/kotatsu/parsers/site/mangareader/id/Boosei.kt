@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("BOOSEI", "Boosei", "id")
 internal class Boosei(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BOOSEI, "boosei.net", pageSize = 30, searchPageSize = 30) {
-
 	override val datePattern = "MMM d, yyyy"
 }

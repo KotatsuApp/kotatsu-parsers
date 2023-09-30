@@ -10,6 +10,5 @@ import java.util.*
 @MangaSourceParser("RAWDEX", "Raw Dex", "ko", ContentType.HENTAI)
 internal class RawDex(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAWDEX, "rawdex.net", 40) {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

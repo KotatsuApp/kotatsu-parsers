@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("YAOITR", "Yaoi Tr", "tr")
 internal class YaoiTr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.YAOITR, "yaoitr.com", 16) {
-
 	override val datePattern = "d MMMM yyyy"
 }

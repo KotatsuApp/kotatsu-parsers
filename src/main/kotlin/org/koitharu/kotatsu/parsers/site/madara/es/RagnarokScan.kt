@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("RAGNAROKSCAN", "Ragnarok Scan", "es")
 internal class RagnarokScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAGNAROKSCAN, "ragnarokscan.com") {
-
 	override val stylepage = ""
 	override val listUrl = "series/"
 	override val tagPrefix = "genero/"

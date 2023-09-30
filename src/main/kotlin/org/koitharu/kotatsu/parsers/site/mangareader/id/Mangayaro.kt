@@ -6,11 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-
-@MangaSourceParser("MANGAYARO", "Mangayaro", "id")
+@MangaSourceParser("MANGAYARO", "Manga Yaro", "id")
 internal class Mangayaro(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANGAYARO, "mangayaro.net", pageSize = 20, searchPageSize = 20) {
-
+	MangaReaderParser(context, MangaSource.MANGAYARO, "www.mangayaro.net", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

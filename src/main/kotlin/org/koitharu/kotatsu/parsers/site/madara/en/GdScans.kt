@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GDSCANS", "GdScans", "en")
 internal class GdScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GDSCANS, "gdscans.com", 10) {
-
 	override val tagPrefix = "webtoon-genre/"
 }

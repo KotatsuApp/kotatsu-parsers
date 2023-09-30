@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("VOIDSCANS", "Void Scans", "en")
 internal class VoidScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.VOIDSCANS, "void-scans.com", pageSize = 150, searchPageSize = 150) {
-
 	override val datePattern = "MMM d, yyyy"
 }

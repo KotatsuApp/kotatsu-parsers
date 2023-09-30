@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 
-@MangaSourceParser("REAPERSCANSPT", "ReaperScans Pt", "pt")
+@MangaSourceParser("REAPERSCANSPT", "Reaper Scans", "pt")
 internal class ReaperScansPt(context: MangaLoaderContext) :
 	HeanCms(context, MangaSource.REAPERSCANSPT, "reaperscans.net")

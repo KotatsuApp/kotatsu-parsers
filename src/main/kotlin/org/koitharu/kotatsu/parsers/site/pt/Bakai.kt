@@ -14,9 +14,7 @@ import java.util.*
 internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BAKAI, 15) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("bakai.org")
-
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
@@ -30,7 +28,6 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		val url = buildString {
 			append("https://")
 			append(domain)
-
 			if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())

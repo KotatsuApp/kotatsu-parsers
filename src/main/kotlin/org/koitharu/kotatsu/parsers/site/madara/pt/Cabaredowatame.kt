@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("CABAREDOWATAME", "Dessert Scan", "pt")
 internal class Cabaredowatame(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.CABAREDOWATAME, "cabaredowatame.site", 10) {
-
 	override val datePattern = "dd/MM/yyyy"
 }

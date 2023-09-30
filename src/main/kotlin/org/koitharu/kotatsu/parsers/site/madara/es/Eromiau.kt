@@ -7,4 +7,5 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("EROMIAU", "Eromiau", "es", ContentType.HENTAI)
-internal class Eromiau(context: MangaLoaderContext) : MadaraParser(context, MangaSource.EROMIAU, "www.eromiau.com", 10)
+internal class Eromiau(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.EROMIAU, "www.eromiau.com", 10)

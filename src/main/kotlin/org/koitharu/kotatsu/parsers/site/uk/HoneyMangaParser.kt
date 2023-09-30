@@ -17,7 +17,6 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.SimpleDateFormat
 import java.util.*
 
-
 private const val PAGE_SIZE = 20
 private const val INFINITE = 999999
 private const val HEADER_ENCODING = "Content-Encoding"

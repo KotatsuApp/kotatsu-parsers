@@ -6,10 +6,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LERYAOI", "LerYaoi", "pt", ContentType.HENTAI)
+@MangaSourceParser("LERYAOI", "Ler Yaoi", "pt", ContentType.HENTAI)
 internal class LerYaoi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LERYAOI, "leryaoi.com", 10) {
-
 	override val tagPrefix = "genero/"
 	override val datePattern: String = "dd/MM/yyyy"
 }

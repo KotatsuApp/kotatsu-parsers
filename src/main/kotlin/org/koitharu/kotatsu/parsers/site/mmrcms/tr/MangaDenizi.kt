@@ -1,14 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.mmrcms.tr
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-
-@MangaSourceParser("MANGA_DENIZI", "MangaDenizi", "tr")
+@MangaSourceParser("MANGA_DENIZI", "Manga Denizi", "tr")
 internal class MangaDenizi(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.MANGA_DENIZI, "www.mangadenizi.net") {
 	override val selectState = "dt:contains(Durum)"

@@ -6,10 +6,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LOLICONMOBI", "LoliconMobi", "en", ContentType.HENTAI)
+@MangaSourceParser("LOLICONMOBI", "Lolicon Mobi", "en", ContentType.HENTAI)
 internal class LoliconMobi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LOLICONMOBI, "lolicon.mobi") {
-
 	override val postreq = true
 	override val tagPrefix = "lolicon-genre/"
 }

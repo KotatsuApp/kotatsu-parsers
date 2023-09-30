@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("ISEKAISCAN", "Isekai Scan Top", "en")
+@MangaSourceParser("ISEKAISCAN", "Isekai Scan .Top", "en")
 internal class IsekaiScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ISEKAISCAN, "isekaiscan.top", 16) {
 

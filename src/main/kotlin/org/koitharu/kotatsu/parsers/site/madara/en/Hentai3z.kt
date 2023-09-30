@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HENTAI3Z", "Hentai3z", "en", ContentType.HENTAI)
 internal class Hentai3z(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAI3Z, "hentai3z.xyz", pageSize = 20) {
-
 	override val withoutAjax = true
 }

@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.vmp.VmpParser
 
-@MangaSourceParser("VERMANGASPORNO", "VerMangasPorno", "es", ContentType.HENTAI)
+@MangaSourceParser("VERMANGASPORNO", "Ver Mangas Porno", "es", ContentType.HENTAI)
 internal class VerMangasPorno(context: MangaLoaderContext) :
 	VmpParser(context, MangaSource.VERMANGASPORNO, "vermangasporno.com")

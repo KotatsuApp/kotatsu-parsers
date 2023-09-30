@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("NONBIRI", "Nonbiri", "id")
 internal class Nonbiri(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.NONBIRI, "nonbiri.space", pageSize = 15, searchPageSize = 10) {
-
 	override val datePattern = "MMM d, yyyy"
 }

@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SCANHENTAIMENU", "Scan Hentai Menu", "fr", ContentType.HENTAI)
+@MangaSourceParser("SCANHENTAIMENU", "Scan Hentai .Menu", "fr", ContentType.HENTAI)
 internal class ScanHentaiMenu(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SCANHENTAIMENU, "scan.hentai.menu")

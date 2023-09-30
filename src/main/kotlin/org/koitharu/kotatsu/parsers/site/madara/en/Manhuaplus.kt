@@ -9,9 +9,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("MANHUAPLUS", "Manhuaplus", "en")
+@MangaSourceParser("MANHUAPLUS", "Manhua Plus", "en")
 internal class Manhuaplus(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHUAPLUS, "manhuaplus.com") {
+	MadaraParser(context, MangaSource.MANHUAPLUS, "manhuaplus.org") {
 
 	override val withoutAjax = true
 
@@ -30,5 +30,4 @@ internal class Manhuaplus(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }

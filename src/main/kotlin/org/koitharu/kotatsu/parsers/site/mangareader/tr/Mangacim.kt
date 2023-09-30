@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("MANGACIM", "Mangacim", "tr")
 internal class Mangacim(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGACIM, "mangacim.com", pageSize = 20, searchPageSize = 20) {
-
 	override val datePattern = "MMM d, yyyy"
 }

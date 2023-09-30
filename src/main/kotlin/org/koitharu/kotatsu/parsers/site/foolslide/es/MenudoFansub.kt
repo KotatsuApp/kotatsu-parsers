@@ -1,11 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.foolslide.es
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
-
 
 @MangaSourceParser("MENUDO_FANSUB", "Menudo Fansub", "es")
 internal class MenudoFansub(context: MangaLoaderContext) :

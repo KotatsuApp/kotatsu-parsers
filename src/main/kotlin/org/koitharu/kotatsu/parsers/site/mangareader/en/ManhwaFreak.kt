@@ -15,7 +15,7 @@ import java.util.Calendar
 internal class ManhwaFreak(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWA_FREAK, "manhwa-freak.com", pageSize = 0, searchPageSize = 10) {
 
-	override val selectMangalist = ".listupd .lastest-serie"
+	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"
 
 

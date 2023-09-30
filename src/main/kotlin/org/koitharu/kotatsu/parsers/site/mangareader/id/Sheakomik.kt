@@ -5,9 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("SHEAKOMIK", "Sheakomik", "id")
+@MangaSourceParser("SHEAKOMIK", "Shea Komik", "id")
 internal class Sheakomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SHEAKOMIK, "sheakomik.com", pageSize = 40, searchPageSize = 40) {
-
 	override val datePattern = "MMM d, yyyy"
 }

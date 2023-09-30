@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.th
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource

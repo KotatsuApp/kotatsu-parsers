@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PONYMANGA", "PonyManga", "en", ContentType.HENTAI)
+@MangaSourceParser("PONYMANGA", "Pony Manga", "en", ContentType.HENTAI)
 internal class PonyManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PONYMANGA, "ponymanga.com", 10)

@@ -9,9 +9,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("KOMIKMANHWA", "Komik Manhwa", "id", ContentType.HENTAI)
 internal class KomikManhwa(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKMANHWA, "komikmanhwa.me", pageSize = 20, searchPageSize = 20) {
-
-
 	override val listUrl = "/series"
 	override val datePattern = "MMM d, yyyy"
-
 }

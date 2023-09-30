@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("FREEMANGATOP", "Free Manga Top", "en")
 internal class FreeMangaTop(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FREEMANGATOP, "freemangatop.com") {
-
 	override val datePattern = "MM/dd/yyyy"
 }

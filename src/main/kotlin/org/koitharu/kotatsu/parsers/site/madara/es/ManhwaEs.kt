@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWA_ES", "Manhwa Es", "es")
+@MangaSourceParser("MANHWA_ES", "Manhwa-Es", "es")
 internal class ManhwaEs(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWA_ES, "manhwa-es.com", 10) {
 

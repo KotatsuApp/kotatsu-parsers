@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("RAINBOWFAIRYSCAN", "Rainbow Fairy Scan", "pt")
 internal class RainbowFairyScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAINBOWFAIRYSCAN, "rainbowfairyscan.com", 10) {
-
 	override val datePattern: String = "dd/MM/yyyy"
 }

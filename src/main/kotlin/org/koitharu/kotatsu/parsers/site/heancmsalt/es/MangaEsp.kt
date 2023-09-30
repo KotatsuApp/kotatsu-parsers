@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 
-@MangaSourceParser("MANGAESP", "MangaEsp", "es")
+@MangaSourceParser("MANGAESP", "Manga Esp", "es")
 internal class MangaEsp(context: MangaLoaderContext) :
 	HeanCmsAlt(context, MangaSource.MANGAESP, "mangaesp.co", 15) {
 

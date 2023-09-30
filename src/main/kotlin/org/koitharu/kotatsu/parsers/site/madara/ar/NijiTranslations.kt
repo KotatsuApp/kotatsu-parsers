@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NIJITRANSLATIONS", "Niji Translations", "ar")
 internal class NijiTranslations(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NIJITRANSLATIONS, "niji-translations.com") {
-
 	override val postreq = true
 }

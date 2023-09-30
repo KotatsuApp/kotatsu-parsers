@@ -1,13 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.mangabox.en
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 
-@MangaSourceParser("HMANGABAT", "Mangabat", "en")
+@MangaSourceParser("HMANGABAT", "Manga Bat", "en")
 internal class Mangabat(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaSource.HMANGABAT) {
 

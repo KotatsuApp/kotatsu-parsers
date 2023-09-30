@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("SKYMANGAS", "Sky Mangas", "es")
 internal class SkyMangas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SKYMANGAS, "skymangas.com", pageSize = 20, searchPageSize = 10) {
-
 	override val encodedSrc = true
 }

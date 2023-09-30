@@ -83,12 +83,12 @@ internal abstract class MangaReaderParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	protected open val selectMangalist = ".postbody .listupd .bs .bsx"
+	protected open val selectMangaList = ".postbody .listupd .bs .bsx"
 	protected open val selectMangaListImg = "img.ts-post-image"
 	protected open val selectMangaListTitle = "div.tt"
 
 	protected open fun parseMangaList(docs: Document): List<Manga> {
-		return docs.select(selectMangalist).mapNotNull {
+		return docs.select(selectMangaList).mapNotNull {
 			val a = it.selectFirst("a") ?: return@mapNotNull null
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()
@@ -134,13 +134,13 @@ internal abstract class MangaReaderParser(
 	open suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
 
 		/// set if is table
-		val tablemode =
+		val tableMode =
 			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?: docs.selectFirst("div.seriestucontentr")
 			?: docs.selectFirst("div.seriestucon")
 
 		val tagMap = getOrCreateTagMap()
 
-		val selectTag = if (tablemode != null) {
+		val selectTag = if (tableMode != null) {
 			docs.select(".seriestugenre > a")
 		} else {
 			docs.select(".wd-full .mgen > a")
@@ -148,16 +148,16 @@ internal abstract class MangaReaderParser(
 
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 
-		val stateSelect = if (tablemode != null) {
-			tablemode.selectFirst(".infotable td:contains(Status)")
-				?: tablemode.selectFirst(".infotable td:contains(Statut)")
-				?: tablemode.selectFirst(".infotable td:contains(حالة العمل)")
-				?: tablemode.selectFirst(".infotable td:contains(الحالة)")
-				?: tablemode.selectFirst(".infotable td:contains(Estado)")
-				?: tablemode.selectFirst(".infotable td:contains(สถานะ)")
-				?: tablemode.selectFirst(".infotable td:contains(Stato )")
-				?: tablemode.selectFirst(".infotable td:contains(Durum)")
-				?: tablemode.selectFirst(".infotable td:contains(Statüsü)")
+		val stateSelect = if (tableMode != null) {
+			tableMode.selectFirst(".infotable td:contains(Status)")
+				?: tableMode.selectFirst(".infotable td:contains(Statut)")
+				?: tableMode.selectFirst(".infotable td:contains(حالة العمل)")
+				?: tableMode.selectFirst(".infotable td:contains(الحالة)")
+				?: tableMode.selectFirst(".infotable td:contains(Estado)")
+				?: tableMode.selectFirst(".infotable td:contains(สถานะ)")
+				?: tableMode.selectFirst(".infotable td:contains(Stato )")
+				?: tableMode.selectFirst(".infotable td:contains(Durum)")
+				?: tableMode.selectFirst(".infotable td:contains(Statüsü)")
 
 		} else {
 			docs.selectFirst(".tsinfo div:contains(Status)") ?: docs.selectFirst(".tsinfo div:contains(Statut)")
@@ -167,13 +167,12 @@ internal abstract class MangaReaderParser(
 			?: docs.selectFirst(".tsinfo div:contains(Statü)") ?: docs.selectFirst(".tsinfo div:contains(الحالة)")
 		}
 
-		val state = if (tablemode != null) {
+		val state = if (tableMode != null) {
 			stateSelect?.lastElementSibling()
 
 		} else {
 			stateSelect?.lastElementChild()
 		}
-
 
 		val mangaState = state?.let {
 			when (it.text()) {
@@ -195,8 +194,7 @@ internal abstract class MangaReaderParser(
 			}
 		}
 
-
-		val author = tablemode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()
+		val author = tableMode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()
 			?: docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
 			?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text()
 			?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text()
@@ -247,7 +245,6 @@ internal abstract class MangaReaderParser(
 							break
 						}
 					}
-
 				}
 				JSONObject(decode.substringAfter('(').substringBeforeLast(')'))
 					.getJSONArray("sources")
@@ -273,7 +270,6 @@ internal abstract class MangaReaderParser(
 					),
 				)
 			}
-
 			return pages
 		}
 	}

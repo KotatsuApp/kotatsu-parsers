@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NOCSUMMER", "Nocturne Summer", "pt")
 internal class Nocsummer(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NOCSUMMER, "nocsummer.com.br", 18) {
-
 	override val datePattern = "dd 'de' MMMMM 'de' yyyy"
 }

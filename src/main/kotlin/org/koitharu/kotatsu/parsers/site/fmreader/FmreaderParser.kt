@@ -30,12 +30,10 @@ internal abstract class FmreaderParser(
 	protected open val listeurl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
 
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
-
 
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
@@ -73,7 +71,6 @@ internal abstract class FmreaderParser(
 					append(tag?.key.orEmpty())
 				}
 			}
-
 			append("&sort=")
 			when (sortOrder) {
 				SortOrder.POPULARITY -> append("views")
@@ -83,9 +80,7 @@ internal abstract class FmreaderParser(
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.thumb-item-flow").map { div ->
-
 			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
@@ -129,13 +124,9 @@ internal abstract class FmreaderParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = async { getChapters(manga, doc) }
-
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
 		val stateDiv = doc.selectFirst(selectState)
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -248,7 +239,6 @@ internal abstract class FmreaderParser(
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
-
 		return when {
 			WordSet(
 				"day",

@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("SENPAIEDICIONES", "Senpaiediciones", "es")
 internal class Senpaiediciones(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SENPAIEDICIONES, "senpaiediciones.com", pageSize = 20, searchPageSize = 20) {
-
 	override val datePattern = "MMM d, yyyy"
 }

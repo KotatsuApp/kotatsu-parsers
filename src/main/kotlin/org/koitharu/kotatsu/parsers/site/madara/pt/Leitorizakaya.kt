@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("LEITORIZAKAYA", "Leitorizakaya", "pt", ContentType.HENTAI)
 internal class Leitorizakaya(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LEITORIZAKAYA, "leitorizakaya.net") {
-
 	override val datePattern: String = "dd/MM/yyyy"
 }

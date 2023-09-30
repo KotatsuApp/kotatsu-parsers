@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HENTAISCANTRADVF", "Hentai-Scantrad", "fr", ContentType.HENTAI)
 internal class HentaiScantradVf(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAISCANTRADVF, "hentai.scantrad-vf.cc") {
-
 	override val datePattern = "d MMMM, yyyy"
 }

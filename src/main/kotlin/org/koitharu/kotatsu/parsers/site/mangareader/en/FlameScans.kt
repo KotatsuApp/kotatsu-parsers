@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("FLAMESCANS", "Flame Scans", "en")
 internal class FlameScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.FLAMESCANS, "flamescans.org", pageSize = 20, searchPageSize = 20) {
-
 	override val listUrl = "/series"
 	override val datePattern = "MMM d, yyyy"
 }

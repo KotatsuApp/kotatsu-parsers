@@ -22,7 +22,6 @@ internal class ManhwaRaw(context: MangaLoaderContext) :
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true
 
-
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->

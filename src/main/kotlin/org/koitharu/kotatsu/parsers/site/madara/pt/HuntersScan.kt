@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("HUNTERSSCAN", "Hunters Scan", "pt")
 internal class HuntersScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HUNTERSSCAN, "huntersscan.xyz", pageSize = 50) {
-
 	override val withoutAjax = true
 	override val datePattern = "MM/dd/yyyy"
 	override val tagPrefix = "series-genre/"

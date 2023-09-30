@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.Locale
 
-@MangaSourceParser("DOUJIN_HENTAI_NET", "Doujin Hentai Net", "es", ContentType.HENTAI)
+@MangaSourceParser("DOUJIN_HENTAI_NET", "Doujin Hentai .Net", "es", ContentType.HENTAI)
 internal class DoujinHentaiNet(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DOUJIN_HENTAI_NET, "doujinhentai.net", 18) {
 	override val datePattern = "dd MMM. yyyy"
@@ -20,7 +20,6 @@ internal class DoujinHentaiNet(context: MangaLoaderContext) :
 	override val selectTestAsync = "div.listing-chapters_wrap"
 	override val selectChapter = "li.wp-manga-chapter:contains(Capitulo)"
 	override val selectPage = "div#all img"
-
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -36,5 +35,4 @@ internal class DoujinHentaiNet(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }

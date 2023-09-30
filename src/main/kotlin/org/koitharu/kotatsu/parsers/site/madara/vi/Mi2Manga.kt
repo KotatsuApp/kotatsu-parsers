@@ -1,11 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.madara.vi
 
-
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-
 
 @MangaSourceParser("MI2MANGA", "Mi2Manga", "vi")
 internal class Mi2Manga(context: MangaLoaderContext) :

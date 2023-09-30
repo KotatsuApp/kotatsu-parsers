@@ -9,7 +9,6 @@ import java.util.Locale
 @MangaSourceParser("OTSUGAMI", "Otsugami", "id")
 internal class Otsugami(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.OTSUGAMI, "otsugami.id", pageSize = 40, searchPageSize = 10) {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
 
 }

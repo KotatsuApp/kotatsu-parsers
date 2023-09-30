@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.insertCookies
 
-@MangaSourceParser("HHENTAIFR", "HhentaiFr", "fr", ContentType.HENTAI)
+@MangaSourceParser("HHENTAIFR", "Hhentai", "fr", ContentType.HENTAI)
 internal class HhentaiFr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HHENTAIFR, "hhentai.fr") {
 

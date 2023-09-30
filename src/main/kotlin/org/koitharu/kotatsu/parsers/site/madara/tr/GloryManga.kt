@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GLORYMANGA", "Glory Manga", "tr")
 internal class GloryManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GLORYMANGA, "glorymanga.com", 18) {
-
 	override val datePattern = "dd/MM/yyyy"
 }

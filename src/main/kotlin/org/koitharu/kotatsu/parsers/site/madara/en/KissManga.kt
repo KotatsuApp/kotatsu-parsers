@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("KISSMANGA", "KissManga", "en")
+@MangaSourceParser("KISSMANGA", "Kiss Manga", "en")
 internal class KissManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.KISSMANGA, "kissmanga.in") {
 	override val datePattern = "MMMM dd, yyyy"
 	override val listUrl = "mangalist/"

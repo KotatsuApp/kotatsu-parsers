@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("AKUMANOTENSHI", "AkumanoTenshi", "pt")
 internal class AkumanoTenshi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.AKUMANOTENSHI, "akumanotenshi.com", 48) {
-
 	override val listUrl = "series/"
 	override val tagPrefix = "series-genre/"
 	override val datePattern = "dd/MM/yyyy"

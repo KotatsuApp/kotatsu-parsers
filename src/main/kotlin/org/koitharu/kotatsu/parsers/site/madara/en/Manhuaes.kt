@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANHUAES", "Manhuaes", "en")
 internal class Manhuaes(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHUAES, "manhuaes.com") {
-
 	override val postreq = true
 }

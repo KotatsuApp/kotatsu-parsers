@@ -6,10 +6,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LILYMANGA", "LilyManga", "en", ContentType.HENTAI)
+@MangaSourceParser("LILYMANGA", "Lily Manga", "en", ContentType.HENTAI)
 internal class LilyManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LILYMANGA, "lilymanga.net") {
-
 	override val tagPrefix = "ys-genre/"
 	override val listUrl = "ys/"
 	override val datePattern = "yyyy-MM-dd"

@@ -11,12 +11,11 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-
-@MangaSourceParser("MANHWA_FREAK_FR", "Manhwa Freak Fr", "fr")
+@MangaSourceParser("MANHWA_FREAK_FR", "Manhwa Freak", "fr")
 internal class ManhwaFreakFr(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWA_FREAK_FR, "manhwafreak.fr", pageSize = 0, searchPageSize = 10) {
 
-	override val selectMangalist = ".listupd .lastest-serie"
+	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"
 	override val sourceLocale: Locale = Locale.ENGLISH
 

@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGAUS", "Mangaus", "en")
 internal class Mangaus(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAUS, "mangaus.xyz") {
-
 	override val withoutAjax = true
 }

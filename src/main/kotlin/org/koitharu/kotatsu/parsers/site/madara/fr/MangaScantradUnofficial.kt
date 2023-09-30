@@ -5,9 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGASCANTRADUNOFFICIAL", "Manga Scantrad (Unofficial)", "fr")
+@MangaSourceParser("MANGASCANTRADUNOFFICIAL", "Manga Scantrad .Fr", "fr")
 internal class MangaScantradUnofficial(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGASCANTRADUNOFFICIAL, "www.mangascantrad.fr", 10) {
-
 	override val datePattern = "dd/MM/yyyy"
 }

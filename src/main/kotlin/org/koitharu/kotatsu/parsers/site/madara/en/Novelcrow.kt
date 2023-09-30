@@ -6,9 +6,8 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("NOVELCROW", "NovelCrow", "en", ContentType.HENTAI)
+@MangaSourceParser("NOVELCROW", "Novel Crow", "en", ContentType.HENTAI)
 internal class Novelcrow(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NOVELCROW, "novelcrow.com", 24) {
-
 	override val tagPrefix = "comic-genre/"
 }

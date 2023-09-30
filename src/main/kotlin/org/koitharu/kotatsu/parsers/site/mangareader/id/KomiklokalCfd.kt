@@ -7,9 +7,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("KOMIKLOKALCFD", "Komiklokal Cfd", "id", ContentType.HENTAI)
+@MangaSourceParser("KOMIKLOKALCFD", "Komiklokal .Cfd", "id", ContentType.HENTAI)
 internal class KomiklokalCfd(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKLOKALCFD, "komiklokal.cfd", pageSize = 30, searchPageSize = 10) {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
 }
