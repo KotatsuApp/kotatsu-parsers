@@ -41,7 +41,8 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	override val sortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
-	private val apiDomain = "api.$domain"
+	private val apiDomain
+		get() = "api.$domain"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val response = webClient.httpGet(manga.url.toAbsoluteUrl(apiDomain)).parseJson()
@@ -62,7 +63,7 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 						branch = null,
 						source = source,
 					)
-				}.reversed(),
+				},
 		)
 	}
 
