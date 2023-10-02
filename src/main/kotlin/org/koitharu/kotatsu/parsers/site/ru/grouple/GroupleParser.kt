@@ -214,7 +214,6 @@ internal abstract class GroupleParser(
 				cachedPagesServer = it.toHttpUrlOrNull()?.host
 			}
 		} catch (e: NoSuchElementException) {
-			assert(false) { e.toString() }
 			candidates.randomOrNull() ?: throw ParseException("No page url candidates", page.url, e)
 		}
 	}
@@ -314,7 +313,7 @@ internal abstract class GroupleParser(
 
 	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
 		webClient.httpHead(url).use { response ->
-			response.isSuccessful && response.headersContentLength() >= MIN_IMAGE_SIZE
+			response.isSuccessful && !response.isPumpkin() && response.headersContentLength() >= MIN_IMAGE_SIZE
 		}
 	}.getOrDefault(false)
 
@@ -325,6 +324,8 @@ internal abstract class GroupleParser(
 		}
 		return this
 	}
+
+	private fun Response.isPumpkin(): Boolean = request.url.host == "upload.wikimedia.org"
 
 	private fun parseManga(node: Element): Manga? {
 		val imgDiv = node.selectFirst("div.img") ?: return null
