@@ -12,7 +12,7 @@ import java.util.Locale
 @MangaSourceParser("ERO18X", "Ero18x", "", ContentType.HENTAI)
 internal class Ero18x(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ERO18X, "ero18x.com", 10) {
-	override val datePattern = "MMMM d"
+	override val datePattern = "MM/dd"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true
 
@@ -23,7 +23,6 @@ internal class Ero18x(context: MangaLoaderContext) :
 			val href = a.attrAsRelativeUrl("href")
 			val link = href + stylepage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
-
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
