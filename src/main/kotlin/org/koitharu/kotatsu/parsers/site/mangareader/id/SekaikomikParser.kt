@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SEKAIKOMIK", "Sekai Komik", "id")
 internal class SekaikomikParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SEKAIKOMIK, "sekaikomik.pro", pageSize = 20, searchPageSize = 100)
+	MangaReaderParser(context, MangaSource.SEKAIKOMIK, "sekaikomik.bio", pageSize = 20, searchPageSize = 100)

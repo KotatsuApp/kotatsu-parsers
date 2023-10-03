@@ -7,7 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SURYASCANS", "Surya Scans", "en")
 internal class SuryaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SURYASCANS, "suryascans.com", pageSize = 5, searchPageSize = 5) {
-
-	override val datePattern = "MMM d, yyyy"
-}
+	MangaReaderParser(context, MangaSource.SURYASCANS, "suryareader.com", pageSize = 5, searchPageSize = 5)
