@@ -19,8 +19,7 @@ import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
-@MangaSourceParser("LINEWEBTOONS", "Line Webtoons", "en", type = ContentType.MANGA)
-class LineWebtoonsParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.LINEWEBTOONS)  {
+internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: MangaSource) : MangaParser(context, source)  {
 	private val signer = WebtoonsUrlSigner("gUtPzJFZch4ZyAGviiyH94P99lQ3pFdRTwpJWDlSGFfwgpr6ses5ALOxWHOIT7R1")
 
 	override val configKeyDomain
@@ -36,11 +35,11 @@ class LineWebtoonsParser(context: MangaLoaderContext) : MangaParser(context, Man
 		get() = config[configKeyStaticDomain]
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		// doesn't actually sort by rating, but by likes
 		// this should be fine though
 		SortOrder.RATING,
+		SortOrder.UPDATED,
 	)
 	override val headers: Headers
 		get() = Headers.Builder()
@@ -130,7 +129,7 @@ class LineWebtoonsParser(context: MangaLoaderContext) : MangaParser(context, Man
 			SortOrder.POPULARITY -> "READ_COUNT"
 			SortOrder.RATING -> "LIKEIT"
 			else -> {
-				throw Exception("Unreachable");
+				throw Exception("Unreachable")
 			}
 		}
 
@@ -250,7 +249,12 @@ class LineWebtoonsParser(context: MangaLoaderContext) : MangaParser(context, Man
 		val uri = URI(urlWithHost)
 		val hasVersion = (uri.rawQuery ?: "").split("&").any { it.startsWith("v=") }
 		val hasQuery = uri.rawQuery != null
-		val language = "en"
+		// some language tags do not map perfectly to the ones used by the API
+		val language = when (val tag = sourceLocale.toLanguageTag()) {
+			"in" -> "id"
+			"zh" -> "zh-hant"
+			else -> tag
+		}
 
 		val urlWithParams = urlWithHost + if (hasQuery) {
 			"&"
@@ -260,10 +264,24 @@ class LineWebtoonsParser(context: MangaLoaderContext) : MangaParser(context, Man
 			"v=1"
 		} else { "" } + "&language=${language}&locale=${language}&platform=APP_ANDROID"
 
-		val result = signer.makeEncryptUrl(urlWithParams);
-
-		return result
+		return signer.makeEncryptUrl(urlWithParams)
 	}
+
+	@MangaSourceParser("LINEWEBTOONS_EN", "Line Webtoons English", "en", type = ContentType.MANGA)
+	class English(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_EN)
+	@MangaSourceParser("LINEWEBTOONS_ZH", "Line Webtoons Chinese", "zh", type = ContentType.MANGA)
+	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ZH)
+	@MangaSourceParser("LINEWEBTOONS_TH", "Line Webtoons Thai", "th", type = ContentType.MANGA)
+	class Thai(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_TH)
+	@MangaSourceParser("LINEWEBTOONS_ID", "Line Webtoons Indonesian", "id", type = ContentType.MANGA)
+	class Indonesian(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ID)
+	@MangaSourceParser("LINEWEBTOONS_ES", "Line Webtoons Spanish", "es", type = ContentType.MANGA)
+	class Spanish(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ES)
+	@MangaSourceParser("LINEWEBTOONS_FR", "Line Webtoons French", "fr", type = ContentType.MANGA)
+	class French(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_FR)
+	@MangaSourceParser("LINEWEBTOONS_DE", "Line Webtoons German", "de", type = ContentType.MANGA)
+	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_DE)
+
 }
 
 
