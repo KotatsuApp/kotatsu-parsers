@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
@@ -9,11 +10,11 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
-import java.net.URI
 import java.net.URLEncoder
 import java.util.*
 import javax.crypto.Mac
@@ -22,17 +23,17 @@ import javax.crypto.spec.SecretKeySpec
 internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: MangaSource) : MangaParser(context, source)  {
 	private val signer = WebtoonsUrlSigner("gUtPzJFZch4ZyAGviiyH94P99lQ3pFdRTwpJWDlSGFfwgpr6ses5ALOxWHOIT7R1")
 
+	// we don't __really__ support changing this domain because:
+	// 1. I don't think other websites have this exact API
+	// 2. most communication is done with other domains (hosting API and static content), which are not configurable
+	// 3. we rely on the HTTP client setting the referer header to webtoons.com
+	//
+	// This effectively means that changing the domain will break the source. Yikes
 	override val configKeyDomain
 		get() = ConfigKey.Domain("webtoons.com")
-	private val configKeyApiDomain
-		get() = ConfigKey.Domain("global.apis.naver.com")
-	private val configKeyStaticDomain
-		get() = ConfigKey.Domain("webtoon-phinf.pstatic.net")
 
-	private val apiDomain
-		get() = config[configKeyApiDomain]
-	private val staticDomain
-		get() = config[configKeyStaticDomain]
+	private val apiDomain = "global.apis.naver.com"
+	private val staticDomain = "webtoon-phinf.pstatic.net"
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -49,6 +50,14 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		return page.url
 	}
+
+	// some language tags do not map perfectly to the ones used by the API
+	private val languageCode: String
+		get() = when (val tag = sourceLocale.toLanguageTag()) {
+			"in" -> "id"
+			"zh" -> "zh-hant"
+			else -> tag
+		}
 
 	private suspend fun getChapters(titleNo: Long): List<MangaChapter> {
 		val firstResult = makeRequest("/lineWebtoon/webtoon/challengeEpisodeList.json?v=2&titleNo=$titleNo&startIndex=0&pageSize=30")
@@ -79,7 +88,6 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 				number = jo.getInt("episodeSeq"),
 				url = "$titleNo-${jo.getString("episodeNo")}",
 				uploadDate = jo.getLong("modifyYmdt"),
-				// do we want to use it for anything?
 				branch = null,
 				scanlator = null,
 				source = source,
@@ -98,7 +106,7 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 					title = jo.getString("title"),
 					altTitle = null,
 					url = "$titleNo",
-					publicUrl = "https://${domain}/en/canvas/a/list?title_no=${titleNo}",
+					publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=${titleNo}",
 					rating = jo.getDouble("starScoreAverage").toFloat() / 10f,
 					isNsfw = jo.getBoolean("ageGradeNotice"),
 					coverUrl = "https://$staticDomain${jo.getString("thumbnail")}",
@@ -129,7 +137,7 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 			SortOrder.POPULARITY -> "READ_COUNT"
 			SortOrder.RATING -> "LIKEIT"
 			else -> {
-				throw Exception("Unreachable")
+				throw IllegalArgumentException("Unsupported sort order: $sortOrder")
 			}
 		}
 
@@ -149,7 +157,7 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 						title = jo.getString("title"),
 						altTitle = null,
 						url = "$titleNo",
-						publicUrl = "https://${domain}/en/canvas/a/list?title_no=${titleNo}",
+						publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 						rating = RATING_UNKNOWN,
 						isNsfw = false,
 						coverUrl = "https://$staticDomain${jo.getString("thumbnail")}",
@@ -162,7 +170,7 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 					)
 				}
 		} else {
-			val result = makeRequest("/lineWebtoon/webtoon/challengeGenreTitleList.json?genre=${genre}&sortOrder=${sortOrderStr}&startIndex=${offset+1}&pageSize=20")
+			val result = makeRequest("/lineWebtoon/webtoon/challengeGenreTitleList.json?genre=$genre&sortOrder=$sortOrderStr&startIndex=${offset+1}&pageSize=20")
 
 			val genres = result.getJSONObject("genreList")
 				.getJSONArray("challengeGenres")
@@ -180,13 +188,11 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 						title = jo.getString("title"),
 						altTitle = null,
 						url = "$titleNo",
-						publicUrl = "https://${domain}/en/canvas/a/list?title_no=${titleNo}",
+						publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 						rating = jo.getDouble("starScoreAverage").toFloat() / 10f,
 						isNsfw = jo.getBoolean("ageGradeNotice"),
 						coverUrl = "https://$staticDomain${jo.getString("thumbnail")}",
-						largeCoverUrl = if (jo.has("thumbnailVertical")) {
-							"https://$staticDomain${jo.getString("thumbnailVertical")}"
-						} else { null },
+						largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
 						tags = setOf(genres[jo.getString("representGenre")]!!),
 						author = jo.getString("writingAuthorName"),
 						description = jo.getString("synopsis"),
@@ -201,9 +207,9 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val (titleNo, episodeNo) = chapter.url.splitTwoParts('-')!!
+		val (titleNo, episodeNo) = requireNotNull(chapter.url.splitTwoParts('-'))
 
-		return makeRequest("/lineWebtoon/webtoon/challengeEpisodeInfo.json?v=2&titleNo=${titleNo}&episodeNo=${episodeNo}")
+		return makeRequest("/lineWebtoon/webtoon/challengeEpisodeInfo.json?v=2&titleNo=$titleNo&episodeNo=$episodeNo")
 			.getJSONObject("episodeInfo")
 			.getJSONArray("imageInfo")
 			.mapJSONIndexed() { i, jo ->
@@ -245,24 +251,18 @@ internal abstract class LineWebtoonsParser(context: MangaLoaderContext, source: 
 	}
 
 	private fun finalizeUrl(url: String): String {
-		val urlWithHost = "https://${apiDomain}$url"
-		val uri = URI(urlWithHost)
-		val hasVersion = (uri.rawQuery ?: "").split("&").any { it.startsWith("v=") }
-		val hasQuery = uri.rawQuery != null
-		// some language tags do not map perfectly to the ones used by the API
-		val language = when (val tag = sourceLocale.toLanguageTag()) {
-			"in" -> "id"
-			"zh" -> "zh-hant"
-			else -> tag
-		}
+		val absoluteUrl = url.toAbsoluteUrl(apiDomain)
+		val parsedUrl = absoluteUrl.toHttpUrl()
+		val hasVersion = parsedUrl.queryParameter("v") != null
+		val hasQuery = parsedUrl.query != null
 
-		val urlWithParams = urlWithHost + if (hasQuery) {
+		val urlWithParams = absoluteUrl + if (hasQuery) {
 			"&"
 		} else {
 			"?"
 		} + "serviceZone=GLOBAL&" + if (!hasVersion) {
 			"v=1"
-		} else { "" } + "&language=${language}&locale=${language}&platform=APP_ANDROID"
+		} else { "" } + "&language=$languageCode&locale=$languageCode&platform=APP_ANDROID"
 
 		return signer.makeEncryptUrl(urlWithParams)
 	}
@@ -317,7 +317,7 @@ private class WebtoonsUrlSigner(val secret: String) {
 			"&"
 		} else {
 			"?"
-		} + "msgpad=${msgpad}&md=${digest}"
+		} + "msgpad=$msgpad&md=$digest"
 	}
 }
 
