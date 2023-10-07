@@ -27,7 +27,7 @@ internal class ManhwaRaw(context: MangaLoaderContext) :
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 
 			val name = a.selectFirst("p")?.text() ?: a.ownText()

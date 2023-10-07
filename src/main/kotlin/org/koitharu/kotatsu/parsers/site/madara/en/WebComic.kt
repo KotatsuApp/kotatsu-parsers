@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("WEBCOMIC", "WebComic", "en")
 internal class WebComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBCOMIC, "webcomic.me") {
-	override val postreq = true
+	override val postReq = true
 }

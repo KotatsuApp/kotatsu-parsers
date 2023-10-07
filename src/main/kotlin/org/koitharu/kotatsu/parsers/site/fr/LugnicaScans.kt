@@ -49,6 +49,10 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		sortOrder: SortOrder,
 	): List<Manga> {
 
+		if (!query.isNullOrEmpty()) {
+			return emptyList()
+		}
+
 		if (sortOrder == SortOrder.ALPHABETICAL) {
 
 			if (page > 1) {

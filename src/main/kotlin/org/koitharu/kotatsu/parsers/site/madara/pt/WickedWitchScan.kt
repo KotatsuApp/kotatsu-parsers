@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("WICKEDWITCHSCAN", "WickedWitch Scan", "pt")
 internal class WickedWitchScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WICKEDWITCHSCAN, "wickedwitchscan.com", pageSize = 10) {
-	override val postreq = true
+	override val postReq = true
 }

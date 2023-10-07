@@ -86,7 +86,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val link = href + stylepage
+			val link = href + stylePage
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),

@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Manga_Lek(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGA_LEK, "manga-lek.com") {
 	override val listUrl = "mangalek/"
-	override val postreq = true
+	override val postReq = true
 }

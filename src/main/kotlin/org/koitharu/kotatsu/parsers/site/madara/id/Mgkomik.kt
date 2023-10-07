@@ -12,6 +12,6 @@ internal class Mgkomik(context: MangaLoaderContext) :
 	override val tagPrefix = "genres/"
 	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"
-	override val stylepage = ""
+	override val stylePage = ""
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

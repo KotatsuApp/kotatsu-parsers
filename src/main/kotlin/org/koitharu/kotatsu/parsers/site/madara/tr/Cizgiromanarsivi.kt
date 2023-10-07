@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("CIZGIROMANARSIVI", "Cizgiromanarsivi", "tr")
 internal class Cizgiromanarsivi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.CIZGIROMANARSIVI, "cizgiromanarsivi.com", 24) {
-	override val stylepage = ""
+	override val stylePage = ""
 	override val tagPrefix = "kategori/"
 	override val listUrl = "seri/"
 	override val datePattern = "dd.MM.yyyy"

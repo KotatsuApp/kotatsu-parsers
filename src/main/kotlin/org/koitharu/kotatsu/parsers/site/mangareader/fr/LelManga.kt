@@ -7,10 +7,13 @@ import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.Locale
 
 @MangaSourceParser("LELMANGA", "Lel Manga", "fr")
 internal class LelManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.LELMANGA, "www.lelmanga.com", pageSize = 21, searchPageSize = 20) {
+
+	override val sourceLocale: Locale = Locale.ENGLISH
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)

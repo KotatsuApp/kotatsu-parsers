@@ -10,5 +10,5 @@ internal class Anikiga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ANIKIGA, "anikiga.com") {
 	override val tagPrefix = "manga-tur/"
 	override val datePattern = "d MMMM yyyy"
-	override val postreq = true
+	override val postReq = true
 }

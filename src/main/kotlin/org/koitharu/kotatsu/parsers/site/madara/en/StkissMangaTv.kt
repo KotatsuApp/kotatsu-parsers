@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("STKISSMANGA_TV", "1stKissManga .Tv", "en")
 internal class StkissMangaTv(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.STKISSMANGA_TV, "1stkissmanga.tv", 20) {
-	override val postreq = true
+	override val postReq = true
 }

@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("KINGS_MANGA", "Kings Manga", "th")
 internal class KingsManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.KINGS_MANGA, "www.kings-manga.co") {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern = "d MMMM yyyy"
 }

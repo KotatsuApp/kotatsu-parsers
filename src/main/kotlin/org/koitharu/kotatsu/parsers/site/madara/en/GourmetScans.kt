@@ -10,5 +10,5 @@ internal class GourmetScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GOURMETSCANS, "gourmetscans.net") {
 	override val listUrl = "project/"
 	override val tagPrefix = "genre/"
-	override val stylepage = ""
+	override val stylePage = ""
 }

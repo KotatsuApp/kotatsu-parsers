@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("PLATINUMSCANS", "Platinum Scans", "en")
 internal class PlatinumScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PLATINUMSCANS, "platinumscans.com", pageSize = 10) {
-	override val postreq = true
+	override val postReq = true
 }

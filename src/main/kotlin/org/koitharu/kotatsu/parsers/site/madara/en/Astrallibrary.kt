@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Astrallibrary(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ASTRALLIBRARY, "astrallibrary.net", 18) {
 	override val datePattern = "dd MMM"
-	override val postreq = true
+	override val postReq = true
 }

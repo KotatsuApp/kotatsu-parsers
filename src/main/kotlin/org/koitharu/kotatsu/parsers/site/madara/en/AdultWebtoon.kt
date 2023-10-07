@@ -10,5 +10,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class AdultWebtoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ADULT_WEBTOON, "adultwebtoon.com") {
 	override val tagPrefix = "adult-webtoon-genre/"
-	override val postreq = true
+	override val postReq = true
 }

@@ -47,7 +47,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 			).addPathSegment(page.toString())
 		val doc = webClient.httpGet(url.build()).parseHtml()
 		val root = doc.selectFirstOrThrow("div.tamanho-bloco-perfil")
-		return root.select(".lista-mangas").map { div ->
+		return root.select(".lista-itens").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectFirstOrThrow("img")
 			val href = a.attrAsRelativeUrl("href")
@@ -71,26 +71,25 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.selectFirstOrThrow(".perfil-d-manga, .perfil-p-manga, .manga-pagina")
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
-			rating = root.select("h2")
+			rating = doc.select("h2")
 				.find { it.ownText().startsWith('#') }
 				?.ownText()?.drop(1)?.toFloatOrNull()?.div(10f) ?: manga.rating,
-			largeCoverUrl = root.selectFirst("img.img-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
-			description = root.selectFirst(".panel-default")?.selectFirst(".panel-body")?.html(),
-			author = root.tableValue("Autor")?.ownText(),
-			altTitle = root.tableValue("Título(s) Alternativo(s)")?.ownText(),
-			state = when (root.tableValue("Status")?.selectLast(".label")?.text()) {
+			largeCoverUrl = doc.selectFirst("img.img-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
+			description = doc.selectFirst(".panel-default")?.selectFirst(".panel-body")?.html(),
+			author = doc.tableValue("Autor")?.ownText(),
+			altTitle = doc.tableValue("Título(s) Alternativo(s)")?.ownText(),
+			state = when (doc.tableValue("Status")?.selectLast(".label")?.text()) {
 				"Completo" -> MangaState.FINISHED
 				"Ativo" -> MangaState.ONGOING
 				else -> null
 			},
-			tags = root.tableValue("Gênero(s)")?.select("a")?.mapToSet {
+			tags = doc.tableValue("Gênero(s)")?.select("a")?.mapToSet {
 				it.toMangaTag()
 			} ?: manga.tags,
-			isNsfw = root.selectFirst(".alert-danger")?.html()?.contains("18 anos") == true,
-			chapters = root.select("div.row.capitulos").mapChapters(reversed = true) { i, div ->
+			isNsfw = doc.selectFirst(".alert-danger")?.html()?.contains("18 anos") == true,
+			chapters = doc.select("div.row.capitulos").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
 				val title = a.text()

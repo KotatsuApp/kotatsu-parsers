@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("CREEPYSCANS", "Creepy Scans", "en")
 internal class CreepyScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.CREEPYSCANS, "creepyscans.com") {
-	override val stylepage = ""
+	override val stylePage = ""
 }

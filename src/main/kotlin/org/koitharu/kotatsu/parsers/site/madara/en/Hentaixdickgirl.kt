@@ -14,15 +14,15 @@ import java.text.SimpleDateFormat
 @MangaSourceParser("HENTAIXDICKGIRL", "Hentai x Dickgirl", "en", ContentType.HENTAI)
 internal class Hentaixdickgirl(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAIXDICKGIRL, "hentaixdickgirl.com", 16) {
+	override val postReq = true
 
-	override val postreq = true
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.listing-chapters_wrap")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return root2.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(

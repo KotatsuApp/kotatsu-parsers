@@ -12,5 +12,5 @@ internal class HManhwa(context: MangaLoaderContext) :
 	override val tagPrefix = "manhwa-genre/"
 	override val listUrl = "manhwa/"
 	override val datePattern = "dd MMM"
-	override val postreq = true
+	override val postReq = true
 }

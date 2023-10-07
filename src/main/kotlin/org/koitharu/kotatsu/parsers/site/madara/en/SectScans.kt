@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAX1", "MangaX1", "en")
-internal class Mangax1(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGAX1, "mangax1.com") {
-	override val postReq = true
+@MangaSourceParser("SECTSCANS", "Sect Scans", "en")
+internal class SectScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.SECTSCANS, "sectscans.com") {
+	override val listUrl = "comics/"
 }

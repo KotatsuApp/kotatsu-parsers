@@ -11,5 +11,5 @@ internal class AkumanoTenshi(context: MangaLoaderContext) :
 	override val listUrl = "series/"
 	override val tagPrefix = "series-genre/"
 	override val datePattern = "dd/MM/yyyy"
-	override val postreq = true
+	override val postReq = true
 }

@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGAOWLBLOG", "MangaOwl .Blog", "en", ContentType.HENTAI)
 internal class MangaOwlBlog(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAOWLBLOG, "mangaowl.blog", 20) {
-	override val postreq = true
+	override val postReq = true
 }

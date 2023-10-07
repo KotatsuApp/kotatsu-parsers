@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("PETROTECHSOCIETY", "PetrotechSociety", "en", ContentType.HENTAI)
 internal class PetrotechSociety(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PETROTECHSOCIETY, "www.petrotechsociety.org", pageSize = 10) {
-	override val postreq = true
+	override val postReq = true
 }
