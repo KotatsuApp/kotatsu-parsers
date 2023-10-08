@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.async
@@ -13,14 +13,14 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("PURURIN", "Pururin", "en", ContentType.HENTAI)
-internal class Pururin(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.PURURIN, pageSize = 20) {
+@MangaSourceParser("IMHENTAI", "ImHentai", type = ContentType.HENTAI)
+internal class ImHentai(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaSource.IMHENTAI, pageSize = 20) {
 
 	override val sortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.ALPHABETICAL)
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
 
-	override val configKeyDomain = ConfigKey.Domain("pururin.to")
+	override val configKeyDomain = ConfigKey.Domain("imhentai.xxx")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -32,39 +32,44 @@ internal class Pururin(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
+
 			if (!query.isNullOrEmpty()) {
-				append("/search?q=")
+				append("/search/?key=")
 				append(query.urlEncoded())
 				append("&page=")
 				append(page)
-			} else {
-				append("/browse")
-				if (!tags.isNullOrEmpty()) {
-					append("/tags/content/")
-					append(tag?.key.orEmpty())
-					append("/")
+			} else if (!tags.isNullOrEmpty()) {
+				append("/tag/")
+				append(tag?.key.orEmpty())
+				append("/")
+				when (sortOrder) {
+					SortOrder.UPDATED -> append("")
+					SortOrder.POPULARITY -> append("popular/")
+					else -> append("")
 				}
 				append("?page=")
 				append(page)
-				append("&sort=")
+			} else {
+				append("/search/?page=")
+				append(page)
 				when (sortOrder) {
-					SortOrder.UPDATED -> append("")
-					SortOrder.POPULARITY -> append("most-viewed")
-					SortOrder.RATING -> append("highest-rated")
-					SortOrder.ALPHABETICAL -> append("title")
-					else -> append("")
+					SortOrder.UPDATED -> append("&lt=1&pp=0")
+					SortOrder.POPULARITY -> append("&lt=0&pp=1")
+					SortOrder.RATING -> append("&lt=0&pp=0")
+					else -> append("&lt=1&pp=0")
 				}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select(".row-gallery a.card-gallery").map { a ->
+		return doc.select("div.galleries div.thumb").map { div ->
+			val a = div.selectFirstOrThrow(".inner_thumb a")
 			val href = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = a.selectFirst("img.card-img-top")?.src().orEmpty(),
-				title = a.selectFirst(".title")?.text().orEmpty(),
+				coverUrl = a.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirst(".caption")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -76,27 +81,27 @@ internal class Pururin(context: MangaLoaderContext) :
 		}
 	}
 
+	//Tags are deliberately reduced because there are too many and this slows down the application.
+	//only the most popular ones are taken.
 	override suspend fun getTags(): Set<MangaTag> {
-		val root = webClient.httpGet("https://$domain/tags/content").parseHtml()
-		val totalPagesTags = root.select("ul.pagination .page-item").dropLast(1).last().text().toInt()
 		return coroutineScope {
-			(1..totalPagesTags).map { page ->
+			(1..3).map { page ->
 				async { getTags(page) }
 			}
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val url = "https://$domain/tags/content?page=$page"
+		val url = "https://$domain/tags/popular/?page=$page"
 		val root = webClient.httpGet(url).parseHtml()
 		return root.parseTags()
 	}
 
-	private fun Element.parseTags() = select("table tr td a").mapToSet {
-		val href = it.attr("href").substringAfterLast("content/").substringBeforeLast('/')
+	private fun Element.parseTags() = select("div.stags a.tag_btn").mapToSet {
+		val href = it.attr("href").substringAfterLast("tag/").substringBeforeLast('/')
 		MangaTag(
 			key = href,
-			title = it.text(),
+			title = it.selectFirstOrThrow("h3.list_tag").text(),
 			source = source,
 		)
 	}
@@ -105,17 +110,16 @@ internal class Pururin(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		manga.copy(
-			description = doc.selectFirst("p.mb-2")?.text().orEmpty(),
-			rating = doc.selectFirst("td span.rating")?.attr("content")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			tags = doc.body().select("tr:contains(Contents) ul.list-inline a").mapNotNullToSet {
-				val href = it.attr("href").substringAfterLast("content/").substringBeforeLast('/')
+			tags = doc.body().select("li:contains(Tags) a.tag").mapNotNullToSet {
+				val href = it.attr("href").substringAfterLast("tag/").substringBeforeLast('/')
+				val name = it.html().substringBeforeLast("<span")
 				MangaTag(
 					key = href,
-					title = it.text(),
+					title = name,
 					source = source,
 				)
 			},
-			author = doc.selectFirst("a[itemprop=author]")?.text(),
+			author = doc.selectFirst("li:contains(Artists) a.tag")?.html()?.substringBefore("<span"),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -124,7 +128,7 @@ internal class Pururin(context: MangaLoaderContext) :
 					url = manga.url,
 					scanlator = null,
 					uploadDate = 0,
-					branch = null,
+					branch = doc.selectFirst("li:contains(Language) a.tag")?.html()?.substringBeforeLast("<span"),
 					source = source,
 				),
 			),
@@ -133,15 +137,16 @@ internal class Pururin(context: MangaLoaderContext) :
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
 		val doc = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body().selectFirstOrThrow(".row-gallery-small")
-		return root.select("a.card-gallery").mapNotNull { a ->
+		val root = doc.body().selectFirstOrThrow("div.related")
+		return root.select("div.thumb").mapNotNull { div ->
+			val a = div.selectFirstOrThrow(".inner_thumb a")
 			val href = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = a.selectFirst("img.card-img-top")?.src().orEmpty(),
-				title = a.selectFirst(".title")?.text().orEmpty(),
+				coverUrl = a.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirst(".caption")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -156,15 +161,20 @@ internal class Pururin(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".gallery-preview img").map { url ->
-			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
-			val urlImage = img.replace("t.", ".")
-			MangaPage(
-				id = generateUid(urlImage),
-				url = urlImage,
-				preview = null,
-				source = source,
+		val totalPages = doc.selectFirstOrThrow(".pages").text().replace("Pages: ", "").toInt() + 1
+		val domainImg = doc.requireElementById("append_thumbs").selectFirstOrThrow("img").src()?.replace("1t.jpg", "")
+		val pages = ArrayList<MangaPage>(totalPages)
+		for (i in 1 until totalPages) {
+			val url = "$domainImg$i.jpg"
+			pages.add(
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				),
 			)
 		}
+		return pages
 	}
 }
