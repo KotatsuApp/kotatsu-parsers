@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.all
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
