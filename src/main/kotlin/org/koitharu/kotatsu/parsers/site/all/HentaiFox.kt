@@ -76,23 +76,23 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
+	//Tags are deliberately reduced because there are too many and this slows down the application.
+	//only the most popular ones are taken.
 	override suspend fun getTags(): Set<MangaTag> {
-		val root = webClient.httpGet("https://$domain/tags/").parseHtml()
-		val totalPagesTags = root.select("ul.pagination a.page-link").dropLast(1).last().text().toInt()
 		return coroutineScope {
-			(1..totalPagesTags).map { page ->
+			(1..3).map { page ->
 				async { getTags(page) }
 			}
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val url = "https://$domain/tags/pag/$page/"
+		val url = "https://$domain/tags/popular/pag/$page/"
 		val root = webClient.httpGet(url).parseHtml()
 		return root.parseTags()
 	}
 
-	private fun Element.parseTags() = select(".list_tags a.tag_btn").mapToSet { it ->
+	private fun Element.parseTags() = select(".list_tags a.tag_btn").mapToSet {
 		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
 		MangaTag(
 			key = key,
