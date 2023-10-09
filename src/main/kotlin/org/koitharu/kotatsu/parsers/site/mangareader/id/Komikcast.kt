@@ -18,6 +18,8 @@ internal class Komikcast(context: MangaLoaderContext) :
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val sortOrders: Set<SortOrder>
+		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -29,7 +31,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 			if (page > lastSearchPage) {
 				return emptyList()
 			}
-
 			val url = buildString {
 				append("https://")
 				append(domain)
@@ -38,20 +39,11 @@ internal class Komikcast(context: MangaLoaderContext) :
 				append("/?s=")
 				append(query.urlEncoded())
 			}
-
 			val docs = webClient.httpGet(url).parseHtml()
 			lastSearchPage = docs.selectFirst(".pagination .next")
 				?.previousElementSibling()
 				?.text()?.toIntOrNull() ?: 1
 			return parseMangaList(docs)
-		}
-
-		val sortQuery = when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "title"
-			SortOrder.NEWEST -> "latest"
-			SortOrder.POPULARITY -> "popular"
-			SortOrder.UPDATED -> "update"
-			else -> ""
 		}
 		val tagKey = "genre[]".urlEncoded()
 		val tagQuery =
@@ -62,11 +54,14 @@ internal class Komikcast(context: MangaLoaderContext) :
 			append(listUrl)
 			append("/page/")
 			append(page)
-			append("/?orderby=")
-			append(sortQuery)
+			when (sortOrder) {
+				SortOrder.ALPHABETICAL -> append("/?orderby=titleasc")
+				SortOrder.POPULARITY -> append("/?orderby=popular")
+				SortOrder.UPDATED -> append("/?sortby=update")
+				else -> append("/?sortby=update")
+			}
 			append(tagQuery)
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
@@ -93,24 +88,15 @@ internal class Komikcast(context: MangaLoaderContext) :
 	}
 
 	override suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-		// / set if is table
-
 		val tagMap = getOrCreateTagMap()
-
 		val tags = docs.select(".komik_info-content-genre > a").mapNotNullToSet { tagMap[it.text()] }
-
-		val state = docs.selectFirst(".komik_info-content-meta span:contains(Status)")?.lastElementChild()
-
-		val mangaState = state?.let {
-			when (it.text()) {
-				"Ongoing" -> MangaState.ONGOING
-				"Completed" -> MangaState.FINISHED
-				else -> null
-			}
+		val state = docs.selectFirst(".komik_info-content-meta span:contains(Status)")?.html()
+		val mangaState = if (state!!.contains("Ongoing")) {
+			MangaState.ONGOING
+		} else {
+			MangaState.FINISHED
 		}
-
 		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")?.lastElementChild()?.text()
-
 		val nsfw =
 			docs.selectFirst(".restrictcontainer") != null || docs.selectFirst(".info-right .alr") != null || docs.selectFirst(
 				".postbody .alr",
@@ -131,7 +117,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 			val a = it.selectFirstOrThrow("a.data-tooltip")
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
-
 			val name = it.selectFirst("h3.title")?.text().orEmpty()
 			Manga(
 				id = generateUid(relativeUrl),
@@ -153,7 +138,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
-
 		val test = docs.select("script:containsData(ts_reader)")
 		if (test.isNullOrEmpty()) {
 			return docs.select("div#chapter_body img").map { img ->
@@ -180,7 +164,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 					),
 				)
 			}
-
 			return pages
 		}
 	}
@@ -199,7 +182,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
-
 		return when {
 			WordSet(
 				"day",

@@ -8,7 +8,7 @@ import java.util.Locale
 
 @MangaSourceParser("MANGAFR", "Manga Fr", "fr")
 internal class MangaFr(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaSource.MANGAFR, "manga-fr.me") {
+	MmrcmsParser(context, MangaSource.MANGAFR, "manga-fr.cc") {
 	override val imgUpdated = ".jpg"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }
