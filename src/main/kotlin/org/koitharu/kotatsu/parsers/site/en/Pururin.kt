@@ -77,17 +77,15 @@ internal class Pururin(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val root = webClient.httpGet("https://$domain/tags/content").parseHtml()
-		val totalPagesTags = root.select("ul.pagination .page-item").dropLast(1).last().text().toInt()
 		return coroutineScope {
-			(1..totalPagesTags).map { page ->
+			(1..4).map { page ->
 				async { getTags(page) }
 			}
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val url = "https://$domain/tags/content?page=$page"
+		val url = "https://$domain/tags/content?order=uses&page=$page"
 		val root = webClient.httpGet(url).parseHtml()
 		return root.parseTags()
 	}
