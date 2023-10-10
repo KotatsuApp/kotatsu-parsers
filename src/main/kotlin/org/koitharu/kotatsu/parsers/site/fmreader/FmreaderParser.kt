@@ -29,6 +29,7 @@ internal abstract class FmreaderParser(
 
 	protected open val listeurl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
+	protected open val tagPrefix = "manga-list-genre-"
 
 	init {
 		paginator.firstPage = 1
@@ -39,11 +40,20 @@ internal abstract class FmreaderParser(
 	protected val ongoing: Set<String> = setOf(
 		"On going",
 		"Incomplete",
+		"En curso",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"Completed",
+		"Completado",
+	)
+
+	@JvmField
+	protected val abandoned: Set<String> = hashSetOf(
+		"Canceled",
+		"Cancelled",
+		"Drop",
 	)
 
 	override suspend fun getListPage(
@@ -106,7 +116,7 @@ internal abstract class FmreaderParser(
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
-			val href = a.attr("href").substringAfter("manga-list-genre-").substringBeforeLast(".html")
+			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")
 			MangaTag(
 				key = href,
 				title = a.text(),
@@ -131,6 +141,7 @@ internal abstract class FmreaderParser(
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
+				in abandoned -> MangaState.ABANDONED
 				else -> null
 			}
 		}
@@ -140,7 +151,7 @@ internal abstract class FmreaderParser(
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringAfter("manga-list-genre-").substringBeforeLast(".html"),
+					key = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html"),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
@@ -201,6 +212,7 @@ internal abstract class FmreaderParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") ||
+				d.endsWith(" atrás") ||
 				// short Hours
 				d.endsWith(" h") ||
 				// short Day
@@ -240,40 +252,44 @@ internal abstract class FmreaderParser(
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 		return when {
-			WordSet(
-				"day",
-				"days",
-			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-
-			WordSet("hour", "hours", "h").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.HOUR,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet(
-				"min",
-				"minute",
-				"minutes",
-			).anyWordIn(date) -> cal.apply {
+			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+			WordSet("min", "minute", "minutes", "minuto", "minutos").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MINUTE,
 					-number,
 				)
 			}.timeInMillis
 
-			WordSet("second").anyWordIn(date) -> cal.apply {
+			WordSet("hour", "hours", "hora", "horas", "h").anyWordIn(date) -> cal.apply {
 				add(
-					Calendar.SECOND,
+					Calendar.HOUR,
 					-number,
 				)
 			}.timeInMillis
 
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("day", "days", "día", "dia").anyWordIn(date) -> cal.apply {
+				add(
+					Calendar.DAY_OF_MONTH,
+					-number,
+				)
+			}.timeInMillis
+
+			WordSet("week", "weeks", "semana", "semanas").anyWordIn(date) -> cal.apply {
+				add(
+					Calendar.WEEK_OF_YEAR,
+					-number,
+				)
+			}.timeInMillis
+
+			WordSet("month", "months", "mes", "meses").anyWordIn(date) -> cal.apply {
+				add(
+					Calendar.MONTH,
+					-number,
+				)
+			}.timeInMillis
+
+			WordSet("year", "año", "años").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}
 	}
-
 }

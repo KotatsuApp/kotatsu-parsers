@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGASTARZCOM", "Manga Starz .Com", "ar")
-internal class MangaStarzCom(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGASTARZCOM, "mangastarz.com", 10) {
-	override val datePattern = "d MMMM، yyyy"
-}
+@MangaSourceParser("MANGALEK_NET", "Manga Lek .Net", "ar")
+internal class MangaLekNet(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGALEK_NET, "manga-lek.net", pageSize = 10)

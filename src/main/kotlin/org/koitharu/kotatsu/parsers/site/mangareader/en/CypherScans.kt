@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("SURYASCANS", "Surya Scans", "en")
-internal class SuryaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SURYASCANS, "suryareader.com", pageSize = 5, searchPageSize = 5)
+@MangaSourceParser("CYPHERSCANS", "Cypher Scans", "en")
+internal class CypherScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.CYPHERSCANS, "cypherscans.xyz", pageSize = 20, searchPageSize = 10)

@@ -20,7 +20,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("guimah.com")
+	override val configKeyDomain = ConfigKey.Domain("unionmangasbr.top", "guimah.com")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -47,7 +47,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 			).addPathSegment(page.toString())
 		val doc = webClient.httpGet(url.build()).parseHtml()
 		val root = doc.selectFirstOrThrow("div.tamanho-bloco-perfil")
-		return root.select(".lista-perfil-mangas-novos").map { div ->
+		return root.select(".lista-mangas").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val img = div.selectFirstOrThrow("img")
 			val href = a.attrAsRelativeUrl("href")
@@ -71,11 +71,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = if (doc.selectFirst(".perfil-d-manga") == null) {
-			doc.selectFirstOrThrow(".perfil-p-manga")
-		} else {
-			doc.selectFirstOrThrow(".perfil-d-manga")
-		}
+		val root = doc.selectFirstOrThrow(".perfil-d-manga, .perfil-p-manga, .manga-pagina")
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
 			rating = root.select("h2")
@@ -117,8 +113,7 @@ class UnionMangasParser(context: MangaLoaderContext) : PagedMangaParser(context,
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirstOrThrow("article")
-		return root.selectOrThrow("img[pag]").mapNotNull { img ->
+		return doc.body().selectOrThrow("img[pag]").mapNotNull { img ->
 			val href = img.attrAsRelativeUrl("src")
 			if (href.startsWith("/images/banner")) {
 				return@mapNotNull null

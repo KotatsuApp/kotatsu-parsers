@@ -19,7 +19,7 @@ internal class AllHentaiParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {
 
-	override val configKeyDomain = ConfigKey.Domain("z.allhen.online", "2023.allhen.online")
+	override val configKeyDomain = ConfigKey.Domain("24.allhen.online", "z.allhen.online", "2023.allhen.online")
 	override val defaultIsNsfw = true
 
 	override val authUrl: String
