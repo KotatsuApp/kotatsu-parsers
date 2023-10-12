@@ -97,6 +97,13 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 			description = doc.selectFirst(".sinopse .sinopse")?.html(),
 			author = doc.selectFirst(".author")?.text(),
 			coverUrl = doc.selectFirst(".side img")?.src().orEmpty(),
+			state = doc.selectFirst(".lancamento p")?.let {
+				when (it.text().lowercase()) {
+					"ongoing" -> MangaState.ONGOING
+					"completed", "finished" -> MangaState.FINISHED
+					else -> null
+				}
+			},
 			chapters = chapters.select(".chapter").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
