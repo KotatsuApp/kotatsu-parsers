@@ -22,19 +22,26 @@ class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			return emptyList() // Research revisits non-manga chapters
-		}
 		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				append("/genero/")
-				append(tag?.key.orEmpty())
-				append("/")
-			} else {
-				append("/manga/")
+			when {
+				!tags.isNullOrEmpty() -> {
+					append("/genero/")
+					append(tag?.key.orEmpty())
+					append("/")
+				}
+
+				!query.isNullOrEmpty() -> {
+					append("/search/")
+					append(query.urlEncoded())
+					append("/")
+				}
+
+				else -> {
+					append("/manga/")
+				}
 			}
 			if (page > 1) {
 				append("page/")
@@ -43,7 +50,7 @@ class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select(".items .item").map { div ->
+		return doc.select(".items .item, .items2 .item").map { div ->
 			val a = div.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			Manga(
