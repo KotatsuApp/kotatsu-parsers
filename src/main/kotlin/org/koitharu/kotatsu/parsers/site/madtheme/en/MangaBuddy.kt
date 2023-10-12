@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madtheme.en
 
-import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -9,14 +8,10 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.src
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
 import java.util.ArrayList
-import java.util.Base64
 
 @MangaSourceParser("MANGABUDDY", "Manga Buddy", "en")
 internal class MangaBuddy(context: MangaLoaderContext) :
