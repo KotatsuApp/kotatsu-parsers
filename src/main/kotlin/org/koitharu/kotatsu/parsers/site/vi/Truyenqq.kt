@@ -24,14 +24,16 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 		val tagQuery = if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = ",") { it.key }
 		val url = if (!query.isNullOrEmpty()) {
 			buildString {
-				append("https://$domain")
+				append("https://")
+				append(domain)
 				append("/tim-kiem/trang-$page.html")
 				append("?q=")
 				append(query.urlEncoded())
 			}
 		} else {
 			buildString {
-				append("https://$domain")
+				append("https://")
+				append(domain)
 				append("/tim-kiem-nang-cao/trang-$page.html")
 				append("?status=-1&country=0&sort=")
 				when (sortOrder) {

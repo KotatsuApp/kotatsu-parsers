@@ -132,7 +132,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 			MangaChapter(
 				id = generateUid(url),
 				url = url,
-				name = j.getString("slug").replace("-", " "),
+				name = j.getString("slug").replace('-', ' '),
 				number = i + 1,
 				branch = null,
 				uploadDate = dateFormat.tryParse(date),

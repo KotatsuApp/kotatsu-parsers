@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,7 +25,7 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
-			return emptyList() // Research revisits non-manga chapters
+			throw IllegalArgumentException("Search is not supported by this source")
 		}
 		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {

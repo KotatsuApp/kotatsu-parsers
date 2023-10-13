@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -48,24 +49,19 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
 		if (!query.isNullOrEmpty()) {
-			return emptyList()
+			throw IllegalArgumentException("Search is not supported by this source")
 		}
-
 		if (sortOrder == SortOrder.ALPHABETICAL) {
-
 			if (page > 1) {
 				return emptyList()
 			}
-
 			val url = buildString {
 				append("https://")
 				append(domain)
 				append("/api/get/catalog?page=0&filter=all")
 			}
 			val json = webClient.httpGet(url).parseJsonArray()
-
 			return json.mapJSON { j ->
 				val urlManga = "https://$domain/api/get/card/${j.getString("slug")}"
 				val img = "https://$domain/upload/min_cover/${j.getString("image")}"
@@ -123,10 +119,8 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val json = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseJson()
-
 		val jsonManga = json.getJSONObject("manga")
 		val chapters = json.getJSONObject("chapters").toString().split("{\"id\":").drop(1) // Possible improvement here
-
 		val slug = manga.url.substringAfterLast("/")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 		return manga.copy(
@@ -163,18 +157,14 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	private val simpleDateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 	private fun getDateString(time: Long): String = simpleDateFormat.format(time * 1000L)
 
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val jsonPage = webClient.httpGet(fullUrl).parseJson()
-
 		val idManga = jsonPage.getJSONObject("manga").getString("id")
 		val slugChapter = chapter.url.substringAfterLast("/")
-
 		val pages = jsonPage.getJSONObject("chapter").getJSONArray("files").toString()
 			.replace("[", "").replace("]", "").replace("\"", "")
 			.split(",") // Possible improvement here
-
 		return pages.map { img ->
 			val url = "https://$domain/upload/chapitre/$idManga/$slugChapter/$img"
 			MangaPage(

@@ -31,7 +31,8 @@ internal class TmoManga(context: MangaLoaderContext) :
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
-			append("https://$domain")
+			append("https://")
+			append(domain)
 			when {
 				!query.isNullOrEmpty() -> {
 					append("/$listUrl")

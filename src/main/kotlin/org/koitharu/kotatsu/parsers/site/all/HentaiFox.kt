@@ -28,7 +28,8 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 		val tag = tags.oneOrThrowIfMany()
 
 		val url = buildString {
-			append("https://$domain")
+			append("https://")
+			append(domain)
 			if (!tags.isNullOrEmpty()) {
 				append("/tag/")
 				append(tag?.key.orEmpty())
@@ -173,6 +174,6 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body()
-		return root.requireElementById("gimg").attr("data-src") ?: doc.parseFailed("Page image not found")
+		return root.requireElementById("gimg").attrAsAbsoluteUrl("data-src")
 	}
 }
