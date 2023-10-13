@@ -27,7 +27,6 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-
 		val url =
 			if (!tags.isNullOrEmpty()) {
 				buildString {
@@ -50,9 +49,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 					}
 				}
 			}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.row div.col").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
