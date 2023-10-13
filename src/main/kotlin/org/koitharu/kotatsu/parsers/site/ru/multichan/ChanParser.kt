@@ -56,12 +56,13 @@ internal abstract class ChanParser(
 			val a = row.selectFirst("div.manga_row1")?.selectFirst("h2")?.selectFirst("a")
 				?: return@mapNotNull null
 			val href = a.attrAsRelativeUrl("href")
+			val title = a.text().parseTitle()
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
-				altTitle = a.attr("title"),
-				title = a.text().substringAfterLast('(').substringBeforeLast(')'),
+				altTitle = title.second,
+				title = title.first,
 				author = row.getElementsByAttributeValueStarting(
 					"href",
 					"/mangaka",
@@ -169,12 +170,13 @@ internal abstract class ChanParser(
 			val info = div.selectFirst(".related_info") ?: return@mapNotNull null
 			val a = info.selectFirst("a") ?: return@mapNotNull null
 			val href = a.attrAsRelativeUrl("href")
+			val title = a.text().parseTitle()
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
-				altTitle = a.attr("title"),
-				title = a.text().substringAfterLast('(').substringBeforeLast(')'),
+				altTitle = title.second,
+				title = title.first,
 				author = info.getElementsByAttributeValueStarting(
 					"href",
 					"/mangaka",
@@ -206,4 +208,20 @@ internal abstract class ChanParser(
 		}
 
 	private fun String.toTagName() = replace('_', ' ').toTitleCase()
+
+	private fun String.parseTitle(): Pair<String, String?> {
+		var depth = 0
+		for (i in indices.reversed()) {
+			val c = this[i]
+			if (c == '(') {
+				depth--
+				if (depth == 0 && (i + 2) < lastIndex && i > 0) {
+					return substring(i + 1, lastIndex).trim() to substring(0, i).trim()
+				}
+			} else if (c == ')') {
+				depth++
+			}
+		}
+		return this to null
+	}
 }
