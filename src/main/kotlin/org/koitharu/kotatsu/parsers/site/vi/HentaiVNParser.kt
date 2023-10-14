@@ -165,7 +165,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	}
 
 	private fun parseMainList(docs: Document, page: Int): List<Manga> {
-		val realPage = docs.selectFirst("div.pagination b.pagination-selected")?.text()?.toIntOrNull() ?: 1
+		val realPage = docs.selectFirst(".pagination li b")?.text()?.toIntOrNull() ?: 1
 		if (page > realPage) {
 			return emptyList()
 		}
