@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANGAEFENDISI", "Mangaefendisi", "tr")
+@MangaSourceParser("MANGAEFENDISI", "Manga Efendisi", "tr")
 internal class Mangaefendisi(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGAEFENDISI, "mangaefendisi.net", pageSize = 30, searchPageSize = 20)

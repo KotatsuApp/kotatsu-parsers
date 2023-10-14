@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 
-@MangaSourceParser("LEGIONSCANS", "CerberuSeries", "es")
+@MangaSourceParser("LEGIONSCANS", "Cerberus Series", "es")
 internal class CerberuSeries(context: MangaLoaderContext) :
 	HeanCmsAlt(context, MangaSource.LEGIONSCANS, "cerberuseries.xyz")

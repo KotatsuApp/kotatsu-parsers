@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("JAIMINISBOX", "Jaiminisbox", "en")
+@MangaSourceParser("JAIMINISBOX", "Jaiminis Box", "en")
 internal class Jaiminisbox(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.JAIMINISBOX, "jaiminisbox.net")

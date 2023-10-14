@@ -11,8 +11,6 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val MAX_THUMB_INDEX = 19
-
 @MangaSourceParser("NUDEMOON", "Nude-Moon", "ru", type = ContentType.HENTAI)
 internal class NudeMoonParser(
 	context: MangaLoaderContext,

@@ -130,7 +130,7 @@ internal abstract class MangaboxParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
@@ -168,7 +168,7 @@ internal abstract class MangaboxParser(
 	protected open val selectDate = "span"
 	protected open val selectChapter = "div.chapter-list div.row, ul.row-content-chapter li"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

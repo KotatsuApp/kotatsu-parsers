@@ -37,7 +37,7 @@ internal class Klz9(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/$listeurl")
+			append("/$listUrl")
 			append("?page=")
 			append(page.toString())
 			when {
@@ -81,12 +81,12 @@ internal class Klz9(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val slug = doc.selectFirstOrThrow("div.h0rating").attr("slug")
-		val docload =
+		val docLoad =
 			webClient.httpGet("https://$domain/app/manga/controllers/cont.listChapter.php?slug=$slug").parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return docload.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
+		return docLoad.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = "/" + a.selectFirstOrThrow("a.chapter").attrAsRelativeUrl("href")
 			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
@@ -109,8 +109,8 @@ internal class Klz9(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val cid = doc.selectFirstOrThrow("#chapter").attr("value")
-		val docload = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
-		return docload.select(selectPage).map { img ->
+		val docLoad = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
+		return docLoad.select(selectPage).map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 
 			MangaPage(

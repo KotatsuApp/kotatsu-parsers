@@ -206,7 +206,6 @@ internal abstract class OtakuSanctuaryParser(
 			val urls = json.replace("\\u0022", "").substringAfter("{\"view\":\"[").substringBefore("]\",\"isSuccess")
 				.split(",")
 			return urls.map {
-
 				val urlImage = processUrl(it)
 				MangaPage(
 					id = generateUid(urlImage),

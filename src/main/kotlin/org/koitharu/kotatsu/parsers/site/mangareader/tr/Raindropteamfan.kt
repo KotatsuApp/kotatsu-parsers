@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("RAINDROPTEAMFAN", "Raindropteamfan", "tr")
+@MangaSourceParser("RAINDROPTEAMFAN", "Raindrop Fansub", "tr")
 internal class Raindropteamfan(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,

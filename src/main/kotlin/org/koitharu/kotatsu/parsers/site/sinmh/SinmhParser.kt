@@ -122,7 +122,7 @@ internal abstract class SinmhParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body()
 
-		val chapters = getChapters(manga, doc)
+		val chapters = getChapters(doc)
 
 		val desc = body.selectFirst(selectDesc)?.html()
 
@@ -150,7 +150,7 @@ internal abstract class SinmhParser(
 
 	protected open val selectChapter = "ul#chapter-list-1 li"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters { i, li ->
 			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val name = li.selectFirstOrThrow("a").text()

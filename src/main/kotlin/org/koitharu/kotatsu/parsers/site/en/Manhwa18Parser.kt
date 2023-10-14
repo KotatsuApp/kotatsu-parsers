@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MANHWA18", "Manhwa18", "en", type = ContentType.HENTAI)
+@MangaSourceParser("MANHWA18", "Manhwa 18", "en", type = ContentType.HENTAI)
 class Manhwa18Parser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.MANHWA18, pageSize = 18, searchPageSize = 18) {
 

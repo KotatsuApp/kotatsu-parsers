@@ -77,7 +77,7 @@ internal class AssortedScans(context: MangaLoaderContext) :
 		} else {
 			testAdultPage
 		}
-		val chapters = getChapters(manga, doc)
+		val chapters = getChapters(doc)
 		val desc = doc.getElementById("series-desc")?.selectFirst("div")?.html()
 		val alt = doc.getElementById("series-aliases")?.selectFirst("div.alias")?.text()
 		val author = doc.getElementById("series-authors")?.selectFirst("div.author")?.text()
@@ -97,7 +97,7 @@ internal class AssortedScans(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select("div.chapter").mapChapters(reversed = true) { i, div ->
 			val a = div.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")

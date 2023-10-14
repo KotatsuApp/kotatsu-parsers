@@ -7,11 +7,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.manga18.Manga18Parser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("HANMAN18", "Hanman18", "zh", ContentType.HENTAI)
+@MangaSourceParser("HANMAN18", "Hanman 18", "zh", ContentType.HENTAI)
 internal class Hanman18(context: MangaLoaderContext) :
 	Manga18Parser(context, MangaSource.HANMAN18, "hanman18.com") {
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")

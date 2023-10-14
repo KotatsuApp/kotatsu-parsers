@@ -56,7 +56,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val infoEl = infoElDeferred.await()
 		val stateDoc = stateDocDeferred.await()
 		manga.copy(
-			altTitle = infoEl.infoText("Tên Khác:"),
+			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")?.joinToString { it.text() },
 			author = infoEl.select("p:contains(Tác giả:) a").text(),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tagCache.tryGet().getOrNull()?.let { tagMap ->
@@ -173,8 +173,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 		return docs.selectFirstOrThrow("div.main").selectFirstOrThrow("div.block-item").select("ul > li.item")
 			.map { el ->
-				val relativeUrl = el.selectFirstOrThrow("div.box-cover-2 > a").attrAsRelativeUrl("href")
-				val descriptionsEl = el.selectFirstOrThrow("div.box-description-2")
+				val relativeUrl = el.selectFirstOrThrow("div.box-cover > a").attrAsRelativeUrl("href")
+				val descriptionsEl = el.selectFirstOrThrow("div.box-description")
 				Manga(
 					id = generateUid(relativeUrl),
 					title = descriptionsEl.selectFirst("a")?.text().orEmpty(),
@@ -183,7 +183,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = el.selectFirst("div.box-cover-2 img")?.src().orEmpty(),
+					coverUrl = el.selectFirst("div.box-cover img")?.src().orEmpty(),
 					tags = emptySet(),
 					state = null,
 					author = null,
@@ -239,8 +239,5 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			)
 		}
 	}
-
-	private fun Element.infoText(title: String) =
-		selectFirst("span.info:contains($title)")?.parent()?.select("span:not(.info) > a")?.joinToString { it.text() }
 }
 

@@ -116,7 +116,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 

@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("COMICEXTRA", "ComicExtra", "en")
+@MangaSourceParser("COMICEXTRA", "Comic Extra", "en")
 internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICEXTRA, 25) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)

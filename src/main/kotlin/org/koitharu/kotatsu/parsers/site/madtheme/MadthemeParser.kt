@@ -137,7 +137,7 @@ internal abstract class MadthemeParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
@@ -175,7 +175,7 @@ internal abstract class MadthemeParser(
 	protected open val selectDate = "div .chapter-update"
 	protected open val selectChapter = "ul#chapter-list li"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

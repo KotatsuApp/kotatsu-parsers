@@ -25,7 +25,7 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append(listeurl)
+			append(listUrl)
 			append("?page=")
 			append(page.toString())
 			when {

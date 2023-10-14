@@ -13,13 +13,11 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import java.text.SimpleDateFormat
-import java.util.Locale
 
 @MangaSourceParser("MANHWARAW", "Manhwa Raw", "", ContentType.HENTAI)
 internal class ManhwaRaw(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWARAW, "manhwa-raw.com", 10) {
-	override val datePattern = "MMMM d"
-	override val sourceLocale: Locale = Locale.ENGLISH
+	override val datePattern = "MM/dd"
 	override val withoutAjax = true
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
@@ -29,8 +27,7 @@ internal class ManhwaRaw(context: MangaLoaderContext) :
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
-
-			val name = a.selectFirst("p")?.text() ?: a.ownText()
+			val name = a.selectFirst("h4")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
 				name = name,
