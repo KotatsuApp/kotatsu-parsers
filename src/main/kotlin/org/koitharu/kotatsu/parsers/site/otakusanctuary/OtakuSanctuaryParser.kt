@@ -311,11 +311,11 @@ internal abstract class OtakuSanctuaryParser(
 			}
 
 			"[IS1]" -> {
-				val url = url.replace("[IS1]", "https://imagepi.otakuscan.net/")
-				if (url.contains("vi") && url.contains("otakusan.net_")) {
-					url
+				val url1 = url.replace("[IS1]", "https://imagepi.otakuscan.net/")
+				if (url1.contains("vi") && url1.contains("otakusan.net_")) {
+					url1
 				} else {
-					url.toHttpUrl().newBuilder().apply {
+					url1.toHttpUrl().newBuilder().apply {
 						addQueryParameter("vi", vi)
 					}.build().toString()
 				}
