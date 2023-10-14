@@ -1,7 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import androidx.collection.ArrayMap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -32,15 +35,11 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		SortOrder.NEWEST,
 	)
 
-	private val tagCache = SuspendLazy(this::fetchTags)
-
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chapterDeferred = async { fetchChapters(manga.url) }
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val id = docs.location().substringAfterLast("/").substringBefore("-")
-
 		val genreUrl = Regex(""""(list-info-theloai-mobile\.php?.+)"""").find(docs.toString())?.groupValues?.get(1)
-
 		val genreDeferred = async {
 			webClient.httpGet("https://$domain/$genreUrl").parseHtml().select("a.tag")
 		}
@@ -50,19 +49,16 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val stateDocDeferred = async {
 			webClient.httpGet("/list-info-time-mobile.php?id_anime=$id".toAbsoluteUrl(domain)).parseHtml()
 		}
-
 		val genre = genreDeferred.await()
+		val tagMap = getOrCreateTagMap()
+		val tags = genre.mapNotNullToSet { tagMap[it.text()] }
 		val infoEl = infoElDeferred.await()
 		val stateDoc = stateDocDeferred.await()
 		manga.copy(
 			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")?.joinToString { it.text() },
 			author = infoEl.select("p:contains(Tác giả:) a").text(),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
-			tags = tagCache.tryGet().getOrNull()?.let { tagMap ->
-				genre.mapNotNullToSet {
-					tagMap[it.text()]
-				}
-			}.orEmpty(),
+			tags = tags,
 			state = stateDoc.select("p:contains(Tình Trạng:) a").firstOrNull()?.text()?.let {
 				when (it) {
 					"Đã hoàn thành" -> MangaState.FINISHED
@@ -137,20 +133,27 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		}
 	}
 
+	private var tagCache: ArrayMap<String, MangaTag>? = null
+	private val mutex = Mutex()
+
 	override suspend fun getTags(): Set<MangaTag> {
-		return tagCache.get().values.toSet()
+		return getOrCreateTagMap().values.toSet()
 	}
 
-	private suspend fun fetchTags(): Map<String, MangaTag> {
-		val url = "/forum/search-plus.php".toAbsoluteUrl(domain)
-		val docs = webClient.httpGet(url).parseHtml()
-		return docs.selectFirstOrThrow("ul.ul-search").select("li").mapNotNull { el ->
-			MangaTag(
+	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
+		val tagMap = ArrayMap<String, MangaTag>()
+		val tags = webClient.httpGet("/forum/search-plus.php".toAbsoluteUrl(domain)).parseHtml().selectFirstOrThrow("ul.ul-search").select("li")
+		for (el in tags) {
+			if (el.text().isEmpty()) continue
+			tagMap[el.text()] = MangaTag(
 				title = el.text(),
-				key = el.selectFirst("input")?.attr("value") ?: return@mapNotNull null,
+				key = el.selectFirst("input")?.attr("value") ?: continue,
 				source = source,
 			)
-		}.associateBy { it.title }
+		}
+		tagCache = tagMap
+		return@withLock tagMap
 	}
 
 	private fun getSortCookies(sortOrder: SortOrder): Array<String> {
@@ -172,8 +175,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 		return docs.selectFirstOrThrow("div.main").selectFirstOrThrow("div.block-item").select("ul > li.item")
 			.map { el ->
-				val relativeUrl = el.selectFirstOrThrow("div.box-cover > a").attrAsRelativeUrl("href")
-				val descriptionsEl = el.selectFirstOrThrow("div.box-description")
+				val relativeUrl = el.selectFirstOrThrow("div.box-cover > a, div.box-cover-2 > a").attrAsRelativeUrl("href")
+				val descriptionsEl = el.selectFirstOrThrow("div.box-description, div.box-description-2")
 				Manga(
 					id = generateUid(relativeUrl),
 					title = descriptionsEl.selectFirst("a")?.text().orEmpty(),
@@ -182,7 +185,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = el.selectFirst("div.box-cover img")?.src().orEmpty(),
+					coverUrl = el.selectFirst("div.box-cover img, div.box-cover-2 img")?.src().orEmpty(),
 					tags = emptySet(),
 					state = null,
 					author = null,
