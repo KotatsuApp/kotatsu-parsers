@@ -93,7 +93,6 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 				append(page)
 			}
 			val json = webClient.httpGet(url).parseJsonArray()
-
 			return json.mapJSON { j ->
 				val urlManga = "https://$domain/api/get/card/${j.getString("manga_slug")}"
 				val img = "https://$domain/upload/min_cover/${j.getString("manga_image")}"
@@ -120,7 +119,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	override suspend fun getDetails(manga: Manga): Manga {
 		val json = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseJson()
 		val jsonManga = json.getJSONObject("manga")
-		val chapters = json.getJSONObject("chapters").toString().split("{\"id\":").drop(1) // Possible improvement here
+		val chapters = json.getJSONObject("chapters").toString().split("{\"id\":").drop(1)
 		val slug = manga.url.substringAfterLast("/")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 		return manga.copy(
@@ -138,8 +137,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 				val url = "https://$domain/api/get/chapter/$slug/$id"
 				val date = getDateString(
 					it.substringAfter("\"date\":\"").substringBefore("\",").toLong(),
-				) // Possible improvement here
-
+				)
 				MangaChapter(
 					id = generateUid(url),
 					name = "Chapitre : $id",
@@ -160,20 +158,22 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val jsonPage = webClient.httpGet(fullUrl).parseJson()
-		val idManga = jsonPage.getJSONObject("manga").getString("id")
-		val slugChapter = chapter.url.substringAfterLast("/")
-		val pages = jsonPage.getJSONObject("chapter").getJSONArray("files").toString()
-			.replace("[", "").replace("]", "").replace("\"", "")
-			.split(",") // Possible improvement here
-		return pages.map { img ->
-			val url = "https://$domain/upload/chapitre/$idManga/$slugChapter/$img"
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
+		val idManga = jsonPage.getJSONObject("manga").getInt("id")
+		val slug = jsonPage.getJSONObject("chapter").getInt("chapter")
+		val jsonPages = jsonPage.getJSONObject("chapter").getJSONArray("files")
+		val pages = ArrayList<MangaPage>(jsonPages.length())
+		for (i in 0 until jsonPages.length()) {
+			val url = "https://$domain/upload/chapters/$idManga/$slug/${jsonPages.getString(i)}"
+			pages.add(
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				),
 			)
 		}
+		return pages
 	}
 
 	override suspend fun getTags(): Set<MangaTag> = emptySet()

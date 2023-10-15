@@ -289,6 +289,7 @@ internal abstract class OtakuSanctuaryParser(
 	}
 
 
+	@Suppress("NAME_SHADOWING")
 	private fun processUrl(url: String, vi: String = ""): String {
 		var url = url.replace("_h_", "http")
 			.replace("_e_", "/extendContent/Manga")

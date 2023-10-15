@@ -148,16 +148,20 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
 		val chapterData = json.getJSONObject(6).getInt("chapterData")
 		val pageLocate = json.getJSONObject(chapterData).getInt("webtoon")
-		val pages = json.getJSONArray(pageLocate).toString().replace("[", "").replace("]", "").split(",")
-		return pages.map {
-			val id = it.toInt()
+		val jsonPages = json.getJSONArray(pageLocate)
+		val pages = ArrayList<MangaPage>(jsonPages.length())
+		for (i in 0 until jsonPages.length()) {
+			val id = jsonPages.getInt(i)
 			val url = "https://api.$domain/storage/" + json.getString(id)
+			pages.add(
 			MangaPage(
 				id = generateUid(url),
 				url = url,
 				preview = null,
 				source = source,
 			)
+			)
 		}
+		return pages
 	}
 }

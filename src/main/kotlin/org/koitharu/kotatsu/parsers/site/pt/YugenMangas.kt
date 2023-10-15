@@ -125,8 +125,9 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val urlApi = fullUrl.replace("/series/", "/api/serie/").replace("/capitulo", "/chapter/capitulo") + "images/"
-		val json = webClient.httpGet(urlApi).parseJson().getJSONArray("chapter_images")
+		val apiUrl = webClient.httpGet(fullUrl).parseHtml().selectFirstOrThrow("script:containsData(imageUrls)").data()
+			.substringAfter("apiUrl = \"").substringBefore("\";")
+		val json = webClient.httpGet(apiUrl.toAbsoluteUrl(domain)).parseJson().getJSONArray("chapter_images")
 		val pages = ArrayList<MangaPage>(json.length())
 		for (i in 0 until json.length()) {
 			val img = "https://media.$domain/${json.getString(i)}"
