@@ -154,12 +154,12 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 			val id = jsonPages.getInt(i)
 			val url = "https://api.$domain/storage/" + json.getString(id)
 			pages.add(
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				),
 			)
 		}
 		return pages

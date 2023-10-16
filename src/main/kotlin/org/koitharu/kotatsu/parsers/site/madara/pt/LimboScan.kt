@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class LimboScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LIMBOSCAN, "limboscan.com.br") {
 	override val tagPrefix = "obras-genre/"
-	override val listUrl= "obras/"
+	override val listUrl = "obras/"
 	override val datePattern: String = "dd/MM/yyyy"
 }

@@ -55,7 +55,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val infoEl = infoElDeferred.await()
 		val stateDoc = stateDocDeferred.await()
 		manga.copy(
-			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")?.joinToString { it.text() },
+			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")
+				?.joinToString { it.text() },
 			author = infoEl.select("p:contains(Tác giả:) a").text(),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tags,
@@ -143,7 +144,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
-		val tags = webClient.httpGet("/forum/search-plus.php".toAbsoluteUrl(domain)).parseHtml().selectFirstOrThrow("ul.ul-search").select("li")
+		val tags = webClient.httpGet("/forum/search-plus.php".toAbsoluteUrl(domain)).parseHtml()
+			.selectFirstOrThrow("ul.ul-search").select("li")
 		for (el in tags) {
 			if (el.text().isEmpty()) continue
 			tagMap[el.text()] = MangaTag(
@@ -175,7 +177,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 		return docs.selectFirstOrThrow("div.main").selectFirstOrThrow("div.block-item").select("ul > li.item")
 			.map { el ->
-				val relativeUrl = el.selectFirstOrThrow("div.box-cover > a, div.box-cover-2 > a").attrAsRelativeUrl("href")
+				val relativeUrl =
+					el.selectFirstOrThrow("div.box-cover > a, div.box-cover-2 > a").attrAsRelativeUrl("href")
 				val descriptionsEl = el.selectFirstOrThrow("div.box-description, div.box-description-2")
 				Manga(
 					id = generateUid(relativeUrl),
