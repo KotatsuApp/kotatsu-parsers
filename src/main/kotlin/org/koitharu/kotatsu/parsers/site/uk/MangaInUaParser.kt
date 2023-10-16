@@ -34,7 +34,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val url = when {
-			!query.isNullOrEmpty() -> ("/index.php?do=search" + "&subaction=search" + "&search_start=$page" + "&full_search=1" + "&story=$query" + "&titleonly=3").toAbsoluteUrl(
+			!query.isNullOrEmpty() -> ("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=$query&titleonly=3").toAbsoluteUrl(
 				domain,
 			)
 

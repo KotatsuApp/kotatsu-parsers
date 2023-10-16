@@ -103,7 +103,7 @@ internal class Onma(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("div.panel-body")
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 		val desc = doc.selectFirst(selectDesc)?.text().orEmpty()
 		val stateDiv = body.selectFirst(selectState)
 		val state = stateDiv?.let {

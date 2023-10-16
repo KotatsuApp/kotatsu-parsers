@@ -16,7 +16,7 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "the-loai/"
-	override val postreq = true
+	override val postReq = true
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)

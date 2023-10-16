@@ -19,7 +19,7 @@ internal class Pzykosis666hFansub(context: MangaLoaderContext) :
 		} else {
 			testAdultPage
 		}
-		val chapters = getChapters(manga, doc)
+		val chapters = getChapters(doc)
 		val desc = if (doc.selectFirstOrThrow(selectInfo).html().contains("Descripción")) {
 			doc.selectFirstOrThrow(selectInfo).text().substringAfter("Descripción: ").substringBefore("Lecturas")
 		} else {

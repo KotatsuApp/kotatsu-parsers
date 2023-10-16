@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("COPYPASTESCAN", "CopyPaste Scan", "es")
+@MangaSourceParser("COPYPASTESCAN", "Copy Paste Scan", "es")
 internal class Copypastescan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.COPYPASTESCAN, "copypastescan.xyz", 10) {
 	override val datePattern = "d MMMM, yyyy"

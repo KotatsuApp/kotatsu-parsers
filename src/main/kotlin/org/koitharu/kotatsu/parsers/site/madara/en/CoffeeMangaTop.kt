@@ -110,7 +110,7 @@ internal class CoffeeMangaTop(context: MangaLoaderContext) :
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			MangaChapter(
 				id = generateUid(href),
 				url = link,

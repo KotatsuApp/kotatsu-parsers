@@ -31,7 +31,8 @@ internal class TmoManga(context: MangaLoaderContext) :
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
 		val url = buildString {
-			append("https://$domain")
+			append("https://")
+			append(domain)
 			when {
 				!query.isNullOrEmpty() -> {
 					append("/$listUrl")
@@ -86,7 +87,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val link = href + stylepage
+			val link = href + stylePage
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),

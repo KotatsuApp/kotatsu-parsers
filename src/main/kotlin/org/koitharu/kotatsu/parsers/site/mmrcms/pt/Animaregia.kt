@@ -31,7 +31,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("ul.list-group")
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 		val desc = doc.select(selectDesc).text()
 		val stateDiv = body.selectFirst("li.list-group-item:contains(Status)")?.lastElementChild()
 		val state = stateDiv?.let {

@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
-@MangaSourceParser("DESUME", "Desu.me", "ru")
+@MangaSourceParser("DESUME", "Desu .Me", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")

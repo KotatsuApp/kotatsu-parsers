@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SUMMANGA", "SumManga", "en", ContentType.HENTAI)
+@MangaSourceParser("SUMMANGA", "Sum Manga", "en", ContentType.HENTAI)
 internal class SumManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SUMMANGA, "summanga.com")

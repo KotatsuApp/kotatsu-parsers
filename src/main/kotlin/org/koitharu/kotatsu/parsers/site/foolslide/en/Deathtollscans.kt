@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 
-@MangaSourceParser("DEATHTOLLSCANS", "DeathToll Scans", "en")
+@MangaSourceParser("DEATHTOLLSCANS", "Death Toll Scans", "en")
 internal class Deathtollscans(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.DEATHTOLLSCANS, "reader.deathtollscans.net", 26)

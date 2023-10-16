@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NOVELMIC", "Novel Mic", "en")
 internal class Novelmic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NOVELMIC, "novelmic.com", 20) {
-	override val postreq = true
+	override val postReq = true
 }

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("GATEMANGA", "Gate Manga", "ar")
 internal class GateManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GATEMANGA, "gatemanga.com") {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern = "d MMMM، yyyy"
 	override val listUrl = "ar/"
 	override val withoutAjax = true

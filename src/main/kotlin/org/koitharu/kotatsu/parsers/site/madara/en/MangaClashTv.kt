@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class MangaClashTv(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGACLASH_TV, "mangaclash.tv", pageSize = 10) {
 	override val datePattern = "MM/dd/yyyy"
-	override val postreq = true
+	override val postReq = true
 }

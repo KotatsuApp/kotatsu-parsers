@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
 
-@MangaSourceParser("MANGAID", "Mangaid", "id")
+@MangaSourceParser("MANGAID", "Manga Id", "id")
 internal class Mangaid(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.MANGAID, "mangaid.click") {
 

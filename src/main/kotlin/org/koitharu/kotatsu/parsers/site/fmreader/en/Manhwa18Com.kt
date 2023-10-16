@@ -10,11 +10,11 @@ import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWA18COM", "Manhwa18 .Com", "en", ContentType.HENTAI)
+@MangaSourceParser("MANHWA18COM", "Manhwa 18 .Com", "en", ContentType.HENTAI)
 internal class Manhwa18Com(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.MANHWA18COM, "manhwa18.com") {
 
-	override val listeurl = "/tim-kiem"
+	override val listUrl = "/tim-kiem"
 	override val selectState = "div.info-item:contains(Status) span.info-value "
 	override val selectAlt = "div.info-item:contains(Other name) span.info-value "
 	override val selectTag = "div.info-item:contains(Genre) span.info-value a"
@@ -45,7 +45,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 					else -> append("last_update")
 				}
 			} else {
-				append(listeurl)
+				append(listUrl)
 				append("?page=")
 				append(page.toString())
 				when {
@@ -87,7 +87,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
+		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfterLast("/")
 			MangaTag(
@@ -101,7 +101,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
@@ -129,7 +129,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = a.attrAsRelativeUrl("href")

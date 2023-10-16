@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
-@MangaSourceParser("READMANGA_RU", "ReadManga", "ru")
+@MangaSourceParser("READMANGA_RU", "Read Manga", "ru")
 internal class ReadmangaParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.READMANGA_RU, 1) {

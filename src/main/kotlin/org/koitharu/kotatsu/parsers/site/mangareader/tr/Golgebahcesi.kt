@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("GOLGEBAHCESI", "Golgebahcesi", "tr")
+@MangaSourceParser("GOLGEBAHCESI", "Golge Bahcesi", "tr")
 internal class Golgebahcesi(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.GOLGEBAHCESI, "golgebahcesi.com", pageSize = 14, searchPageSize = 9)

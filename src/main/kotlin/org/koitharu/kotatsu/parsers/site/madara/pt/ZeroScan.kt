@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("ZEROSCAN", "Zero Scan", "pt")
 internal class ZeroScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ZEROSCAN, "zeroscan.com.br") {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern: String = "dd/MM/yyyy"
 }

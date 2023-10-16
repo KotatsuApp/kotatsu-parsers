@@ -38,7 +38,6 @@ internal abstract class FoolSlideParser(
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-
 		val doc = if (!query.isNullOrEmpty()) {
 			val url = buildString {
 				append("https://$domain/$searchUrl")
@@ -62,7 +61,6 @@ internal abstract class FoolSlideParser(
 			}
 			webClient.httpGet(url).parseHtml()
 		}
-
 		return doc.select("div.list div.group").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -90,26 +88,22 @@ internal abstract class FoolSlideParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val testAdultPage = webClient.httpGet(fullUrl).parseHtml()
-
 		val doc = if (testAdultPage.selectFirst("div.info form") != null) {
 			webClient.httpPost(fullUrl, "adult=true").parseHtml()
 		} else {
 			testAdultPage
 		}
-		val chapters = getChapters(manga, doc)
-
+		val chapters = getChapters(doc)
 		val desc = if (doc.selectFirstOrThrow(selectInfo).html().contains("</b>")) {
 			doc.selectFirstOrThrow(selectInfo).text().substringAfterLast(": ")
 		} else {
 			doc.selectFirstOrThrow(selectInfo).text()
 		}
-
 		val author = if (doc.selectFirstOrThrow(selectInfo).html().contains("</b>")) {
 			doc.selectFirstOrThrow(selectInfo).text().substringAfter(": ").substringBefore("Art")
 		} else {
 			null
 		}
-
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
 			description = desc,
@@ -124,7 +118,7 @@ internal abstract class FoolSlideParser(
 	protected open val selectDate = ".meta_r"
 	protected open val selectChapter = "div.list div.element"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, div ->
 			val a = div.selectFirstOrThrow(".title a")

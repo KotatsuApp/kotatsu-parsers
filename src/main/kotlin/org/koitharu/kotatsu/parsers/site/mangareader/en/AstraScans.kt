@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ARENASCANS", "Team 11x11", "en")
-internal class ArenaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ARENASCANS, "team11x11.com", pageSize = 20, searchPageSize = 10)
+@MangaSourceParser("ASTRASCANS", "Astra Scans", "en")
+internal class AstraScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.ASTRASCANS, "astrascans.com", pageSize = 30, searchPageSize = 10)

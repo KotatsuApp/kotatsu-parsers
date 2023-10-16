@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class Webtoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOON, "webtoon.uk", 20) {
 	override val tagPrefix = "manhwa-genre/"
-	override val postreq = true
+	override val postReq = true
 }

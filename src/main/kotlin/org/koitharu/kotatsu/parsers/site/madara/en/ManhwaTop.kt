@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 internal class ManhwaTop(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWATOP, "manhwatop.com") {
 
-	override val postreq = true
+	override val postReq = true
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 
@@ -27,7 +27,7 @@ internal class ManhwaTop(context: MangaLoaderContext) :
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			val dateText2 = if (dateText != "Complete") {

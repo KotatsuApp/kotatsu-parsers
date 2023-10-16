@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class ArazNovel(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ARAZNOVEL, "araznovel.com", 10) {
 	override val datePattern = "d MMMM yyyy"
-	override val postreq = true
+	override val postReq = true
 }

@@ -155,7 +155,7 @@ fun Element.attrOrNull(vararg names: String): String? {
 }
 
 @JvmOverloads
-fun Element.src(names: Array<String> = arrayOf("data-src", "data-cfsrc", "data-original", "data-cdn", "data-sizes", "data-lazy-src", "data-srcset", "original-src", "src")): String? {
+fun Element.src(names: Array<String> = arrayOf("data-src", "data-cfsrc", "data-original", "data-cdn", "data-sizes", "data-lazy-src", "data-srcset", "original-src", "data-wpfc-original-src", "src")): String? {
 	for (name in names) {
 		val value = attrAsAbsoluteUrlOrNull(name)
 		if (value != null) {

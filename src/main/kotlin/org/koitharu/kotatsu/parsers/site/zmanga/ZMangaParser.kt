@@ -140,7 +140,7 @@ internal abstract class ZMangaParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
@@ -179,7 +179,7 @@ internal abstract class ZMangaParser(
 	protected open val selectDate = "span.date"
 	protected open val selectChapter = "ul.series-chapterlist li"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

@@ -99,12 +99,12 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
 			author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", "),
 			chapters = if (doc.select("div.chapters").isEmpty()) {
-				doc.select(oneShotChapterListSelector()).mapChapters(reversed = true) { _, item ->
+				doc.select(oneShotChapterListSelector).mapChapters(reversed = true) { _, item ->
 					oneShotChapterFromElement(item)
 				}
 			} else {
 				val chapters = ChaptersListBuilder(10)
-				doc.select(regularChapterListSelector()).reversed().forEachIndexed { i, item ->
+				doc.select(regularChapterListSelector).reversed().forEachIndexed { i, item ->
 					val chaptername = item.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
 					val scanelement = item.select("ul.chapter-list > li")
 					scanelement.forEach { chapters.add(regularChapterFromElement(it, chaptername, i)) }
@@ -114,7 +114,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		)
 	}
 
-	private fun oneShotChapterListSelector() = "div.chapter-list-element > ul.list-group li.list-group-item"
+	private val oneShotChapterListSelector = "div.chapter-list-element > ul.list-group li.list-group-item"
 
 	private fun oneShotChapterFromElement(element: Element): MangaChapter {
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")
@@ -130,7 +130,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		)
 	}
 
-	private fun regularChapterListSelector() = "div.chapters > ul.list-group li.p-0.list-group-item"
+	private val regularChapterListSelector = "div.chapters > ul.list-group li.p-0.list-group-item"
 
 	private fun regularChapterFromElement(element: Element, chName: String, number: Int): MangaChapter {
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")

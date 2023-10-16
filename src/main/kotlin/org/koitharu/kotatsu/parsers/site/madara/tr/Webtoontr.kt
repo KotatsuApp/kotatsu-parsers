@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("WEBTOONTR", "Webtoontr", "tr")
+@MangaSourceParser("WEBTOONTR", "Webtoon tr", "tr")
 internal class Webtoontr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONTR, "webtoontr.net", 16) {
 	override val tagPrefix = "webtoon-kategori/"

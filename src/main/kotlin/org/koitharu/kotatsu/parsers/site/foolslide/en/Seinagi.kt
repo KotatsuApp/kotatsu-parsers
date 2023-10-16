@@ -21,7 +21,7 @@ internal class Seinagi(context: MangaLoaderContext) :
 		} else {
 			testAdultPage
 		}
-		val chapters = getChapters(manga, doc)
+		val chapters = getChapters(doc)
 		val desc = if (doc.selectFirstOrThrow(selectInfo).html().contains("Description")) {
 			doc.selectFirstOrThrow(selectInfo).text().substringAfter("Description: ").substringBefore("Readings")
 		} else {

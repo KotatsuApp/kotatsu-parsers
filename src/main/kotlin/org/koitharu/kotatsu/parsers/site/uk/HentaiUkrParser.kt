@@ -79,14 +79,14 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			val ids = tags.mapToSet { it.key }
 			json.retainAll { item ->
 				item.getJSONArray("tags")
-					.mapJSON { it.getAsString("id") }
+					.mapJSON { it.getAsString() }
 					.any { x -> x in ids }
 			}
 		}
 
 		// Return to app
 		return json.drop(offset).take(PAGE_SIZE).map { jo ->
-			val id = jo.getAsLong("id")
+			val id = jo.getAsLong()
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("name"),
@@ -124,7 +124,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			x.getJSONArray("tags").mapJSON { t ->
 				MangaTag(
 					title = t.getString("name"),
-					key = t.getAsString("id"),
+					key = t.getAsString(),
 					source = source,
 				)
 			}
@@ -138,7 +138,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			tagsSet.add(
 				MangaTag(
 					title = item.getString("name"),
-					key = item.getAsString("id"),
+					key = item.getAsString(),
 					source = source,
 				),
 			)
@@ -157,8 +157,8 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		return chain.proceed(newRequest)
 	}
 
-	private fun JSONObject.getAsLong(name: String): Long {
-		val rawValue = opt(name)
+	private fun JSONObject.getAsLong(): Long {
+		val rawValue = opt("id")
 		return when (rawValue) {
 			null, JSONObject.NULL -> null
 			is Long -> rawValue
@@ -168,7 +168,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		} ?: error("Cannot read value $rawValue as Long")
 	}
 
-	private fun JSONObject.getAsString(name: String): String {
-		return get(name).toString()
+	private fun JSONObject.getAsString(): String {
+		return get("id").toString()
 	}
 }

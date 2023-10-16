@@ -93,7 +93,6 @@ internal abstract class MangaReaderParser(
 			val relativeUrl = a.attrAsRelativeUrl("href")
 			val rating = it.selectFirst(".numscore")?.text()
 				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN
-
 			Manga(
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
@@ -132,7 +131,6 @@ internal abstract class MangaReaderParser(
 	}
 
 	open suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-
 		/// set if is table
 		val tableMode =
 			docs.selectFirst("div.seriestucontent > div.seriestucontentr") ?: docs.selectFirst("div.seriestucontentr")
@@ -212,6 +210,10 @@ internal abstract class MangaReaderParser(
 			tags = tags,
 			chapters = chapters,
 		)
+	}
+
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		return parseMangaList(webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml())
 	}
 
 	protected open val encodedSrc = false

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("CLONEMANGA", "CloneManga", "en")
+@MangaSourceParser("CLONEMANGA", "Clone Manga", "en")
 internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.CLONEMANGA) {
 
 	override val sortOrders: Set<SortOrder> = Collections.singleton(

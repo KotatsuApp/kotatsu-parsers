@@ -81,7 +81,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("NIGHTCOMIC", "Night Comic", "en")
 internal class NightComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NIGHTCOMIC, "www.nightcomic.com") {
-	override val postreq = true
+	override val postReq = true
 }

@@ -16,7 +16,7 @@ import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import java.util.EnumSet
 
-@MangaSourceParser("REALMSCANS", "RealmScans", "en")
+@MangaSourceParser("REALMSCANS", "Realm Scans", "en")
 internal class RealmScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.REALMSCANS, "realmscans.to", pageSize = 52, searchPageSize = 50) {
 

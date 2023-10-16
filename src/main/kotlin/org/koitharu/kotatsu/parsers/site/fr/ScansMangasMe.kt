@@ -167,7 +167,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 
 		val pages = ArrayList<MangaPage>(images.length())
 		for (i in 0 until images.length()) {
-
 			val pageTake = images.getJSONObject(i)
 			pages.add(
 				MangaPage(

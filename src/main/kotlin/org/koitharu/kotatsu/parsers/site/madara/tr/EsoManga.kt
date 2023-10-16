@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("ESOMANGA", "Eso Manga", "tr")
 internal class EsoManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ESOMANGA, "esomanga.com", 10) {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "manga-kategoriler/"
 }

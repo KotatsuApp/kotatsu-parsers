@@ -12,5 +12,5 @@ internal class MangaTop(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGATOP, "mangatop.site") {
 	override val datePattern = "d MMMM yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val stylepage = ""
+	override val stylePage = ""
 }

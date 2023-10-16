@@ -126,7 +126,7 @@ internal abstract class WpComicsParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 
@@ -162,7 +162,7 @@ internal abstract class WpComicsParser(
 	protected open val selectDate = "div.col-xs-4"
 	protected open val selectChapter = "div#nt_listchapter li:not(.heading)"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

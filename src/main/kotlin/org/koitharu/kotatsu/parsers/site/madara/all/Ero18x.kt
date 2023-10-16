@@ -21,7 +21,7 @@ internal class Ero18x(context: MangaLoaderContext) :
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(

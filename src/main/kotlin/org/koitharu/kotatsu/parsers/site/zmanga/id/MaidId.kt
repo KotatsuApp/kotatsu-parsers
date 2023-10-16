@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.zmanga.id
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.zmanga.ZMangaParser
@@ -18,7 +17,7 @@ import java.text.SimpleDateFormat
 internal class MaidId(context: MangaLoaderContext) :
 	ZMangaParser(context, MangaSource.MAID_ID, "www.maid.my.id") {
 
-	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")

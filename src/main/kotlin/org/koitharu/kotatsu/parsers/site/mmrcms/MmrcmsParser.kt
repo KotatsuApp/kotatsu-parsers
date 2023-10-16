@@ -22,20 +22,18 @@ internal abstract class MmrcmsParser(
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
-		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
+		SortOrder.ALPHABETICAL,
 	)
 
 	protected open val listUrl = "filterList"
 	protected open val tagUrl = "manga-list"
 	protected open val datePattern = "dd MMM. yyyy"
 
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
-
 
 	@JvmField
 	protected val ongoing: Set<String> = hashSetOf(
@@ -66,15 +64,7 @@ internal abstract class MmrcmsParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-		val url = if (sortOrder == SortOrder.UPDATED) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/latest-release")
-				append("?page=")
-				append(page.toString())
-			}
-		} else {
+		val url = if (!query.isNullOrEmpty() || !tags.isNullOrEmpty() || sortOrder != SortOrder.UPDATED) {
 			buildString {
 				append("https://")
 				append(domain)
@@ -83,29 +73,49 @@ internal abstract class MmrcmsParser(
 				append(page.toString())
 				append("&asc=true&author=&tag=")
 				append("&alpha=")
-
 				if (!query.isNullOrEmpty()) {
 					append(query.urlEncoded())
 				}
-
 				append("&cat=")
 				if (!tags.isNullOrEmpty()) {
 					append(tag?.key.orEmpty())
 				}
-
 				append("&sortBy=")
 				when (sortOrder) {
 					SortOrder.POPULARITY -> append("views")
 					SortOrder.ALPHABETICAL -> append("name")
-					else -> append("views")
+					else -> append("name")
 				}
 			}
+		} else {
+			buildString {
+				append("https://")
+				append(domain)
+				append("/latest-release")
+				append("?page=")
+				append(page.toString())
+			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
-		if (sortOrder == SortOrder.UPDATED) {
-
+		if (!query.isNullOrEmpty() || !tags.isNullOrEmpty() || sortOrder != SortOrder.UPDATED) {
+			return doc.select("div.media").map { div ->
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+					coverUrl = div.selectFirst("img")?.src().orEmpty(),
+					title = div.selectFirstOrThrow("div.media-body h5").text().orEmpty(),
+					altTitle = null,
+					rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+					tags = emptySet(),
+					author = null,
+					state = null,
+					source = source,
+					isNsfw = isNsfwSource,
+				)
+			}
+		} else {
 			return doc.select("div.manga-item").map { div ->
 				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				val deeplink = href.substringAfterLast("/")
@@ -117,24 +127,6 @@ internal abstract class MmrcmsParser(
 					title = div.selectFirstOrThrow("h3 a").text().orEmpty(),
 					altTitle = null,
 					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
-		} else {
-			return doc.select("div.media").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = div.selectFirst("img")?.src().orEmpty(),
-					title = div.selectFirstOrThrow("div.media-body h5").text().orEmpty(),
-					altTitle = null,
-					rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 					tags = emptySet(),
 					author = null,
 					state = null,
@@ -169,13 +161,9 @@ internal abstract class MmrcmsParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("dl.dl-horizontal")
-
-		val chaptersDeferred = async { getChapters(manga, doc) }
-
+		val chaptersDeferred = async { getChapters(doc) }
 		val desc = doc.selectFirstOrThrow(selectDesc).text()
-
 		val stateDiv = body.selectFirst(selectState)?.nextElementSibling()
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -183,12 +171,9 @@ internal abstract class MmrcmsParser(
 				else -> null
 			}
 		}
-
 		val alt = doc.body().selectFirst(selectAlt)?.nextElementSibling()?.text()
 		val auth = doc.body().selectFirst(selectAut)?.nextElementSibling()?.text()
-
 		val tags = doc.body().selectFirst(selectTag)?.nextElementSibling()?.select("a") ?: emptySet()
-
 		manga.copy(
 			tags = tags.mapNotNullToSet { a ->
 				MangaTag(
@@ -209,9 +194,8 @@ internal abstract class MmrcmsParser(
 	protected open val selectDate = "div.date-chapter-title-rtl"
 	protected open val selectChapter = "ul.chapters > li:not(.btn)"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
@@ -234,8 +218,6 @@ internal abstract class MmrcmsParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
-
 		return doc.select(selectPage).map { url ->
 			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
 			MangaPage(

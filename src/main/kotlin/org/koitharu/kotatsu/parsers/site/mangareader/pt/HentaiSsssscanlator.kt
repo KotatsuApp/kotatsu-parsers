@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("HENTAISSSSSCANLATOR", "Sssscanlator Hentai", "pt", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAISSSSSCANLATOR", "Sss Scanlator Hentai", "pt", type = ContentType.HENTAI)
 internal class HentaiSsssscanlator(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,

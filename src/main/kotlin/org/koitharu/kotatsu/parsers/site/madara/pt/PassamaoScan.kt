@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("YUGENMANGAS", "Yugen Mangas", "pt")
-internal class YugenMangas(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.YUGENMANGAS, "yugenmangas.com.br", 10) {
-	override val listUrl = "series/"
+@MangaSourceParser("PASSAMAOSCAN", "Passamao Scan", "pt")
+internal class PassamaoScan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.PASSAMAOSCAN, "passamaoscan.com") {
+	override val datePattern: String = "dd/MM/yyyy"
 }

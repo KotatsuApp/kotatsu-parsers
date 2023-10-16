@@ -85,7 +85,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 				coverUrl = jo.getString("cover_url"),
 				largeCoverUrl = null,
 				description = jo.getStringOrNull("desc"),
-				tags = jo.selectGenres("genres", tagsMap),
+				tags = jo.selectGenres(tagsMap),
 				state = runCatching {
 					if (jo.getBoolean("translation_completed")) {
 						MangaState.FINISHED
@@ -203,8 +203,8 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		return chaptersBuilder.toList()
 	}
 
-	private fun JSONObject.selectGenres(name: String, tags: SparseArrayCompat<MangaTag>): Set<MangaTag> {
-		val array = optJSONArray(name) ?: return emptySet()
+	private fun JSONObject.selectGenres(tags: SparseArrayCompat<MangaTag>): Set<MangaTag> {
+		val array = optJSONArray("genres") ?: return emptySet()
 		val res = ArraySet<MangaTag>(array.length())
 		for (i in 0 until array.length()) {
 			val id = array.getInt(i)

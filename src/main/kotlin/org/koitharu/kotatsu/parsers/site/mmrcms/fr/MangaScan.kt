@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("MANGA_SCAN", "Manga-Scan", "fr")
+@MangaSourceParser("MANGA_SCAN", "Manga Scan", "fr")
 internal class MangaScan(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaSource.MANGA_SCAN, "manga-scan.co") {
+	MmrcmsParser(context, MangaSource.MANGA_SCAN, "manga-scan.me") {
 	override val imgUpdated = ".jpg"
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

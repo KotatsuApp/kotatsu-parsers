@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANHUASCANINFO", "Manhua Scan .Info", "en")
 internal class ManhuaScanInfo(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHUASCANINFO, "manhuascan.info", 10) {
-	override val postreq = true
+	override val postReq = true
 }

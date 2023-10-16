@@ -27,7 +27,7 @@ internal abstract class FmreaderParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listeurl = "/manga-list.html"
+	protected open val listUrl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val tagPrefix = "manga-list-genre-"
 
@@ -66,7 +66,7 @@ internal abstract class FmreaderParser(
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append(listeurl)
+			append(listUrl)
 			append("?page=")
 			append(page.toString())
 			when {
@@ -114,7 +114,7 @@ internal abstract class FmreaderParser(
 	protected open val selectBodyTag = "ul.filter-type li a"
 
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/$listeurl").parseHtml()
+		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")
 			MangaTag(
@@ -134,7 +134,7 @@ internal abstract class FmreaderParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChapters(manga, doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
@@ -145,7 +145,6 @@ internal abstract class FmreaderParser(
 				else -> null
 			}
 		}
-
 		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")
 		val auth = doc.body().selectFirst(selectAut)?.text()
 		manga.copy(
@@ -168,7 +167,7 @@ internal abstract class FmreaderParser(
 	protected open val selectDate = "div.chapter-time"
 	protected open val selectChapter = "ul.list-chapters a"
 
-	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
+	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
 			val href = a.attrAsRelativeUrl("href")
@@ -194,10 +193,8 @@ internal abstract class FmreaderParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		return doc.select(selectPage).map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-
 			MangaPage(
 				id = generateUid(url),
 				url = url,

@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("KOINOBORISCAN", "Koinobori Scan", "es")
 internal class KoinoboriScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.KOINOBORISCAN, "koinoboriscan.com") {
-	override val postreq = true
+	override val postReq = true
 }

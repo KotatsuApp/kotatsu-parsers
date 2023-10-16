@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PIRULITOROSA", "Pirulitorosa", "pt", ContentType.HENTAI)
+@MangaSourceParser("PIRULITOROSA", "Pirulito Rosa", "pt", ContentType.HENTAI)
 internal class Pirulitorosa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PIRULITOROSA, "pirulitorosa.site") {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern: String = "dd/MM/yyyy"
 }

@@ -17,7 +17,7 @@ import java.util.*
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
-	override val configKeyDomain = ConfigKey.Domain("team1x12.com")
+	override val configKeyDomain = ConfigKey.Domain("team11x11.com")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -26,9 +26,9 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-
 		val url = buildString {
-			append("https://$domain")
+			append("https://")
+			append(domain)
 			if (!tags.isNullOrEmpty()) {
 				append("/series?genre=")
 				append(tag?.key.orEmpty())
@@ -57,7 +57,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.listupd .bs .bsx").ifEmpty {
 			doc.select("div.post-body .box")
 		}.map { div ->
@@ -97,7 +96,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val mangaUrl = manga.url.toAbsoluteUrl(domain)
-
 		val maxPageChapterSelect = doc.select(".pagination .page-item a")
 		var maxPageChapter = 1
 		if (!maxPageChapterSelect.isNullOrEmpty()) {
@@ -108,7 +106,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				}
 			}
 		}
-
 		return manga.copy(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".full-list-info:contains(الحالة:) a").text()) {

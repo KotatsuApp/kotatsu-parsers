@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class CafecomYaoi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.CAFECOMYAOI, "cafecomyaoi.com.br") {
 	override val datePattern = "dd/MM/yyyy"
-	override val postreq = true
+	override val postReq = true
 }

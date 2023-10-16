@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("NOBLESSETRANSLATIONS", "Noblesse Translations", "es")
 internal class NoblesseTranslations(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.NOBLESSETRANSLATIONS, "www.noblessetranslations.com") {
+	MadaraParser(context, MangaSource.NOBLESSETRANSLATIONS, "noblessetranslations.com") {
 	override val datePattern = "d MMMM, yyyy"
 }

@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("READMANHUA", "Read Manhua", "en", ContentType.HENTAI)
 internal class ReadManhua(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.READMANHUA, "readmanhua.net", 20) {
-	override val postreq = true
+	override val postReq = true
 	override val datePattern = "d MMM yy"
 }

@@ -33,9 +33,8 @@ internal abstract class MadaraParser(
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val datePattern = "MMMM d, yyyy"
-	protected open val stylepage = "?style=list"
-
-	protected open val postreq = false
+	protected open val stylePage = "?style=list"
+	protected open val postReq = false
 
 	init {
 		paginator.firstPage = 0
@@ -51,7 +50,6 @@ internal abstract class MadaraParser(
 		}
 		parseFailed("Cannot find tableValue for node ${text()}")
 	}
-
 
 	@JvmField
 	protected val ongoing: Set<String> = hashSetOf(
@@ -358,7 +356,7 @@ internal abstract class MadaraParser(
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
@@ -378,8 +376,7 @@ internal abstract class MadaraParser(
 	}
 
 	protected open suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
-
-		val doc = if (postreq) {
+		val doc = if (postReq) {
 			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 			val url = "https://$domain/wp-admin/admin-ajax.php"
 			val postdata = "action=manga_get_chapters&manga=$mangaId"
@@ -388,13 +385,11 @@ internal abstract class MadaraParser(
 			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 			webClient.httpPost(url, emptyMap()).parseHtml()
 		}
-
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylepage
+			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
@@ -413,13 +408,35 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val doc = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
+		val root = doc.body().selectFirstOrThrow(".related-manga")
+		return root.select("div.related-reading-wrap").mapNotNull { div ->
+			val a = div.selectFirst("a") ?: return@mapNotNull null
+			val href = a.attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
+				altTitle = null,
+				title = div.selectFirstOrThrow(".widget-title").text(),
+				author = null,
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				tags = emptySet(),
+				rating = RATING_UNKNOWN,
+				state = null,
+				isNsfw = isNsfwSource,
+				source = source,
+			)
+		}
+	}
+
 	protected open val selectBodyPage = "div.main-col-inner div.reading-content"
 	protected open val selectPage = "div.page-break, div.login-required"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
 			val root = doc.body().selectFirstOrThrow(selectBodyPage)
