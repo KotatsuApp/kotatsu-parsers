@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ONLYMANHWA", "Only Manhwa", "en")
+@MangaSourceParser("ONLYMANHWA", "OnlyManhwa", "en")
 internal class OnlyManhwa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ONLYMANHWA, "onlymanhwa.org") {
 	override val listUrl = "manhwa/"

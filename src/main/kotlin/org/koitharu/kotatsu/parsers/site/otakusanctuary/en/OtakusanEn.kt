@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.otakusanctuary.OtakuSanctuaryParser
 
-@MangaSourceParser("OTAKUSAN_EN", "Otaku San", "en")
+@MangaSourceParser("OTAKUSAN_EN", "OtakuSan", "en")
 internal class OtakusanEn(context: MangaLoaderContext) :
 	OtakuSanctuaryParser(context, MangaSource.OTAKUSAN_EN, "otakusan.net") {
 	override val lang = "us"

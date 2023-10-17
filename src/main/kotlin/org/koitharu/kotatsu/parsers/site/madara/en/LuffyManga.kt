@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LUFFYMANGA", "Luffy Manga", "en")
+@MangaSourceParser("LUFFYMANGA", "LuffyManga", "en")
 internal class LuffyManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LUFFYMANGA, "luffymanga.com", 10)

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("YAOITOSHOKAN", "Yaoi To Shokan", "pt", ContentType.HENTAI)
+@MangaSourceParser("YAOITOSHOKAN", "YaoiToShokan", "pt", ContentType.HENTAI)
 internal class Yaoitoshokan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.YAOITOSHOKAN, "www.yaoitoshokan.net", 18) {
 	override val tagPrefix = "genero/"

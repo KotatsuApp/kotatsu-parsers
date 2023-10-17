@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.*
 
 //the search doesn't work on the source.
-@MangaSourceParser("JPSCANVF", "Jp Scan Vf", "fr")
+@MangaSourceParser("JPSCANVF", "JpScan-vf", "fr")
 internal class JpScanVf(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.JPSCANVF, "jpscan-vf.net") {
 	override val sourceLocale: Locale = Locale.ENGLISH

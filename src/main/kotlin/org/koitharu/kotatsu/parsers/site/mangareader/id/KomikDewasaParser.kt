@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("KOMIKDEWASA", "Komik Dewasa .Club", "id", ContentType.HENTAI)
+@MangaSourceParser("KOMIKDEWASA", "KomikDewasa.Club", "id", ContentType.HENTAI)
 internal class KomikDewasaParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKDEWASA, "komikremaja.club", pageSize = 20, searchPageSize = 10) {
 	override val listUrl: String = "/komik"

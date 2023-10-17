@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 
 
-@MangaSourceParser("POWERMANGA", "Power Manga", "it")
+@MangaSourceParser("POWERMANGA", "PowerManga", "it")
 internal class PowerManga(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.POWERMANGA, "reader.powermanga.org") {
 	override val pagination = false

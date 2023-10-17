@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MAGUSMANGA", "Magus Manga", "en")
+@MangaSourceParser("MAGUSMANGA", "MagusManga", "en")
 internal class MagusManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MAGUSMANGA, "magusmanga.com", pageSize = 20, searchPageSize = 10)

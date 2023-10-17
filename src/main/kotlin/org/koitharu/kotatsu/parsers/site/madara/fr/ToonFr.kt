@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("TOONFR", "Toon Fr", "fr", ContentType.HENTAI)
+@MangaSourceParser("TOONFR", "ToonFr", "fr", ContentType.HENTAI)
 internal class ToonFr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TOONFR, "toonfr.com") {
 

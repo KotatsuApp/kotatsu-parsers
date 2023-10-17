@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 
-@MangaSourceParser("INSTAMANHWA", "Insta Manhwa", "en", ContentType.HENTAI)
+@MangaSourceParser("INSTAMANHWA", "InstaManhwa", "en", ContentType.HENTAI)
 internal class InstaManhwa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.INSTAMANHWA, "www.instamanhwa.com", 15) {
 	override val tagPrefix = "genre/"

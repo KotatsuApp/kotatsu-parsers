@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 
-@MangaSourceParser("MANGAPURE", "Manga Pure", "en")
+@MangaSourceParser("MANGAPURE", "MangaPure", "en")
 internal class MangaPure(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAPURE, "mangapure.net") {
 	override val tagPrefix = "mangas/"

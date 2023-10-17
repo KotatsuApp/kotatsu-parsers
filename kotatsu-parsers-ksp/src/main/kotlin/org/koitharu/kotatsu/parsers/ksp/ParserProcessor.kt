@@ -121,6 +121,8 @@ class ParserProcessor(
 		private val factoryWriter: Writer?,
 	) : KSVisitorVoid() {
 
+		private val titles = HashMap<String, String>()
+
 		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
 			if (classDeclaration.classKind != ClassKind.CLASS || classDeclaration.isAbstract()) {
 				logger.error("Only non-abstract can be annotated with @MangaSourceParser", classDeclaration)
@@ -149,7 +151,13 @@ class ParserProcessor(
 					classDeclaration,
 				)
 			}
-			val className = classDeclaration.qualifiedName?.asString()
+			val className = checkNotNull(classDeclaration.qualifiedName?.asString()) { "Class name is null" }
+
+			val prevTitleClass = titles.put(title, className)
+			if (prevTitleClass != null) {
+				logger.warn("Source title duplication: \"$title\" is assigned to both $prevTitleClass and $className")
+			}
+
 			factoryWriter?.write("\tMangaSource.$name -> $className(context)\n")
 			val deprecationString = if (deprecation != null) {
 				val reason = deprecation.arguments

@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("NEOX_SCANS", "Neox scans", "pt")
+@MangaSourceParser("NEOX_SCANS", "NeoxScans", "pt")
 internal class Neoxscans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NEOX_SCANS, "neoxscan.net", 18) {
 	override val datePattern = "dd/MM/yyyy"

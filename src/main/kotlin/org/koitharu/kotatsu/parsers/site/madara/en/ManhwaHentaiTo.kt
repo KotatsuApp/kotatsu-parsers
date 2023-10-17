@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANHWAHENTAITO", "Manhwa Hentai .To", "en", ContentType.HENTAI)
+@MangaSourceParser("MANHWAHENTAITO", "ManhwaHentai.to", "en", ContentType.HENTAI)
 internal class ManhwaHentaiTo(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAHENTAITO, "manhwahentai.to", 10) {
 	override val tagPrefix = "pornhwa-genre/"

@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWARAW", "Manhwa Raw", "", ContentType.HENTAI)
+@MangaSourceParser("MANHWARAW", "ManhwaRaw", "", ContentType.HENTAI)
 internal class ManhwaRaw(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWARAW, "manhwa-raw.com", 10) {
 	override val datePattern = "MM/dd"

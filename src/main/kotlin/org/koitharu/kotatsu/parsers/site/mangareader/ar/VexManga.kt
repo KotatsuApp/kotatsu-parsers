@@ -9,7 +9,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 
-@MangaSourceParser("VEXMANGA", "Vex Manga", "ar")
+@MangaSourceParser("VEXMANGA", "VexManga", "ar")
 internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.VEXMANGA, "vexmanga.net", pageSize = 10, searchPageSize = 10) {
 	override val selectMangaList = ".listupd .latest-series"

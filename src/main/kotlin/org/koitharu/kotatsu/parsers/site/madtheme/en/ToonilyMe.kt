@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 
-@MangaSourceParser("TOONILY_ME", "Toonily .Me", "en", ContentType.HENTAI)
+@MangaSourceParser("TOONILY_ME", "Toonily.Me", "en", ContentType.HENTAI)
 internal class ToonilyMe(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.TOONILY_ME, "toonily.me") {
 

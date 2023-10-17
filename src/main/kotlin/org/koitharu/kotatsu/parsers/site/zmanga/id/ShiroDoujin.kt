@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("SHIRO_DOUJIN", "Shiro Doujin", "id", ContentType.HENTAI)
+@MangaSourceParser("SHIRO_DOUJIN", "ShiroDoujin", "id", ContentType.HENTAI)
 internal class ShiroDoujin(context: MangaLoaderContext) :
 	ZMangaParser(context, MangaSource.SHIRO_DOUJIN, "shirodoujin.com") {
 

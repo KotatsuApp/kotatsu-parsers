@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.Locale
 
-@MangaSourceParser("KOMIKDEWASA_ONLINE", "Komik Dewasa .Online", "id", ContentType.HENTAI)
+@MangaSourceParser("KOMIKDEWASA_ONLINE", "KomikDewasa.Online", "id", ContentType.HENTAI)
 internal class KomikDewasa(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,

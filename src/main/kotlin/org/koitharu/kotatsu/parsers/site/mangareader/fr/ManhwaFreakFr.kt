@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-@MangaSourceParser("MANHWA_FREAK_FR", "Manhwa Freak", "fr")
+@MangaSourceParser("MANHWA_FREAK_FR", "ManhwaFreak", "fr")
 internal class ManhwaFreakFr(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWA_FREAK_FR, "manhwafreak.fr", pageSize = 0, searchPageSize = 10) {
 

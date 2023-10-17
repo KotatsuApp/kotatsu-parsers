@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANGAPROTM", "Manga Pro", "ar")
+@MangaSourceParser("MANGAPROTM", "MangaPro", "ar")
 internal class MangaProtm(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGAPROTM, "mangapro.co", pageSize = 20, searchPageSize = 20)

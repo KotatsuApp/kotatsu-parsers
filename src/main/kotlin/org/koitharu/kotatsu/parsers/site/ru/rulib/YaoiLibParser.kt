@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
-@MangaSourceParser("YAOILIB", "Yaoi Lib", "ru")
+@MangaSourceParser("YAOILIB", "YaoiLib", "ru")
 internal class YaoiLibParser(context: MangaLoaderContext) : MangaLibParser(context, MangaSource.YAOILIB) {
 	override val configKeyDomain = ConfigKey.Domain("yaoilib.me")
 	override fun isNsfw(doc: Document) = true

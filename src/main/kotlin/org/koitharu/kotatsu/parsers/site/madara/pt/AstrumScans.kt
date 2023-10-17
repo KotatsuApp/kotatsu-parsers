@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ASTRUMSCANS", "Astrum Scans", "pt")
+@MangaSourceParser("ASTRUMSCANS", "AstrumScans", "pt")
 internal class AstrumScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ASTRUMSCANS, "astrumscans.xyz", 20) {
 	override val withoutAjax = true

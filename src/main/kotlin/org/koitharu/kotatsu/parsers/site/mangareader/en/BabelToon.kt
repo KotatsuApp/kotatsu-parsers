@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("BABELTOON", "Babel Toon", "en")
+@MangaSourceParser("BABELTOON", "BabelToon", "en")
 internal class BabelToon(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BABELTOON, "babeltoon.com", pageSize = 20, searchPageSize = 10) {
 

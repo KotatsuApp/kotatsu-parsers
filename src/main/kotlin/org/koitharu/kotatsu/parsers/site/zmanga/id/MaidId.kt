@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.text.SimpleDateFormat
 
 // Info: Some scans are password-protected
-@MangaSourceParser("MAID_ID", "Maid Id", "id")
+@MangaSourceParser("MAID_ID", "MaidId", "id")
 internal class MaidId(context: MangaLoaderContext) :
 	ZMangaParser(context, MangaSource.MAID_ID, "www.maid.my.id") {
 

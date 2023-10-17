@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LIRESCAN", "Lire Scan", "fr")
+@MangaSourceParser("LIRESCAN", "LireScan", "fr")
 internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LIRESCAN, 20) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)

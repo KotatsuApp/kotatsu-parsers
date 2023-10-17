@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("SHADOWMANGAS", "Shadow Mangas", "es")
+@MangaSourceParser("SHADOWMANGAS", "ShadowMangas", "es")
 internal class Shadowmangas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SHADOWMANGAS, "shadowmangas.com", pageSize = 10, searchPageSize = 10) {
 

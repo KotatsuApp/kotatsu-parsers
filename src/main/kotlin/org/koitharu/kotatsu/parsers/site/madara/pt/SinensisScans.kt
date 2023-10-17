@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SINENSISSCANS", "Sinensis Scans", "pt")
+@MangaSourceParser("SINENSISSCANS", "SinensisScans", "pt")
 internal class SinensisScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SINENSISSCANS, "sinensisscan.net") {
 	override val datePattern: String = "dd/MM/yyyy"

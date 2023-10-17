@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("LIMBOSCAN", "Limbo Scan", "pt")
+@MangaSourceParser("LIMBOSCAN", "LimboScan", "pt")
 internal class LimboScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.LIMBOSCAN, "limboscan.com.br") {
 	override val tagPrefix = "obras-genre/"

@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("DOMALFANSB", "Domal Fansub", "tr")
+@MangaSourceParser("DOMALFANSB", "DomalFansub", "tr")
 internal class DomalFansb(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DOMALFANSB, "domalfansb.com") {
 	override val datePattern = "d MMMM yyyy"

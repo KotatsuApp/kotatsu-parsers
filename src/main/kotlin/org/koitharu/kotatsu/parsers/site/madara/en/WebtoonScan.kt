@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("WEBTOONSCAN", "Webtoon Scan", "en", ContentType.HENTAI)
+@MangaSourceParser("WEBTOONSCAN", "WebtoonScan", "en", ContentType.HENTAI)
 internal class WebtoonScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONSCAN, "webtoonscan.com", 20)

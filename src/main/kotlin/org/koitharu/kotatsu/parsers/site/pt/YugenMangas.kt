@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("YUGENMANGAS", "Yugen Mangas", "pt")
+@MangaSourceParser("YUGENMANGAS", "YugenMangas", "pt")
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YUGENMANGAS, 28) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)

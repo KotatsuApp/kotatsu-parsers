@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("HENTAICUBE", "Hentai Cube", "vi", ContentType.HENTAI)
+@MangaSourceParser("HENTAICUBE", "HentaiCube", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAICUBE, "hentaicube.net") {
 

@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MANGASTORM", "Manga Storm", "ar")
+@MangaSourceParser("MANGASTORM", "MangaStorm", "ar")
 internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGASTORM, 30) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)

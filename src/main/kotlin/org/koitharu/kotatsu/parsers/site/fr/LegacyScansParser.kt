@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LEGACY_SCANS", "Legacy Scans", "fr")
+@MangaSourceParser("LEGACY_SCANS", "LegacyScans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.LEGACY_SCANS, 18) {
 

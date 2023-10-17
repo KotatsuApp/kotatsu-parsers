@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("CONSTELLARCOMIC", "Constellar Comic", "en", ContentType.HENTAI)
+@MangaSourceParser("CONSTELLARCOMIC", "ConstellarComic", "en", ContentType.HENTAI)
 internal class Constellarcomic(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.CONSTELLARCOMIC, "constellarcomic.com", pageSize = 30, searchPageSize = 18) {
 	override val selectTestScript = "script:containsData(ts_rea_der_._run)"

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("GOOFFANSUB", "Goof Fansub", "pt", ContentType.HENTAI)
+@MangaSourceParser("GOOFFANSUB", "GoofFansub", "pt", ContentType.HENTAI)
 internal class GoofFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GOOFFANSUB, "gooffansub.com") {
 	override val datePattern: String = "dd/MM/yyyy"

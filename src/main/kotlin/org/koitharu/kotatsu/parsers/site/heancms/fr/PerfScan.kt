@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 
-@MangaSourceParser("PERF_SCAN", "Perf Scan", "fr")
+@MangaSourceParser("PERF_SCAN", "PerfScan", "fr")
 internal class PerfScan(context: MangaLoaderContext) :
 	HeanCms(context, MangaSource.PERF_SCAN, "perf-scan.fr")

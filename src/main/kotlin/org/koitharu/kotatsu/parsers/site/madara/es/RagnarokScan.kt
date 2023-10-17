@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("RAGNAROKSCAN", "Ragnarok Scan", "es")
+@MangaSourceParser("RAGNAROKSCAN", "RagnarokScan", "es")
 internal class RagnarokScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAGNAROKSCAN, "ragnarokscan.com") {
 	override val stylePage = ""

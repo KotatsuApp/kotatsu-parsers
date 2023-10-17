@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGA_DISTRICT", "Manga District", "en", ContentType.HENTAI)
+@MangaSourceParser("MANGA_DISTRICT", "MangaDistrict", "en", ContentType.HENTAI)
 internal class MangaDistrict(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
 

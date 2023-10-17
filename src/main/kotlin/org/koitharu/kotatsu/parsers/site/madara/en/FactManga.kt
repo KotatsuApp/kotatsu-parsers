@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("FACTMANGA", "Fact Manga", "en")
+@MangaSourceParser("FACTMANGA", "FactManga", "en")
 internal class FactManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FACTMANGA, "factmanga.com")

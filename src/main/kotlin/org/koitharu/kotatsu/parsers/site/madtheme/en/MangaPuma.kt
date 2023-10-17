@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 
-@MangaSourceParser("MANGAPUMA", "Manga Puma", "en")
+@MangaSourceParser("MANGAPUMA", "MangaPuma", "en")
 internal class MangaPuma(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.MANGAPUMA, "mangapuma.com")

@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("KSKMOE", "Ksk .Moe", "en", ContentType.HENTAI)
+@MangaSourceParser("KSKMOE", "Ksk.moe", "en", ContentType.HENTAI)
 internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.KSKMOE, 35) {
 
 	override val sortOrders: Set<SortOrder> =

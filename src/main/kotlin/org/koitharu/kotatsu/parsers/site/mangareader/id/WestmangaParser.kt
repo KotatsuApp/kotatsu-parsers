@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("WESTMANGA", "West Manga", "id")
+@MangaSourceParser("WESTMANGA", "WestManga", "id")
 internal class WestmangaParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.WESTMANGA, "westmanga.info", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH

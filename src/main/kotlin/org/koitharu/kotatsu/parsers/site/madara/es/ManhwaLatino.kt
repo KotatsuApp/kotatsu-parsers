@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWALATINO", "Manhwa Latino", "es", ContentType.HENTAI)
+@MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es", ContentType.HENTAI)
 internal class ManhwaLatino(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWALATINO, "manhwa-latino.com", 10) {
 

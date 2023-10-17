@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 
 
-@MangaSourceParser("RAMAREADER", "Rama Reader", "it")
+@MangaSourceParser("RAMAREADER", "RamaReader", "it")
 internal class Ramareader(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.RAMAREADER, "www.ramareader.it") {
 	override val searchUrl = "read/search/"

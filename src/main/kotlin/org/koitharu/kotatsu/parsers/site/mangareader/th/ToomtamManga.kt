@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("TOOMTAMMANGA", "Toomtam Manga", "th", ContentType.HENTAI)
+@MangaSourceParser("TOOMTAMMANGA", "ToomtamManga", "th", ContentType.HENTAI)
 internal class ToomtamManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TOOMTAMMANGA, "toomtam-manga.com", pageSize = 30, searchPageSize = 28)

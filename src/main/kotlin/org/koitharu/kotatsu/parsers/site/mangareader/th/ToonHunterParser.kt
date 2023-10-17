@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("TOONHUNTER", "Toon Hunter", "th")
+@MangaSourceParser("TOONHUNTER", "ToonHunter", "th")
 internal class ToonHunterParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TOONHUNTER, "toonhunter.com", pageSize = 30, searchPageSize = 10) {
 

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("OLIMPOSCANS", "Olimpo Scans", "es")
+@MangaSourceParser("OLIMPOSCANS", "OlimpoScans", "es")
 internal class OlimpoScans(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.OLIMPOSCANS, "olimposcans.com") {
 

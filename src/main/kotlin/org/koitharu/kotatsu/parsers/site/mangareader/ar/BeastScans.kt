@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("BEASTSCANS", "Beast Scans", "ar")
+@MangaSourceParser("BEASTSCANS", "BeastScans", "ar")
 internal class BeastScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.BEASTSCANS, "beastscans.net", pageSize = 20, searchPageSize = 10)

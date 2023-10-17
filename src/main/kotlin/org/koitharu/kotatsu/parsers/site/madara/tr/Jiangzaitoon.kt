@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("JIANGZAITOON", "Jiangzai Toon", "tr", ContentType.HENTAI)
+@MangaSourceParser("JIANGZAITOON", "JiangzaiToon", "tr", ContentType.HENTAI)
 internal class Jiangzaitoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.JIANGZAITOON, "jiangzaitoon.cc") {
 	override val postReq = true

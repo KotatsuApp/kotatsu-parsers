@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PASSAMAOSCAN", "Passamao Scan", "pt")
+@MangaSourceParser("PASSAMAOSCAN", "PassamaoScan", "pt")
 internal class PassamaoScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PASSAMAOSCAN, "passamaoscan.com") {
 	override val datePattern: String = "dd/MM/yyyy"

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANHWAS", "Free Manhwa", "en")
+@MangaSourceParser("MANHWAS", "FreeManhwa", "en")
 internal class Manhwas(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAS, "manhwas.com")

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("YANPFANSUB", "Yanp Fansub", "pt")
+@MangaSourceParser("YANPFANSUB", "YanpFansub", "pt")
 internal class YanpFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.YANPFANSUB, "yanpfansub.com")

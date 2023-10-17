@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("HENTAIZONE", "Hentai Zone", "fr", ContentType.HENTAI)
+@MangaSourceParser("HENTAIZONE", "HentaiZone", "fr", ContentType.HENTAI)
 internal class Hentaizone(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HENTAIZONE, "hentaizone.xyz", pageSize = 10) {
 

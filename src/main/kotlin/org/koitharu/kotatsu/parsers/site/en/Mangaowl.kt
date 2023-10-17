@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAOWL", "Manga Owl .To", "en")
+@MangaSourceParser("MANGAOWL", "MangaOwl.to", "en")
 internal class Mangaowl(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.MANGAOWL, pageSize = 24) {
 

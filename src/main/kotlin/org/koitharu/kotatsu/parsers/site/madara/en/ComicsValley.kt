@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("COMICSVALLEY", "Comics Valley", "en", ContentType.HENTAI)
+@MangaSourceParser("COMICSVALLEY", "ComicsValley", "en", ContentType.HENTAI)
 internal class ComicsValley(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.COMICSVALLEY, "comicsvalley.com") {
 	override val listUrl = "adult-comics/"

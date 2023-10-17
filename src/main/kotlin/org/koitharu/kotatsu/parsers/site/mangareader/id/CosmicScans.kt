@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.util.Locale
 
-@MangaSourceParser("COSMIC_SCANS", "Cosmic Scans", "id")
+@MangaSourceParser("COSMIC_SCANS", "CosmicScans", "id")
 internal class CosmicScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.COSMIC_SCANS, "cosmicscans.id", pageSize = 30, searchPageSize = 30) {
 

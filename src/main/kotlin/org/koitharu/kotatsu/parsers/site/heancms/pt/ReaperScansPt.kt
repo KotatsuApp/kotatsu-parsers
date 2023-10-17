@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 
-@MangaSourceParser("REAPERSCANSPT", "Reaper Scans", "pt")
+@MangaSourceParser("REAPERSCANSPT", "ReaperScans", "pt")
 internal class ReaperScansPt(context: MangaLoaderContext) :
 	HeanCms(context, MangaSource.REAPERSCANSPT, "reaperscans.net") {
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.net", "reaperbr.online")

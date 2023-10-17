@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("KOMIKID", "Komik Id", "id")
+@MangaSourceParser("KOMIKID", "KomikId", "id")
 internal class KomikId(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.KOMIKID, "komikid.com") {
 	override val selectState = "dt:contains(Status)"

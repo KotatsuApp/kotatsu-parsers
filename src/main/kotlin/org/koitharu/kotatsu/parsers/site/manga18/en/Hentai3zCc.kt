@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.manga18.Manga18Parser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("HENTAI3ZCC", "Hentai3z .Cc", "en", ContentType.HENTAI)
+@MangaSourceParser("HENTAI3ZCC", "Hentai3z.cc", "en", ContentType.HENTAI)
 internal class Hentai3zCc(context: MangaLoaderContext) :
 	Manga18Parser(context, MangaSource.HENTAI3ZCC, "hentai3z.cc") {
 

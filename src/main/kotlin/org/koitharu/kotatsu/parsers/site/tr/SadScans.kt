@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("SADSCANS", "Sad Scans", "tr")
+@MangaSourceParser("SADSCANS", "SadScans", "tr")
 internal class SadScans(context: MangaLoaderContext) : MangaParser(context, MangaSource.SADSCANS) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 
-@MangaSourceParser("TMOMANGA", "Tmo Manga", "es")
+@MangaSourceParser("TMOMANGA", "TmoManga", "es")
 internal class TmoManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TMOMANGA, "tmomanga.com") {
 

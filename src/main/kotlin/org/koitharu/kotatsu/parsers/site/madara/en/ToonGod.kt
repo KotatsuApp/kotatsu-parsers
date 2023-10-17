@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TOONGOD", "Toon God", "en", ContentType.HENTAI)
+@MangaSourceParser("TOONGOD", "ToonGod", "en", ContentType.HENTAI)
 internal class ToonGod(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TOONGOD, "www.toongod.org", 18) {
 	override val listUrl = "webtoon/"

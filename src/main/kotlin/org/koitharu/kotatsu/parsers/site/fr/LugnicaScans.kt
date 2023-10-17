@@ -13,7 +13,7 @@ import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LUGNICASCANS", "Lugnica Scans", "fr")
+@MangaSourceParser("LUGNICASCANS", "LugnicaScans", "fr")
 internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LUGNICASCANS, 10) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANYCOMIC", "Many Comic", "en", ContentType.HENTAI)
+@MangaSourceParser("MANYCOMIC", "ManyComic", "en", ContentType.HENTAI)
 internal class ManyComic(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANYCOMIC, "manycomic.com") {
 	override val postReq = true

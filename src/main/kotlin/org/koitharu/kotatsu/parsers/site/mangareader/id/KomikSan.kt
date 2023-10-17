@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
-@MangaSourceParser("KOMIKSAN", "Komik San", "id")
+@MangaSourceParser("KOMIKSAN", "KomikSan", "id")
 internal class KomikSan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKSAN, "komiksan.link", pageSize = 40, searchPageSize = 10) {
 

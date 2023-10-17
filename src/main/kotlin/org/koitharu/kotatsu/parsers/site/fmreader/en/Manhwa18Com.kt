@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANHWA18COM", "Manhwa 18 .Com", "en", ContentType.HENTAI)
+@MangaSourceParser("MANHWA18COM", "Manhwa18.com", "en", ContentType.HENTAI)
 internal class Manhwa18Com(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.MANHWA18COM, "manhwa18.com") {
 

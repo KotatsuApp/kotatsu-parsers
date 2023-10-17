@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PRISMA_HENTAI", "Prisma hentai", "pt", ContentType.HENTAI)
+@MangaSourceParser("PRISMA_HENTAI", "PrismaHentai", "pt", ContentType.HENTAI)
 internal class Prismahentai(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.PRISMA_HENTAI, "prismahentai.com", 18)

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.HashSet
 import java.util.Locale
 
-@MangaSourceParser("MANHWA18CC", "Manhwa 18 .Cc", "", ContentType.HENTAI)
+@MangaSourceParser("MANHWA18CC", "Manhwa18.cc", "", ContentType.HENTAI)
 internal class Manhwa18Cc(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWA18CC, "manhwa18.cc", 24) {
 	override val datePattern = "dd MMM yyyy"

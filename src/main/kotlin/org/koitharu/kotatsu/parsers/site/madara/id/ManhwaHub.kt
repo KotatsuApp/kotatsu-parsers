@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MANHWAHUB", "Manhwa Hub", "id", ContentType.HENTAI)
+@MangaSourceParser("MANHWAHUB", "ManhwaHub", "id", ContentType.HENTAI)
 internal class ManhwaHub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWAHUB, "manhwahub.net", 40) {
 

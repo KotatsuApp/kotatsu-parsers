@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("DYNASTYSCANS", "Dynasty Scans", "en")
+@MangaSourceParser("DYNASTYSCANS", "DynastyScans", "en")
 internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DYNASTYSCANS, 117) {
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("dynasty-scans.com")

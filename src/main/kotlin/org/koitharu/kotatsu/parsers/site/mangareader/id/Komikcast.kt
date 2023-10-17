@@ -11,7 +11,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("KOMIKCAST", "Komik Cast", "id")
+@MangaSourceParser("KOMIKCAST", "KomikCast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.vip", pageSize = 60, searchPageSize = 28) {
 

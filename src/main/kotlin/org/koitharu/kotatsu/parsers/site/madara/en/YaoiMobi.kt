@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("YAOIMOBI", "Yaoi .Mobi", "en", ContentType.HENTAI)
+@MangaSourceParser("YAOIMOBI", "Yaoi.Mobi", "en", ContentType.HENTAI)
 internal class YaoiMobi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.YAOIMOBI, "yaoi.mobi") {
 	override val postReq = true

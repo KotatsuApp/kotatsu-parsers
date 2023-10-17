@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TIMENAIGHT", "Time Naight", "tr")
+@MangaSourceParser("TIMENAIGHT", "TimeNaight", "tr")
 internal class Timenaight(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TIMENAIGHT, "timenaight.com") {
 	override val postReq = true

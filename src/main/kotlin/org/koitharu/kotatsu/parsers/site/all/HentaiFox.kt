@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("HENTAIFOX", "Hentai Fox", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAIFOX", "HentaiFox", type = ContentType.HENTAI)
 internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HENTAIFOX, 20) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)

@@ -14,7 +14,7 @@ import java.util.EnumSet
 import java.util.Locale
 
 
-@MangaSourceParser("PAPSCAN", "Pap Scan", "fr")
+@MangaSourceParser("PAPSCAN", "PapScan", "fr")
 internal class PapScan(context: MangaLoaderContext) :
 	AnimeBootstrapParser(context, MangaSource.PAPSCAN, "papscan.com") {
 

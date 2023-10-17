@@ -33,7 +33,7 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 
-@MangaSourceParser("YURINEKO", "Yuri Neko", "vi", ContentType.HENTAI)
+@MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
 class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")

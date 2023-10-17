@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("RUYAMANGA", "Ruya Manga", "tr")
+@MangaSourceParser("RUYAMANGA", "RuyaManga", "tr")
 internal class RuyaManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RUYAMANGA, "www.ruyamanga.com", 18) {
 	override val tagPrefix = "manga-kategori/"

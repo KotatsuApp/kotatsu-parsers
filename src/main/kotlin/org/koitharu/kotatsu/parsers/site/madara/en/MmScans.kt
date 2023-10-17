@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 
-@MangaSourceParser("MMSCANS", "Mm Scans", "en")
+@MangaSourceParser("MMSCANS", "MmScans", "en")
 internal class MmScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MMSCANS, "mm-scans.org") {
 	override val selectChapter = "li.chapter-li"

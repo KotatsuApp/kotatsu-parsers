@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 
 
-@MangaSourceParser("READNIFTEAM", "Read Nif Team", "it")
+@MangaSourceParser("READNIFTEAM", "ReadNifTeam", "it")
 internal class ReadNifteam(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.READNIFTEAM, "read-nifteam.info") {
 	override val searchUrl = "slide/search/"

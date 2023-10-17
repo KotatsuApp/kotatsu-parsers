@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.ArrayList
 
-@MangaSourceParser("MANGABUDDY", "Manga Buddy", "en")
+@MangaSourceParser("MANGABUDDY", "MangaBuddy", "en")
 internal class MangaBuddy(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.MANGABUDDY, "mangabuddy.com") {
 

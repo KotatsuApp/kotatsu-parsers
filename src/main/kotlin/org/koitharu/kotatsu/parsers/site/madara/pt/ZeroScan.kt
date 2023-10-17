@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ZEROSCAN", "Zero Scan", "pt")
+@MangaSourceParser("ZEROSCAN", "ZeroScan", "pt")
 internal class ZeroScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ZEROSCAN, "zeroscan.com.br") {
 	override val postReq = true

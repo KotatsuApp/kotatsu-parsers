@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TONIZUTOON", "Tonizu Toon", "tr", ContentType.HENTAI)
+@MangaSourceParser("TONIZUTOON", "TonizuToon", "tr", ContentType.HENTAI)
 internal class Tonizutoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TONIZUTOON, "tonizutoon.com")

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("ANZMANGASHD", "Anz Mangas Hd", "es")
+@MangaSourceParser("ANZMANGASHD", "AnzMangasHd", "es")
 internal class AnzMangasHd(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.ANZMANGASHD, "www.anzmangashd.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH

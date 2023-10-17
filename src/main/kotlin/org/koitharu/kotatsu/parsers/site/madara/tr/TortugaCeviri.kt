@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TORTUGACEVIRI", "Tortuga Ceviri", "tr")
+@MangaSourceParser("TORTUGACEVIRI", "TortugaCeviri", "tr")
 internal class TortugaCeviri(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TORTUGACEVIRI, "tortuga-ceviri.com")

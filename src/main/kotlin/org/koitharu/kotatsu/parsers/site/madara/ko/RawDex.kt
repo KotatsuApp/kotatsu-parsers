@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.*
 
-@MangaSourceParser("RAWDEX", "Raw Dex", "ko", ContentType.HENTAI)
+@MangaSourceParser("RAWDEX", "RawDex", "ko", ContentType.HENTAI)
 internal class RawDex(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RAWDEX, "rawdex.net", 40) {
 	override val sourceLocale: Locale = Locale.ENGLISH

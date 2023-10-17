@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FLIXSCANS", "Flix Scans", "ar")
+@MangaSourceParser("FLIXSCANS", "FlixScans", "ar")
 internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)

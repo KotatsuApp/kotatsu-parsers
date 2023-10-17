@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANYTOONME", "Many Toon .Me", "en", ContentType.HENTAI)
+@MangaSourceParser("MANYTOONME", "ManyToon.me", "en", ContentType.HENTAI)
 internal class ManyToonMe(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANYTOONME, "manytoon.me", 20) {
 	override val listUrl = "manhwa/"

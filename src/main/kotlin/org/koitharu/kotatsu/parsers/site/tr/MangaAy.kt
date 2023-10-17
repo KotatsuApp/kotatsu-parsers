@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAAY", "Manga Ay", "tr")
+@MangaSourceParser("MANGAAY", "MangaAy", "tr")
 class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAAY, 45) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)

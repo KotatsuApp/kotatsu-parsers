@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 
-@MangaSourceParser("TRUEMANGA", "True Manga", "en")
+@MangaSourceParser("TRUEMANGA", "TrueManga", "en")
 internal class TrueManga(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.TRUEMANGA, "truemanga.com")

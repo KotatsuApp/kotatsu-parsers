@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ASURATR", "Armoni Scans", "tr")
+@MangaSourceParser("ASURATR", "ArmoniScans", "tr")
 internal class AsuraTRParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ASURATR, "armoniscans.com", pageSize = 30, searchPageSize = 10)

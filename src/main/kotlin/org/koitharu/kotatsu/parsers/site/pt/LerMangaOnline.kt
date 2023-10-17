@@ -11,7 +11,7 @@ import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LERMANGAONLINE", "Ler Manga Online", "pt")
+@MangaSourceParser("LERMANGAONLINE", "LerMangaOnline", "pt")
 class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LERMANGAONLINE, 20) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAKISS", "Manga Kiss", "en")
+@MangaSourceParser("MANGAKISS", "MangaKiss", "en")
 internal class MangaKiss(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAKISS, "mangakiss.org", 10)

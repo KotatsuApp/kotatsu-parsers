@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("WELOVEMANGA", "We Love Manga", "ja")
+@MangaSourceParser("WELOVEMANGA", "WeLoveManga", "ja")
 internal class WeLoveManga(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaSource.WELOVEMANGA, "welovemanga.one") {
 

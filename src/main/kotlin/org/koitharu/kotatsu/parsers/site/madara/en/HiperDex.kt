@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("HIPERDEX", "Hiper Dex", "en", ContentType.HENTAI)
+@MangaSourceParser("HIPERDEX", "HiperDex", "en", ContentType.HENTAI)
 internal class HiperDex(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HIPERDEX, "hiperdex.com", 36)

@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("HACHIMANGA", "Hachi Manga", "ja")
+@MangaSourceParser("HACHIMANGA", "HachiManga", "ja")
 internal class HachiManga(context: MangaLoaderContext) : MadaraParser(context, MangaSource.HACHIMANGA, "hachiraw.com") {
 
 	override val datePattern = "MMMM dd, yyyy"

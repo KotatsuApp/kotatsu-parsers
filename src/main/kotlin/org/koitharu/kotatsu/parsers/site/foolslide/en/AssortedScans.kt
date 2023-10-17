@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("ASSORTEDSCANS", "Assorted Scans", "en")
+@MangaSourceParser("ASSORTEDSCANS", "AssortedScans", "en")
 internal class AssortedScans(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.ASSORTEDSCANS, "assortedscans.com", 56) {
 

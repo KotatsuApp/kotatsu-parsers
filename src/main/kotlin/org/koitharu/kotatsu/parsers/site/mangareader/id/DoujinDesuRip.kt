@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("DOUJINDESURIP", "Doujin Desu Rip", "id", ContentType.HENTAI)
+@MangaSourceParser("DOUJINDESURIP", "DoujinDesuRip", "id", ContentType.HENTAI)
 internal class DoujinDesuRip(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DOUJINDESURIP, "doujindesu.cfd", pageSize = 20, searchPageSize = 10)

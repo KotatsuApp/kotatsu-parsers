@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("GOURMETSCANS", "Gourmet Scans", "en")
+@MangaSourceParser("GOURMETSCANS", "GourmetScans", "en")
 internal class GourmetScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GOURMETSCANS, "gourmetscans.net") {
 	override val listUrl = "project/"

@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("RAVENSCANS", "Raven Scans", "en")
+@MangaSourceParser("RAVENSCANS", "RavenScans", "en")
 internal class RavenScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.RAVENSCANS, "ravenscans.com", pageSize = 10, searchPageSize = 10) {
 

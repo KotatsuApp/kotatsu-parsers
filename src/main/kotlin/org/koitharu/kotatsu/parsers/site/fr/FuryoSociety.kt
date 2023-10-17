@@ -14,7 +14,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FURYOSOCIETY", "Furyo Society", "fr")
+@MangaSourceParser("FURYOSOCIETY", "FuryoSociety", "fr")
 internal class FuryoSociety(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.FURYOSOCIETY, 0) {
 

@@ -21,7 +21,7 @@ private const val PAGE_SIZE = 20
 private const val INFINITE = 999999
 private const val HEADER_ENCODING = "Content-Encoding"
 
-@MangaSourceParser("HONEYMANGA", "Honey Manga", "uk")
+@MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
 class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HONEYMANGA, PAGE_SIZE),
 	Interceptor {
 

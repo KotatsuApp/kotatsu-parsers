@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ILLUSIONSCAN", "Illusion Scan", "pt", ContentType.HENTAI)
+@MangaSourceParser("ILLUSIONSCAN", "IllusionScan", "pt", ContentType.HENTAI)
 internal class IllusionScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ILLUSIONSCAN, "illusionscan.com") {
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"

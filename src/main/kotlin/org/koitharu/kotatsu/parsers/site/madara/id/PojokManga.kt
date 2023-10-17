@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("POJOKMANGA", "Pojok Manga", "id")
+@MangaSourceParser("POJOKMANGA", "PojokManga", "id")
 internal class PojokManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.POJOKMANGA, "pojokmanga.net") {
 	override val tagPrefix = "komik-genre/"

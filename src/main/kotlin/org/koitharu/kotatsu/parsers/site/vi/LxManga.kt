@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LXMANGA", "Lx Manga", "vi")
+@MangaSourceParser("LXMANGA", "LxManga", "vi")
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LXMANGA, 60) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(

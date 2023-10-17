@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("HOIFANSUB", "Hoi Fansub", "tr")
+@MangaSourceParser("HOIFANSUB", "HoiFansub", "tr")
 internal class HoiFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HOIFANSUB, "hoifansub.com", 20)

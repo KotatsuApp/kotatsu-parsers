@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("WEBTOONEMPIRE", "Webtoon Empire", "ar")
+@MangaSourceParser("WEBTOONEMPIRE", "WebtoonEmpire", "ar")
 internal class WebtoonEmpire(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONEMPIRE, "webtoonsempireron.com", pageSize = 10) {
 	override val listUrl = "webtoon/"

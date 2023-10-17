@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.animebootstrap.AnimeBootstrapParser
 
 
-@MangaSourceParser("NEUMANGA", "Neu Manga", "id")
+@MangaSourceParser("NEUMANGA", "NeuManga", "id")
 internal class NeuManga(context: MangaLoaderContext) :
 	AnimeBootstrapParser(context, MangaSource.NEUMANGA, "neumanga.xyz")

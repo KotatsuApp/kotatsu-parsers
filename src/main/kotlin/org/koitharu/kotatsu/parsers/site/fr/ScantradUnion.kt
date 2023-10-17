@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("SCANTRADUNION", "Scantrad Union", "fr")
+@MangaSourceParser("SCANTRADUNION", "ScantradUnion", "fr")
 internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.SCANTRADUNION, 10) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(

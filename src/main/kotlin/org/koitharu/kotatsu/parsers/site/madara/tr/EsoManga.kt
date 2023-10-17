@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ESOMANGA", "Eso Manga", "tr")
+@MangaSourceParser("ESOMANGA", "EsoManga", "tr")
 internal class EsoManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ESOMANGA, "esomanga.com", 10) {
 	override val postReq = true

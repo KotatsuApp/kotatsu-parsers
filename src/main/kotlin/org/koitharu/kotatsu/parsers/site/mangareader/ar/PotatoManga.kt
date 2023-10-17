@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.ArrayList
 
-@MangaSourceParser("POTATOMANGA", "Potato Manga", "ar")
+@MangaSourceParser("POTATOMANGA", "PotatoManga", "ar")
 internal class PotatoManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.POTATOMANGA, "potatomanga.xyz", pageSize = 30, searchPageSize = 10) {
 	override val listUrl = "/series"

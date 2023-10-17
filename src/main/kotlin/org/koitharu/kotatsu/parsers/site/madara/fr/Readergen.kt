@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("READERGEN", "Reader Gen", "fr")
+@MangaSourceParser("READERGEN", "ReaderGen", "fr")
 internal class Readergen(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.READERGEN, "fr.readergen.fr", 18)

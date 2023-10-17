@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("MANGAFR", "Manga Fr", "fr")
+@MangaSourceParser("MANGAFR", "MangaFr", "fr")
 internal class MangaFr(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.MANGAFR, "manga-fr.cc") {
 	override val imgUpdated = ".jpg"

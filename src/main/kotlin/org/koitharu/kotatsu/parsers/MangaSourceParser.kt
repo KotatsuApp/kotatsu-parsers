@@ -13,6 +13,7 @@ annotation class MangaSourceParser(
 	val name: String,
 	/**
 	 * User-friendly title of manga source. In most case equals the website name.
+	 * Avoid extra whitespaces between the words if it is not required.
 	 */
 	val title: String,
 	/**

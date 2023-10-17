@@ -24,7 +24,7 @@ private const val PAGE_SIZE = 30
 private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
 
-@MangaSourceParser("REMANGA", "Re Manga", "ru")
+@MangaSourceParser("REMANGA", "ReManga", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {

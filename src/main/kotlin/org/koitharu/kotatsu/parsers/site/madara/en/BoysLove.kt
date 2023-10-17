@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("BOYS_LOVE", "Boys Love", "en", ContentType.HENTAI)
+@MangaSourceParser("BOYS_LOVE", "BoysLove", "en", ContentType.HENTAI)
 internal class BoysLove(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.BOYS_LOVE, "boyslove.me", 20) {
 	override val tagPrefix = "boyslove-genre/"

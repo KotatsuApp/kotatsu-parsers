@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("RHPLUSMANGA", "Rh2 Plus Manga", "th")
+@MangaSourceParser("RHPLUSMANGA", "Rh2PlusManga", "th")
 internal class RhPlusManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.RHPLUSMANGA, "www.rh2plusmanga.com") {
 

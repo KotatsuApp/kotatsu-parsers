@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGATIME", "Manga Time", "ar")
+@MangaSourceParser("MANGATIME", "MangaTime", "ar")
 internal class MangaTime(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGATIME, "mangatime.co") {
 	override val datePattern = "d MMMM، yyyy"

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("SCAN_FR_ORG", "Scan-Fr .Org", "fr")
+@MangaSourceParser("SCAN_FR_ORG", "Scan-Fr.org", "fr")
 internal class ScanFrOrg(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.SCAN_FR_ORG, "www.scan-fr.org") {
 

@@ -12,7 +12,7 @@ import java.util.*
 private const val STATUS_ONGOING = "連載"
 private const val STATUS_FINISHED = "完結"
 
-@MangaSourceParser("NICOVIDEO_SEIGA", "Nico Video Seiga", "ja")
+@MangaSourceParser("NICOVIDEO_SEIGA", "NicoVideo Seiga", "ja")
 class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {

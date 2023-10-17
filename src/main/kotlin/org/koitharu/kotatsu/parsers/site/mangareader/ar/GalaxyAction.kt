@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("GALAXYACTION", "Galaxy Action", "ar")
+@MangaSourceParser("GALAXYACTION", "GalaxyAction", "ar")
 internal class GalaxyAction(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.GALAXYACTION, "galaxyaction.site", pageSize = 20, searchPageSize = 10)

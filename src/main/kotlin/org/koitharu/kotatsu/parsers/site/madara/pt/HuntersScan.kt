@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("HUNTERSSCAN", "Hunters Scan", "pt")
+@MangaSourceParser("HUNTERSSCAN", "HuntersScan", "pt")
 internal class HuntersScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HUNTERSSCAN, "huntersscan.xyz", pageSize = 50) {
 	override val withoutAjax = true

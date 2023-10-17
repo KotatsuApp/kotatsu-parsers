@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.Locale
 
-@MangaSourceParser("TENKAISCAN", "Tenkai Scan", "es", ContentType.HENTAI)
+@MangaSourceParser("TENKAISCAN", "TenkaiScan", "es", ContentType.HENTAI)
 internal class TenkaiScan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TENKAISCAN, "tenkaiscan.net", 20, 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH

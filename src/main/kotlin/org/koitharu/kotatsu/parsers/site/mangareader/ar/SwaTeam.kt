@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("SWATEAM", "Swa Team", "ar")
+@MangaSourceParser("SWATEAM", "SwaTeam", "ar")
 internal class SwaTeam(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SWATEAM, "goldragon.me", pageSize = 42, searchPageSize = 39) {
 

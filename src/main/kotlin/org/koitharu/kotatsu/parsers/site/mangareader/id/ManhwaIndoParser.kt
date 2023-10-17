@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("MANHWAINDO", "Manhwa Indo .Id", "id")
+@MangaSourceParser("MANHWAINDO", "ManhwaIndo.id", "id")
 internal class ManhwaIndoParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWAINDO, "manhwaindo.id", pageSize = 30, searchPageSize = 10) {
 	override val datePattern = "MMMM dd, yyyy"

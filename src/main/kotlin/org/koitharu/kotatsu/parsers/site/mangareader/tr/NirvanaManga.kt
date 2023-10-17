@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("NIRVANAMANGA", "Nirvana Manga", "tr")
+@MangaSourceParser("NIRVANAMANGA", "NirvanaManga", "tr")
 internal class NirvanaManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.NIRVANAMANGA, "nirvanamanga.com", pageSize = 20, searchPageSize = 10)

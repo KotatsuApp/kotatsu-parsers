@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("FOXWHITE", "Fox White", "pt")
+@MangaSourceParser("FOXWHITE", "FoxWhite", "pt")
 internal class FoxWhite(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FOXWHITE, "foxwhite.com.br")

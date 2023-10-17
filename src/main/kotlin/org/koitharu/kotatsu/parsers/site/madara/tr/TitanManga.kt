@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("TITANMANGA", "Titan Manga", "tr")
+@MangaSourceParser("TITANMANGA", "TitanManga", "tr")
 internal class TitanManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.TITANMANGA, "titanmanga.com") {
 

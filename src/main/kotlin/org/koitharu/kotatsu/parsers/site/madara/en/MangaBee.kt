@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGABEE", "Manga Bee", "en", ContentType.HENTAI)
+@MangaSourceParser("MANGABEE", "MangaBee", "en", ContentType.HENTAI)
 internal class MangaBee(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGABEE, "mangabee.net") {
 	override val datePattern = "MM/dd/yyyy"

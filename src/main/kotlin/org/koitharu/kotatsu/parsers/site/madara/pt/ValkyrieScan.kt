@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("VALKYRIESCAN", "Valkyrie Scan", "pt", ContentType.HENTAI)
+@MangaSourceParser("VALKYRIESCAN", "ValkyrieScan", "pt", ContentType.HENTAI)
 internal class ValkyrieScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.VALKYRIESCAN, "valkyriescan.com", pageSize = 10) {
 	override val datePattern: String = "dd/MM/yyyy"

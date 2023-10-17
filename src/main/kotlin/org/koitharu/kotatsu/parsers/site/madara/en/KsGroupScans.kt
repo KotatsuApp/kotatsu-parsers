@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("KSGROUPSCANS", "Ks Group Scans", "en")
+@MangaSourceParser("KSGROUPSCANS", "KsGroupScans", "en")
 internal class KsGroupScans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.KSGROUPSCANS, "ksgroupscans.com")

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("DOUJINDESU", "Doujin Desu", "id")
+@MangaSourceParser("DOUJINDESU", "DoujinDesu", "id")
 class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DOUJINDESU, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain

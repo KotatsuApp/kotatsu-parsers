@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.Locale
 
-@MangaSourceParser("AKUMANGA", "Aku Manga", "ar")
+@MangaSourceParser("AKUMANGA", "AkuManga", "ar")
 internal class AkuManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.AKUMANGA, "akumanga.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH

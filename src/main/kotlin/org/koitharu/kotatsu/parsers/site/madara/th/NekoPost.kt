@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("NEKOPOST", "Neko Post", "th")
+@MangaSourceParser("NEKOPOST", "NekoPost", "th")
 internal class NekoPost(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NEKOPOST, "www.nekopost.co") {
 	override val postReq = true

@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAGOYAOI", "Manga Go Yaoi", "en", ContentType.HENTAI)
+@MangaSourceParser("MANGAGOYAOI", "MangaGoYaoi", "en", ContentType.HENTAI)
 internal class Mangagoyaoi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAGOYAOI, "mangagoyaoi.com")

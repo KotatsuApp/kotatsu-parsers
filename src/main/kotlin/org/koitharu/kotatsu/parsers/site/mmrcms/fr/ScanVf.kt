@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.Locale
 
-@MangaSourceParser("SCANVF", "Scan Vf", "fr")
+@MangaSourceParser("SCANVF", "ScanVf", "fr")
 internal class ScanVf(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.SCANVF, "www.scan-vf.net") {
 	override val sourceLocale: Locale = Locale.ENGLISH

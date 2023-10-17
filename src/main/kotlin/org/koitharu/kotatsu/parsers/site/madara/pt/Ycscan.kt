@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("YCSCAN", "Yc Scan", "pt", ContentType.HENTAI)
+@MangaSourceParser("YCSCAN", "YcScan", "pt", ContentType.HENTAI)
 internal class Ycscan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.YCSCAN, "ycscan.com", 20) {
 	override val datePattern: String = "dd/MM/yyyy"

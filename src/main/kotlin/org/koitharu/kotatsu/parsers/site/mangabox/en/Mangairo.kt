@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("MANGAIRO", "Manga Iro", "en")
+@MangaSourceParser("MANGAIRO", "MangaIro", "en")
 internal class Mangairo(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaSource.MANGAIRO) {
 

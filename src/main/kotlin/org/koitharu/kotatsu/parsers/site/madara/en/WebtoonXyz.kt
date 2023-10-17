@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("WEBTOONXYZ", "Webtoon .Xyz", "en", ContentType.HENTAI)
+@MangaSourceParser("WEBTOONXYZ", "Webtoon.xyz", "en", ContentType.HENTAI)
 internal class WebtoonXyz(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.WEBTOONXYZ, "www.webtoon.xyz", 20) {
 	override val tagPrefix = "webtoon-genre/"

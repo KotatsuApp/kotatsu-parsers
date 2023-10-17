@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("GATEMANGA", "Gate Manga", "ar")
+@MangaSourceParser("GATEMANGA", "GateManga", "ar")
 internal class GateManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GATEMANGA, "gatemanga.com") {
 	override val postReq = true

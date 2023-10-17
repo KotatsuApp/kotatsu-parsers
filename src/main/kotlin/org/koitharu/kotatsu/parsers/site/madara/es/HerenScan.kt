@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("HERENSCAN", "Heren Scan", "es")
+@MangaSourceParser("HERENSCAN", "HerenScan", "es")
 internal class HerenScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.HERENSCAN, "herenscan.com") {
 	override val datePattern = "d 'de' MMMMM 'de' yyyy"

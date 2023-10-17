@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGA_MANHUA", "Manga Manhua", "en")
+@MangaSourceParser("MANGA_MANHUA", "MangaManhua", "en")
 internal class MangaManhua(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGA_MANHUA, "mangaonlineteam.com", pageSize = 10)

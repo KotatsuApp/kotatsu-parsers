@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 
-@MangaSourceParser("XOXOCOMICS", "Xoxo Comics", "en", ContentType.COMICS)
+@MangaSourceParser("XOXOCOMICS", "XoxoComics", "en", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomics.net", 50) {
 
