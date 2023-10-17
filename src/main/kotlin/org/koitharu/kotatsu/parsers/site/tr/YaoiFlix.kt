@@ -103,12 +103,12 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 				)
 			},
 			chapters = doc.select(".serie-content .ep-box")
-				.mapChapters(reversed = true) { i, div ->
+				.mapChapters { i, div ->
 					val a = div.selectFirstOrThrow("a")
 					val href = a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = a.text(),
+						name = div.selectFirstOrThrow(".episodetitle").text(),
 						number = i + 1,
 						url = href,
 						scanlator = null,
