@@ -15,9 +15,9 @@ import java.text.SimpleDateFormat
 internal class ManhwaLatino(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWALATINO, "manhwa-latino.com", 10) {
 
-	override val datePattern = "dd 'de' MMMM"
+	override val datePattern = "MM/dd"
 	override val withoutAjax = true
-
+	override val selectPage = "div.page-break img.wp-manga-chapter-img"
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

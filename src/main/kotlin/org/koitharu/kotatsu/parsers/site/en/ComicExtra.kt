@@ -16,7 +16,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
-	override val configKeyDomain = ConfigKey.Domain("comicextra.net")
+	override val configKeyDomain = ConfigKey.Domain("comicextra.me")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -34,10 +34,11 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			if (!tags.isNullOrEmpty()) {
 				append(tag?.key.orEmpty())
 				if (page > 1) {
+					append("/")
 					append(page)
 				}
 			} else if (!query.isNullOrEmpty()) {
-				append("comic-search?key=")
+				append("search?keyword=")
 				append(query.urlEncoded())
 				if (page > 1) {
 					append("&page=")
@@ -55,9 +56,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 				}
 			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.movie-list-index div.cartoon-box").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -134,8 +133,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
-		return doc.select(".chapter-container img.chapter_img").map { img ->
+		return doc.select(".chapter-container img").map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
