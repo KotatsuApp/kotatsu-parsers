@@ -20,7 +20,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	pageSize = 24,
 ) {
 
-	override val configKeyDomain = ConfigKey.Domain("lectortmo.com")
+	override val configKeyDomain = ConfigKey.Domain("visortmo.com")
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
