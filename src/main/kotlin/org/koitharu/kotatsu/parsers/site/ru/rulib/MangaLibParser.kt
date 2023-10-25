@@ -301,7 +301,7 @@ internal open class MangaLibParser(
 		return json.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			val url = "/$slug"
-			val covers = jo.getJSONObject("covers")
+			val cover = jo.getJSONObject("covers").getString("default").toAbsoluteUrl(domain)
 			val title = jo.getString("rus_name").ifEmpty { jo.getString("name") }
 			Manga(
 				id = generateUid(url),
@@ -315,8 +315,8 @@ internal open class MangaLibParser(
 				state = null,
 				isNsfw = false,
 				source = source,
-				coverUrl = covers.getString("thumbnail").toAbsoluteUrl(domain),
-				largeCoverUrl = covers.getString("default").toAbsoluteUrl(domain),
+				coverUrl = cover,
+				largeCoverUrl = null,
 			)
 		}
 	}
