@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
+import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -18,6 +19,7 @@ internal abstract class ChanParser(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
+		SortOrder.RATING,
 	)
 
 	override val authUrl: String
@@ -33,23 +35,7 @@ internal abstract class ChanParser(
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = domain
-		val url = when {
-			!query.isNullOrEmpty() -> {
-				if (offset != 0) {
-					return emptyList()
-				}
-				"https://$domain/?do=search&subaction=search&story=${query.urlEncoded()}"
-			}
-
-			!tags.isNullOrEmpty() -> tags.joinToString(
-				prefix = "https://$domain/tags/",
-				postfix = "&n=${getSortKey2(sortOrder)}?offset=$offset",
-				separator = "+",
-			) { tag -> tag.key }
-
-			else -> "https://$domain/${getSortKey(sortOrder)}?offset=$offset"
-		}
-		val doc = webClient.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(buildUrl(offset, query, tags, sortOrder)).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
 			?: doc.parseFailed("Cannot find root")
 		return root.select("div.content_row").mapNotNull { row ->
@@ -191,21 +177,54 @@ internal abstract class ChanParser(
 		}
 	}
 
-	private fun getSortKey(sortOrder: SortOrder) =
-		when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "catalog"
-			SortOrder.POPULARITY -> "mostfavorites"
-			SortOrder.NEWEST -> "manga/new"
-			else -> "mostfavorites"
-		}
+	protected open fun buildUrl(
+		offset: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): HttpUrl {
+		val builder = urlBuilder()
+		builder.addQueryParameter("offset", offset.toString())
+		when {
+			!query.isNullOrEmpty() -> {
+				builder.addQueryParameter("do", "search")
+				builder.addQueryParameter("subaction", "search")
+				builder.addQueryParameter("search_start", ((offset / 40) + 1).toString())
+				builder.addQueryParameter("full_search", "0")
+				builder.addQueryParameter("result_from", (offset + 1).toString())
+				builder.addQueryParameter("result_num", "40")
+				builder.addQueryParameter("story", query)
+				builder.addQueryParameter("need_sort_date", "false")
+			}
 
-	private fun getSortKey2(sortOrder: SortOrder) =
-		when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "abcasc"
-			SortOrder.POPULARITY -> "favdesc"
-			SortOrder.NEWEST -> "datedesc"
-			else -> "favdesc"
+			!tags.isNullOrEmpty() -> {
+				builder.addPathSegment("tags")
+				builder.addPathSegment(tags.joinToString("+") { it.key })
+				builder.addQueryParameter(
+					"n",
+					when (sortOrder) {
+						SortOrder.RATING,
+						SortOrder.POPULARITY,
+						-> "favdesc"
+
+						SortOrder.ALPHABETICAL -> "abcasc"
+						else -> "" // SortOrder.NEWEST
+					},
+				)
+			}
+
+			else -> when (sortOrder) {
+				SortOrder.POPULARITY -> builder.addPathSegment("mostviews")
+				SortOrder.ALPHABETICAL -> builder.addPathSegment("catalog")
+				SortOrder.RATING -> builder.addPathSegment("mostfavorites")
+				else -> { // SortOrder.NEWEST
+					builder.addPathSegment("manga")
+					builder.addPathSegment("new")
+				}
+			}
 		}
+		return builder.build()
+	}
 
 	private fun String.toTagName() = replace('_', ' ').toTitleCase()
 
