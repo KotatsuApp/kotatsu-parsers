@@ -1,6 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import okhttp3.Headers
+import okhttp3.Interceptor
+import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -23,11 +26,12 @@ import java.util.*
 private const val PAGE_SIZE = 30
 private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
+private const val TOO_MANY_REQUESTS = 429
 
 @MangaSourceParser("REMANGA", "ReManga", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
+) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
 	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 
@@ -58,6 +62,16 @@ internal class RemangaParser(
 		}
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val response = chain.proceed(chain.request())
+		if (response.code == TOO_MANY_REQUESTS) {
+			response.closeQuietly()
+			Thread.sleep(1000)
+			return chain.proceed(chain.request().newBuilder().build())
+		}
+		return response
+	}
 
 	override suspend fun getListPage(
 		page: Int,
@@ -266,7 +280,7 @@ internal class RemangaParser(
 		var page = 1
 		while (true) {
 			val content = webClient.httpGet(
-				url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=100",
+				url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=500",
 			).parseJson().getJSONArray("content")
 			val len = content.length()
 			if (len == 0) {
