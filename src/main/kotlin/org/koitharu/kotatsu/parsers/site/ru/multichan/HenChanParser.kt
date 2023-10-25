@@ -1,20 +1,30 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
+import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru", type = ContentType.HENTAI)
 internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.HENCHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
+		"x.henchan.pro",
+		"xxx.henchan.pro",
 		"y.hentaichan.live",
 		"xxx.hentaichan.live",
 		"xx.hentaichan.live",
 		"hentaichan.live",
 		"hentaichan.pro",
+	)
+
+	override val sortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.NEWEST,
+		SortOrder.POPULARITY,
+		SortOrder.RATING,
 	)
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -45,5 +55,29 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 				),
 			),
 		)
+	}
+
+	override fun buildUrl(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): HttpUrl {
+		if (query.isNullOrEmpty() && tags.isNullOrEmpty()) {
+			val builder = urlBuilder().addQueryParameter("offset", offset.toString())
+			when (sortOrder) {
+				SortOrder.POPULARITY -> {
+					builder.addPathSegment("mostviews")
+					builder.addQueryParameter("sort", "manga")
+				}
+
+				SortOrder.RATING -> {
+					builder.addPathSegment("mostfavorites")
+					builder.addQueryParameter("sort", "manga")
+				}
+
+				else -> { // SortOrder.NEWEST
+					builder.addPathSegment("manga")
+					builder.addPathSegment("newest")
+				}
+			}
+			return builder.build()
+		}
+		return super.buildUrl(offset, query, tags, sortOrder)
 	}
 }

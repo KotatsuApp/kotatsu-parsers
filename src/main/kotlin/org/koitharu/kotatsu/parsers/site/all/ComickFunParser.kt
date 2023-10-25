@@ -188,7 +188,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 					chap?.let { append("Chap ").append(it) }
 					jo.getStringOrNull("title")?.let { append(": ").append(it) }
 				},
-				number = branchedChapters[branch]?.size?.plus(1) ?: 0,
+				number = branchedChapters[branch]?.size?.plus(1) ?: 1,
 				url = jo.getString("hid"),
 				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },

@@ -6,12 +6,18 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
 internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.YAOICHAN) {
 
-	override val configKeyDomain = ConfigKey.Domain("yaoi-chan.me")
+	override val configKeyDomain = ConfigKey.Domain(
+		"v1.yaoi-chan.me",
+		"yaoi-chan.me",
+	)
+
+	override val sortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

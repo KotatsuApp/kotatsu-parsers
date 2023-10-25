@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ru.rulib
 
+import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Response
@@ -17,10 +18,7 @@ import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.JSONIterator
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.values
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -102,10 +100,15 @@ internal open class MangaLibParser(
 				if (line.startsWith("window.__DATA__")) {
 					val json = JSONObject(line.substringAfter('=').substringBeforeLast(';'))
 					val list = json.getJSONObject("chapters").getJSONArray("list")
+					val branches = json.getJSONObject("chapters").getJSONArray("branches").toJSONList()
+						.associate { x ->
+							x.getInt("id") to x.getJSONArray("teams").toJSONList().joinToString { it.getString("name") }
+						}
 					val id = json.optJSONObject("user")?.getLong("id")?.toString() ?: "not"
 					val total = list.length()
 					chapters = ChaptersListBuilder(total)
-					for (i in 0 until total) {
+					val counters = ArrayMap<Int, Int>(branches.size)
+					for (i in (0 until total).reversed()) {
 						val item = list.getJSONObject(i)
 						val chapterId = item.getLong("chapter_id")
 						val scanlator = item.getStringOrNull("username")
@@ -130,22 +133,22 @@ internal open class MangaLibParser(
 						val volume = item.getInt("chapter_volume")
 						val number = item.getString("chapter_number")
 						val fullNameChapter = "Том $volume. Глава $number"
+						val branchId = item.getIntOrDefault("branch_id", 0)
 						chapters.add(
 							MangaChapter(
 								id = generateUid(chapterId),
 								url = url,
 								source = source,
-								number = total - i,
+								number = counters.incrementAndGet(branchId),
 								uploadDate = dateFormat.tryParse(
 									item.getString("chapter_created_at").substringBefore(" "),
 								),
 								scanlator = scanlator,
-								branch = null,
+								branch = branches[branchId],
 								name = if (nameChapter.isNullOrBlank()) fullNameChapter else "$fullNameChapter - $nameChapter",
 							),
 						)
 					}
-					chapters.reverse()
 					break@scripts
 				}
 			}
@@ -301,7 +304,7 @@ internal open class MangaLibParser(
 		return json.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			val url = "/$slug"
-			val covers = jo.getJSONObject("covers")
+			val cover = jo.getJSONObject("covers").getString("default").toAbsoluteUrl(domain)
 			val title = jo.getString("rus_name").ifEmpty { jo.getString("name") }
 			Manga(
 				id = generateUid(url),
@@ -315,8 +318,8 @@ internal open class MangaLibParser(
 				state = null,
 				isNsfw = false,
 				source = source,
-				coverUrl = covers.getString("thumbnail").toAbsoluteUrl(domain),
-				largeCoverUrl = covers.getString("default").toAbsoluteUrl(domain),
+				coverUrl = cover,
+				largeCoverUrl = null,
 			)
 		}
 	}
@@ -341,6 +344,13 @@ internal open class MangaLibParser(
 
 	private fun Response.isValidImage(): Boolean {
 		return isSuccessful && mimeType?.startsWith("image/") == true && headersContentLength() >= 1024L
+	}
+
+	private fun MutableMap<Int, Int>.incrementAndGet(key: Int): Int {
+		var v = getOrDefault(key, 0)
+		v++
+		put(key, v)
+		return v
 	}
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")
