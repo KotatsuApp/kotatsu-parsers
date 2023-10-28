@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("HIKARISCAN", "HikariScan", "pt")
 internal class HikariScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HIKARISCAN, "hikariscan.com.br", pageSize = 10) {
+	MadaraParser(context, MangaSource.HIKARISCAN, "hikariscan.org", pageSize = 10) {
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 }
