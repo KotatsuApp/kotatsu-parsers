@@ -109,10 +109,11 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 			altTitle = null, // TODO
 			isNsfw = jo.getBoolean("matureContent") || comic.getBoolean("hentai"),
 			description = comic.getStringOrNull("parsed") ?: comic.getString("desc"),
-			tags = manga.tags + jo.getJSONArray("genres").mapJSONToSet {
+			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
+				val g = it.getJSONObject("md_genres")
 				MangaTag(
-					title = it.getString("name"),
-					key = it.getString("slug"),
+					title = g.getString("name"),
+					key = g.getString("slug"),
 					source = source,
 				)
 			},
