@@ -10,11 +10,10 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("YUGENMANGAS", "YugenMangas", "pt")
+@MangaSourceParser("YUGENMANGAS", "YugenMangas.org", "pt")
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YUGENMANGAS, 28) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("yugenmangas.org")
 
 	override suspend fun getListPage(

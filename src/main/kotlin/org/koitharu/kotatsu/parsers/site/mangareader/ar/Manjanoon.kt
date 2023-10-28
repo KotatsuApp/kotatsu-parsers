@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
-@MangaSourceParser("MANJANOON", "Manjanoon", "ar")
+@MangaSourceParser("MANJANOON", "Manjanoon.com", "ar")
 internal class Manjanoon(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANJANOON, "manjanoon.com", pageSize = 21, searchPageSize = 10) {
 

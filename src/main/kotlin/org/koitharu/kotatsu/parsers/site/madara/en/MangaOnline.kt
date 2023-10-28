@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGA_ONLINE", "MangaOnline", "en")
+@MangaSourceParser("MANGA_ONLINE", "MangaOnline.team", "en")
 internal class MangaOnline(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGA_ONLINE, "mangaonline.team", 18)

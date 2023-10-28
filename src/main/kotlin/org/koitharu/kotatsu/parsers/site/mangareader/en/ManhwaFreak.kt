@@ -11,13 +11,12 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 
 
-@MangaSourceParser("MANHWA_FREAK", "ManhwaFreak", "en")
+@MangaSourceParser("MANHWA_FREAK", "Manhwa-Freak.com", "en")
 internal class ManhwaFreak(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWA_FREAK, "manhwa-freak.com", pageSize = 0, searchPageSize = 10) {
 
 	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"
-
 
 	override suspend fun getListPage(
 		page: Int,
@@ -29,7 +28,6 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 			if (page > lastSearchPage) {
 				return emptyList()
 			}
-
 			val url = buildString {
 				append("https://")
 				append(domain)
@@ -38,20 +36,16 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 				append("/?s=")
 				append(query.urlEncoded())
 			}
-
 			val docs = webClient.httpGet(url).parseHtml()
 			lastSearchPage = docs.selectFirst(".pagination .next")
 				?.previousElementSibling()
 				?.text()?.toIntOrNull() ?: 1
 			return parseMangaList(docs)
 		}
-
 		if (!tags.isNullOrEmpty()) {
-
 			if (page > 1) {
 				return emptyList()
 			}
-
 			val tag = tags.oneOrThrowIfMany()
 			val url = buildString {
 				append("https://")
@@ -59,10 +53,8 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 				append("/genres/?genre=")
 				append(tag?.key.orEmpty())
 			}
-
 			return parseMangaList(webClient.httpGet(url).parseHtml())
 		}
-
 		if (page > 1) {
 			return emptyList()
 		}
@@ -73,7 +65,6 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 			SortOrder.UPDATED -> ""
 			else -> ""
 		}
-
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -81,13 +72,11 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 			append("/?order=")
 			append(sortQuery)
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/genres/").parseHtml()
-
 		return doc.select("ul.genre-list li a").mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfterLast("=")
 			MangaTag(
@@ -129,11 +118,9 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 	}
 
 	override suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-
 		val tagMap = getOrCreateTagMap()
 		val selectTag = docs.requireElementById("info").select("div:contains(Genre) > p:last-child").text().split(",")
 		val tags = selectTag.mapNotNullToSet { tagMap[it] }
-
 		val mangaState = docs.requireElementById("info").select("div:contains(Status) > p:last-child").text().let {
 			when (it) {
 				"Ongoing" -> MangaState.ONGOING
@@ -142,7 +129,6 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 			}
 		}
 		val author = docs.requireElementById("info").select("div:contains(Author(s)) > p:last-child").text()
-
 		return manga.copy(
 			altTitle = docs.requireElementById("info").select("div:contains(Alternative) > p:last-child").text(),
 			description = docs.requireElementById("summary").html(),
@@ -192,7 +178,6 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
-
 		return when {
 			WordSet(
 				"day",

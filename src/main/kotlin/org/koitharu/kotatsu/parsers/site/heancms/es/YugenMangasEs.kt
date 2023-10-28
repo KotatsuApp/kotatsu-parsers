@@ -16,7 +16,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
-@MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas", "es", ContentType.HENTAI)
+@MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas.lat", "es", ContentType.HENTAI)
 internal class YugenMangasEs(context: MangaLoaderContext) :
 	HeanCms(context, MangaSource.YUGEN_MANGAS_ES, "yugenmangas.lat") {
 

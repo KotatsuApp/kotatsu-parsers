@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("REAPERSCANSTR", "ReaperScans", "tr")
+@MangaSourceParser("REAPERSCANSTR", "ReaperScansTr", "tr")
 internal class ReaperScansTr(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.REAPERSCANSTR, "reaperscanstr.com", 5) {
 	override val listUrl = "seri/"
