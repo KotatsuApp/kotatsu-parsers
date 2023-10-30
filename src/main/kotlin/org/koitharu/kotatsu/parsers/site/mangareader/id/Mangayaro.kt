@@ -8,7 +8,6 @@ import java.util.*
 
 @MangaSourceParser("MANGAYARO", "MangaYaro", "id")
 internal class Mangayaro(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANGAYARO, "www.mangayaro.net", pageSize = 20, searchPageSize = 20) {
-	override val datePattern = "MMM d, yyyy"
+	MangaReaderParser(context, MangaSource.MANGAYARO, "www.mangayaro.id", pageSize = 20, searchPageSize = 20) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

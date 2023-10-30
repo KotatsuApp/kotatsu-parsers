@@ -14,7 +14,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.cc")
+	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.pro")
 
 	override suspend fun getListPage(
 		page: Int,
@@ -108,7 +108,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 					val href = a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = div.selectFirstOrThrow(".episodetitle").text(),
+						name = div.selectFirstOrThrow(".name").text(),
 						number = i + 1,
 						url = href,
 						scanlator = null,
