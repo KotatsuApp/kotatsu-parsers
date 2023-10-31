@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import androidx.collection.ArrayMap
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -105,14 +108,11 @@ internal abstract class NineMangaParser(
 		).parseHtml()
 		val root = doc.body().selectFirstOrThrow("div.manga")
 		val infoRoot = root.selectFirstOrThrow("div.bookintro")
+		val tagMap = getOrCreateTagMap()
+		val selectTag = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()?.select("a")
+		val tags = selectTag?.mapNotNullToSet { tagMap[it.text()] }
 		return manga.copy(
-			tags = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()?.select("a")?.mapToSet { a ->
-				MangaTag(
-					title = a.text().toTitleCase(),
-					key = a.attr("href").substringBetween("/", "."),
-					source = source,
-				)
-			}.orEmpty(),
+			tags = tags.orEmpty(),
 			author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.text(),
 			state = parseStatus(infoRoot.select("li a.red").text()),
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()?.html()
@@ -155,18 +155,29 @@ internal abstract class NineMangaParser(
 		return root.selectFirst("a.pic_download")?.absUrl("href") ?: doc.parseFailed("Page image not found")
 	}
 
+	private var tagCache: ArrayMap<String, MangaTag>? = null
+	private val mutex = Mutex()
+
 	override suspend fun getTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://${domain}/search/?type=high").parseHtml()
-		val root = doc.body().getElementById("search_form")
-		return root?.select("li.cate_list")?.mapNotNullToSet { li ->
-			val cateId = li.attr("cate_id") ?: return@mapNotNullToSet null
-			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
-			MangaTag(
+		return getOrCreateTagMap().values.toSet()
+	}
+
+	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
+		val tagMap = ArrayMap<String, MangaTag>()
+		val tagElements = webClient.httpGet("https://${domain}/search/?type=high").parseHtml().select("li.cate_list")
+		for (el in tagElements) {
+			if (el.text().isEmpty()) continue
+			val cateId = el.attr("cate_id")
+			val a = el.selectFirstOrThrow("a")
+			tagMap[el.text()] = MangaTag(
 				title = a.text().toTitleCase(),
 				key = cateId,
 				source = source,
 			)
-		} ?: doc.parseFailed("Root not found")
+		}
+		tagCache = tagMap
+		return@withLock tagMap
 	}
 
 	private fun parseStatus(status: String) = when {

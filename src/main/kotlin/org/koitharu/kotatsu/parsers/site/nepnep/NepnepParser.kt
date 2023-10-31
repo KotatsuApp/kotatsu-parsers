@@ -51,7 +51,9 @@ internal abstract class NepnepParser(
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
 			when {
 				!query.isNullOrEmpty() -> {
-					if (m.getString("i").contains(query.urlEncoded(), ignoreCase = true)) {
+					if (m.getString("s").contains(query, ignoreCase = true) || m.getString("al")
+							.contains(query, ignoreCase = true)
+					) {
 						manga.add(
 							addManga(href, imgUrl, m),
 						)
