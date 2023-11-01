@@ -1,23 +1,27 @@
-package org.koitharu.kotatsu.parsers.site.all
+package org.koitharu.kotatsu.parsers.site.galleryadults
 
 import androidx.collection.ArraySet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("HENTAIFOX", "HentaiFox", type = ContentType.HENTAI)
-internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HENTAIFOX, 20) {
+internal abstract class GalleryAdultsParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+	pageSize: Int = 20,
+) : PagedMangaParser(context, source, pageSize) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-	override val configKeyDomain = ConfigKey.Domain("hentaifox.com")
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -26,49 +30,48 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-
 		val url = buildString {
 			append("https://")
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
 				append("/tag/")
 				append(tag?.key.orEmpty())
-				if (page > 1) {
-					append("/pag/")
-					append(page)
-					append("/")
-				}
+				append("/?")
+
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())
-				if (page > 1) {
-					append("&page=")
-					append(page)
-				}
+				append("&")
 			} else {
-				if (page > 2) {
-					append("/pag/")
-					append(page)
-					append("/")
-				} else if (page > 1) {
-					append("/page/")
-					append(page)
-					append("/")
-				}
+				append("/?")
 			}
+			append("page=")
+			append(page)
 		}
-		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select(".lc_galleries .thumb").map { div ->
-			val href = div.selectFirstOrThrow(".inner_thumb a").attrAsRelativeUrl("href")
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
+	protected open val selectGallery = ".preview_item"
+	protected open val selectGalleryLink = ".inner_thumb a"
+	protected open val selectGalleryImg = ".inner_thumb img"
+	protected open val selectGalleryTitle = "h2"
+
+	protected open fun parseMangaList(doc: Document): List<Manga> {
+		val regexBrackets = Regex("\\[[^]]+]|\\([^)]+\\)")
+		val regexSpaces = Regex("\\s+")
+		return doc.select(selectGallery).map { div ->
+			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
-				title = div.select("h2.g_title").text(),
+				title = div.select(selectGalleryTitle).text().replace(regexBrackets, "")
+					.replace(regexSpaces, " ")
+					.trim(),
 				altTitle = null,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfwSource,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
 				tags = emptySet(),
 				state = null,
 				author = null,
@@ -87,37 +90,38 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
+	protected open val pathTagUrl = "/tags/popular/pag/"
+	protected open val selectTags = ".tags_page ul.tags li"
+
 	private suspend fun getTags(page: Int): Set<MangaTag> {
-		val url = "https://$domain/tags/popular/pag/$page/"
-		val root = webClient.httpGet(url).parseHtml()
+		val url = "https://$domain$pathTagUrl$page"
+		val root = webClient.httpGet(url).parseHtml().selectFirstOrThrow(selectTags)
 		return root.parseTags()
 	}
 
-	private fun Element.parseTags() = select(".list_tags a.tag_btn").mapToSet {
+	protected open fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
 		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
+		val name = it.selectFirst(".item_name")?.text() ?: it.text()
 		MangaTag(
 			key = key,
-			title = it.selectFirstOrThrow("h3").text(),
+			title = name,
 			source = source,
 		)
 	}
 
+	protected open val selectTag = "div.tags:contains(Tags:) .tag_list"
+	protected open val selectAuthor = "ul.artists a.tag_btn"
+	protected open val urlReplaceBefore = "/g/"
+	protected open val urlReplaceAfter = "/gallery/"
+	protected open val selectLanguageChapter = "div.tags:contains(Languages:) .tag_list a span.tag"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val urlChapters = manga.url.replace("/gallery/", "/g/") + "1/"
+		val urlChapters = manga.url.replace(urlReplaceBefore, urlReplaceAfter) + "1/"
+		val tag = doc.selectFirstOrThrow(selectTag)
 		return manga.copy(
-			altTitle = null,
-			tags = doc.select("ul.tags a.tag_btn ").mapNotNullToSet {
-				val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
-				MangaTag(
-					key = key,
-					title = it.html().substringBefore("<span"),
-					source = source,
-				)
-			},
-			author = doc.selectFirst("ul.artists a.tag_btn")?.html()?.substringBefore("<span"),
-			description = null,
+			tags = tag.parseTags(),
+			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -126,7 +130,7 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 					url = urlChapters,
 					scanlator = null,
 					uploadDate = 0,
-					branch = doc.selectFirstOrThrow("ul.languages a.tag_btn").html().substringBefore("<span"),
+					branch = doc.selectFirst(selectLanguageChapter)?.html()?.substringBefore("<"),
 					source = source,
 				),
 			),
@@ -134,31 +138,14 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
-		val doc = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body().selectFirstOrThrow(".related_galleries")
-		return root.select("div.thumb").mapNotNull { div ->
-			val a = div.selectFirst(".inner_thumb a") ?: return@mapNotNull null
-			val href = a.attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
-				altTitle = null,
-				title = div.selectFirstOrThrow("h2.g_title").text(),
-				author = null,
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				tags = emptySet(),
-				rating = RATING_UNKNOWN,
-				state = null,
-				isNsfw = isNsfwSource,
-				source = source,
-			)
-		}
+		return parseMangaList(webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml())
 	}
+
+	protected open val selectTotalPage = ".total_pages"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		val totalPages = doc.selectFirstOrThrow(".total_pages").text().toInt()
+		val totalPages = doc.selectFirstOrThrow(selectTotalPage).text().toInt()
 		val rawUrl = chapter.url.replace("/1/", "/")
 		return (1..totalPages).map {
 			val url = "$rawUrl$it/"
@@ -171,9 +158,11 @@ internal class HentaiFox(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
+	protected open val idImg = "gimg"
+
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body()
-		return root.requireElementById("gimg").attrAsAbsoluteUrl("data-src")
+		return root.requireElementById(idImg).src() ?: root.parseFailed("Image src not found")
 	}
 }
