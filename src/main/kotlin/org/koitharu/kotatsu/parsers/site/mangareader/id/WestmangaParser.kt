@@ -8,6 +8,6 @@ import java.util.*
 
 @MangaSourceParser("WESTMANGA", "WestManga", "id")
 internal class WestmangaParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.WESTMANGA, "westmanga.info", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.WESTMANGA, "westmanga.org", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

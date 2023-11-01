@@ -10,20 +10,13 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("NEOX_SCANS", "NeoxScans", "pt")
-internal open class Neoxscans(context: MangaLoaderContext) :
+internal class Neoxscans(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.NEOX_SCANS, "neoxscan.net", 18) {
 	override val datePattern = "dd/MM/yyyy"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
-		val doc = if (postReq) {
-			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
-			val url = "https://$domain/wp-admin/admin-ajax.php"
-			val postdata = "action=manga_get_chapters&manga=$mangaId"
-			webClient.httpPost(url, postdata).parseHtml()
-		} else {
-			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
-			webClient.httpPost(url, emptyMap()).parseHtml()
-		}
+		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
