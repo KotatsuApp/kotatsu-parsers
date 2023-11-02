@@ -13,11 +13,22 @@ internal class HentaiFox(context: MangaLoaderContext) :
 	override val selectGallery = ".lc_galleries .thumb, .related_galleries .thumb"
 	override val selectTags = ".list_tags"
 	override val selectTag = "ul.tags"
-	override val urlReplaceBefore = "/gallery/"
-	override val urlReplaceAfter = "/g/"
 	override val selectLanguageChapter = "ul.languages a.tag_btn"
-
-	override val selectTotalPage = ".total_pages"
+	override val listLanguage = arrayOf(
+		"/english",
+		"/french",
+		"/japanese",
+		"/chinese",
+		"/spanish",
+		"/russian",
+		"/korean",
+		"/indonesian",
+		"/italian",
+		"/portuguese",
+		"/turkish",
+		"/thai",
+		"/vietnamese",
+	)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -30,13 +41,19 @@ internal class HentaiFox(context: MangaLoaderContext) :
 			append("https://")
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
-				append("/tag/")
-				append(tag?.key.orEmpty())
+				if (tag?.key == "languageKey") {
+					append("/language")
+					append(tag.title)
+				} else {
+					append("/tag/")
+					append(tag?.key.orEmpty())
+				}
 				if (page > 1) {
 					append("/pag/")
 					append(page)
 					append("/")
 				}
+
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())

@@ -13,7 +13,14 @@ internal class HentaiRox(context: MangaLoaderContext) :
 	override val selectTags = ".gtags"
 	override val selectTag = "li:contains(Tags:)"
 	override val selectAuthor = "li:contains(Artists:) span.item_name"
-	override val urlReplaceBefore = "/gallery/"
-	override val urlReplaceAfter = "/view/"
 	override val selectLanguageChapter = "li:contains(Languages:) .item_name"
+	override val listLanguage = arrayOf(
+		"/english",
+		"/french",
+		"/japanese",
+		"/spanish",
+		"/russian",
+		"/korean",
+		"/german",
+	)
 }

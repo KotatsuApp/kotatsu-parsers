@@ -18,13 +18,14 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	override val selectTags = "#tag-container a"
 	override val selectTag = ".tag-container:contains(Tags:) span.tags"
 	override val selectAuthor = "#tags div.tag-container:contains(Artists:) span.name"
-	override val urlReplaceBefore = "/g/"
-	override val urlReplaceAfter = "/g/"
 	override val selectLanguageChapter =
 		".tag-container:contains(Languages:) span.tags a:not(.tag-17249) span.name" // tag-17249 = translated
-
-	override val selectTotalPage = ".num-pages"
 	override val idImg = "image-container"
+	override val listLanguage = arrayOf(
+		"/english",
+		"/japanese",
+		"/chinese",
+	)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -40,10 +41,15 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
 				val tag = tags.single()
-				append("/tag/")
-				append(tag.key)
-				append("/?")
-
+				if (tag.key == "languageKey") {
+					append("/language")
+					append(tag.title)
+					append("/?")
+				} else {
+					append("/tag/")
+					append(tag.key)
+					append("/?")
+				}
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())

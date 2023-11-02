@@ -34,10 +34,15 @@ internal abstract class GalleryAdultsParser(
 			append("https://")
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
-				append("/tag/")
-				append(tag?.key.orEmpty())
-				append("/?")
-
+				if (tag?.key == "languageKey") {
+					append("/language")
+					append(tag.title)
+					append("/?")
+				} else {
+					append("/tag/")
+					append(tag?.key.orEmpty())
+					append("/?")
+				}
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())
@@ -92,11 +97,37 @@ internal abstract class GalleryAdultsParser(
 
 	protected open val pathTagUrl = "/tags/popular/pag/"
 	protected open val selectTags = ".tags_page ul.tags li"
+	protected open val listLanguage = arrayOf(
+		"/english",
+		"/french",
+		"/japanese",
+		"/chinese",
+		"/spanish",
+		"/russian",
+		"/korean",
+		"/german",
+		"/indonesian",
+		"/italian",
+		"/portuguese",
+		"/turkish",
+		"/thai",
+		"/vietnamese",
+	) // The "/" is used to move them up in the tag list and therefore also in the url.
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
 		val url = "https://$domain$pathTagUrl$page"
 		val root = webClient.httpGet(url).parseHtml().selectFirstOrThrow(selectTags)
-		return root.parseTags()
+		val tagLanguage = ArrayList<MangaTag>(listLanguage.size)
+		for (language in listLanguage) {
+			tagLanguage.add(
+				MangaTag(
+					key = "languageKey",
+					title = language,
+					source = source,
+				),
+			)
+		}
+		return root.parseTags() + tagLanguage
 	}
 
 	protected open fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
@@ -111,16 +142,15 @@ internal abstract class GalleryAdultsParser(
 
 	protected open val selectTag = "div.tags:contains(Tags:) .tag_list"
 	protected open val selectAuthor = "ul.artists a.tag_btn"
-	protected open val urlReplaceBefore = "/g/"
-	protected open val urlReplaceAfter = "/gallery/"
 	protected open val selectLanguageChapter = "div.tags:contains(Languages:) .tag_list a span.tag"
+	protected open val selectUrlChapter = "#cover a, .cover a, .left_cover a, .g_thumb a, .gallery_left a"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val urlChapters = manga.url.replace(urlReplaceBefore, urlReplaceAfter) + "1/"
-		val tag = doc.selectFirstOrThrow(selectTag)
+		val urlChapters = doc.selectFirstOrThrow(selectUrlChapter).attr("href")
+		val tag = doc.selectFirst(selectTag)?.parseTags()
 		return manga.copy(
-			tags = tag.parseTags(),
+			tags = tag.orEmpty(),
 			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
 			chapters = listOf(
 				MangaChapter(
@@ -141,7 +171,7 @@ internal abstract class GalleryAdultsParser(
 		return parseMangaList(webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml())
 	}
 
-	protected open val selectTotalPage = ".total_pages"
+	protected open val selectTotalPage = ".total_pages, .num-pages, .tp"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
@@ -162,7 +192,6 @@ internal abstract class GalleryAdultsParser(
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body()
-		return root.requireElementById(idImg).src() ?: root.parseFailed("Image src not found")
+		return doc.requireElementById(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
 }

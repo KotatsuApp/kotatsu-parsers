@@ -19,9 +19,16 @@ internal class HentaiEra(context: MangaLoaderContext) :
 	override val selectTags = ".tags_section"
 	override val selectTag = ".galleries_info li:contains(Tags) div.info_tags"
 	override val selectAuthor = ".galleries_info li:contains(Artists) span.item_name"
-	override val urlReplaceBefore = "/gallery/"
-	override val urlReplaceAfter = "/view/"
 	override val selectLanguageChapter = ".galleries_info li:contains(Languages) div.info_tags .item_name"
+	override val listLanguage = arrayOf(
+		"/english",
+		"/japanese",
+		"/spanish",
+		"/french",
+		"/korean",
+		"/german",
+		"/russian",
+	)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -34,10 +41,15 @@ internal class HentaiEra(context: MangaLoaderContext) :
 			append("https://")
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
-				append("/tag/")
-				append(tag?.key.orEmpty())
-				append("/?")
-
+				if (tag?.key == "languageKey") {
+					append("/language")
+					append(tag.title)
+					append("/?")
+				} else {
+					append("/tag/")
+					append(tag?.key.orEmpty())
+					append("/?")
+				}
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?key=")
 				append(query.urlEncoded())
@@ -53,10 +65,10 @@ internal class HentaiEra(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val urlChapters = manga.url.replace(urlReplaceBefore, urlReplaceAfter) + "1/"
-		val tag = doc.selectFirstOrThrow(selectTag)
+		val urlChapters = doc.selectFirstOrThrow("#cover a, .cover a, .left_cover a").attr("href")
+		val tag = doc.selectFirst(selectTag)?.parseTags()
 		return manga.copy(
-			tags = tag.parseTags(),
+			tags = tag.orEmpty(),
 			author = doc.selectFirst(selectAuthor)?.text(),
 			chapters = listOf(
 				MangaChapter(

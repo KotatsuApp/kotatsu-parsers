@@ -15,8 +15,13 @@ internal class AsmHentai(context: MangaLoaderContext) :
 	override val selectGalleryImg = ".image img"
 	override val pathTagUrl = "/tags/?page="
 	override val selectAuthor = "div.tags:contains(Artists:) .tag_list a span.tag"
-	override val selectTotalPage = ".tp"
 	override val idImg = "fimg"
+	override val listLanguage = arrayOf(
+		"/english",
+		"/japanese",
+		"/chinese",
+		"/turkish",
+	)
 
 	override fun Element.parseTags() = select("a").mapToSet {
 		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
