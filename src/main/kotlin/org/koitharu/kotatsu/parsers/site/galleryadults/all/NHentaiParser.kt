@@ -12,7 +12,6 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaSource.NHENTAI, "nhentai.net", 25) {
 	override val selectGallery = "div.index-container:not(.index-popular) .gallery, #related-container .gallery"
 	override val selectGalleryLink = "a"
-	override val selectGalleryImg = "img"
 	override val selectGalleryTitle = ".caption"
 	override val pathTagUrl = "/tags/popular?page="
 	override val selectTags = "#tag-container a"

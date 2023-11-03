@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.removeSuffix
 @MangaSourceParser("ASMHENTAI", "AsmHentai", type = ContentType.HENTAI)
 internal class AsmHentai(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaSource.ASMHENTAI, "asmhentai.com") {
+	override val selectGallery = ".preview_item"
 	override val selectGalleryLink = ".image a"
 	override val selectGalleryImg = ".image img"
 	override val pathTagUrl = "/tags/?page="

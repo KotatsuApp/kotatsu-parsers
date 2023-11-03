@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class HentaiFox(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaSource.HENTAIFOX, "hentaifox.com") {
 	override val selectGallery = ".lc_galleries .thumb, .related_galleries .thumb"
+	override val pathTagUrl = "/tags/popular/pag/"
 	override val selectTags = ".list_tags"
 	override val selectTag = "ul.tags"
 	override val selectLanguageChapter = "ul.languages a.tag_btn"

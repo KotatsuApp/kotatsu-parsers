@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SURYASCANS", "SuryaScans", "en")
 internal class SuryaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SURYASCANS, "suryareader.com", pageSize = 5, searchPageSize = 5)
+	MangaReaderParser(context, MangaSource.SURYASCANS, "suryacomics.com", pageSize = 5, searchPageSize = 10)

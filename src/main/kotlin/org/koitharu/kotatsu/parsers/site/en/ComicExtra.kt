@@ -38,7 +38,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 					append(page)
 				}
 			} else if (!query.isNullOrEmpty()) {
-				append("search?keyword=")
+				append("comic-search?key=")
 				append(query.urlEncoded())
 				if (page > 1) {
 					append("&page=")

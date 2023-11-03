@@ -56,9 +56,9 @@ internal abstract class GalleryAdultsParser(
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	protected open val selectGallery = ".preview_item"
+	protected open val selectGallery = ".thumb"
 	protected open val selectGalleryLink = ".inner_thumb a"
-	protected open val selectGalleryImg = ".inner_thumb img"
+	protected open val selectGalleryImg = "img"
 	protected open val selectGalleryTitle = "h2"
 
 	protected open fun parseMangaList(doc: Document): List<Manga> {
@@ -95,7 +95,7 @@ internal abstract class GalleryAdultsParser(
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
-	protected open val pathTagUrl = "/tags/popular/pag/"
+	protected open val pathTagUrl = "/tags/popular/?page="
 	protected open val selectTags = ".tags_page ul.tags li"
 	protected open val listLanguage = arrayOf(
 		"/english",
@@ -143,7 +143,7 @@ internal abstract class GalleryAdultsParser(
 	protected open val selectTag = "div.tags:contains(Tags:) .tag_list"
 	protected open val selectAuthor = "ul.artists a.tag_btn"
 	protected open val selectLanguageChapter = "div.tags:contains(Languages:) .tag_list a span.tag"
-	protected open val selectUrlChapter = "#cover a, .cover a, .left_cover a, .g_thumb a, .gallery_left a"
+	protected open val selectUrlChapter = "#cover a, .cover a, .left_cover a, .g_thumb a, .gallery_left a, .gt_left a"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
