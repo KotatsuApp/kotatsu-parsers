@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("NHENTAI", "NHentai", type = ContentType.HENTAI)
+@MangaSourceParser("NHENTAI", "NHentai.net", type = ContentType.HENTAI)
 internal class NHentaiParser(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaSource.NHENTAI, "nhentai.net", 25) {
 	override val selectGallery = "div.index-container:not(.index-popular) .gallery, #related-container .gallery"

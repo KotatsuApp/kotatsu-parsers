@@ -130,9 +130,9 @@ internal abstract class GalleryAdultsParser(
 		return root.parseTags() + tagLanguage
 	}
 
-	protected open fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
+	protected open fun Element.parseTags() = select("a").mapToSet {
 		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
-		val name = it.selectFirst(".item_name")?.text() ?: it.text()
+		val name = it.html().substringBefore("<")
 		MangaTag(
 			key = key,
 			title = name,

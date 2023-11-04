@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -75,15 +74,5 @@ internal class HentaiFox(context: MangaLoaderContext) :
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
-	}
-
-	override fun Element.parseTags() = select("a").mapToSet {
-		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
-		val name = it.html().substringBefore("<")
-		MangaTag(
-			key = key,
-			title = name,
-			source = source,
-		)
 	}
 }

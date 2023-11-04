@@ -379,8 +379,8 @@ internal abstract class MadaraParser(
 		val doc = if (postReq) {
 			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 			val url = "https://$domain/wp-admin/admin-ajax.php"
-			val postdata = "action=manga_get_chapters&manga=$mangaId"
-			webClient.httpPost(url, postdata).parseHtml()
+			val postData = "action=manga_get_chapters&manga=$mangaId"
+			webClient.httpPost(url, postData).parseHtml()
 		} else {
 			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
 			webClient.httpPost(url, emptyMap()).parseHtml()

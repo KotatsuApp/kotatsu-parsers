@@ -5,19 +5,20 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 
-@MangaSourceParser("HENTAIFORCE", "HentaiForce", type = ContentType.HENTAI)
-internal class HentaiForce(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIFORCE, "hentaiforce.net") {
+@MangaSourceParser("NHENTAIUK", "NHentai.uk", type = ContentType.HENTAI)
+internal class NHentaiUk(context: MangaLoaderContext) :
+	GalleryAdultsParser(context, MangaSource.NHENTAIUK, "nhentai.uk", 50) {
 	override val selectGallery = ".gallery"
-	override val selectGalleryLink = "a.gallery-thumb"
-	override val pathTagUrl = "/tags/popular/"
-	override val selectTags = ".tag-listing"
-	override val selectUrlChapter = "#gallery-main-cover a"
-	override val selectTag = "div.tag-container:contains(Tags:)"
+	override val selectGalleryLink = "a"
+	override val selectGalleryTitle = ".caption"
+	override val pathTagUrl = "/tags/popular?p="
+	override val selectTags = "#tag-container"
+	override val selectTag = "div.tag-container:contains(Tags:) span.tags"
 	override val selectAuthor = "div.tag-container:contains(Artists:) a"
 	override val selectLanguageChapter = "div.tag-container:contains(Languages:) a"
-	override val idImg = ".gallery-reader-img-wrapper img"
+	override val idImg = "image-container"
 	override val listLanguage = arrayOf(
 		"/english",
 		"/french",
@@ -27,17 +28,10 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		"/russian",
 		"/korean",
 		"/german",
-		"/indonesian",
 		"/italian",
 		"/portuguese",
-		"/thai",
-		"/vietnamese",
+		"/turkish",
 	)
-
-	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
-	}
 
 	override suspend fun getListPage(
 		page: Int,
@@ -53,21 +47,25 @@ internal class HentaiForce(context: MangaLoaderContext) :
 				if (tag?.key == "languageKey") {
 					append("/language")
 					append(tag.title)
-					append("/")
+					append("/?p=")
 				} else {
 					append("/tag/")
-					append(tag?.key.orEmpty())
-					append("/")
+					append(tag?.key)
+					append("/?p=")
 				}
 			} else if (!query.isNullOrEmpty()) {
-				append("search?q=")
-				append(query.urlEncoded())
-				append("&page=")
+				throw IllegalArgumentException("Search is not supported by this source")
 			} else {
-				append("/page/")
+				append("/home?p=")
 			}
 			append(page)
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
+	override suspend fun getPageUrl(page: MangaPage): String {
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
+		val root = doc.body()
+		return root.requireElementById(idImg).selectFirstOrThrow("img").src() ?: root.parseFailed("Image src not found")
 	}
 }

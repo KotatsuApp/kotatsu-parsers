@@ -1,15 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.removeSuffix
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
 @MangaSourceParser("HENTAIENVY", "HentaiEnvy", type = ContentType.HENTAI)
@@ -33,16 +30,6 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 		"/german",
 		"/portuguese",
 	)
-
-	override fun Element.parseTags() = select("a").mapToSet {
-		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
-		val name = it.html().substringBefore("<")
-		MangaTag(
-			key = key,
-			title = name,
-			source = source,
-		)
-	}
 
 	override suspend fun getListPage(
 		page: Int,

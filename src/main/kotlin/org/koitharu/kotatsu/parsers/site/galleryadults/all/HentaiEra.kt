@@ -1,15 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("HENTAIERA", "HentaiEra", type = ContentType.HENTAI)
 internal class HentaiEra(context: MangaLoaderContext) :
@@ -27,6 +23,16 @@ internal class HentaiEra(context: MangaLoaderContext) :
 		"/german",
 		"/russian",
 	)
+
+	override fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
+		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
+		val name = it.selectFirst(".item_name")?.text() ?: it.text()
+		MangaTag(
+			key = key,
+			title = name,
+			source = source,
+		)
+	}
 
 	override suspend fun getListPage(
 		page: Int,

@@ -105,8 +105,8 @@ internal class InstaManhwa(context: MangaLoaderContext) :
 		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 		val token = document.select("meta")[2].attr("content")
 		val url = "https://$domain/ajax"
-		val postdata = "_token=$token&action=manga_get_chapters&manga=$mangaId"
-		val doc = webClient.httpPost(url, postdata).parseHtml()
+		val postData = "_token=$token&action=manga_get_chapters&manga=$mangaId"
+		val doc = webClient.httpPost(url, postData).parseHtml()
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 

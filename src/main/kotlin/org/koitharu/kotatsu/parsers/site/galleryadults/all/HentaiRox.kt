@@ -1,9 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.removeSuffix
 
 @MangaSourceParser("HENTAIROX", "HentaiRox", type = ContentType.HENTAI)
 internal class HentaiRox(context: MangaLoaderContext) :
@@ -22,4 +25,14 @@ internal class HentaiRox(context: MangaLoaderContext) :
 		"/korean",
 		"/german",
 	)
+
+	override fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
+		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
+		val name = it.selectFirst(".item_name")?.text() ?: it.text()
+		MangaTag(
+			key = key,
+			title = name,
+			source = source,
+		)
+	}
 }

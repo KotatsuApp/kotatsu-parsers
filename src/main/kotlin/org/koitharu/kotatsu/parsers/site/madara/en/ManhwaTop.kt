@@ -19,8 +19,8 @@ internal class ManhwaTop(context: MangaLoaderContext) :
 
 		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 		val url = "https://$domain/wp-admin/admin-ajax.php"
-		val postdata = "action=manga_get_chapters&manga=$mangaId"
-		val doc = webClient.httpPost(url, postdata).parseHtml()
+		val postData = "action=manga_get_chapters&manga=$mangaId"
+		val doc = webClient.httpPost(url, postData).parseHtml()
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
