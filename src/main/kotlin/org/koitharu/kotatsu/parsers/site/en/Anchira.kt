@@ -33,7 +33,15 @@ import java.util.EnumSet
 internal class Anchira(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.ANCHIRA, 24) {
 
 	private fun Response.decodeAsJson(): String {
-		val data = use { it.body?.bytes() } ?: throw IllegalArgumentException("Response body is null")
+		val bytes = use { it.body?.bytes() } ?: throw IllegalArgumentException("Response body is null")
+
+		val padSize = bytes.size / 2
+		val pad = bytes.copyOfRange(0, padSize)
+		val data = bytes.copyOfRange(padSize, bytes.size)
+
+		for (i in 0 until padSize) {
+			data[i] = (data[i].toInt() xor pad[i].toInt()).toByte()
+		}
 
 		return MoshiPack().msgpackToJson(data)
 	}
