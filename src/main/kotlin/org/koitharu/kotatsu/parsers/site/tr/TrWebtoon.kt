@@ -89,9 +89,9 @@ class TrWebtoon(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
+	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		manga.copy(
+		return manga.copy(
 			tags = doc.body().select("li.movie__year a").mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
