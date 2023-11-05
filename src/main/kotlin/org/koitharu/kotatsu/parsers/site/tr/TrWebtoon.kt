@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.tr
 
-import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
