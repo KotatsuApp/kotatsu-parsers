@@ -59,6 +59,7 @@ dependencies {
 	api 'org.jsoup:jsoup:1.16.1'
 	implementation 'org.json:json:20230618'
 	implementation 'androidx.collection:collection-ktx:1.2.0'
+	implementation "com.daveanthonythomas.moshipack:moshipack:1.0.1"
 
 	ksp project(':kotatsu-parsers-ksp')
 
