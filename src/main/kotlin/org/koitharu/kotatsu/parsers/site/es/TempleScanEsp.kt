@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.es
 
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
@@ -12,13 +12,13 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("TEMPLESCAN", "TempleScan", "en")
-internal class TempleScan(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.TEMPLESCAN, pageSize = 15) {
+@MangaSourceParser("TEMPLESCANESP", "TempleScanEsp", "es", ContentType.HENTAI)
+internal class TempleScanEsp(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaSource.TEMPLESCANESP, pageSize = 15) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST, SortOrder.UPDATED)
 
-	override val configKeyDomain = ConfigKey.Domain("templescan.net")
+	override val configKeyDomain = ConfigKey.Domain("templescanesp.net")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -61,7 +61,7 @@ internal class TempleScan(context: MangaLoaderContext) :
 				author = null,
 				state = null,
 				source = source,
-				isNsfw = false,
+				isNsfw = isNsfwSource,
 			)
 		}
 	}
@@ -75,7 +75,6 @@ internal class TempleScan(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.requireElementById("section-sinopsis").html(),
 			chapters = chaptersDeferred,
-			isNsfw = false,
 		)
 	}
 

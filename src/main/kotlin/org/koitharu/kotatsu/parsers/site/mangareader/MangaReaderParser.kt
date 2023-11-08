@@ -1,8 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.mangareader
 
 import androidx.collection.ArrayMap
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import okhttp3.Cookie
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -19,7 +24,7 @@ internal abstract class MangaReaderParser(
 	domain: String,
 	pageSize: Int,
 	searchPageSize: Int,
-) : PagedMangaParser(context, source, pageSize, searchPageSize) {
+) : PagedMangaParser(context, source, pageSize, searchPageSize), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -295,5 +300,24 @@ internal abstract class MangaReaderParser(
 		}
 		tagCache = tagMap
 		return@withLock tagMap
+	}
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val response = chain.proceed(chain.request())
+		if (context.cookieJar.getCookies(domain).none { it.name.contains("NetShield") }) {
+			val cookie = runBlocking { response.parseHtml().getNetShieldCookie() } ?: return response
+			context.cookieJar.insertCookie(domain, cookie)
+			return chain.proceed(response.request.newBuilder().build())
+		}
+		return response
+	}
+
+	private suspend fun Document.getNetShieldCookie(): Cookie? {
+		val script = select("script").firstNotNullOfOrNull { s ->
+			s.html().takeIf { x -> x.contains("slowAES.decrypt") }
+		} ?: return null
+		val min = webClient.httpGet("https://$domain/min.js").parseRaw()
+		val res = context.evaluateJs(min + "\n\n" + script.replace("document.cookie =", "return"))
+		return Cookie.parse(baseUri().toHttpUrl(), res ?: return null)
 	}
 }

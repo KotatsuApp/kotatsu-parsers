@@ -31,6 +31,8 @@ internal abstract class HeanCms(
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	protected open val pathManga = "series"
+
 	//For some sources, you need to send a json. For the moment, this part only works in Get. ( ex source need json gloriousscan.com , omegascans.org )
 	override suspend fun getListPage(
 		page: Int,
@@ -78,7 +80,7 @@ internal abstract class HeanCms(
 		val json = webClient.httpGet(url).parseJson()
 		return json.getJSONArray("data").mapJSON { j ->
 			val slug = j.getString("series_slug")
-			val urlManga = "https://$domain/series/$slug"
+			val urlManga = "https://$domain/$pathManga/$slug"
 			val cover = if (j.getString("thumbnail").contains('/')) {
 				j.getString("thumbnail")
 			} else {
@@ -120,13 +122,13 @@ internal abstract class HeanCms(
 			.drop(1)
 
 		return manga.copy(
-			altTitle = root.selectFirstOrThrow("p.text-center.text-gray-400").text(),
+			altTitle = root.selectFirst("p.text-center.text-gray-400")?.text(),
 			tags = emptySet(),
 			author = root.select("div.flex.flex-col.gap-y-2 p:contains(Autor:) strong").text(),
 			description = root.selectFirst("h5:contains(Desc) + .bg-gray-800")?.html(),
 			chapters = chapter.mapChapters(reversed = true) { i, it ->
 				val slugChapter = it.substringAfter("chapter_slug\":\"").substringBefore("\",\"")
-				val url = "https://$domain/series/$slug/$slugChapter"
+				val url = "https://$domain/$pathManga/$slug/$slugChapter"
 				val date = it.substringAfter("created_at\":\"").substringBefore("\",\"").substringBefore("T")
 				val name = slugChapter.replace("-", " ")
 				MangaChapter(
