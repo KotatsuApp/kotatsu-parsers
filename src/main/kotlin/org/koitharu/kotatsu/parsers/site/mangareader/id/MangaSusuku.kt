@@ -13,4 +13,5 @@ internal class MangaSusuku(context: MangaLoaderContext) :
 	override val listUrl = "/komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isNetShieldProtected = true
 }

@@ -8,6 +8,7 @@ import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -33,6 +34,7 @@ internal abstract class MangaReaderParser(
 
 	protected open val listUrl = "/manga"
 	protected open val datePattern = "MMMM d, yyyy"
+	protected open val isNetShieldProtected = false
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
@@ -304,20 +306,31 @@ internal abstract class MangaReaderParser(
 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
-		if (context.cookieJar.getCookies(domain).none { it.name.contains("NetShield") }) {
-			val cookie = runBlocking { response.parseHtml().getNetShieldCookie() } ?: return response
+		if (!isNetShieldProtected) {
+			return response
+		}
+		val contentType = response.mimeType
+		if (
+			contentType?.endsWith("/html") != false &&
+			context.cookieJar.getCookies(domain).none { it.name.contains("NetShield") }
+		) {
+			val cookie = runBlocking { response.copy().parseHtml().getNetShieldCookie() } ?: return response
 			context.cookieJar.insertCookie(domain, cookie)
-			return chain.proceed(response.request.newBuilder().build())
+			return chain.proceed(response.request.newBuilder().build()).also {
+				response.closeQuietly()
+			}
 		}
 		return response
 	}
 
-	private suspend fun Document.getNetShieldCookie(): Cookie? {
+	private suspend fun Document.getNetShieldCookie(): Cookie? = runCatchingCancellable {
 		val script = select("script").firstNotNullOfOrNull { s ->
 			s.html().takeIf { x -> x.contains("slowAES.decrypt") }
-		} ?: return null
+		} ?: return@runCatchingCancellable null
 		val min = webClient.httpGet("https://$domain/min.js").parseRaw()
-		val res = context.evaluateJs(min + "\n\n" + script.replace("document.cookie =", "return"))
-		return Cookie.parse(baseUri().toHttpUrl(), res ?: return null)
-	}
+		val res = context.evaluateJs(min + "\n\n" + script.replace(Regex("document.cookie\\s*=\\s*"), "return "))
+		res?.let {
+			Cookie.parse(baseUri().toHttpUrl(), it)
+		}
+	}.getOrNull()
 }

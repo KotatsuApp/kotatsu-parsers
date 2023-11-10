@@ -14,7 +14,7 @@ suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation 
 }
 
 val Response.mimeType: String?
-	get() = body?.contentType()?.run { "$type/$subtype" }
+	get() = header("content-type")?.takeUnless { it.isEmpty() }
 
 val Response.contentDisposition: String?
 	get() = header("Content-Disposition")
@@ -27,3 +27,7 @@ fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers
 	}
 	return this
 }
+
+fun Response.copy() = newBuilder()
+	.body(peekBody(Long.MAX_VALUE))
+	.build()
