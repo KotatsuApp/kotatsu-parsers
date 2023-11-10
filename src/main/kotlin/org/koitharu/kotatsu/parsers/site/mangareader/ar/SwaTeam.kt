@@ -15,6 +15,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectMangaList = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
+	override val isNetShieldProtected = true
 
 	override suspend fun getListPage(
 		page: Int,
