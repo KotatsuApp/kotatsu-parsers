@@ -482,6 +482,7 @@ internal abstract class MadaraParser(
 			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
 				d.startsWith("há ") || // other translated 'ago' in Portuguese.
 				d.endsWith(" hace") || // other translated 'ago' in Spanish
+				d.endsWith(" publicado") ||
 				d.endsWith(" назад") || // other translated 'ago' in Russian
 				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
 				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.

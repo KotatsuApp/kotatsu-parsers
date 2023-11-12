@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ATLANTISSCAN", "AtlantisScan", "es")
-internal class AtlantisScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ATLANTISSCAN, "scansatlanticos.com", pageSize = 50) {
-	override val datePattern = "dd/MM/yyyy"
-}
+@MangaSourceParser("MANGASNOSEKAI", "MangasNoSekai", "es")
+internal class MangasNoSekai(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGASNOSEKAI, "mangasnosekai.com")
