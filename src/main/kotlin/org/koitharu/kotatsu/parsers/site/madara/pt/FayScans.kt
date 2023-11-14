@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("DEMONSECT", "DemonSect", "pt")
-internal class DemonSect(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DEMONSECT, "demonsect.com.br", 10) {
-	override val datePattern = "MMM dd, yyyy"
+@MangaSourceParser("FAYSCANS", "FayScans", "pt")
+internal class FayScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.FAYSCANS, "fayscans.com.br") {
+	override val datePattern: String = "dd/MM/yyyy"
 }

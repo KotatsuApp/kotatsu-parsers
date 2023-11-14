@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MANGAFAST", "MangaFast", "en")
 internal class MangaFast(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANGAFAST, "manga-fast.com") {
-
 	override val datePattern = "d MMMM، yyyy"
 }

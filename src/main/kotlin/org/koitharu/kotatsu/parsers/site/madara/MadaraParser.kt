@@ -121,6 +121,7 @@ internal abstract class MadaraParser(
 		"已完结",
 		"Bitmiş",
 		"End",
+		"منتهية",
 	)
 
 	@JvmField
@@ -154,34 +155,23 @@ internal abstract class MadaraParser(
 				append("https://")
 				append(domain)
 				val pages = page + 1
-				when {
-					!query.isNullOrEmpty() -> {
+				if (!tags.isNullOrEmpty()) {
+					append("/$tagPrefix")
+					append(tag?.key.orEmpty())
+					if (pages > 1) {
 						append("/page/")
 						append(pages.toString())
-						append("/?s=")
+					}
+					append("?")
+				} else {
+					append("/page/")
+					append(pages)
+					append("/?s=")
+					if (!query.isNullOrEmpty()) {
 						append(query.urlEncoded())
-						append("&post_type=wp-manga&")
 					}
-
-					!tags.isNullOrEmpty() -> {
-						append("/$tagPrefix")
-						append(tag?.key.orEmpty())
-						if (pages > 1) {
-							append("/page/")
-							append(pages.toString())
-						}
-						append("?")
-					}
-
-					else -> {
-
-						append("/$listUrl")
-						if (pages > 1) {
-							append("page/")
-							append(pages)
-						}
-						append("?")
-					}
+					append("&post_type=wp-manga&")
+					/// &status[]= ( on-going - end - canceled - on-hold - upcoming )
 				}
 				append("m_orderby=")
 				when (sortOrder) {
@@ -213,6 +203,7 @@ internal abstract class MadaraParser(
 			payload["page"] = page.toString()
 			payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
 			payload["vars[s]"] = query?.urlEncoded().orEmpty()
+			/// payload["vars[meta_query][0][0][value][]"] = ( on-going - end - canceled - on-hold - upcoming )
 			webClient.httpPost(
 				"https://$domain/wp-admin/admin-ajax.php",
 				payload,
@@ -487,6 +478,7 @@ internal abstract class MadaraParser(
 				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
 				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
 				d.endsWith("مضت") || // Handle translated 'ago' in Arabic
+				d.startsWith("منذ") ||
 				d.startsWith("il y a") || // Handle translated 'ago' in French.
 				//If there is no ago but just a motion of time
 				// short Hours
@@ -506,7 +498,9 @@ internal abstract class MadaraParser(
 				// Minutes in Portuguese
 				d.endsWith(" minutos") || d.endsWith(" minuto") ||
 				//Minutes in French
-				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+				d.endsWith(" minute") || d.endsWith(" minutes") ||
+				//month in French
+				d.endsWith(" mois") -> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {
@@ -565,6 +559,7 @@ internal abstract class MadaraParser(
 				"hours",
 				"h",
 				"ساعات",
+				"ساعة",
 			).anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.HOUR,
@@ -597,7 +592,7 @@ internal abstract class MadaraParser(
 				)
 			}.timeInMillis
 
-			WordSet("month", "months", "أشهر").anyWordIn(date) -> cal.apply {
+			WordSet("month", "months", "أشهر", "mois").anyWordIn(date) -> cal.apply {
 				add(
 					Calendar.MONTH,
 					-number,
@@ -610,9 +605,9 @@ internal abstract class MadaraParser(
 	}
 
 	private val ratingRequest =
-		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D%5Bquery_avarage_reviews%5D=DESC&vars%5Borderby%5D%5Bquery_total_reviews%5D=DESC&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5B0%5D%5Bquery_avarage_reviews%5D%5Bkey%5D=_manga_avarage_reviews&vars%5Bmeta_query%5D%5B0%5D%5Bquery_total_reviews%5D%5Bkey%5D=_manga_total_votes&vars%5Bmeta_query%5D%5Brelation%5D=AND&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmanga_archives_item_layout%5D=default"
+		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D%5Bquery_avarage_reviews%5D=DESC&vars%5Borderby%5D%5Bquery_total_reviews%5D=DESC&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5B0%5D%5Bquery_avarage_reviews%5D%5Bkey%5D=_manga_avarage_reviews&vars%5Bmeta_query%5D%5B0%5D%5Bquery_total_reviews%5D%5Bkey%5D=_manga_total_votes&vars%5Bmeta_query%5D%5Brelation%5D=AND&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmanga_archives_item_layout%5D=default&vars%5Bmeta_query%5D%5B0%5D%5B0%5D%5Bkey%5D=_wp_manga_status&vars%5Bmeta_query%5D%5B0%5D%5B0%5D%5Bcompare%5D=IN"
 	private val defaultRequest =
-		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border%5D=desc&vars%5Bmanga_archives_item_layout%5D=default"
+		"action=madara_load_more&page=1&template=madara-core%2Fcontent%2Fcontent-search&vars%5Bs%5D=&vars%5Borderby%5D=meta_value_num&vars%5Bpaged%5D=1&vars%5Btemplate%5D=search&vars%5Bmeta_query%5D%5B0%5D%5Brelation%5D=AND&vars%5Bmeta_query%5D%5Brelation%5D=OR&vars%5Bpost_type%5D=wp-manga&vars%5Bpost_status%5D=publish&vars%5Bmeta_key%5D=_latest_update&vars%5Border%5D=desc&vars%5Bmanga_archives_item_layout%5D=default&vars%5Bmeta_query%5D%5B0%5D%5B0%5D%5Bkey%5D=_wp_manga_status&vars%5Bmeta_query%5D%5B0%5D%5B0%5D%5Bcompare%5D=IN"
 
 	private companion object {
 		private fun createRequestTemplate(query: String) =

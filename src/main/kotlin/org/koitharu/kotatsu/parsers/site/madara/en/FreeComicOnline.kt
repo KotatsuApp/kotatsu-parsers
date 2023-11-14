@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("FREECOMICONLINE", "FreeComic Online", "en", ContentType.HENTAI)
+@MangaSourceParser("FREECOMICONLINE", "FreeComicOnline", "en", ContentType.HENTAI)
 internal class FreeComicOnline(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.FREECOMICONLINE, "freecomiconline.me") {
 	override val postReq = true
