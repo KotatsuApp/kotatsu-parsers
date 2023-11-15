@@ -135,7 +135,7 @@ internal abstract class FmreaderParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
+		val desc = doc.selectFirst(selectDesc)?.html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
 			when (it.text()) {

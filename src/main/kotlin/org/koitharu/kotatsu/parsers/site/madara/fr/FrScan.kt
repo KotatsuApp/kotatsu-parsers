@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FRSCAN", "Fr-Scan", "fr")
 internal class FrScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.com")
+	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.com") {
+	override val withoutAjax = true
+}

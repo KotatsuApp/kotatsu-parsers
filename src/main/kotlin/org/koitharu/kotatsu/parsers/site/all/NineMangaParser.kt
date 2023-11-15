@@ -162,7 +162,7 @@ internal abstract class NineMangaParser(
 		return getOrCreateTagMap().values.toSet()
 	}
 
-	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
 		val tagElements = webClient.httpGet("https://${domain}/search/?type=high").parseHtml().select("li.cate_list")

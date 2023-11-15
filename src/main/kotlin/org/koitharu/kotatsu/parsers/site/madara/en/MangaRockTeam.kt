@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGAROCKTEAM", "MangaRock.team", "en")
 internal class MangaRockTeam(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGAROCKTEAM, "mangarock.team", 18)
+	MadaraParser(context, MangaSource.MANGAROCKTEAM, "mangarockteam.com")

@@ -11,5 +11,5 @@ internal class Cizgiromanarsivi(context: MangaLoaderContext) :
 	override val stylePage = ""
 	override val tagPrefix = "kategori/"
 	override val listUrl = "seri/"
-	override val datePattern = "dd.MM.yyyy"
+	override val datePattern = "dd/MM/yyyy"
 }

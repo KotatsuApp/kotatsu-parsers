@@ -1,11 +1,10 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.likemanga
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -14,11 +13,15 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("LIKEMANGA", "LikeManga", "en")
-internal class LikeManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LIKEMANGA, 36) {
+internal abstract class LikeMangaParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+	pageSize: Int = 36,
+) : PagedMangaParser(context, source, pageSize) {
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
-	override val configKeyDomain = ConfigKey.Domain("likemanga.io")
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getListPage(
 		page: Int,

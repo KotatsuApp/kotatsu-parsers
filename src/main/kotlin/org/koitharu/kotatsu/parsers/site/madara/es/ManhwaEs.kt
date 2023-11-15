@@ -13,7 +13,7 @@ internal class ManhwaEs(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.MANHWA_ES, "manhwa-es.com", 10) {
 
 	override val withoutAjax = true
-	override val datePattern = "d 'de' MMMM"
+	override val datePattern = "MM/dd"
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
