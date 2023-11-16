@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MIAUSCAN", "MiauScan", "es")
 internal class MiauScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MIAUSCAN, "miauscans.com", pageSize = 20, searchPageSize = 20)
+	MangaReaderParser(context, MangaSource.MIAUSCAN, "miaucomics.org", pageSize = 20, searchPageSize = 10)

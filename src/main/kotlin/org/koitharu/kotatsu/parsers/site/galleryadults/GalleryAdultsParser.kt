@@ -176,7 +176,7 @@ internal abstract class GalleryAdultsParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val totalPages = doc.selectFirstOrThrow(selectTotalPage).text().toInt()
-		val rawUrl = chapter.url.replace("/1/", "/")
+		val rawUrl = chapter.url.removeSuffix("/").substringBeforeLast("/") + "/"
 		return (1..totalPages).map {
 			val url = "$rawUrl$it/"
 			MangaPage(

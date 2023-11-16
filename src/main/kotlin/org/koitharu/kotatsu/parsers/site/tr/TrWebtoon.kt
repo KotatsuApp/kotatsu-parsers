@@ -17,7 +17,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 
 	override val sortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
+		get() = EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -26,53 +26,90 @@ class TrWebtoon(context: MangaLoaderContext) :
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val tag = tags.oneOrThrowIfMany()
-		val url = buildString {
-			append("https://")
-			append(domain)
-			append("/webtoon-listesi")
-			append("?page=")
-			append(page)
-			when {
-				!query.isNullOrEmpty() -> {
-					append("&q=")
-					append(query.urlEncoded())
-				}
+		val url = if (sortOrder == SortOrder.UPDATED && query.isNullOrEmpty() && tags.isNullOrEmpty()) {
+			buildString {
+				append("https://")
+				append(domain)
+				append("/son-eklenenler")
+				append("?page=")
+				append(page)
+			}
+		} else {
+			buildString {
+				append("https://")
+				append(domain)
+				append("/webtoon-listesi")
+				append("?page=")
+				append(page)
+				when {
+					!query.isNullOrEmpty() -> {
+						append("&q=")
+						append(query.urlEncoded())
+					}
 
-				!tags.isNullOrEmpty() -> {
-					append("&genre=")
-					append(tag?.key.orEmpty())
+					!tags.isNullOrEmpty() -> {
+						append("&genre=")
+						append(tag?.key.orEmpty())
+					}
+				}
+				append("&sort=")
+				when (sortOrder) {
+					SortOrder.POPULARITY -> append("views&short_type=DESC")
+					SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
+					else -> append("views&short_type=DESC")
 				}
 			}
-			append("&sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views&short_type=DESC")
-				SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
-				else -> append("views&short_type=DESC")
+		}
+
+		val doc = webClient.httpGet(url).parseHtml()
+		val mangas = if (sortOrder == SortOrder.UPDATED && query.isNullOrEmpty() && tags.isNullOrEmpty()) {
+			doc.select(".page-content div.bslist_item").map { li ->
+				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					coverUrl = li.selectFirst(".figure img")?.src().orEmpty(),
+					title = li.selectFirst(".title")?.text().orEmpty(),
+					altTitle = null,
+					rating = RATING_UNKNOWN,
+					tags = emptySet(),
+					author = null,
+					state = when (doc.selectFirst("d-inline .badge")?.text()) {
+						"Devam Ediyor", "Güncel" -> MangaState.ONGOING
+						"Tamamlandı" -> MangaState.FINISHED
+						else -> null
+					},
+					source = source,
+					isNsfw = isNsfwSource,
+				)
+			}
+		} else {
+			doc.select(".row .col-xl-4 .card-body").map { li ->
+				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					coverUrl = li.selectFirst("img")?.src().orEmpty(),
+					title = li.selectFirst(".table-responsive a")?.text().orEmpty(),
+					altTitle = null,
+					rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
+						?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+					tags = emptySet(),
+					author = null,
+					state = when (doc.selectLast(".row .col-xl-4 .mt-2 .rounded-pill")?.text()) {
+						"Devam Ediyor", "Güncel" -> MangaState.ONGOING
+						"Tamamlandı" -> MangaState.FINISHED
+						else -> null
+					},
+					source = source,
+					isNsfw = isNsfwSource,
+				)
 			}
 		}
-		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select(".row .col-xl-4 .card-body").map { li ->
-			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
-				title = li.selectFirst(".table-responsive a")?.text().orEmpty(),
-				altTitle = null,
-				rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
-					?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				tags = emptySet(),
-				author = null,
-				state = when (doc.selectLast(".row .col-xl-4 .mt-2 .rounded-pill")?.text()) {
-					"Devam Ediyor", "Güncel" -> MangaState.ONGOING
-					"Tamamlandı" -> MangaState.FINISHED
-					else -> null
-				},
-				source = source,
-				isNsfw = isNsfwSource,
-			)
-		}
+
+		return mangas
 	}
 
 	override suspend fun getTags(): Set<MangaTag> {

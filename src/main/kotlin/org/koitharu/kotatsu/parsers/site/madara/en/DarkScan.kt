@@ -1,10 +1,10 @@
-package org.koitharu.kotatsu.parsers.site.madara.fr
+package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("FRSCAN", "Fr-Scan", "fr")
-internal class FrScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.com")
+@MangaSourceParser("DARKSCAN", "Dark-Scan", "en")
+internal class DarkScan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.DARKSCAN, "dark-scan.com")
