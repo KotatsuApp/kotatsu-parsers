@@ -100,6 +100,7 @@ internal abstract class HeanCms(
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					"Dropped" -> MangaState.ABANDONED
+					"Hiatus" -> MangaState.HIATUS
 					else -> null
 				},
 				author = null,
