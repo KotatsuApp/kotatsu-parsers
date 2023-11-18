@@ -139,6 +139,16 @@ internal abstract class MadaraParser(
 		"Abandonné",
 	)
 
+	@JvmField
+	protected val paused: Set<String> = hashSetOf(
+		"Hiatus",
+		"On Hold",
+		"Pausado",
+		"En espera",
+		"En pause",
+		"En attente",
+	)
+
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
 
@@ -234,11 +244,11 @@ internal abstract class MadaraParser(
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
-					?.lowercase()) {
+				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()) {
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
 					in abandoned -> MangaState.ABANDONED
+					in paused -> MangaState.PAUSED
 					else -> null
 				},
 				source = source,
@@ -316,6 +326,7 @@ internal abstract class MadaraParser(
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				in abandoned -> MangaState.ABANDONED
+				in paused -> MangaState.PAUSED
 				else -> null
 			}
 		}

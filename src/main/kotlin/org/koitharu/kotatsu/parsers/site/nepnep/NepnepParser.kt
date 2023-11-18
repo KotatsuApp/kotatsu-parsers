@@ -138,12 +138,18 @@ internal abstract class NepnepParser(
 		return manga.copy(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
-				"Ongoing (Scan)", "Ongoing (Publish)" -> MangaState.ONGOING
+				"Ongoing (Scan)", "Ongoing (Publish)",
+				-> MangaState.ONGOING
+
 				"Complete (Scan)", "Complete (Publish)",
+				-> MangaState.FINISHED
+
 				"Cancelled (Scan)", "Cancelled (Publish)",
 				"Discontinued (Scan)", "Discontinued (Publish)",
+				-> MangaState.ABANDONED
+
 				"Hiatus (Scan)", "Hiatus (Publish)",
-				-> MangaState.FINISHED
+				-> MangaState.PAUSED
 
 				else -> null
 			},

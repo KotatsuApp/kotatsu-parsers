@@ -29,11 +29,9 @@ internal class FmTeam(context: MangaLoaderContext) :
 		if (page > 1) {
 			return emptyList()
 		}
-
 		val jsonManga = if (!query.isNullOrEmpty()) {
 			//3 letters minimum
 			webClient.httpGet("https://$domain/api/search/${query.urlEncoded()}").parseJson().getJSONArray("comics")
-
 		} else {
 			webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
 		}

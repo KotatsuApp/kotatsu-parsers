@@ -99,11 +99,14 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		val root = webClient.httpGet(mangaUrl).parseHtml()
 			.requireElementById("container_manga_show")
 		return manga.copy(
-			altTitle = root.selectFirst(".component-manga-title_alt")?.textOrNull().assertNotNull("altTitle"),
+			altTitle = root.selectFirst(".component-manga-title_alt")?.text(),
 			description = root.selectFirst(".datas_synopsis")?.html().assertNotNull("description")
 				?: manga.description,
 			state = when (root.selectFirst(".datas_more-status-data")?.textOrNull().assertNotNull("status")) {
 				"En cours" -> MangaState.ONGOING
+				"Terminé" -> MangaState.FINISHED
+				"Abandonné" -> MangaState.ABANDONED
+				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
 			author = root.selectFirst(".datas_more-authors-people")?.textOrNull().assertNotNull("author"),
