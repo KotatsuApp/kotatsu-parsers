@@ -24,7 +24,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
@@ -207,7 +207,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		return document
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library", headers).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
 		return elements.mapNotNullToSet { element ->

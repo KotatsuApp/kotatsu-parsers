@@ -13,8 +13,9 @@ import java.util.*
 @MangaSourceParser("MANGASTORM", "MangaStorm", "ar")
 internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGASTORM, 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")
+	override val isMultipleTagsSupported = false
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -69,7 +70,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

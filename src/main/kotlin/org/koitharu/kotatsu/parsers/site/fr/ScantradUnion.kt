@@ -15,7 +15,7 @@ import java.util.*
 @MangaSourceParser("SCANTRADUNION", "ScantradUnion", "fr")
 internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.SCANTRADUNION, 10) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 	)
@@ -174,7 +174,7 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val body = doc.body()
 		val root = body.select(".asp_gochosen")[1]

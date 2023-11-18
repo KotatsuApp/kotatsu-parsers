@@ -22,7 +22,9 @@ internal abstract class AnimeBootstrapParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val isMultipleTagsSupported = false
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
@@ -93,7 +95,7 @@ internal abstract class AnimeBootstrapParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("div.product__page__filter div:contains(Genre:) option ").mapNotNullToSet { option ->
 			val key = option.attr("value") ?: return@mapNotNullToSet null

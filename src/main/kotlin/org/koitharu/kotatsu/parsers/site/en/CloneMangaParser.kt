@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("CLONEMANGA", "CloneManga", "en")
 internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.CLONEMANGA) {
 
-	override val sortOrders: Set<SortOrder> = Collections.singleton(
+	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
 	)
 
@@ -89,5 +89,5 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 		)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 }

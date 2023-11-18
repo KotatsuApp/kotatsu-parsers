@@ -22,7 +22,7 @@ internal class Animaregia(context: MangaLoaderContext) :
 	override val sourceLocale: Locale = Locale.ENGLISH
 
 	//temporary
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
 	)

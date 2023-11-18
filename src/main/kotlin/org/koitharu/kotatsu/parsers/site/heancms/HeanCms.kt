@@ -20,7 +20,7 @@ internal abstract class HeanCms(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
@@ -159,7 +159,7 @@ internal abstract class HeanCms(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 
 		val tags = doc.selectFirstOrThrow("script:containsData(Genres)").data()

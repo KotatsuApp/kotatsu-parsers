@@ -105,7 +105,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select("div.genres li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

@@ -21,7 +21,9 @@ internal abstract class WpComicsParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val isMultipleTagsSupported = false
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
@@ -104,7 +106,7 @@ internal abstract class WpComicsParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("div.genres ul li:not(.active)").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

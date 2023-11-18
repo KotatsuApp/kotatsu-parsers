@@ -17,10 +17,12 @@ import java.util.*
 internal class Pururin(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.PURURIN, pageSize = 20) {
 
-	override val sortOrders: Set<SortOrder> =
+	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.ALPHABETICAL)
 
 	override val configKeyDomain = ConfigKey.Domain("pururin.to")
+
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -76,7 +78,7 @@ internal class Pururin(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..4).map { page ->
 				async { getTags(page) }

@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("BRMANGAS", "BrMangas", "pt")
 internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BRMANGAS, 25) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("www.brmangas.net")
 
@@ -81,7 +81,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/lista-de-generos-de-manga/").parseHtml()
 		return doc.select(".genres_page a").mapNotNullToSet { a ->
 			MangaTag(

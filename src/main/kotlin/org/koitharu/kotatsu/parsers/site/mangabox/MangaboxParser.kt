@@ -17,7 +17,7 @@ internal abstract class MangaboxParser(
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
@@ -107,7 +107,7 @@ internal abstract class MangaboxParser(
 
 	protected open val selectTagMap = "div.panel-genres-list a:not(.genres-select)"
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectTagMap).mapNotNullToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast('/')

@@ -13,9 +13,11 @@ import java.util.*
 internal class BeeToon(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.BEETOON, pageSize = 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
 	override val configKeyDomain = ConfigKey.Domain("ww7.beetoon.net")
+
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -80,7 +82,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.requireElementById("menu-item-3").select("ul.sub-menu li a").mapNotNullToSet {
 			MangaTag(

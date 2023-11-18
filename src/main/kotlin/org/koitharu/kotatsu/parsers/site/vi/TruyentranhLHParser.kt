@@ -18,7 +18,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, source = MangaSource.TRUYENTRANHLH, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("truyentranhlh.net")
-	override val sortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
 	private val mutex = Mutex()
 	private var tagCache: Map<String, MangaTag>? = null
@@ -130,7 +130,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return ArraySet(getOrCreateTagMap().values)
 	}
 

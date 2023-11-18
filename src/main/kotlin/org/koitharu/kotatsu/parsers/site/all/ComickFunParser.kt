@@ -25,7 +25,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 
 	override val configKeyDomain = ConfigKey.Domain("comick.app")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 		SortOrder.RATING,
@@ -137,7 +137,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val sparseArray = cachedTags ?: loadTags()
 		val set = ArraySet<MangaTag>(sparseArray.size())
 		for (i in 0 until sparseArray.size()) {

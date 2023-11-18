@@ -29,7 +29,7 @@ internal abstract class MangaReaderParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
 	protected open val listUrl = "/manga"
@@ -283,7 +283,7 @@ internal abstract class MangaReaderParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return getOrCreateTagMap().values.toSet()
 	}
 

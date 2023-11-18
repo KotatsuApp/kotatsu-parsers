@@ -20,6 +20,8 @@ internal class PapScan(context: MangaLoaderContext) :
 
 	override val sourceLocale: Locale = Locale.ENGLISH
 
+	override val isMultipleTagsSupported = false
+
 	override val listUrl = "/liste-manga"
 
 	override val selectState = "div.anime__details__widget li:contains(En cours)"
@@ -27,7 +29,7 @@ internal class PapScan(context: MangaLoaderContext) :
 
 	override val selectChapter = "ul.chapters li"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
 	)
@@ -85,7 +87,7 @@ internal class PapScan(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("a.category ").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast('=')

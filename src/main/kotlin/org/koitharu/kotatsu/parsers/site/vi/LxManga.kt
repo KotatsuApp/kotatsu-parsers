@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("LXMANGA", "LxManga", "vi")
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LXMANGA, 60) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
@@ -150,7 +150,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val body = doc.body()
 		return body.select("ul.absolute.w-full a").mapToSet { a ->

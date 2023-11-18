@@ -1,5 +1,5 @@
 package org.koitharu.kotatsu.parsers.model
 
 enum class MangaState {
-	ONGOING, FINISHED, ABANDONED
+	ONGOING, FINISHED, ABANDONED, PAUSED
 }

@@ -21,7 +21,7 @@ internal class Zahard(context: MangaLoaderContext) :
 	override val selectPage = "div#chapter_imgs img"
 
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST)
 
 

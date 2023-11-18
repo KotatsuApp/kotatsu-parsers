@@ -23,7 +23,7 @@ internal class ExHentaiParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
-	override val sortOrders: Set<SortOrder> = Collections.singleton(
+	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.NEWEST,
 	)
 
@@ -213,7 +213,7 @@ internal class ExHentaiParser(
 		return doc.body().requireElementById("img").attrAsAbsoluteUrl("src")
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${domain}").parseHtml()
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
 		return root.select("div.cs").mapNotNullToSet { div ->

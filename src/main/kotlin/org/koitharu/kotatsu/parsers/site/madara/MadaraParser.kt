@@ -23,7 +23,9 @@ internal abstract class MadaraParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val isMultipleTagsSupported = false
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
@@ -245,7 +247,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val body = doc.body()
 		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")

@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("YUGENMANGAS", "YugenMangas.org", "pt")
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YUGENMANGAS, 28) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("yugenmangas.org")
 
 	override suspend fun getListPage(
@@ -142,5 +142,5 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		return pages
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 }

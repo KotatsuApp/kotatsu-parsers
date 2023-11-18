@@ -34,5 +34,5 @@ internal class Hanman18(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet() // search by tag does not work
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet() // search by tag does not work
 }

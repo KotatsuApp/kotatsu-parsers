@@ -22,7 +22,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,

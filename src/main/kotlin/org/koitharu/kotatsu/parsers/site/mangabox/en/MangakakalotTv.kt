@@ -73,7 +73,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 
 	override val selectTagMap = "ul.tag li a"
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectTagMap).mapNotNullToSet { a ->
 			MangaTag(

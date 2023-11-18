@@ -30,7 +30,7 @@ internal class NudeMoonParser(
 			}
 		}
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
@@ -144,7 +144,7 @@ internal class NudeMoonParser(
 		return page.url.toAbsoluteUrl("img.$domain")
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/tags").parseHtml()
 		val root = doc.body().getElementsByAttributeValue("name", "multitags").first()

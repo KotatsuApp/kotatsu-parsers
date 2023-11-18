@@ -22,7 +22,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyenmoi.com")
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
 	override val headers: Headers = Headers.Builder()
@@ -219,7 +219,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		return pages
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return cacheTags.get().values.toSet()
 	}
 

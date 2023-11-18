@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("LERMANGAONLINE", "LerMangaOnline", "pt")
 class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LERMANGAONLINE, 20) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("lermangaonline.com.br")
 
@@ -67,7 +67,7 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml().requireElementById("sub-menu")
 		return doc.select("ul.container li a").mapNotNullToSet { a ->
 			MangaTag(

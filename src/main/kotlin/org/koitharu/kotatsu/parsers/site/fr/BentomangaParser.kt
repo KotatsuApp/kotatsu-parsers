@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
 internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BENTOMANGA, 10) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
@@ -156,7 +156,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val root = webClient.httpGet(urlBuilder().addPathSegment("manga_list").build())
 			.parseHtml()
 			.requireElementById("search_options-form")

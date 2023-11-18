@@ -26,7 +26,7 @@ class NetTruyenParser(context: MangaLoaderContext) :
 		"nettruyenin.com",
 	)
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.RATING)
 
 	private val mutex = Mutex()
@@ -194,7 +194,7 @@ class NetTruyenParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val map = getOrCreateTagMap()
 		val tagSet = ArraySet<MangaTag>(map.size)
 		for (entry in map) {

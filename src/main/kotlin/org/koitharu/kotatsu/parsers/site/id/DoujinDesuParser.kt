@@ -15,7 +15,7 @@ class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("doujindesu.tv")
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -125,7 +125,7 @@ class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 			}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return webClient.httpGet("/genre/".toAbsoluteUrl(domain)).parseHtml()
 			.requireElementById("taxonomy")
 			.selectFirstOrThrow(".entries")

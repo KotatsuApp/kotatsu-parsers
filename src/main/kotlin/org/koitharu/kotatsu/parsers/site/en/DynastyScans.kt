@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("DYNASTYSCANS", "DynastyScans", "en")
 internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DYNASTYSCANS, 117) {
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("dynasty-scans.com")
 
 	override val headers: Headers = Headers.Builder()
@@ -100,7 +100,7 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

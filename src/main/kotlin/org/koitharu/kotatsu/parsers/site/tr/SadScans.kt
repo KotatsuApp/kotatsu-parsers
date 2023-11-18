@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("SADSCANS", "SadScans", "tr")
 internal class SadScans(context: MangaLoaderContext) : MangaParser(context, MangaSource.SADSCANS) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("sadscans.com")
 
 	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
@@ -46,7 +46,7 @@ internal class SadScans(context: MangaLoaderContext) : MangaParser(context, Mang
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

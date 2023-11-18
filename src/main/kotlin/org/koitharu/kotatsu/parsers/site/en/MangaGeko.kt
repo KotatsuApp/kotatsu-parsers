@@ -14,9 +14,12 @@ import java.util.*
 @MangaSourceParser("MANGAGEKO", "MangaGeko", "en")
 internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAGEKO, 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangageko.com")
+
+	override val isMultipleTagsSupported = false
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -77,7 +80,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
 		return doc.select("label.checkbox-inline").mapNotNullToSet { label ->
 			MangaTag(

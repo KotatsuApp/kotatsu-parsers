@@ -46,7 +46,7 @@ internal abstract class GroupleParser(
 
 	override val headers: Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
@@ -218,7 +218,7 @@ internal abstract class GroupleParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${domain}/list/genres/sort_name").parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")?.selectFirst("table.table")
 			?: doc.parseFailed("Cannot find root")

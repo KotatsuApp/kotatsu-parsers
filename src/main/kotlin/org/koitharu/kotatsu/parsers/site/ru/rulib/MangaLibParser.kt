@@ -32,7 +32,7 @@ internal open class MangaLibParser(
 	override val authUrl: String
 		get() = "https://$domain/login"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.RATING,
 		SortOrder.ALPHABETICAL,
 		SortOrder.POPULARITY,
@@ -232,7 +232,7 @@ internal open class MangaLibParser(
 		} ?: concatUrl(defaultServer, pageUrl)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val url = "https://$domain/manga-list"
 		val doc = webClient.httpGet(url).parseHtml()
 		val scripts = doc.body().select("script")

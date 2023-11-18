@@ -17,7 +17,7 @@ internal class InstaManhwa(context: MangaLoaderContext) :
 	override val postReq = true
 	override val datePattern = "d MMMM, yyyy"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,

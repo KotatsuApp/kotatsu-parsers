@@ -20,7 +20,7 @@ internal abstract class MmrcmsParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 		SortOrder.ALPHABETICAL,
@@ -138,7 +138,7 @@ internal abstract class MmrcmsParser(
 
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$tagUrl/").parseHtml()
 		return doc.select("ul.list-category li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

@@ -31,7 +31,7 @@ internal abstract class NineMangaParser(
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
 		.build()
 
-	override val sortOrders: Set<SortOrder> = Collections.singleton(
+	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
 	)
 
@@ -158,7 +158,7 @@ internal abstract class NineMangaParser(
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return getOrCreateTagMap().values.toSet()
 	}
 

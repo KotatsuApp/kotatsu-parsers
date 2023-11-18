@@ -23,7 +23,7 @@ internal abstract class NepnepParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -104,7 +104,7 @@ internal abstract class NepnepParser(
 		)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
 			.substringAfter("\"Genre\"")

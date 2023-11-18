@@ -30,7 +30,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
-	override val sortOrders: EnumSet<SortOrder> = EnumSet.of(
+	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.ALPHABETICAL,
 		SortOrder.NEWEST,
@@ -159,7 +159,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://api.${domain}/manga/tag").parseJson()
 			.getJSONArray("data")
 		return tags.mapJSONToSet { jo ->

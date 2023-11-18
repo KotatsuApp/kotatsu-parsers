@@ -21,7 +21,7 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		"hentaichan.pro",
 	)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,

@@ -19,7 +19,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 	override val datePattern = "dd MMM yyyy"
 	override val listUrl = "/series"
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override suspend fun getListPage(

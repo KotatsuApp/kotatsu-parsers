@@ -23,7 +23,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)
 
@@ -176,7 +176,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val json = apiCall(
 			"""
 			getFilters(mediaType: manga) {

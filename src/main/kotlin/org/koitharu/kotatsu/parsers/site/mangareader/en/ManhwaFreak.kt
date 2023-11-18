@@ -75,7 +75,7 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/genres/").parseHtml()
 		return doc.select("ul.genre-list li a").mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfterLast("=")

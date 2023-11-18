@@ -12,7 +12,8 @@ import java.util.*
 @MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
 internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TRUYENQQ, 42) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 	override val configKeyDomain = ConfigKey.Domain("truyenqqvn.com")
 
 	override suspend fun getListPage(
@@ -67,7 +68,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao.html").parseHtml()
 		return doc.select(".advsearch-form div.genre-item").mapNotNullToSet {
 			MangaTag(

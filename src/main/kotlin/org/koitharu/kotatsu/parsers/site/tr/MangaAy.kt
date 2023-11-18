@@ -15,7 +15,7 @@ import java.util.*
 @MangaSourceParser("MANGAAY", "MangaAy", "tr")
 class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAAY, 45) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("manga-ay.com")
 
@@ -93,7 +93,7 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSour
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return getOrCreateTagMap().values.toSet()
 	}
 

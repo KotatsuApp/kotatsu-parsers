@@ -17,10 +17,12 @@ import java.util.*
 internal class ImHentai(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.IMHENTAI, pageSize = 20) {
 
-	override val sortOrders: Set<SortOrder> =
+	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
 
 	override val configKeyDomain = ConfigKey.Domain("imhentai.xxx")
+
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -83,7 +85,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 
 	//Tags are deliberately reduced because there are too many and this slows down the application.
 	//only the most popular ones are taken.
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..3).map { page ->
 				async { getTags(page) }

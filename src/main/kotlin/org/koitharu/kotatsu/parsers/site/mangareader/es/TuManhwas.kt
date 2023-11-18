@@ -19,10 +19,10 @@ internal class TuManhwas(context: MangaLoaderContext) :
 	override val selectPage = "div#readerarea img"
 
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST)
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,

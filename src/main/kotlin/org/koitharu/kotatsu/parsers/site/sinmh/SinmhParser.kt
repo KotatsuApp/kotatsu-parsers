@@ -18,7 +18,7 @@ internal abstract class SinmhParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 	)
@@ -101,7 +101,7 @@ internal abstract class SinmhParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(".filter-item:contains(按剧情) li a:not(.active)").mapNotNullToSet { a ->
 			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')

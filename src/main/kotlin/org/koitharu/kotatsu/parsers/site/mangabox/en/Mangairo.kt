@@ -99,7 +99,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/type-latest/ctg-all/state-all/page-1").parseHtml()
 		return doc.select("div.panel_category a:not(.ctg_select)").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast("ctg-").substringBefore("/")

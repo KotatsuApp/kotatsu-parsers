@@ -34,7 +34,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		return body.selectFirst("#userinfo > div > div > strong")?.text() ?: throw AuthRequiredException(source)
 	}
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 	)
@@ -143,7 +143,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${getDomain("seiga")}/manga/list").parseHtml()
 		val root = doc.body().selectOrThrow("#mg_category_list > ul > li")
 		return root.mapToSet { li ->
