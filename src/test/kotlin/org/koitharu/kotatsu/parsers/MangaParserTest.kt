@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.test_util.isUrlAbsolute
 import org.koitharu.kotatsu.test_util.maxDuplicates
 
 
-@ExtendWith(AuthCheckExtension::class)
+//@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock

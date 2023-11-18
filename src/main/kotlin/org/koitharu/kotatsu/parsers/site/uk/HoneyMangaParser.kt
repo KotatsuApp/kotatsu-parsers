@@ -20,6 +20,7 @@ import java.util.*
 private const val PAGE_SIZE = 20
 private const val INFINITE = 999999
 private const val HEADER_ENCODING = "Content-Encoding"
+private const val IMAGE_BASEURL_FALLBACK = "https://hmvolumestorage.b-cdn.net/public-resources"
 
 @MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
 class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HONEYMANGA, PAGE_SIZE),
@@ -32,10 +33,9 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	private val framesApi get() = "$urlApi/chapter/frames"
 	private val searchApi get() = "https://search.api.$domain/v2/manga/pattern?query="
 
-	private val imageStorageUrl = "https://manga-storage.fra1.digitaloceanspaces.com/public-resources"
+	private val imageStorageUrl = SuspendLazy(::fetchCoversBaseUrl)
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("honey-manga.com.ua")
+	override val configKeyDomain = ConfigKey.Domain("honey-manga.com.ua")
 
 	override val sortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -160,9 +160,10 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		val body = JSONObject()
 		body.put("chapterId", chapter.url)
 		val content = webClient.httpPost(framesApi, body).parseJson().getJSONObject("resourceIds")
+		val baseUrl = imageStorageUrl.tryGet().getOrDefault(IMAGE_BASEURL_FALLBACK)
 		return List(content.length()) { i ->
 			val item = content.getString(i.toString())
-			MangaPage(id = generateUid(item), "$imageStorageUrl/$item", getCoverUrl(item, 256), source)
+			MangaPage(id = generateUid(item), "$baseUrl/$item", getCoverUrl(item, 256), source)
 		}
 	}
 
@@ -193,9 +194,9 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		return intValue != null && intValue >= 18
 	}
 
-	private fun getCoverUrl(id: String, w: Int): String {
-		// https://honey-manga.com.ua/_next/image?url=https%3A%2F%2Fhoneymangastorage.b-cdn.net%2Fpublic-resources%2F1c4613c2-ffe3-405a-b26a-2cab59ddd223%3Foptimizer%3Dimage%26width%3D512%26height%3D512&w=3840&q=75
-		return "https://$domain/_next/image?url=https%3A%2F%2Fhoneymangastorage.b-cdn.net%2Fpublic-resources%2F$id&w=$w&q=75"
+	private suspend fun getCoverUrl(id: String, w: Int): String {
+		val baseUrl = imageStorageUrl.tryGet().getOrDefault(IMAGE_BASEURL_FALLBACK)
+		return concatUrl(baseUrl, "$id?optimizer=image&width=$w&height=$w")
 	}
 
 	private fun getSortKey(order: SortOrder?) = when (order) {
@@ -212,5 +213,15 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 			tagsSet.add(MangaTag(title = item.toTitleCase(sourceLocale), key = item, source = source))
 		}
 		return tagsSet
+	}
+
+	private suspend fun fetchCoversBaseUrl(): String {
+		val scriptUrl = webClient.httpGet("https://$domain")
+			.parseHtml()
+			.select("script")
+			.firstNotNullOf { it.attrOrNull("src")?.takeIf { x -> x.contains("_app-") } }
+		val script = webClient.httpGet(scriptUrl).parseRaw()
+		// "vg":"https://hmvolumestorage.b-cdn.net/public-resources"
+		return Regex("\"vg\":\"([^\"]+)\"").find(script)?.groups?.get(1)?.value ?: error("Image baseUrl not found")
 	}
 }
