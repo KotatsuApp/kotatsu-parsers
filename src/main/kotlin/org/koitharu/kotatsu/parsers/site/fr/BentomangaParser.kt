@@ -106,7 +106,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 				"En cours" -> MangaState.ONGOING
 				"Terminé" -> MangaState.FINISHED
 				"Abandonné" -> MangaState.ABANDONED
-				"En pause" -> MangaState.HIATUS
+				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
 			author = root.selectFirst(".datas_more-authors-people")?.textOrNull().assertNotNull("author"),

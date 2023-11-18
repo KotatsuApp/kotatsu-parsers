@@ -138,7 +138,8 @@ internal abstract class MadaraParser(
 	)
 
 	@JvmField
-	protected val hiatus: Set<String> = hashSetOf(
+	protected val paused: Set<String> = hashSetOf(
+		"Hiatus",
 		"On Hold",
 		"Pausado",
 		"En espera",
@@ -245,7 +246,7 @@ internal abstract class MadaraParser(
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
 					in abandoned -> MangaState.ABANDONED
-					in hiatus -> MangaState.HIATUS
+					in paused -> MangaState.PAUSED
 					else -> null
 				},
 				source = source,
@@ -323,7 +324,7 @@ internal abstract class MadaraParser(
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				in abandoned -> MangaState.ABANDONED
-				in hiatus -> MangaState.HIATUS
+				in paused -> MangaState.PAUSED
 				else -> null
 			}
 		}

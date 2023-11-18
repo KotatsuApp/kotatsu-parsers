@@ -84,7 +84,7 @@ internal class YugenMangasEs(context: MangaLoaderContext) :
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					"Dropped" -> MangaState.ABANDONED
-					"Hiatus" -> MangaState.HIATUS
+					"Hiatus" -> MangaState.PAUSED
 					else -> null
 				},
 				author = null,

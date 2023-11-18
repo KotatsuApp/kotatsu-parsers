@@ -196,8 +196,8 @@ internal abstract class MangaReaderParser(
 				"Canceled", "Cancelled", "Cancelado", "cancellato", "Cancelados", "Dropped", "Discontinued", "abandonné", "Abandonné",
 				-> MangaState.ABANDONED
 
-				"On Hold", "Pausado", "En espera", "En pause", "En Pause", "En attente",
-				-> MangaState.HIATUS
+				"Hiatus", "On Hold", "Pausado", "En espera", "En pause", "En Pause", "En attente",
+				-> MangaState.PAUSED
 
 				else -> null
 			}

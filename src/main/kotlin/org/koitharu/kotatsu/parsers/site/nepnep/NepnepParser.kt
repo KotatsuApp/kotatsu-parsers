@@ -149,7 +149,7 @@ internal abstract class NepnepParser(
 				-> MangaState.ABANDONED
 
 				"Hiatus (Scan)", "Hiatus (Publish)",
-				-> MangaState.HIATUS
+				-> MangaState.PAUSED
 
 				else -> null
 			},
