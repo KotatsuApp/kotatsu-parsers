@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.likemanga
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -199,15 +200,36 @@ internal abstract class LikeMangaParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".reading-detail  img").map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		val testJson = doc.selectFirst("div.reading input#next_img_token")
+		if (testJson != null) {
+			val jsonRaw = testJson.attr("value").split(".")[1]
+			val jsonData = JSONObject(context.decodeBase64(jsonRaw).toString(Charsets.UTF_8))
+			val jsonImg = context.decodeBase64(jsonData.getString("data")).toString(Charsets.UTF_8)
+			val images = jsonImg.replace("\\", "").replace("[", "").replace("]", "").replace("\"", "").split(",")
+			val cdn = doc.selectFirstOrThrow(".reading-detail  img").src()?.substringBefore("manga/")
+			return images.map { img ->
+				val url = cdn + img
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+
+		} else {
+			return doc.select(".reading-detail  img").map { img ->
+				val url = img.src() ?: img.parseFailed("Image src not found")
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+
 		}
+
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
