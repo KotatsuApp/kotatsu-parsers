@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ARTHUR_SCAN", "ArthurScan", "pt")
+@MangaSourceParser("ARTHUR_SCAN", "ArthurScan", "pt", type = ContentType.MANGA)
 internal class ArthurScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.ARTHUR_SCAN, "arthurscan.xyz")
