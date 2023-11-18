@@ -6,8 +6,8 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("APENASMAISUMYAOI", "Apenasmaisum Yaoi", "pt", ContentType.HENTAI)
-internal class ApenasmaisumYaoi(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.APENASMAISUMYAOI, "apenasmaisumyaoi.com") {
+@MangaSourceParser("AMUYSCAN", "AmuyScan", "pt", ContentType.HENTAI)
+internal class AmuyScan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.AMUYSCAN, "apenasmaisumyaoi.com") {
 	override val datePattern: String = "dd 'de' MMMMM 'de' yyyy"
 }
