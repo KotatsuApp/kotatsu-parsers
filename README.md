@@ -37,6 +37,11 @@ This library provides manga sources.
 
    Versions are available on [JitPack](https://jitpack.io/#KotatsuApp/kotatsu-parsers)
 
+When used in Android
+projects, [core library desugaring](https://developer.android.com/studio/write/java8-support#library-desugaring) with
+the [NIO specification](https://developer.android.com/studio/write/java11-nio-support-table) should be enabled to
+support Java 8+ features.
+
 3. Usage in code
 
    ```kotlin

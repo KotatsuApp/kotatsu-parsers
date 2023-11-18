@@ -36,7 +36,7 @@ compileTestKotlin {
 }
 
 kotlin {
-	jvmToolchain(11)
+	jvmToolchain(8)
 	sourceSets {
 		main.kotlin.srcDirs += 'build/generated/ksp/main/kotlin'
 	}
