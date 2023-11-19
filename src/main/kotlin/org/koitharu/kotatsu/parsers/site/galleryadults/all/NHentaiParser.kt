@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.EnumSet
 
 @MangaSourceParser("NHENTAI", "NHentai.net", type = ContentType.HENTAI)
 internal class NHentaiParser(context: MangaLoaderContext) :
@@ -14,7 +15,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"
 	override val pathTagUrl = "/tags/popular?page="
-	override val selectTags = "#tag-container a"
+	override val selectTags = "#tag-container"
 	override val selectTag = ".tag-container:contains(Tags:) span.tags"
 	override val selectAuthor = "#tags div.tag-container:contains(Artists:) span.name"
 	override val selectLanguageChapter =
@@ -25,6 +26,8 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		"/japanese",
 		"/chinese",
 	)
+
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -43,18 +46,28 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 				if (tag.key == "languageKey") {
 					append("/language")
 					append(tag.title)
-					append("/?")
 				} else {
 					append("/tag/")
 					append(tag.key)
-					append("/?")
 				}
+				append("/")
+				if (sortOrder == SortOrder.POPULARITY) {
+					append("popular")
+				}
+				append("?")
 			} else if (!query.isNullOrEmpty()) {
 				append("/search/?q=")
 				append(query.urlEncoded())
+				if (sortOrder == SortOrder.POPULARITY) {
+					append("&sort=popular")
+				}
 				append("&")
 			} else {
-				append("/?")
+				if (sortOrder == SortOrder.POPULARITY) {
+					append("/?sort=popular&")
+				} else {
+					append("/?")
+				}
 			}
 			append("page=")
 			append(page)
@@ -78,7 +91,12 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		)
 	}
 
-	private fun buildQuery(tags: Collection<MangaTag>) = tags.joinToString(separator = " ") { tag ->
-		"tag:\"${tag.key}\""
-	}
+	private fun buildQuery(tags: Collection<MangaTag>) =
+		tags.joinToString(separator = " ") { tag ->
+			if (tag.key == "languageKey") {
+				"language:\"${tag.title.removePrefix("/")}\""
+			} else {
+				"tag:\"${tag.key}\""
+			}
+		}
 }

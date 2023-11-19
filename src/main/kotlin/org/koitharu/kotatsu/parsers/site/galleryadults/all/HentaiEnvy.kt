@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
+import java.util.EnumSet
 
 @MangaSourceParser("HENTAIENVY", "HentaiEnvy", type = ContentType.HENTAI)
 internal class HentaiEnvy(context: MangaLoaderContext) :
@@ -31,6 +32,8 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 		"/portuguese",
 	)
 
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+
 	override suspend fun getListPage(
 		page: Int,
 		query: String?,
@@ -49,6 +52,9 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 				} else {
 					append("/tag/")
 					append(tag?.key.orEmpty())
+					if (sortOrder == SortOrder.POPULARITY) {
+						append("/popular")
+					}
 					append("/?")
 				}
 			} else if (!query.isNullOrEmpty()) {
