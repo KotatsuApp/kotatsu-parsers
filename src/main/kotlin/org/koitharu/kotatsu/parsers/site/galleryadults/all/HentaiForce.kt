@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.EnumSet
 
 @MangaSourceParser("HENTAIFORCE", "HentaiForce", type = ContentType.HENTAI)
 internal class HentaiForce(context: MangaLoaderContext) :
@@ -34,6 +35,8 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		"/vietnamese",
 	)
 
+	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
@@ -45,23 +48,31 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
+			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
+		}
 		val url = buildString {
 			append("https://")
 			append(domain)
 			if (!tags.isNullOrEmpty()) {
-				if (tag?.key == "languageKey") {
+				val tag = tags.single()
+				if (tag.key == "languageKey") {
 					append("/language")
 					append(tag.title)
-					append("/")
 				} else {
 					append("/tag/")
-					append(tag?.key.orEmpty())
-					append("/")
+					append(tag.key)
 				}
+				if (sortOrder == SortOrder.POPULARITY) {
+					append("/popular")
+				}
+				append("/")
 			} else if (!query.isNullOrEmpty()) {
-				append("search?q=")
+				append("/search?q=")
 				append(query.urlEncoded())
+				if (sortOrder == SortOrder.POPULARITY) {
+					append("&sort=popular")
+				}
 				append("&page=")
 			} else {
 				append("/page/")
@@ -70,4 +81,13 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
+
+	private fun buildQuery(tags: Collection<MangaTag>) =
+		tags.joinToString(separator = " ") { tag ->
+			if (tag.key == "languageKey") {
+				"language:${tag.title.removePrefix("/")}"
+			} else {
+				"tag:${tag.title}"
+			}
+		}
 }

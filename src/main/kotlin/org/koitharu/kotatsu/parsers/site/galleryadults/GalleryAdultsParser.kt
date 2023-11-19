@@ -149,6 +149,9 @@ internal abstract class GalleryAdultsParser(
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val urlChapters = doc.selectFirstOrThrow(selectUrlChapter).attr("href")
 		val tag = doc.selectFirst(selectTag)?.parseTags()
+		val branch = doc.select(selectLanguageChapter).joinToString(separator = " / ") {
+			it.html().substringBefore("<")
+		}
 		return manga.copy(
 			tags = tag.orEmpty(),
 			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
@@ -160,7 +163,7 @@ internal abstract class GalleryAdultsParser(
 					url = urlChapters,
 					scanlator = null,
 					uploadDate = 0,
-					branch = doc.selectFirst(selectLanguageChapter)?.html()?.substringBefore("<"),
+					branch = branch,
 					source = source,
 				),
 			),
