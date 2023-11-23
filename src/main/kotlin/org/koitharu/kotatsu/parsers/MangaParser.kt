@@ -42,7 +42,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 		message = "Use availableSortOrders instead",
 		replaceWith = ReplaceWith("availableSortOrders"),
 	)
-	val sortOrders: Set<SortOrder>
+	open val sortOrders: Set<SortOrder>
 		get() = availableSortOrders
 
 	val config by lazy { context.getConfig(source) }
