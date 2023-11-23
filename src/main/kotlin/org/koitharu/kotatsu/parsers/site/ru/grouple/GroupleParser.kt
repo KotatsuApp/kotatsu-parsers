@@ -62,37 +62,40 @@ internal abstract class GroupleParser(
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
-		val doc = when {
-			!query.isNullOrEmpty() -> webClient.httpPost(
+		val doc = when (filter) {
+			is MangaListFilter.Search -> webClient.httpPost(
 				"https://$domain/search",
 				mapOf(
-					"q" to query.urlEncoded(),
+					"q" to filter.query.urlEncoded(),
 					"offset" to (offset upBy PAGE_SIZE_SEARCH).toString(),
 					"fast-filter" to "CREATION",
 				),
 			)
 
-			tags.isNullOrEmpty() -> webClient.httpGet(
+			null -> webClient.httpGet(
 				"https://$domain/list?sortType=${
-					getSortKey(sortOrder)
+					getSortKey(defaultSortOrder)
 				}&offset=${offset upBy PAGE_SIZE}",
 			)
 
-			tags.size == 1 -> webClient.httpGet(
-				"https://$domain/list/genre/${tags.first().key}?sortType=${
-					getSortKey(sortOrder)
-				}&offset=${offset upBy PAGE_SIZE}",
-			)
+			is MangaListFilter.Advanced -> when {
+				filter.tags.isEmpty() -> webClient.httpGet(
+					"https://$domain/list?sortType=${
+						getSortKey(filter.sortOrder)
+					}&offset=${offset upBy PAGE_SIZE}",
+				)
 
-			offset > 0 -> return emptyList()
-			else -> advancedSearch(domain, tags)
+				filter.tags.size == 1 -> webClient.httpGet(
+					"https://$domain/list/genre/${filter.tags.first().key}?sortType=${
+						getSortKey(filter.sortOrder)
+					}&offset=${offset upBy PAGE_SIZE}",
+				)
+
+				offset > 0 -> return emptyList()
+				else -> advancedSearch(domain, filter.tags)
+			}
 		}.parseHtml().body()
 		val root = (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults"))
 			?: doc.parseFailed("Cannot find root")
