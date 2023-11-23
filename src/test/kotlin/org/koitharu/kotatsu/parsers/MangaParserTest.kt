@@ -73,7 +73,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun tags(source: MangaSource) = runTest {
 		val parser = context.newParserInstance(source)
-		val tags = parser.getTags()
+		val tags = parser.getAvailableTags()
 		assert(tags.isNotEmpty()) { "No tags found" }
 		val keys = tags.map { it.key }
 		assert(keys.isDistinct())
@@ -93,7 +93,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun tagsMultiple(source: MangaSource) = runTest {
 		val parser = context.newParserInstance(source)
-		val tags = parser.getTags().shuffled().take(2).toSet()
+		val tags = parser.getAvailableTags().shuffled().take(2).toSet()
 
 		val list = try {
 			parser.getList(offset = 0, tags = tags, sortOrder = null)

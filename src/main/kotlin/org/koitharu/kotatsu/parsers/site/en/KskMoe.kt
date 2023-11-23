@@ -20,9 +20,10 @@ import java.util.*
 @MangaSourceParser("KSKMOE", "Ksk.moe", "en", ContentType.HENTAI)
 internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.KSKMOE, 35) {
 
-	override val sortOrders: Set<SortOrder> =
+	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("ksk.moe")
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -91,7 +92,7 @@ internal class KskMoe(context: MangaLoaderContext) : PagedMangaParser(context, M
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..2).map { page ->
 				async { getTags(page) }

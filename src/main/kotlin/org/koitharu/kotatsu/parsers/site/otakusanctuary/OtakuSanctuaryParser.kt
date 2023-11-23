@@ -20,7 +20,7 @@ internal abstract class OtakuSanctuaryParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 	)
@@ -114,7 +114,7 @@ internal abstract class OtakuSanctuaryParser(
 
 	protected open val selectBodyTag = "div#genre-table a"
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/Home/LoadingGenresMenu").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfterLast("/").substringBefore("?")

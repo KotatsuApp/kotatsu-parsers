@@ -23,7 +23,9 @@ internal abstract class MadaraParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val isMultipleTagsSupported = false
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
@@ -137,6 +139,16 @@ internal abstract class MadaraParser(
 		"Abandonné",
 	)
 
+	@JvmField
+	protected val paused: Set<String> = hashSetOf(
+		"Hiatus",
+		"On Hold",
+		"Pausado",
+		"En espera",
+		"En pause",
+		"En attente",
+	)
+
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
 
@@ -232,11 +244,11 @@ internal abstract class MadaraParser(
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
-					?.lowercase()) {
+				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()) {
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
 					in abandoned -> MangaState.ABANDONED
+					in paused -> MangaState.PAUSED
 					else -> null
 				},
 				source = source,
@@ -245,7 +257,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val body = doc.body()
 		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")
@@ -314,6 +326,7 @@ internal abstract class MadaraParser(
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				in abandoned -> MangaState.ABANDONED
+				in paused -> MangaState.PAUSED
 				else -> null
 			}
 		}

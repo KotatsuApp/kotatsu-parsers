@@ -16,7 +16,7 @@ import java.util.*
 internal class TempleScanEsp(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.TEMPLESCANESP, pageSize = 15) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST, SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST, SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("templescanesp.net")
 
@@ -66,7 +66,7 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

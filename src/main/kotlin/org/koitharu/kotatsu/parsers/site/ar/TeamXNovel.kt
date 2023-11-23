@@ -16,8 +16,9 @@ import java.util.*
 @MangaSourceParser("TEAMXNOVEL", "TeamXNovel", "ar")
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 	override val configKeyDomain = ConfigKey.Domain("team11x11.com")
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -82,7 +83,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/series").parseHtml()
 		return doc.requireElementById("select_genre").select("option").mapNotNullToSet {
 			MangaTag(

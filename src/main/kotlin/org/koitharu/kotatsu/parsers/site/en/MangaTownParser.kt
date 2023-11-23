@@ -15,7 +15,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.RATING,
 		SortOrder.POPULARITY,
@@ -157,7 +157,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 		return doc.requireElementById("image").attrAsAbsoluteUrl("src")
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("/directory/".toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().selectFirst("aside.right")
 			?.getElementsContainingOwnText("Genres")

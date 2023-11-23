@@ -17,7 +17,7 @@ import java.util.*
 internal class ScansMangasMe(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 0) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
@@ -91,7 +91,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 	}
 
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tous-nos-mangas/").parseHtml()
 		return doc.select("ul.genre li").mapNotNullToSet { li ->
 			val key = li.selectFirstOrThrow("a").attr("href").removeSuffix('/').substringAfterLast('/')

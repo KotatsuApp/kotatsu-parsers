@@ -17,7 +17,7 @@ import java.util.*
 internal class FmTeam(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.FMTEAM, 0) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("fmteam.fr")
 
 	override suspend fun getListPage(
@@ -29,11 +29,9 @@ internal class FmTeam(context: MangaLoaderContext) :
 		if (page > 1) {
 			return emptyList()
 		}
-
 		val jsonManga = if (!query.isNullOrEmpty()) {
 			//3 letters minimum
 			webClient.httpGet("https://$domain/api/search/${query.urlEncoded()}").parseJson().getJSONArray("comics")
-
 		} else {
 			webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
 		}
@@ -99,7 +97,7 @@ internal class FmTeam(context: MangaLoaderContext) :
 	}
 
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

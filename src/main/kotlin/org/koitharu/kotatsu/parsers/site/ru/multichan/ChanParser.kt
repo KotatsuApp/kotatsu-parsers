@@ -15,7 +15,7 @@ internal abstract class ChanParser(
 	source: MangaSource,
 ) : MangaParser(context, source), MangaParserAuthProvider {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
@@ -126,7 +126,7 @@ internal abstract class ChanParser(
 		doc.parseFailed("Pages list not found at ${chapter.url}")
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")

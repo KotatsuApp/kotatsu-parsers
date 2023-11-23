@@ -26,7 +26,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	searchPageSize = 20,
 ) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -159,7 +159,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		throw ParseException("Cannot find images list", fullUrl)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val scripts = webClient.httpGet(
 			"https://${domain}/browse",
 		).parseHtml().selectOrThrow("script")

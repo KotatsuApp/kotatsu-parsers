@@ -18,7 +18,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
 
 	override suspend fun getListPage(

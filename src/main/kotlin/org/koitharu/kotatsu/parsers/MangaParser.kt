@@ -23,7 +23,27 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
-	abstract val sortOrders: Set<SortOrder>
+	abstract val availableSortOrders: Set<SortOrder>
+
+	/**
+	 * Supported [MangaState] variants for filtering. May be empty.
+	 *
+	 * For better performance use [EnumSet] for more than one item.
+	 */
+	open val availableStates: Set<MangaState>
+		get() = emptySet()
+
+	/**
+	 * Whether parser supports filtering by more than one tag
+	 */
+	open val isMultipleTagsSupported: Boolean = true
+
+	@Deprecated(
+		message = "Use availableSortOrders instead",
+		replaceWith = ReplaceWith("availableSortOrders"),
+	)
+	val sortOrders: Set<SortOrder>
+		get() = availableSortOrders
 
 	val config by lazy { context.getConfig(source) }
 
@@ -49,7 +69,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 */
 	protected open val defaultSortOrder: SortOrder
 		get() {
-			val supported = sortOrders
+			val supported = availableSortOrders
 			return SortOrder.entries.first { it in supported }
 		}
 
@@ -62,11 +82,15 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 * @param offset starting from 0 and used for pagination.
 	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
 	 * @param query search query, may be null or empty if no search needed
-	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
-	 * @param sortOrder one of [sortOrders] or null for default value
+	 * @param tags genres for filtering, values from [getAvailableTags] and [Manga.tags]. May be null or empty
+	 * @param sortOrder one of [availableSortOrders] or null for default value
 	 */
 	@JvmSynthetic
 	@InternalParsersApi
+	@Deprecated(
+		"Use getList with filter instead",
+		replaceWith = ReplaceWith("getList(offset, filter)"),
+	)
 	abstract suspend fun getList(
 		offset: Int,
 		query: String?,
@@ -80,8 +104,15 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 * @param offset starting from 0 and used for pagination.
 	 * @param query search query
 	 */
+	@Deprecated(
+		"Use getList with filter instead",
+		ReplaceWith(
+			"getList(offset, MangaListFilter.Search(query))",
+			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
+		),
+	)
 	open suspend fun getList(offset: Int, query: String): List<Manga> {
-		return getList(offset, query, null, defaultSortOrder)
+		return getList(offset, MangaListFilter.Search(query))
 	}
 
 	/**
@@ -89,11 +120,29 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * @param offset starting from 0 and used for pagination.
 	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
-	 * @param tags genres for filtering, values from [getTags] and [Manga.tags]. May be null or empty
-	 * @param sortOrder one of [sortOrders] or null for default value
+	 * @param tags genres for filtering, values from [getAvailableTags] and [Manga.tags]. May be null or empty
+	 * @param sortOrder one of [availableSortOrders] or null for default value
 	 */
+	@Deprecated(
+		"Use getList with filter instead",
+		ReplaceWith(
+			"getList(offset, MangaListFilter.Advanced(sortOrder, tags, null, emptySet()))",
+			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
+		),
+	)
 	open suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
-		return getList(offset, null, tags, sortOrder ?: defaultSortOrder)
+		return getList(
+			offset,
+			MangaListFilter.Advanced(sortOrder ?: defaultSortOrder, tags.orEmpty(), null, emptySet()),
+		)
+	}
+
+	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+		return when (filter) {
+			is MangaListFilter.Advanced -> getList(offset, null, filter.tags, filter.sortOrder)
+			is MangaListFilter.Search -> getList(offset, filter.query, null, defaultSortOrder)
+			null -> getList(offset, null, null, defaultSortOrder)
+		}
 	}
 
 	/**
@@ -117,7 +166,18 @@ abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Fetch available tags (genres) for source
 	 */
-	abstract suspend fun getTags(): Set<MangaTag>
+	abstract suspend fun getAvailableTags(): Set<MangaTag>
+
+	/**
+	 * Fetch available locales for multilingual sources
+	 */
+	open suspend fun getAvailableLocales(): Set<Locale> = emptySet()
+
+	@Deprecated(
+		message = "Use getAvailableTags instead",
+		replaceWith = ReplaceWith("getAvailableTags()"),
+	)
+	suspend fun getTags(): Set<MangaTag> = getAvailableTags()
 
 	/**
 	 * Parse favicons from the main page of the source`s website

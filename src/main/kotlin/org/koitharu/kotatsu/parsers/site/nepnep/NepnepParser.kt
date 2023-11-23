@@ -23,7 +23,7 @@ internal abstract class NepnepParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -104,7 +104,7 @@ internal abstract class NepnepParser(
 		)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
 			.substringAfter("\"Genre\"")
@@ -138,12 +138,18 @@ internal abstract class NepnepParser(
 		return manga.copy(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
-				"Ongoing (Scan)", "Ongoing (Publish)" -> MangaState.ONGOING
+				"Ongoing (Scan)", "Ongoing (Publish)",
+				-> MangaState.ONGOING
+
 				"Complete (Scan)", "Complete (Publish)",
+				-> MangaState.FINISHED
+
 				"Cancelled (Scan)", "Cancelled (Publish)",
 				"Discontinued (Scan)", "Discontinued (Publish)",
+				-> MangaState.ABANDONED
+
 				"Hiatus (Scan)", "Hiatus (Publish)",
-				-> MangaState.FINISHED
+				-> MangaState.PAUSED
 
 				else -> null
 			},

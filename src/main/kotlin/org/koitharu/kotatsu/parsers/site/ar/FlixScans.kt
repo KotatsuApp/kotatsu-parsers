@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("FLIXSCANS", "FlixScans", "ar")
 internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.com")
 
 	override suspend fun getListPage(
@@ -70,7 +70,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search/advance").parseHtml()
 		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
 		val tagsList = json.getJSONArray(3).toString().replace("[", "").replace("]", "").split(",")

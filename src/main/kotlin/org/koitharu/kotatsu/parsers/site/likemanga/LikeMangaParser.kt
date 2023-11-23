@@ -21,8 +21,10 @@ internal abstract class LikeMangaParser(
 	pageSize: Int = 36,
 ) : PagedMangaParser(context, source, pageSize) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 	override val configKeyDomain = ConfigKey.Domain(domain)
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -80,7 +82,7 @@ internal abstract class LikeMangaParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/genres/").parseHtml()
 		return doc.select("ul.nav-genres li:not(.text-center) a").mapNotNullToSet { a ->
 			MangaTag(

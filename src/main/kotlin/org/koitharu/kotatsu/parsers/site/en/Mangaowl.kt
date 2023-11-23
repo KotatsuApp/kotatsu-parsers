@@ -18,7 +18,7 @@ import java.util.*
 internal class Mangaowl(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.MANGAOWL, pageSize = 24) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 		SortOrder.UPDATED,
@@ -94,7 +94,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/8-genres").parseHtml()
 		return doc.select("div.genres-container span.genre-item a").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast("/")

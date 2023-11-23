@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
 internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BENTOMANGA, 10) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
@@ -99,11 +99,14 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		val root = webClient.httpGet(mangaUrl).parseHtml()
 			.requireElementById("container_manga_show")
 		return manga.copy(
-			altTitle = root.selectFirst(".component-manga-title_alt")?.textOrNull().assertNotNull("altTitle"),
+			altTitle = root.selectFirst(".component-manga-title_alt")?.text(),
 			description = root.selectFirst(".datas_synopsis")?.html().assertNotNull("description")
 				?: manga.description,
 			state = when (root.selectFirst(".datas_more-status-data")?.textOrNull().assertNotNull("status")) {
 				"En cours" -> MangaState.ONGOING
+				"Terminé" -> MangaState.FINISHED
+				"Abandonné" -> MangaState.ABANDONED
+				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
 			author = root.selectFirst(".datas_more-authors-people")?.textOrNull().assertNotNull("author"),
@@ -156,7 +159,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val root = webClient.httpGet(urlBuilder().addPathSegment("manga_list").build())
 			.parseHtml()
 			.requireElementById("search_options-form")

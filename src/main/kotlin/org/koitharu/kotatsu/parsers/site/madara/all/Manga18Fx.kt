@@ -5,9 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
-import java.util.HashSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("MANGA18FX", "Manga18Fx", "", ContentType.HENTAI)
 internal class Manga18Fx(context: MangaLoaderContext) :
@@ -15,7 +13,7 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val datePattern = "dd MMM yy"
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val listUrl = ""
 	override val selectTestAsync = "ul.row-content-chapter"
 	override val selectDate = "span.chapter-time"
@@ -79,7 +77,7 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val list = doc.body().selectFirstOrThrow("div.genre-menu").select("ul li").orEmpty()
 		val keySet = HashSet<String>(list.size)

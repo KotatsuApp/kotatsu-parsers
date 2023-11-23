@@ -20,7 +20,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
@@ -148,7 +148,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return tagsCache.get().values.toSet()
 	}
 

@@ -16,7 +16,7 @@ import java.util.*
 @MangaSourceParser("LUGNICASCANS", "LugnicaScans", "fr")
 internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LUGNICASCANS, 10) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 	)
@@ -176,6 +176,6 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		return pages
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 }

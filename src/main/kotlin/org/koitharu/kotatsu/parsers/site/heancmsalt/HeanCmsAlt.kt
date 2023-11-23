@@ -20,7 +20,7 @@ internal abstract class HeanCmsAlt(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	protected open val listUrl = "/comics"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -73,7 +73,7 @@ internal abstract class HeanCmsAlt(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	protected open val selectDesc = "div.description-container"
 	protected open val selectAlt = "div.series-alternative-names"

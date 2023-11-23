@@ -14,9 +14,12 @@ import java.util.*
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en")
 internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICEXTRA, 25) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
 	override val configKeyDomain = ConfigKey.Domain("comicextra.me")
+
+	override val isMultipleTagsSupported = false
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -80,7 +83,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/popular-comic").parseHtml()
 		return doc.select("li.tag-item a").mapNotNullToSet { a ->
 			MangaTag(

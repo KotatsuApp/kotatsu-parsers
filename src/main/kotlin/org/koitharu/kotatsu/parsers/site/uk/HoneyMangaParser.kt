@@ -37,7 +37,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("honey-manga.com.ua")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
@@ -167,7 +167,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		// https://data.api.honey-manga.com.ua/genres-tags/genres-list
 		val content = webClient.httpGet(genresListApi).parseJsonArray()
 		val tagsSet = ArraySet<MangaTag>(content.length())

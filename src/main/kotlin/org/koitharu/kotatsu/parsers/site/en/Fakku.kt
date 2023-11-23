@@ -15,10 +15,12 @@ import java.util.*
 internal class Fakku(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.FAKKU, pageSize = 25) {
 
-	override val sortOrders: Set<SortOrder> =
+	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("fakku.cc")
+
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -77,7 +79,7 @@ internal class Fakku(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val root = webClient.httpGet("https://$domain/tags").parseHtml()
 		return root.select("div.entries .entry a").mapToSet {
 			MangaTag(

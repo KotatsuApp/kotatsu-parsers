@@ -17,7 +17,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 	)

@@ -19,7 +19,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	searchPageSize = 10,
 ) {
 
-	override val sortOrders: Set<SortOrder> = setOf(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.UPDATED)
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua")
 
@@ -151,7 +151,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/mangas").parseHtml()
 		val root = doc.body().requireElementById("menu_1").selectFirstOrThrow("div.menu__wrapper")

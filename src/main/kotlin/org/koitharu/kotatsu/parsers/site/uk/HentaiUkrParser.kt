@@ -33,7 +33,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)
 
@@ -119,7 +119,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return allManga.get().flatMapTo(HashSet()) { x ->
 			x.getJSONArray("tags").mapJSON { t ->
 				MangaTag(

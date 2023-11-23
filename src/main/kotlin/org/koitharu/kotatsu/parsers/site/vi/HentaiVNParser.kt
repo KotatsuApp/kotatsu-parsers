@@ -28,7 +28,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	// hentaivn has created 2 different interfaces for mobile and desktop, and Cloudflare detects whether it's mobile or not even with a desktop user agent.
 	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.CHROME_MOBILE).build()
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
@@ -137,7 +137,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return getOrCreateTagMap().values.toSet()
 	}
 

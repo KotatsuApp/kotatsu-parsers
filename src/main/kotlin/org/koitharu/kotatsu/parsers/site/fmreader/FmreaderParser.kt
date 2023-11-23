@@ -21,11 +21,13 @@ internal abstract class FmreaderParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
 	)
+
+	override val isMultipleTagsSupported = false
 
 	protected open val listUrl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -113,7 +115,7 @@ internal abstract class FmreaderParser(
 
 	protected open val selectBodyTag = "ul.filter-type li a"
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")

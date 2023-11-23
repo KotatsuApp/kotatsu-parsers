@@ -14,9 +14,11 @@ import java.util.*
 @MangaSourceParser("LIRESCAN", "LireScan", "fr")
 internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LIRESCAN, 20) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("lire-scan.me")
+
+	override val isMultipleTagsSupported = false
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
@@ -130,7 +132,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.select(".nav-menu li a").mapNotNullToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast("manga/", "")

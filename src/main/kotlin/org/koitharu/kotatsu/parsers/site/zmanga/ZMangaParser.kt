@@ -21,7 +21,7 @@ internal abstract class ZMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
@@ -117,7 +117,7 @@ internal abstract class ZMangaParser(
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select("tr.gnrx div.custom-control").mapNotNullToSet { checkbox ->
 			val key = checkbox.selectFirstOrThrow("input").attr("value") ?: return@mapNotNullToSet null

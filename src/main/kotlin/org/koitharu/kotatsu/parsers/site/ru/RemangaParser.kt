@@ -47,7 +47,7 @@ internal class RemangaParser(
 	override val authUrl: String
 		get() = "https://${domain}/user/login"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
@@ -221,7 +221,7 @@ internal class RemangaParser(
 		return result
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val content = webClient.httpGet("https://api.$domain/api/forms/titles/?get=genres")
 			.parseJson().getJSONObject("content").getJSONArray("genres")

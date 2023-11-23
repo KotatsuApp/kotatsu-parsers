@@ -38,7 +38,7 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
 	private val apiDomain
@@ -138,7 +138,7 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 			}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return webClient.httpGet("https://$apiDomain/tag/find?query=")
 			.parseJsonArray()
 			.mapJSONToSet { jo ->

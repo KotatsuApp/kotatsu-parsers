@@ -14,7 +14,7 @@ import java.util.*
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val selectPage = "div#chapter_imgs img"
 

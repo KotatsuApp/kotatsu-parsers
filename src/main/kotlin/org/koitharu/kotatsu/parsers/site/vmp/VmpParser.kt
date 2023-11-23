@@ -16,7 +16,7 @@ internal abstract class VmpParser(
 ) : PagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	protected open val listUrl = "xxx/"
 	protected open val geneUrl = "genero/"
@@ -73,7 +73,7 @@ internal abstract class VmpParser(
 
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select("div.tagcloud a").mapNotNullToSet { a ->
 			MangaTag(

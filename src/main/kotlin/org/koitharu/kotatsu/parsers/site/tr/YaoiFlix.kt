@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("YAOIFLIX", "YaoiFlix", "tr", ContentType.HENTAI)
 class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YAOIFLIX, 8) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.pro")
 
@@ -79,7 +79,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select(".tags .cat-item a").mapNotNullToSet { a ->
 			MangaTag(

@@ -16,7 +16,9 @@ class ManhwasMen(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwas.men")
 
-	override val sortOrders: Set<SortOrder>
+	override val isMultipleTagsSupported = false
+
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.POPULARITY)
 
 	override suspend fun getListPage(
@@ -64,7 +66,7 @@ class ManhwasMen(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://$domain/manga-list").parseHtml()
 			.selectLastOrThrow(".filter-bx .form-group select.custom-select").select("option").drop(1)
 		return tags.mapNotNullToSet { option ->

@@ -20,7 +20,7 @@ internal abstract class FoolSlideParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	protected open val listUrl = "directory/"
 	protected open val searchUrl = "search/"
@@ -81,7 +81,7 @@ internal abstract class FoolSlideParser(
 
 	}
 
-	override suspend fun getTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	protected open val selectInfo = "div.info"
 

@@ -24,6 +24,8 @@ internal abstract class LineWebtoonsParser(
 	source: MangaSource,
 ) : MangaParser(context, source) {
 
+	override val isMultipleTagsSupported = false
+
 	private val signer by lazy {
 		WebtoonsUrlSigner("gUtPzJFZch4ZyAGviiyH94P99lQ3pFdRTwpJWDlSGFfwgpr6ses5ALOxWHOIT7R1")
 	}
@@ -39,7 +41,7 @@ internal abstract class LineWebtoonsParser(
 	private val apiDomain = "global.apis.naver.com"
 	private val staticDomain = "webtoon-phinf.pstatic.net"
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		// doesn't actually sort by rating, but by likes
 		// this should be fine though
@@ -235,7 +237,7 @@ internal abstract class LineWebtoonsParser(
 		)
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return makeRequest("/lineWebtoon/webtoon/challengeGenreList.json")
 			.getJSONObject("genreList")
 			.getJSONArray("challengeGenres")

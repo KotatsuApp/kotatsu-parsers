@@ -15,7 +15,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.net")
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
 
 	private val tagsMap = SuspendLazy(::parseTags)
@@ -169,7 +169,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return tagsMap.get().values.toSet()
 	}
 

@@ -16,7 +16,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 
-	override val sortOrders: Set<SortOrder>
+	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 
 	override suspend fun getListPage(
@@ -112,7 +112,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 		return mangas
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val tags =
 			webClient.httpGet("https://$domain/webtoon-listesi").parseHtml().requireElementById("collapseExample")
 				.select(".pt-12 a").drop(1)

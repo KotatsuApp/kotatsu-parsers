@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("BAKAI", "Bakai", "pt", ContentType.HENTAI)
 internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BAKAI, 15) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("bakai.org")
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
@@ -89,7 +89,7 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("elNavigation_17_menu").select("li.ipsMenu_item a").mapNotNullToSet { a ->
 

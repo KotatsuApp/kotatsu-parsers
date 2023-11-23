@@ -16,7 +16,7 @@ import java.util.*
 internal class LegacyScansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.LEGACY_SCANS, 18) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 	)
 
@@ -151,7 +151,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 		val script = doc.requireElementById("__NUXT_DATA__").data()
 			.substringAfterLast("\"genres\"").substringBeforeLast("\"comics\"")

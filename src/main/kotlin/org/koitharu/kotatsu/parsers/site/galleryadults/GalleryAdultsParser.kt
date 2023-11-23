@@ -20,8 +20,9 @@ internal abstract class GalleryAdultsParser(
 	pageSize: Int = 20,
 ) : PagedMangaParser(context, source, pageSize) {
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain(domain)
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(
 		page: Int,
@@ -87,7 +88,7 @@ internal abstract class GalleryAdultsParser(
 
 	//Tags are deliberately reduced because there are too many and this slows down the application.
 	//only the most popular ones are taken.
-	override suspend fun getTags(): Set<MangaTag> {
+	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..3).map { page ->
 				async { getTags(page) }
