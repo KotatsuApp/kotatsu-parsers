@@ -91,12 +91,12 @@ abstract class MangaParser @InternalParsersApi constructor(
 		"Use getList with filter instead",
 		replaceWith = ReplaceWith("getList(offset, filter)"),
 	)
-	abstract suspend fun getList(
+	open suspend fun getList(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
 		sortOrder: SortOrder,
-	): List<Manga>
+	): List<Manga> = throw NotImplementedError("Please implement getList(offset, filter) instead")
 
 	/**
 	 * Parse list of manga with search by text query
