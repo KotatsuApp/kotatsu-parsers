@@ -64,8 +64,8 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		when (filter) {
 
+		when (filter) {
 			is MangaListFilter.Search -> {
 				return search(page, filter.query)
 			}
@@ -85,21 +85,17 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 						else -> append("update.za")
 					}
 
-					if (filter.states.isNotEmpty()) {
-						val state = filter.states.oneOrThrowIfMany()
+					filter.states.oneOrThrowIfMany()?.let {
 						append("&release=")
 						append(
-							when (state) {
+							when (it) {
 								MangaState.ONGOING -> "ongoing"
 								MangaState.FINISHED -> "completed"
 								MangaState.ABANDONED -> "cancelled"
 								MangaState.PAUSED -> "hiatus"
-								else -> ""
 							},
 						)
-
 					}
-
 					// langs= en ...
 
 					if (filter.tags.isNotEmpty()) {

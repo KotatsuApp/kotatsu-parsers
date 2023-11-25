@@ -96,7 +96,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 				largeCoverUrl = null,
 				description = jo.getStringOrNull("desc"),
 				tags = jo.selectGenres(tagsMap),
-				state = when (jo.getIntOrDefault("status", 0)) {
+				state = when (jo.getInt("status")) {
 					1 -> MangaState.ONGOING
 					2 -> MangaState.FINISHED
 					3 -> MangaState.ABANDONED
@@ -114,9 +114,11 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 		val url = "https://api.$domain/comic/${manga.url}?tachiyomi=true"
 		val jo = webClient.httpGet(url).parseJson()
 		val comic = jo.getJSONObject("comic")
+		var alt = ""
+		comic.getJSONArray("md_titles").mapJSON { alt += it.getString("title") + " - " }
 		return manga.copy(
 			title = comic.getString("title"),
-			altTitle = null, // TODO
+			altTitle = alt,
 			isNsfw = jo.getBoolean("matureContent") || comic.getBoolean("hentai"),
 			description = comic.getStringOrNull("parsed") ?: comic.getStringOrNull("desc"),
 			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
