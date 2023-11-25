@@ -30,19 +30,12 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
-	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.ALPHABETICAL,
-		SortOrder.NEWEST,
-		SortOrder.POPULARITY,
-	)
+	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
+
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
 		val url = buildString {
 			append("https://api.")
@@ -52,29 +45,46 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			append("&offset=")
 			append(offset)
 			append("&includes[]=cover_art&includes[]=author&includes[]=artist&")
-			tags?.forEach { tag ->
-				append("includedTags[]=")
-				append(tag.key)
-				append('&')
-			}
-			if (!query.isNullOrEmpty()) {
-				append("title=")
-				append(query.urlEncoded())
-				append('&')
-			}
-			append(CONTENT_RATING)
-			append("&order")
-			append(
-				when (sortOrder) {
-					SortOrder.UPDATED,
-					-> "[latestUploadedChapter]=desc"
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("title=")
+					append(filter.query)
+					append('&')
+				}
 
-					SortOrder.ALPHABETICAL -> "[title]=asc"
-					SortOrder.NEWEST -> "[createdAt]=desc"
-					SortOrder.POPULARITY -> "[followedCount]=desc"
-					else -> "[followedCount]=desc"
-				},
-			)
+				is MangaListFilter.Advanced -> {
+					filter.tags.forEach { tag ->
+						append("includedTags[]=")
+						append(tag.key)
+						append('&')
+					}
+
+					append(CONTENT_RATING)
+					append("&order")
+					append(
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
+							SortOrder.RATING -> "[rating]=desc"
+							SortOrder.ALPHABETICAL -> "[title]=asc"
+							SortOrder.NEWEST -> "[createdAt]=desc"
+							SortOrder.POPULARITY -> "[followedCount]=desc"
+						},
+					)
+					filter.states.forEach {
+						append("&status[]=")
+						when (it) {
+							MangaState.ONGOING -> append("ongoing")
+							MangaState.FINISHED -> append("completed")
+							MangaState.ABANDONED -> append("cancelled")
+							MangaState.PAUSED -> append("hiatus")
+						}
+					}
+				}
+
+				null -> {
+					append("&order[latestUploadedChapter]=desc")
+				}
+			}
 		}
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
 		return json.mapJSON { jo ->
@@ -110,9 +120,11 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 						source = source,
 					)
 				},
-				state = when (jo.getStringOrNull("status")) {
+				state = when (attrs.getStringOrNull("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
+					"hiatus" -> MangaState.PAUSED
+					"cancelled" -> MangaState.ABANDONED
 					else -> null
 				},
 				author = (relations["author"] ?: relations["artist"])
