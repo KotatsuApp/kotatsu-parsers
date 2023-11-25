@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 /**
- * https://api.comick.fun/docs/static/index.html
+ * cc
  */
 
 private const val CHAPTERS_LIMIT = 99999
@@ -67,7 +67,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 						else -> "uploaded"
 					},
 				)
-				filter.states.forEach {
+				filter.states.oneOrThrowIfMany()?.let {
 					url.addQueryParameter(
 						"status",
 						when (it) {
@@ -96,13 +96,13 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 				largeCoverUrl = null,
 				description = jo.getStringOrNull("desc"),
 				tags = jo.selectGenres(tagsMap),
-				state = runCatching {
-					if (jo.getBoolean("translation_completed")) {
-						MangaState.FINISHED
-					} else {
-						MangaState.ONGOING
-					}
-				}.getOrNull(),
+				state = when (jo.getIntOrDefault("status", 0)) {
+					1 -> MangaState.ONGOING
+					2 -> MangaState.FINISHED
+					3 -> MangaState.ABANDONED
+					4 -> MangaState.PAUSED
+					else -> null
+				},
 				author = null,
 				source = source,
 			)

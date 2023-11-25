@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.domain
@@ -35,8 +36,8 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pagination(source: MangaSource) = runTest {
 		val parser = context.newParserInstance(source)
-		val page1 = parser.getList(0, sortOrder = null, tags = null)
-		val page2 = parser.getList(page1.size, sortOrder = null, tags = null)
+		val page1 = parser.getList(0, filter = null)
+		val page2 = parser.getList(page1.size, filter = null)
 		if (parser is PagedMangaParser) {
 			assert(parser.pageSize == page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
@@ -55,12 +56,18 @@ internal class MangaParserTest {
 	@MangaSources
 	fun search(source: MangaSource) = runTest {
 		val parser = context.newParserInstance(source)
-		val subject = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null).minByOrNull {
+		val subject = parser.getList(
+			offset = 0,
+			filter = MangaListFilter.Advanced(
+				sortOrder = SortOrder.POPULARITY,
+				tags = emptySet(), locale = null, states = emptySet(),
+			),
+		).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
-		val list = parser.getList(0, query)
+		val list = parser.getList(0, MangaListFilter.Search(query))
 		assert(list.isNotEmpty()) { "Empty search results by \"$query\"" }
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
 			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"

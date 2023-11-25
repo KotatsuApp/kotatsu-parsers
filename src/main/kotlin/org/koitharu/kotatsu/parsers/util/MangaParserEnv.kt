@@ -5,10 +5,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 
 
 /**
@@ -58,6 +55,15 @@ fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? {
 		isNullOrEmpty() -> null
 		size == 1 -> first()
 		else -> throw IllegalArgumentException("Multiple genres are not supported by this source")
+	}
+}
+
+@InternalParsersApi
+fun Set<MangaState>?.oneOrThrowIfMany(): MangaState? {
+	return when {
+		isNullOrEmpty() -> null
+		size == 1 -> first()
+		else -> throw IllegalArgumentException("Multiple states are not supported by this source")
 	}
 }
 
