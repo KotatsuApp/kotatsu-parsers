@@ -35,6 +35,11 @@ internal abstract class NineMangaParser(
 		SortOrder.POPULARITY,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.of(
+		MangaState.ONGOING,
+		MangaState.FINISHED,
+	)
+
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		val newRequest = if (request.url.host == domain) {
@@ -45,37 +50,60 @@ internal abstract class NineMangaParser(
 		return chain.proceed(newRequest)
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/search/?name_sel=&wd=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
+					append(page)
+					append(".html")
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/search/?category_id=")
-					for (tag in tags) {
-						append(tag.key)
-						append(',')
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						append("/search/?category_id=")
+						for (tag in filter.tags) {
+							append(tag.key)
+							append(',')
+						}
+
+						filter.states.oneOrThrowIfMany()?.let {
+							append("&completed_series=")
+							when (it) {
+								MangaState.ONGOING -> append("no")
+								MangaState.FINISHED -> append("yes")
+								else -> append("either")
+							}
+						}
+						append("&page=")
+					} else {
+						append("/category/")
+						if (filter.states.isNotEmpty()) {
+							filter.states.oneOrThrowIfMany()?.let {
+								when (it) {
+									MangaState.ONGOING -> append("updated_")
+									MangaState.FINISHED -> append("completed_")
+									else -> append("either")
+								}
+							}
+						} else {
+							append("index_")
+						}
 					}
-					append("&page=")
+					append(page)
+					append(".html")
 				}
 
-				else -> {
+				null -> {
 					append("/category/index_")
+					append(page)
+					append(".html")
 				}
 			}
-			append(page)
-			append(".html")
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().selectFirst("ul.direlist") ?: doc.parseFailed("Cannot find root")

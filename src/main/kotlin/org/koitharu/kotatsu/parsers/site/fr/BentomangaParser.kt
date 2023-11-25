@@ -28,35 +28,55 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
 
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = urlBuilder()
+			.host(domain)
 			.addPathSegment("manga_list")
 			.addQueryParameter("limit", page.toString())
-			.addQueryParameter(
-				"order_by",
-				when (sortOrder) {
-					SortOrder.UPDATED -> "update"
-					SortOrder.POPULARITY -> "views"
-					SortOrder.RATING -> "top"
-					SortOrder.NEWEST -> "create"
-					SortOrder.ALPHABETICAL -> "name"
-				},
-			)
-		if (!tags.isNullOrEmpty()) {
-			url.addQueryParameter("withCategories", tags.joinToString(",") { it.key })
-		}
-		if (!query.isNullOrEmpty()) {
-			url.addQueryParameter("search", query)
+		when (filter) {
+			is MangaListFilter.Search -> {
+				url.addQueryParameter("search", filter.query)
+			}
+
+			is MangaListFilter.Advanced -> {
+
+				url.addQueryParameter(
+					"order_by",
+					when (filter.sortOrder) {
+						SortOrder.UPDATED -> "update"
+						SortOrder.POPULARITY -> "views"
+						SortOrder.RATING -> "top"
+						SortOrder.NEWEST -> "create"
+						SortOrder.ALPHABETICAL -> "name"
+					},
+				)
+
+				if (filter.tags.isNotEmpty()) {
+					url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
+				}
+
+				filter.states.oneOrThrowIfMany()?.let {
+					url.addQueryParameter(
+						"state",
+						when (it) {
+							MangaState.ONGOING -> "1"
+							MangaState.FINISHED -> "2"
+							MangaState.PAUSED -> "3"
+							MangaState.ABANDONED -> "5"
+						},
+					)
+				}
+
+			}
+
+			null -> url.addQueryParameter("order_by", "update")
 		}
 		val root = webClient.httpGet(url.build()).parseHtml().requireElementById("mangas_content")
 		return root.select(".manga[data-manga]").map { div ->
@@ -109,7 +129,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
-			author = root.selectFirst(".datas_more-authors-people")?.textOrNull().assertNotNull("author"),
+			author = root.selectFirst(".datas_more-authors-people")?.textOrNull(),
 			chapters = run {
 				val input = root.selectFirst("input[name=\"limit\"]") ?: return@run parseChapters(root)
 				val max = input.attr("max").toInt()
