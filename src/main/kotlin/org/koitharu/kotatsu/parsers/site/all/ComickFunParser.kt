@@ -96,7 +96,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 				largeCoverUrl = null,
 				description = jo.getStringOrNull("desc"),
 				tags = jo.selectGenres(tagsMap),
-				state = when (jo.getInt("status")) {
+				state = when (jo.getIntOrDefault("status", 0)) {
 					1 -> MangaState.ONGOING
 					2 -> MangaState.FINISHED
 					3 -> MangaState.ABANDONED
