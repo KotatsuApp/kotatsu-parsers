@@ -17,56 +17,47 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val listUrl = "genre/manhwa"
 	override val selectTestAsync = "ul.box-list-chapter"
+	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/search?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(page)
-					append("&")
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					append("?page=")
-					append(page)
-					append("&")
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+						append("?page=")
+						append(page.toString())
+						append("&m_orderby=latest")
+					} else {
+						append("/?page=")
+						append(page.toString())
+					}
+
+
 				}
 
-				else -> {
-
-					append("/$listUrl")
-					append("?page=")
-					append(page)
-					append("&")
+				null -> {
+					append("/?page=")
+					append(page.toString())
 				}
-
-			}
-
-			append("m_orderby=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("new-manga")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				SortOrder.RATING -> append("rating")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

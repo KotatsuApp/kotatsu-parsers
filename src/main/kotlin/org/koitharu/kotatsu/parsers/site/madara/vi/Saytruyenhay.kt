@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.EnumSet
 
 @MangaSourceParser("SAYTRUYENHAY", "Saytruyenhay", "vi")
 internal class Saytruyenhay(context: MangaLoaderContext) :
@@ -15,50 +16,57 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
 	override val listUrl = "public/genre/manga/"
+	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.RATING, SortOrder.NEWEST)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-
-			when {
-				!query.isNullOrEmpty() -> {
-
-					append("/public/search?s=")
-					append(query.urlEncoded())
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search?s=")
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(pages.toString())
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+					} else {
+						append("/$listUrl")
+
+					}
 					append("?page=")
-					append(pages.toString())
+					append(page.toString())
+					append("&m_orderby=")
+					when (filter.sortOrder) {
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.RATING -> append("rating")
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.NEWEST -> append("new")
+						else -> append("latest")
+					}
 				}
 
-				else -> {
+				null -> {
 					append("/$listUrl")
 					append("?page=")
-					append(pages.toString())
+					append(page.toString())
 				}
 			}
-			append("&m_orderby=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("new-manga")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				SortOrder.RATING -> append("rating")
-			}
 		}
+
 		val doc = webClient.httpGet(url).parseHtml()
 
 

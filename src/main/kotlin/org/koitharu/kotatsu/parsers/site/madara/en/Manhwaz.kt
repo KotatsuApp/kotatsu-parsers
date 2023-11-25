@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.EnumSet
 
 @MangaSourceParser("MANHWAZ", "ManhwaZ", "en")
 internal class Manhwaz(context: MangaLoaderContext) :
@@ -15,50 +16,64 @@ internal class Manhwaz(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val selectTestAsync = "div.list-chapter"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val availableStates: Set<MangaState> get() = emptySet()
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.POPULARITY,
+		SortOrder.NEWEST,
+		SortOrder.RATING,
+	)
+
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-
-			when {
-				!query.isNullOrEmpty() -> {
-
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/search?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(pages.toString())
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					append("?page=")
-					append(pages.toString())
-					append("&")
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+						append("?page=")
+						append(page.toString())
+						append("&")
+					} else {
+						append("/$listUrl")
+						append("?page=")
+						append(page.toString())
+						append("&")
+					}
+
+					append("m_orderby=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.NEWEST -> append("new")
+						SortOrder.RATING -> append("rating")
+						else -> append("latest")
+					}
 				}
 
-				else -> {
-
+				null -> {
 					append("/$listUrl")
 					append("?page=")
-					append(pages.toString())
-					append("&")
+					append(page.toString())
+					append("&m_orderby=latest")
 				}
-			}
-			append("m_orderby=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("new-manga")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				SortOrder.RATING -> append("rating")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

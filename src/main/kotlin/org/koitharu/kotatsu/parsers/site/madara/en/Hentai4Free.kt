@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -20,48 +21,48 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 	override val listUrl = ""
 	override val withoutAjax = true
 	override val datePattern = "MMMM dd, yyyy"
+	override val selectGenre = "div.tags-content a"
 
+	override val availableStates: Set<MangaState> get() = emptySet()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
 
-		val tag = tags.oneOrThrowIfMany()
-
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/page/")
-					append(pages.toString())
+					append(page.toString())
 					append("/?s=")
-					append(query.urlEncoded())
-					append("&post_type=wp-manga&")
+					append(filter.query.urlEncoded())
+					append("&post_type=wp-manga")
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					append("/")
-					if (pages > 1) {
-						append("page/")
-						append(pages.toString())
-					}
-				}
+				is MangaListFilter.Advanced -> {
 
-				else -> {
-
-					if (pages > 1) {
-						append("/page/")
-						append(pages.toString())
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+						append("/")
+						if (page > 1) {
+							append("page/")
+							append(page.toString())
+						}
+					} else {
+						if (page > 1) {
+							append("/page/")
+							append(page.toString())
+						}
 					}
+
 					append("/?m_orderby=")
-					when (sortOrder) {
+					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
@@ -69,9 +70,17 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 						SortOrder.RATING -> append("rating")
 					}
 				}
-			}
 
+				null -> {
+					if (page > 1) {
+						append("/page/")
+						append(page.toString())
+					}
+					append("/?m_orderby=latest")
+				}
+			}
 		}
+
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
