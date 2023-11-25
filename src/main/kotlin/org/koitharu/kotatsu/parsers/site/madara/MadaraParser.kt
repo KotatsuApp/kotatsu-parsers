@@ -33,6 +33,8 @@ internal abstract class MadaraParser(
 		SortOrder.RATING,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
 	protected open val tagPrefix = "manga-genre/"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val stylePage = "?style=list"
@@ -155,67 +157,121 @@ internal abstract class MadaraParser(
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val doc = if (withoutAjax) {
+			val pages = page + 1
+
 			val url = buildString {
 				append("https://")
 				append(domain)
-				val pages = page + 1
-				if (!tags.isNullOrEmpty()) {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					if (pages > 1) {
-						append("/page/")
-						append(pages.toString())
+
+				when (filter) {
+
+					is MangaListFilter.Search -> {
+						if (pages > 1) {
+							append("/page/")
+							append(pages.toString())
+						}
+						append("/?s=")
+						append(filter.query.urlEncoded())
+						append("&post_type=wp-manga")
 					}
-					append("?")
-				} else {
-					append("/page/")
-					append(pages)
-					append("/?s=")
-					if (!query.isNullOrEmpty()) {
-						append(query.urlEncoded())
+
+					is MangaListFilter.Advanced -> {
+
+						val tag = filter.tags.oneOrThrowIfMany()
+						if (filter.tags.isNotEmpty()) {
+							append("/$tagPrefix")
+							append(tag?.key.orEmpty())
+							if (pages > 1) {
+								append("/page/")
+								append(pages.toString())
+							}
+							append("/?")
+						} else {
+
+							if (pages > 1) {
+								append("/page/")
+								append(pages.toString())
+							}
+							append("/?s=&post_type=wp-manga")
+							filter.states.forEach {
+								append("&status[]=")
+								when (it) {
+									MangaState.ONGOING -> append("on-going")
+									MangaState.FINISHED -> append("end")
+									MangaState.ABANDONED -> append("canceled")
+									MangaState.PAUSED -> append("on-hold")
+								}
+							}
+							append("&")
+						}
+
+						append("m_orderby=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("views")
+							SortOrder.UPDATED -> append("latest")
+							SortOrder.NEWEST -> append("new-manga")
+							SortOrder.ALPHABETICAL -> append("alphabet")
+							SortOrder.RATING -> append("rating")
+						}
 					}
-					append("&post_type=wp-manga&")
-					/// &status[]= ( on-going - end - canceled - on-hold - upcoming )
-				}
-				append("m_orderby=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.UPDATED -> append("latest")
-					SortOrder.NEWEST -> append("new-manga")
-					SortOrder.ALPHABETICAL -> append("alphabet")
-					SortOrder.RATING -> append("rating")
+
+					null -> {
+						append("?s&post_type=wp-manga&m_orderby=latest")
+					}
 				}
 			}
 			webClient.httpGet(url).parseHtml()
 		} else {
-			val payload = if (sortOrder == SortOrder.RATING) {
+			val payload = if (filter?.sortOrder == SortOrder.RATING) {
 				createRequestTemplate(ratingRequest)
 			} else {
 				createRequestTemplate(defaultRequest)
 			}
-			when (sortOrder) {
-				SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
-				SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
-				SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
-				SortOrder.ALPHABETICAL -> {
-					payload["vars[orderby]"] = "post_title"
-					payload["vars[order]"] = "ASC"
+
+			payload["page"] = page.toString()
+
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					payload["vars[s]"] = filter.query.urlEncoded()
 				}
 
-				SortOrder.RATING -> {}
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
+
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
+						SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
+						SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
+						SortOrder.ALPHABETICAL -> {
+							payload["vars[orderby]"] = "post_title"
+							payload["vars[order]"] = "ASC"
+						}
+
+						SortOrder.RATING -> {}
+					}
+
+					filter.states.forEach {
+						payload["vars[meta_query][0][0][value][]"] =
+							when (it) {
+								MangaState.ONGOING -> "on-going"
+								MangaState.FINISHED -> "end"
+								MangaState.ABANDONED -> "canceled"
+								MangaState.PAUSED -> "on-hold"
+							}
+					}
+				}
+
+				null -> {
+					payload["vars[meta_key]"] = "_latest_update"
+				}
 			}
-			payload["page"] = page.toString()
-			payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
-			payload["vars[s]"] = query?.urlEncoded().orEmpty()
-			/// payload["vars[meta_query][0][0][value][]"] = ( on-going - end - canceled - on-hold - upcoming )
+
 			webClient.httpPost(
 				"https://$domain/wp-admin/admin-ajax.php",
 				payload,
