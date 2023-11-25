@@ -73,3 +73,10 @@ inline fun <T, K, V> Collection<T>.associateGrouping(transform: (T) -> Pair<K, V
 	}
 	return result
 }
+
+fun <K> MutableMap<K, Int>.incrementAndGet(key: K): Int {
+	var value = get(key) ?: 0
+	value++
+	put(key, value)
+	return value
+}

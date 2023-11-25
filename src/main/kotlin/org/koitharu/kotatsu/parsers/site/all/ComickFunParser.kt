@@ -2,10 +2,11 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
+import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,11 +18,10 @@ import java.util.*
  * https://api.comick.fun/docs/static/index.html
  */
 
-private const val PAGE_SIZE = 20
 private const val CHAPTERS_LIMIT = 99999
 
 @MangaSourceParser("COMICK_FUN", "ComicK")
-internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.COMICK_FUN) {
+internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICK_FUN, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("comick.app")
 
@@ -31,46 +31,56 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		SortOrder.RATING,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
 	@Volatile
 	private var cachedTags: SparseArrayCompat<MangaTag>? = null
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
-		val url = buildString {
-			append("https://api.")
-			append(domain)
-			append("/v1.0/search?tachiyomi=true")
-			if (!query.isNullOrEmpty()) {
-				if (offset > 0) {
-					return emptyList()
+		val url = urlBuilder()
+			.host("api.$domain")
+			.addPathSegment("v1.0")
+			.addPathSegment("search")
+			.addQueryParameter("type", "comic")
+			.addQueryParameter("tachiyomi", "true")
+			.addQueryParameter("limit", pageSize.toString())
+			.addQueryParameter("page", page.toString())
+		when (filter) {
+			is MangaListFilter.Search -> {
+				url.addQueryParameter("q", filter.query)
+			}
+
+			null -> {
+				url.addQueryParameter("sort", "view")
+			}
+
+			is MangaListFilter.Advanced -> {
+				filter.tags.forEach { tag ->
+					url.addQueryParameter("genres", tag.key)
 				}
-				append("&q=")
-				append(query.urlEncoded())
-			} else {
-				append("&limit=")
-				append(PAGE_SIZE)
-				append("&page=")
-				append((offset / PAGE_SIZE) + 1)
-				if (!tags.isNullOrEmpty()) {
-					append("&genres=")
-					appendAll(tags, "&genres=", MangaTag::key)
-				}
-				append("&sort=") // view, uploaded, rating, follow, user_follow_count
-				append(
-					when (sortOrder) {
+				url.addQueryParameter(
+					"sort",
+					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> "view"
 						SortOrder.RATING -> "rating"
 						else -> "uploaded"
 					},
 				)
+				filter.states.forEach {
+					url.addQueryParameter(
+						"status",
+						when (it) {
+							MangaState.ONGOING -> "1"
+							MangaState.FINISHED -> "2"
+							MangaState.ABANDONED -> "3"
+							MangaState.PAUSED -> "4"
+						},
+					)
+				}
 			}
 		}
-		val ja = webClient.httpGet(url).parseJsonArray()
+		val ja = webClient.httpGet(url.build()).parseJsonArray()
 		val tagsMap = cachedTags ?: loadTags()
 		return ja.mapJSON { jo ->
 			val slug = jo.getString("slug")
@@ -108,7 +118,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 			title = comic.getString("title"),
 			altTitle = null, // TODO
 			isNsfw = jo.getBoolean("matureContent") || comic.getBoolean("hentai"),
-			description = comic.getStringOrNull("parsed") ?: comic.getString("desc"),
+			description = comic.getStringOrNull("parsed") ?: comic.getStringOrNull("desc"),
 			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
 				val g = it.getJSONObject("md_genres")
 				MangaTag(
@@ -168,9 +178,32 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-		val list = ja.toJSONList().reversed()
+		val counters = HashMap<String?, Int>()
+		return ja.toJSONList().reversed().mapChapters { _, jo ->
+			val vol = jo.getStringOrNull("vol")
+			val chap = jo.getStringOrNull("chap")
+			val locale = Locale.forLanguageTag(jo.getString("lang"))
+			val group = jo.optJSONArray("group_name")?.joinToString(", ")
+			val branch = locale.getDisplayName(locale).toTitleCase(locale) + group
+			MangaChapter(
+				id = generateUid(jo.getLong("id")),
+				name = buildString {
+					vol?.let { append("Vol ").append(it).append(' ') }
+					chap?.let { append("Chap ").append(it) }
+					jo.getStringOrNull("title")?.let { append(": ").append(it) }
+				},
+				number = counters.incrementAndGet(branch),
+				url = jo.getString("hid"),
+				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
+					?.takeUnless { it.isBlank() },
+				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
+				branch = branch,
+				source = source,
+			)
+		}
 
-		val chaptersBuilder = ChaptersListBuilder(list.size)
+
+		/*val chaptersBuilder = ChaptersListBuilder(list.size)
 		val branchedChapters = HashMap<String?, HashMap<Pair<String?, String?>, MangaChapter>>()
 		for (jo in list) {
 			val vol = jo.getStringOrNull("vol")
@@ -201,7 +234,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 				branchedChapters.getOrPut(branch, ::HashMap)[volChap] = chapter
 			}
 		}
-		return chaptersBuilder.toList()
+		return chaptersBuilder.toList()*/
 	}
 
 	private fun JSONObject.selectGenres(tags: SparseArrayCompat<MangaTag>): Set<MangaTag> {
@@ -209,9 +242,13 @@ internal class ComickFunParser(context: MangaLoaderContext) : MangaParser(contex
 		val res = ArraySet<MangaTag>(array.length())
 		for (i in 0 until array.length()) {
 			val id = array.getInt(i)
-			val tag = tags.get(id) ?: continue
+			val tag = tags[id] ?: continue
 			res.add(tag)
 		}
 		return res
+	}
+
+	private fun JSONArray.joinToString(separator: String): String {
+		return (0 until length()).joinToString(separator) { i -> getString(i) }
 	}
 }
