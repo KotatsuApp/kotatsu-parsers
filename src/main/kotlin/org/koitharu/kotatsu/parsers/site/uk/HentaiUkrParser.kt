@@ -28,7 +28,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
 	private val allManga = SoftSuspendLazy {
-		webClient.httpGet("https://$domain/search/objects.json").parseJson().getJSONArray("manga").toJSONList()
+		webClient.httpGet("https://$domain/search/objects2.json").parseJson().getJSONArray("manga").toJSONList()
 	}
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
