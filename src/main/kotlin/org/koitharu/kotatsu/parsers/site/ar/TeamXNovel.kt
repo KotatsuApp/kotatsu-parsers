@@ -17,46 +17,71 @@ import java.util.*
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
+
 	override val configKeyDomain = ConfigKey.Domain("team11x11.com")
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				append("/series?genre=")
-				append(tag?.key.orEmpty())
-				if (page > 1) {
-					append("&page=")
-					append(page)
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append("/series?search=")
+					append(filter.query.urlEncoded())
+					if (page > 1) {
+						append("&page=")
+						append(page.toString())
+					}
 				}
-			} else if (!query.isNullOrEmpty()) {
-				append("/series?search=")
-				append(query.urlEncoded())
-				if (page > 1) {
-					append("&page=")
-					append(page)
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						val tag = filter.tags.oneOrThrowIfMany()
+						append("/series?genre=")
+						append(tag?.key.orEmpty())
+						if (page > 1) {
+							append("&page=")
+							append(page.toString())
+						}
+						append("&")
+					} else {
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("/series")
+							SortOrder.UPDATED -> append("/")
+							else -> append("/")
+						}
+						if (page > 1) {
+							append("?page=")
+							append(page.toString())
+							append("&")
+						} else {
+							append("?")
+						}
+					}
+
+					if (filter.sortOrder == SortOrder.POPULARITY || filter.tags.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append("status=")
+							append(
+								when (it) {
+									MangaState.ONGOING -> "مستمرة"
+									MangaState.FINISHED -> "مكتمل"
+									MangaState.ABANDONED -> "متوقف"
+									else -> "مستمرة"
+								},
+							)
+						}
+					}
 				}
-			} else {
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("/series")
-					SortOrder.UPDATED -> append("/")
-					else -> append("/")
-				}
-				if (page > 1) {
-					append("?page=")
-					append(page)
-				}
+
+				null -> append("/?page=$page")
 			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("div.listupd .bs .bsx").ifEmpty {
 			doc.select("div.post-body .box")
@@ -74,7 +99,8 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				tags = emptySet(),
 				state = when (div.selectFirst(".status")?.text()) {
 					"مستمرة" -> MangaState.ONGOING
-					"متوقف", "مكتمل" -> MangaState.FINISHED
+					"مكتمل" -> MangaState.FINISHED
+					"متوقف" -> MangaState.ABANDONED
 					else -> null
 				},
 				author = null,
@@ -111,7 +137,8 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".full-list-info:contains(الحالة:) a").text()) {
 				"مستمرة" -> MangaState.ONGOING
-				"متوقف", "مكتمل" -> MangaState.FINISHED
+				"مكتمل" -> MangaState.FINISHED
+				"متوقف" -> MangaState.ABANDONED
 				else -> null
 			},
 			tags = doc.select(".review-author-info a").mapNotNullToSet { a ->

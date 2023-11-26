@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -17,6 +18,8 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
 	override val configKeyDomain = ConfigKey.Domain("comicextra.me")
 
 	override val isMultipleTagsSupported = false
@@ -25,38 +28,62 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
-			append("https://$domain/")
-			if (!tags.isNullOrEmpty()) {
-				append(tag?.key.orEmpty())
-				if (page > 1) {
-					append("/")
-					append(page)
+			append("https://")
+			append(domain)
+			append("/")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("comic-search?key=")
+					append(filter.query.urlEncoded())
+					if (page > 1) {
+						append("&page=")
+						append(page.toString())
+					}
 				}
-			} else if (!query.isNullOrEmpty()) {
-				append("comic-search?key=")
-				append(query.urlEncoded())
-				if (page > 1) {
-					append("&page=")
-					append(page)
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+					} else if (filter.tags.isEmpty() && filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									MangaState.ONGOING -> "/ongoing-comic"
+									MangaState.FINISHED -> "/completed-comic"
+									else -> "/ongoing-comic"
+								},
+							)
+						}
+
+					} else if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
+						throw IllegalArgumentException("Source does not support tag + states filters")
+					} else {
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("popular-comic")
+							SortOrder.UPDATED -> append("new-comic")
+							SortOrder.NEWEST -> append("recent-comic")
+							else -> append("new-comic")
+						}
+					}
+
+					if (page > 1) {
+						append("/")
+						append(page.toString())
+					}
 				}
-			} else {
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("popular-comic/")
-					SortOrder.UPDATED -> append("new-comic/")
-					SortOrder.NEWEST -> append("recent-comic/")
-					else -> append("new-comic/")
+
+				null -> {
+					append("popular-comic")
+					if (page > 1) {
+						append("/")
+						append(page.toString())
+					}
 				}
-				if (page > 1) {
-					append(page)
-				}
+
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

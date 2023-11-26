@@ -15,20 +15,28 @@ internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, Mang
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("po2scans.com")
 
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
 			return emptyList()
 		}
 		val url = buildString {
-			append("https://$domain/series")
-			if (!query.isNullOrEmpty()) {
-				append("?search=")
-				append(query.urlEncoded())
+			append("https://")
+			append(domain)
+			append("/series")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("?search=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {}
+
+				null -> {}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select(".series-list").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val href = "/" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h2").text(),

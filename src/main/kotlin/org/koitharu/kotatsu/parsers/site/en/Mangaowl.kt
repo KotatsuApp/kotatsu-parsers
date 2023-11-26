@@ -24,6 +24,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 		SortOrder.RATING,
 	)
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
 	override val configKeyDomain = ConfigKey.Domain("mangaowl.to")
 
@@ -31,46 +32,56 @@ internal class Mangaowl(context: MangaLoaderContext) :
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val sort = when (sortOrder) {
-			SortOrder.POPULARITY -> "view_count"
-			SortOrder.UPDATED -> "-modified_at"
-			SortOrder.NEWEST -> "created_at"
-			SortOrder.RATING -> "rating"
-			else -> "modified_at"
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
-					append("/8-search")
-					append("?q=")
-					append(query.urlEncoded())
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/10-search?q=")
+					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/8-genres/")
-					for (tag in tags) {
+				is MangaListFilter.Advanced -> {
+
+					append("/10-comics")
+					append("?page=")
+					append(page.toString())
+
+					filter.tags.forEach { tag ->
+						append("&genres=")
 						append(tag.key)
 					}
-					append("?page=")
-					append(page.toString())
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								else -> ""
+							},
+						)
+					}
+
+					append("&ordering=")
+					append(
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> "view_count"
+							SortOrder.UPDATED -> "-modified_at"
+							SortOrder.NEWEST -> "created_at"
+							SortOrder.RATING -> "rating"
+							else -> "modified_at"
+						},
+					)
 				}
 
-				else -> {
-					append("/8-comics")
-					append("?page=")
+				null -> {
+					append("/10-comics?ordering=-modified_at&page=")
 					append(page.toString())
-					append("&ordering=")
-					append(sort)
 				}
 			}
 		}
@@ -95,9 +106,9 @@ internal class Mangaowl(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/8-genres").parseHtml()
+		val doc = webClient.httpGet("https://$domain/10-genres").parseHtml()
 		return doc.select("div.genres-container span.genre-item a").mapNotNullToSet { a ->
-			val key = a.attr("href").substringAfterLast("/")
+			val key = a.attr("href").removeSuffix('/').substringAfterLast('/').substringBefore("-")
 			MangaTag(
 				key = key,
 				title = a.text(),
@@ -112,7 +123,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 		manga.copy(
 			tags = doc.body().select("div.comic-attrs div.column.my-2:contains(Genres) a").mapNotNullToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix("/").substringAfterLast('/').substringBefore("-"),
 					title = a.text().toTitleCase().replace(",", ""),
 					source = source,
 				)

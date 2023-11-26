@@ -21,29 +21,42 @@ class ManhwasMen(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.POPULARITY)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/manga-list")
 			append("?page=")
-			append(page)
-			when {
-				!query.isNullOrEmpty() -> {
+			append(page.toString())
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("&search=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("&genero=")
-					append(tag?.key.orEmpty())
+				is MangaListFilter.Advanced -> {
+
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("&genero=")
+						append(it.key)
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&estado=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "complete"
+								else -> ""
+							},
+						)
+					}
 				}
+
+				null -> {}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -89,9 +102,9 @@ class ManhwasMen(context: MangaLoaderContext) :
 				)
 			},
 			description = doc.select(".sinopsis").html(),
-			state = when (doc.selectLast(".anime-type-peli")?.text()?.lowercase()) {
+			state = when (doc.selectLast("span.anime-type-peli")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING
-				"completed" -> MangaState.FINISHED
+				"complete" -> MangaState.FINISHED
 				else -> null
 			},
 			chapters = doc.select(".episodes-list li").mapChapters(reversed = true) { i, li ->

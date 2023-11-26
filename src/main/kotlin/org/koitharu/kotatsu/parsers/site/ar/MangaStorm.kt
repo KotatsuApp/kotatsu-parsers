@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("MANGASTORM", "MangaStorm", "ar")
 internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGASTORM, 30) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")
 	override val isMultipleTagsSupported = false
 
@@ -21,35 +21,44 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val url =
-			if (!tags.isNullOrEmpty()) {
-				buildString {
-					append("https://")
-					append(domain)
-					append("/categories/")
-					append(tag?.key.orEmpty())
-					append("?page=")
-					append(page)
-				}
-			} else {
-				buildString {
-					append("https://")
-					append(domain)
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		val url = buildString {
+			append("https://")
+			append(domain)
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/mangas?page=")
 					append(page)
-					if (!query.isNullOrEmpty()) {
-						append("&query=")
-						append(query.urlEncoded())
+					append("&query=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						val tag = filter.tags.oneOrThrowIfMany()
+						append("/categories/")
+						append(tag?.key.orEmpty())
+						append("?page=")
+						append(page)
+					} else {
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("/mangas?page=")
+							append(page)
+						} else {
+							if (page > 1) {
+								return emptyList()
+							}
+						}
 					}
 				}
+
+				null -> {
+					append("/mangas?page=")
+					append(page)
+				}
 			}
+		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("div.row div.col").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
@@ -74,9 +83,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-
 		val root = doc.selectFirstOrThrow(".card-body .col-lg-9")
-
 		return manga.copy(
 			altTitle = null,
 			state = null,

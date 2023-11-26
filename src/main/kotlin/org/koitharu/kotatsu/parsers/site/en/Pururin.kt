@@ -24,37 +24,43 @@ internal class Pururin(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!query.isNullOrEmpty()) {
-				append("/search?q=")
-				append(query.urlEncoded())
-				append("&page=")
-				append(page)
-			} else {
-				append("/browse")
-				if (!tags.isNullOrEmpty()) {
-					append("/tags/content/")
-					append(tag?.key.orEmpty())
-					append("/")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search?q=")
+					append(filter.query.urlEncoded())
+					append("&page=")
+					append(page.toString())
 				}
-				append("?page=")
-				append(page)
-				append("&sort=")
-				when (sortOrder) {
-					SortOrder.UPDATED -> append("")
-					SortOrder.POPULARITY -> append("most-viewed")
-					SortOrder.RATING -> append("highest-rated")
-					SortOrder.ALPHABETICAL -> append("title")
-					else -> append("")
+
+				is MangaListFilter.Advanced -> {
+					append("/browse")
+
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("/tags/content/")
+						append(it.key)
+						append("/")
+					}
+
+					append("?page=")
+					append(page)
+
+					append("&sort=")
+					when (filter.sortOrder) {
+						SortOrder.UPDATED -> append("")
+						SortOrder.POPULARITY -> append("most-viewed")
+						SortOrder.RATING -> append("highest-rated")
+						SortOrder.ALPHABETICAL -> append("title")
+						else -> append("")
+					}
+				}
+
+				null -> {
+					append("/browse?page=")
+					append(page)
 				}
 			}
 		}

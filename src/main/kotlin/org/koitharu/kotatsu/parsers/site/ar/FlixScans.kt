@@ -19,32 +19,66 @@ import java.util.*
 internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.com")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val json = if (!query.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		val json = when (filter) {
+			is MangaListFilter.Search -> {
+				if (page > 1) {
+					return emptyList()
+				}
+				val url = "https://api.$domain/api/v1/search/serie"
+				val body = JSONObject()
+				body.put("title", filter.query.urlEncoded())
+				webClient.httpPost(url, body).parseJson().getJSONArray("data")
 			}
-			val url = "https://api.$domain/api/v1/search/serie"
-			val body = JSONObject()
-			body.put("title", query.urlEncoded())
-			webClient.httpPost(url, body).parseJson().getJSONArray("data")
-		} else if (!tags.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
+
+			is MangaListFilter.Advanced -> {
+				val url = buildString {
+					append("https://api.")
+					append(domain)
+					append("/api/v1/")
+
+					if (filter.tags.isNotEmpty() || filter.states.isNotEmpty()) {
+						if (page > 1) {
+							return emptyList()
+						}
+						append("search/advance?=")
+						if (filter.tags.isNotEmpty()) {
+							val tagQuery = filter.tags.joinToString(separator = ",") { it.key }
+							append("&genres=")
+							append(tagQuery)
+						}
+						if (filter.states.isNotEmpty()) {
+							filter.states.oneOrThrowIfMany()?.let {
+								append("&status=")
+								append(
+									when (it) {
+										MangaState.ONGOING -> "ongoing"
+										MangaState.FINISHED -> "completed"
+										MangaState.ABANDONED -> "droped"
+										MangaState.PAUSED -> "onhold"
+									},
+								)
+							}
+						}
+						append("&serie_type=webtoon")
+
+					} else {
+						append("webtoon/homepage/latest/home?page=")
+						append(page.toString())
+					}
+				}
+
+				webClient.httpGet(url).parseJson().getJSONArray("data")
 			}
-			val tagQuery = tags.joinToString(separator = ",") { it.key }
-			val url = "https://api.$domain/api/v1/search/advance?=&genres=$tagQuery&serie_type=webtoon"
-			webClient.httpGet(url).parseJson().getJSONArray("data")
-		} else {
-			val url = "https://api.$domain/api/v1/webtoon/homepage/latest/home?page=$page"
-			webClient.httpGet(url).parseJson().getJSONArray("data")
+
+			null -> {
+				val url = "https://api.$domain/api/v1/webtoon/homepage/latest/home?page=$page"
+				webClient.httpGet(url).parseJson().getJSONArray("data")
+			}
 		}
 		return json.mapJSON { j ->
 			val href = "https://$domain/series/${j.getString("prefix")}-${j.getString("id")}-${j.getString("slug")}"
@@ -62,6 +96,8 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 				state = when (j.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
+					"onhold" -> MangaState.PAUSED
+					"droped" -> MangaState.ABANDONED
 					else -> null
 				},
 				author = null,
@@ -77,9 +113,9 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		return tagsList.mapNotNullToSet { idTag ->
 			val id = idTag.toInt()
 			val idKey = json.getJSONObject(id).getInt("id")
-			val key = json.get(idKey).toString()
+			val key = json.getInt(idKey).toString()
 			val idName = json.getJSONObject(id).getInt("name")
-			val name = json.get(idName).toString()
+			val name = json.getString(idName)
 			MangaTag(
 				key = key,
 				title = name,
