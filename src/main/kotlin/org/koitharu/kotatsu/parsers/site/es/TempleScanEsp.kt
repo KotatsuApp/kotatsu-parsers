@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.util.*
 
 @MangaSourceParser("TEMPLESCANESP", "TempleScanEsp", "es", ContentType.HENTAI)
@@ -24,22 +25,29 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (sortOrder == SortOrder.NEWEST) {
-				append("/comics")
-				append("?page=")
-				append(page.toString())
-			} else {
-				if (page > 1) {
-					return emptyList()
+			when (filter) {
+				is MangaListFilter.Search -> {
+					throw IllegalArgumentException("Search is not supported by this source")
+				}
+
+				is MangaListFilter.Advanced -> {
+					if (filter.sortOrder == SortOrder.NEWEST) {
+						append("/comics?page=")
+						append(page.toString())
+					} else {
+						if (page > 1) {
+							return emptyList()
+						}
+					}
+				}
+
+				null -> {
+					append("/comics?page=")
+					append(page.toString())
 				}
 			}
 		}
