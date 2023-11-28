@@ -30,46 +30,45 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		if (page > 1) {
+			return emptyList()
+		}
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (page == 1) {
-				if (!query.isNullOrEmpty()) {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&post_type=manga")
+				}
 
-				} else if (!tags.isNullOrEmpty()) {
-					append("/genres/")
-					for (tag in tags) {
-						append(tag.key)
-					}
-				} else {
-					append("/tous-nos-mangas/")
-					append("?order=")
-					when (sortOrder) {
-						SortOrder.POPULARITY -> append("popular")
-						SortOrder.UPDATED -> append("update")
-						SortOrder.ALPHABETICAL -> append("title")
-						SortOrder.NEWEST -> append("create")
-						else -> append("update")
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						append("/genres/")
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+					} else {
+						append("/tous-nos-mangas/?order=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("popular")
+							SortOrder.UPDATED -> append("update")
+							SortOrder.ALPHABETICAL -> append("title")
+							SortOrder.NEWEST -> append("create")
+							else -> append("update")
+						}
 					}
 				}
-			} else {
-				return emptyList()
-			}
 
+				null -> append("/tous-nos-mangas/?order=update")
+			}
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.postbody .bs .bsx").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -90,7 +89,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		}
 	}
 
-
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tous-nos-mangas/").parseHtml()
 		return doc.select("ul.genre li").mapNotNullToSet { li ->
@@ -104,25 +102,18 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		}
 	}
 
-
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = getChapters(doc)
-
 		val desc = doc.selectFirstOrThrow("div.desc").html()
-
 		val state = if (doc.select("div.spe span:contains(En cours)").isNullOrEmpty()) {
 			MangaState.FINISHED
 		} else {
 			MangaState.ONGOING
 		}
-
 		val alt = doc.body().select("div.infox span.alter").text()
-
 		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "")
-
 		manga.copy(
 			tags = doc.select("div.spe span:contains(Genres) a").mapNotNullToSet { a ->
 				MangaTag(
@@ -139,7 +130,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			isNsfw = manga.isNsfw,
 		)
 	}
-
 
 	private fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { i, li ->
@@ -161,10 +151,8 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val script = doc.selectFirstOrThrow("script:containsData(page_image)")
 		val images = JSONArray(script.data().substringAfterLast("var pages = ").substringBefore(';'))
-
 		val pages = ArrayList<MangaPage>(images.length())
 		for (i in 0 until images.length()) {
 			val pageTake = images.getJSONObject(i)
@@ -177,7 +165,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				),
 			)
 		}
-
 		return pages
 	}
 }

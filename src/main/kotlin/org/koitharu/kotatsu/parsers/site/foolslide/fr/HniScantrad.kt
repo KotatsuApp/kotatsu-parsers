@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 
-@MangaSourceParser("HNISCANTRAD", "Hni Scantrad", "fr")
+@MangaSourceParser("HNISCANTRAD", "HniScantrad", "fr")
 internal class HniScantrad(context: MangaLoaderContext) :
 	FoolSlideParser(context, MangaSource.HNISCANTRAD, "hni-scantrad.com") {
 	override val pagination = false

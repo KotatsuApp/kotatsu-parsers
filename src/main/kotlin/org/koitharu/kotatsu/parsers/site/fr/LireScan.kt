@@ -24,36 +24,50 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val doc =
-			if (!query.isNullOrEmpty()) { // search only works with 4 or more letters
-				if (page > 1) {
-					return emptyList()
-				}
-				val q = query.urlEncoded().replace("%20", "+")
-				val post = "do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=$q"
-				webClient.httpPost("https://$domain/index.php?do=search", post).parseHtml()
-			} else {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					if (!tags.isNullOrEmpty()) {
-						append("/manga/")
-						append(tag?.key.orEmpty())
-					}
+			when (filter) {
+				is MangaListFilter.Search -> {
 					if (page > 1) {
-						append("/page/")
-						append(page)
-						append('/')
+						return emptyList()
 					}
+					val q = filter.query.urlEncoded().replace("%20", "+")
+					val post = "do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=$q"
+					webClient.httpPost("https://$domain/index.php?do=search", post).parseHtml()
 				}
-				webClient.httpGet(url).parseHtml()
+
+				is MangaListFilter.Advanced -> {
+					val url = buildString {
+						append("https://")
+						append(domain)
+
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/manga/")
+							append(it.key)
+						}
+
+						if (page > 1) {
+							append("/page/")
+							append(page)
+							append('/')
+						}
+					}
+					webClient.httpGet(url).parseHtml()
+				}
+
+				null -> {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						if (page > 1) {
+							append("/page/")
+							append(page)
+							append('/')
+						}
+					}
+					webClient.httpGet(url).parseHtml()
+				}
 			}
 
 		return doc.select("div.sect__content.grid-items div.item-poster").map { div ->

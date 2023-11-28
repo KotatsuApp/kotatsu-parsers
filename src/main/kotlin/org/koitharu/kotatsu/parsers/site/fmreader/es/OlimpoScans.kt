@@ -14,37 +14,60 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 	override val selectAlt = "ul.manga-info li:contains(Otros nombres)"
 	override val selectTag = "ul.manga-info li:contains(Género) a"
 	override val tagPrefix = "lista-de-comics-genero-"
+	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append(listUrl)
-			append("?page=")
-			append(page.toString())
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append(listUrl)
+					append("?page=")
+					append(page.toString())
 					append("&name=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("&genre=")
-					append(tag?.key.orEmpty())
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/lista-de-comics-genero-")
+							append(it.key)
+							append(".html")
+						}
+					} else {
+						append(listUrl)
+						append("?page=")
+						append(page.toString())
+						append("&sort=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("views")
+							SortOrder.UPDATED -> append("last_update")
+							SortOrder.ALPHABETICAL -> append("name")
+							else -> append("last_update")
+						}
+					}
+
+					append("&m_status=")
+					filter.states.oneOrThrowIfMany()?.let {
+						append(
+							when (it) {
+								MangaState.ONGOING -> "2"
+								MangaState.FINISHED -> "1"
+								MangaState.ABANDONED -> "3"
+								else -> ""
+							},
+						)
+					}
 				}
-			}
-			append("&sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("last_update")
-				SortOrder.ALPHABETICAL -> append("name")
-				else -> append("last_update")
+
+				null -> {
+					append(listUrl)
+					append("?page=")
+					append(page.toString())
+					append("&sort=last_update")
+				}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

@@ -16,40 +16,30 @@ internal class AssortedScans(context: MangaLoaderContext) :
 	override val pagination = false
 	override val selectInfo = "div.#series-info"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-
-		val doc = if (!query.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append('/')
-				append(searchUrl)
-				append("?q=")
-				append(query.urlEncoded())
-			}
-			webClient.httpGet(url).parseHtml()
-		} else {
-			val url = buildString {
-				append("https://$domain/$listUrl")
-				// For some sites that don't have enough manga and page 2 links to page 1
-				if (!pagination) {
-					if (page > 1) {
-						return emptyList()
-					}
-				} else {
-					append(page.toString())
-				}
-			}
-			webClient.httpGet(url).parseHtml()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		if (page > 1) {
+			return emptyList()
 		}
+
+		val url = buildString {
+			append("https://")
+			append(domain)
+			append('/')
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append(searchUrl)
+					append("?q=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					append(listUrl)
+				}
+
+				null -> append(listUrl)
+			}
+		}
+		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("section.series, tr.result").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(

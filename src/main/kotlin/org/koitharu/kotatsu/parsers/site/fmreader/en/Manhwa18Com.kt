@@ -20,79 +20,67 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override val selectTag = "div.info-item:contains(Genre) span.info-value a"
 	override val datePattern = "dd/MM/yyyy"
 	override val selectPage = "div#chapter-content img"
-	override val selectBodyTag = "div.genres-menu a"
+	override val selectBodyTag = "div.advanced-wrapper .genre_label"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				append("/genre/")
-				append(tag?.key.orEmpty())
-				append("?page=")
-				append(page.toString())
-				append("&sort=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.UPDATED -> append("last_update")
-					SortOrder.ALPHABETICAL -> append("name")
-					else -> append("last_update")
-				}
-			} else {
-				append(listUrl)
-				append("?page=")
-				append(page.toString())
-				when {
-					!query.isNullOrEmpty() -> {
-						append("&q=")
-						append(query.urlEncoded())
-					}
-				}
-				append("&sort=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.UPDATED -> append("last_update")
-					SortOrder.ALPHABETICAL -> append("name")
-					else -> append("last_update")
+			append("/tim-kiem?page=")
+			append(page.toString())
+
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("&q=")
+					append(filter.query.urlEncoded())
 				}
 
+				is MangaListFilter.Advanced -> {
+
+					append("&accept_genres=")
+					if (filter.tags.isNotEmpty()) {
+						append(
+							filter.tags.joinToString(",") { it.key },
+						)
+					}
+
+					append("&sort=")
+					append(
+						when (filter.sortOrder) {
+							SortOrder.ALPHABETICAL -> "az"
+							SortOrder.POPULARITY -> "top"
+							SortOrder.UPDATED -> "update"
+							SortOrder.NEWEST -> "new"
+							SortOrder.RATING -> "like"
+						},
+					)
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "1"
+								MangaState.FINISHED -> "3"
+								MangaState.PAUSED -> "2"
+								else -> ""
+							},
+						)
+					}
+				}
+
+				null -> append("&sort=update")
 			}
 		}
-		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select("div.thumb-item-flow").map { div ->
-			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("data-bg")
-					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
-						.substringBeforeLast("')"),
-				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
-				altTitle = null,
-				rating = RATING_UNKNOWN,
-				tags = emptySet(),
-				author = null,
-				state = null,
-				source = source,
-				isNsfw = isNsfwSource,
-			)
-		}
+		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		return doc.select(selectBodyTag).mapNotNullToSet { a ->
-			val href = a.attr("href").substringAfterLast("/")
+		return doc.select(selectBodyTag).mapNotNullToSet { label ->
+			val key = label.attr("data-genre-id")
 			MangaTag(
-				key = href,
-				title = a.text(),
+				key = key,
+				title = label.selectFirstOrThrow(".gerne-name").text(),
 				source = source,
 			)
 		}
@@ -105,7 +93,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				else -> null
