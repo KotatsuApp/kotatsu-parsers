@@ -32,59 +32,83 @@ internal class HentaiFox(context: MangaLoaderContext) :
 		"/vietnamese",
 	)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val isMultipleTagsSupported = true
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
-			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
-		}
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				val tag = tags.single()
-				if (tag.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-				} else {
-					append("/tag/")
-					append(tag.key)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search/?q=")
+					append(filter.query.urlEncoded())
+					if (page > 1) {
+						append("&page=")
+						append(page.toString())
+					}
 				}
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("/popular")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty() && filter.tags.size > 1) {
+						append("/search/?q=")
+						append(buildQuery(filter.tags))
+						if (page > 1) {
+							append("&page=")
+							append(page.toString())
+						}
+
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("&sort=popular")
+						}
+					} else if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+							} else {
+								append("/tag/")
+								append(it.key)
+							}
+						}
+						append("/")
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("popular/")
+						}
+
+						if (page > 1) {
+							append("/pag/")
+							append(page.toString())
+							append("/")
+						}
+					} else {
+						if (page > 2) {
+							append("/pag/")
+							append(page.toString())
+							append("/")
+						} else if (page > 1) {
+							append("/page/")
+							append(page.toString())
+							append("/")
+						}
+					}
 				}
-				if (page > 1) {
-					append("/pag/")
-					append(page)
-					append("/")
-				}
-			} else if (!query.isNullOrEmpty()) {
-				append("/search/?q=")
-				append(query.urlEncoded())
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("&sort=popular")
-				}
-				if (page > 1) {
-					append("&page=")
-					append(page)
-				}
-			} else {
-				if (page > 2) {
-					append("/pag/")
-					append(page)
-					append("/")
-				} else if (page > 1) {
-					append("/page/")
-					append(page)
-					append("/")
+
+				null -> {
+					if (page > 2) {
+						append("/pag/")
+						append(page.toString())
+						append("/")
+					} else if (page > 1) {
+						append("/page/")
+						append(page.toString())
+						append("/")
+					}
 				}
 			}
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 

@@ -24,36 +24,42 @@ internal abstract class GalleryAdultsParser(
 	override val configKeyDomain = ConfigKey.Domain(domain)
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				if (tag?.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-					append("/?")
-				} else {
-					append("/tag/")
-					append(tag?.key.orEmpty())
-					append("/?")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search/?q=")
+					append(filter.query.urlEncoded())
+					append("&")
 				}
-			} else if (!query.isNullOrEmpty()) {
-				append("/search/?q=")
-				append(query.urlEncoded())
-				append("&")
-			} else {
-				append("/?")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+								append("/?")
+							} else {
+								append("/tag/")
+								append(it.key)
+								append("/?")
+							}
+						}
+					} else {
+						append("/?")
+					}
+				}
+
+				null -> append("/?")
 			}
 			append("page=")
 			append(page)
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
