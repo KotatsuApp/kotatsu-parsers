@@ -22,6 +22,7 @@ import java.util.*
 private const val HEADER_ENCODING = "Content-Encoding"
 private const val PAGE_SIZE = 60
 
+// NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
 class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIUKR), Interceptor {
 
@@ -32,6 +33,8 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			webClient.httpGet("https://$domain/search/objects.json").parseJson()
 		}.recoverCatchingCancellable {
 			webClient.httpGet("https://$domain/search/objects2.json").parseJson()
+		}.recoverCatchingCancellable {
+			webClient.httpGet("https://$domain/search/objects69.json").parseJson()
 		}.getOrThrow().getJSONArray("manga").toJSONList()
 	}
 
