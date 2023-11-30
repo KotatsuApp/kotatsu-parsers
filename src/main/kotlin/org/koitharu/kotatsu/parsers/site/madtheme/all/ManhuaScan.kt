@@ -7,44 +7,58 @@ import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.Locale
 
-@MangaSourceParser("MANHUASCAN", "ManhuaScan", "")
+@MangaSourceParser("MANHUASCAN", "ManhuaScan.io", "")
 internal class ManhuaScan(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.MANHUASCAN, "manhuascan.io") {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "search"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
 			append(listUrl)
-			append("?sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("updated_at")
-				SortOrder.ALPHABETICAL -> append("name")
-				SortOrder.NEWEST -> append("created_at")
-				SortOrder.RATING -> append("rating")
-			}
+			when (filter) {
 
-			if (!query.isNullOrEmpty()) {
-				append("&q=")
-				append(query.urlEncoded())
-			}
-
-			if (!tags.isNullOrEmpty()) {
-				for (tag in tags) {
-					append("&")
-					append("include[]".urlEncoded())
-					append("=")
-					append(tag.key)
+				is MangaListFilter.Search -> {
+					append("?sort=updated_at&q=")
+					append(filter.query.urlEncoded())
 				}
+
+				is MangaListFilter.Advanced -> {
+
+					append("?sort=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("updated_at")
+						SortOrder.ALPHABETICAL -> append("name")
+						SortOrder.NEWEST -> append("created_at")
+						SortOrder.RATING -> append("rating")
+					}
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.forEach {
+							append("&")
+							append("include[]".urlEncoded())
+							append("=")
+							append(it.key)
+						}
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								else -> "all"
+							},
+						)
+					}
+
+				}
+
+				null -> append("?sort=updated_at")
 			}
 
 			append("&page=")

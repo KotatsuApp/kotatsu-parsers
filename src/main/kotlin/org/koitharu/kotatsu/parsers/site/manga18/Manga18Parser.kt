@@ -26,6 +26,8 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
+	override val isMultipleTagsSupported = false
+
 	protected open val listUrl = "list-manga/"
 	protected open val tagUrl = "manga-list/"
 	protected open val datePattern = "dd-MM-yyyy"
@@ -47,49 +49,53 @@ internal abstract class Manga18Parser(
 		"Completed",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
-					append("/$listUrl")
+			append('/')
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append(listUrl)
 					append(page.toString())
 					append("?search=")
-					append(query.urlEncoded())
-					append("&")
+					append(filter.query.urlEncoded())
+					append("&order_by=latest")
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagUrl")
-					append(tag?.key.orEmpty())
-					append("/")
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(tagUrl)
+							append(it.key)
+							append("/")
+						}
+					} else {
+						append(listUrl)
+					}
+
 					append(page.toString())
-					append("?")
+					append("?order_by=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("lastest")
+						SortOrder.ALPHABETICAL -> append("name")
+						else -> append("latest")
+					}
 				}
 
-				else -> {
-					append("/$listUrl")
+				null -> {
+					append(listUrl)
 					append(page.toString())
-					append("?")
+					append("?order_by=latest")
 				}
-			}
-			append("order_by=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("lastest")
-				SortOrder.ALPHABETICAL -> append("name")
-				else -> append("latest")
 			}
 		}
-		val doc = webClient.httpGet(url).parseHtml()
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
 
+	protected open fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.story_item").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(

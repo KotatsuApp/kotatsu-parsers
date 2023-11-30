@@ -18,51 +18,83 @@ internal class FmTeam(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.FMTEAM, 0) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 	override val configKeyDomain = ConfigKey.Domain("fmteam.fr")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}
-		val jsonManga = if (!query.isNullOrEmpty()) {
-			//3 letters minimum
-			webClient.httpGet("https://$domain/api/search/${query.urlEncoded()}").parseJson().getJSONArray("comics")
-		} else {
-			webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
-		}
+		var foundTag = true
+		var foundState = true
 
-		val manga = ArrayList<Manga>(jsonManga.length())
-		for (i in 0 until jsonManga.length()) {
-			val j = jsonManga.getJSONObject(i)
-			val href = "/api" + j.getString("url")
-			when {
-				!tags.isNullOrEmpty() -> {
-					val a = j.getJSONArray("genres").toString()
-					var found = true
-					tags.forEach {
-						if (!a.contains(it.key, ignoreCase = true)) {
-							found = false
+		val manga = ArrayList<Manga>()
+
+		when (filter) {
+			is MangaListFilter.Search -> {
+				val jsonManga = webClient.httpGet("https://$domain/api/search/${filter.query.urlEncoded()}").parseJson()
+					.getJSONArray("comics")
+				for (i in 0 until jsonManga.length()) {
+					val j = jsonManga.getJSONObject(i)
+					val href = "/api" + j.getString("url")
+					manga.add(addManga(href, j))
+				}
+			}
+
+			is MangaListFilter.Advanced -> {
+				val jsonManga = webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
+				for (i in 0 until jsonManga.length()) {
+
+					val j = jsonManga.getJSONObject(i)
+					val href = "/api" + j.getString("url")
+
+					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
+						val a = j.getJSONArray("genres").toString()
+						foundTag = false
+						filter.tags.forEach {
+							if (a.contains(it.key, ignoreCase = true)) {
+								foundTag = true
+							}
 						}
 					}
-					if (found) {
-						manga.add(
-							addManga(href, j),
-						)
+
+					if (filter.states.isNotEmpty()) {
+						val a = j.getString("status")
+						foundState = false
+						filter.states.oneOrThrowIfMany()?.let {
+							if (a.contains(
+									when (it) {
+										MangaState.ONGOING -> "En cours"
+										MangaState.FINISHED -> "Terminé"
+										else -> ""
+									},
+									ignoreCase = true,
+								)
+							) {
+								foundState = true
+							}
+						}
+
+					}
+
+					if (foundState && foundTag) {
+						manga.add(addManga(href, j))
 					}
 				}
+			}
 
-				else -> {
+			null -> {
+				val jsonManga = webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
+				for (i in 0 until jsonManga.length()) {
+					val j = jsonManga.getJSONObject(i)
+					val href = "/api" + j.getString("url")
 					manga.add(
 						addManga(href, j),
 					)
 				}
 			}
 		}
+
 		return manga
 	}
 
