@@ -41,12 +41,10 @@ internal class ManhwaFreakFr(context: MangaLoaderContext) :
 					}
 
 					if (filter.tags.isNotEmpty()) {
-						append("/genres/?genre=")
-						append(
-							filter.tags.oneOrThrowIfMany()?.let {
-								it.key
-							},
-						)
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/genres/?genre=")
+							append(it.key)
+						}
 					} else {
 						append(listUrl)
 						append("/?order=")
