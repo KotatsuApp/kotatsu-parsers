@@ -3,8 +3,9 @@ package org.koitharu.kotatsu.parsers.site.mangareader.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.domain
@@ -19,31 +20,40 @@ internal class RizzComic(context: MangaLoaderContext) :
 	override val datePattern = "dd MMM yyyy"
 	override val listUrl = "/series"
 
-	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableStates: Set<MangaState> = emptySet()
+	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	// TODO Query created in json
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}
-		if (!query.isNullOrEmpty()) {
-			throw IllegalArgumentException("Search is not supported by this source")
-		}
-		val url = if (!tags.isNullOrEmpty()) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/genre/")
-				append(tag?.key.orEmpty())
+		val url = buildString {
+			append("https://")
+			append(domain)
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					throw IllegalArgumentException("Search is not supported by this source")
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						append("/genre/")
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+					} else {
+						append(listUrl)
+					}
+				}
+
+				null -> {
+					append(listUrl)
+				}
 			}
-		} else {
-			"https://$domain$listUrl"
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}

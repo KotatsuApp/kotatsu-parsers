@@ -13,55 +13,70 @@ import java.util.*
 
 @MangaSourceParser("KOMIKCAST", "KomikCast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.ch", pageSize = 60, searchPageSize = 28) {
+	MangaReaderParser(context, MangaSource.KOMIKCAST, "komikcast.lol", pageSize = 60, searchPageSize = 28) {
 
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			if (page > lastSearchPage) {
-				return emptyList()
-			}
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append("/page/")
-				append(page)
-				append("/?s=")
-				append(query.urlEncoded())
-			}
-			val docs = webClient.httpGet(url).parseHtml()
-			lastSearchPage = docs.selectFirst(".pagination .next")
-				?.previousElementSibling()
-				?.text()?.toIntOrNull() ?: 1
-			return parseMangaList(docs)
-		}
-		val tagKey = "genre[]".urlEncoded()
-		val tagQuery =
-			if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append(listUrl)
-			append("/page/")
-			append(page)
-			when (sortOrder) {
-				SortOrder.ALPHABETICAL -> append("/?orderby=titleasc")
-				SortOrder.POPULARITY -> append("/?orderby=popular")
-				SortOrder.UPDATED -> append("/?sortby=update")
-				else -> append("/?sortby=update")
+
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append("/page/")
+					append(page.toString())
+					append("/?s=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					append(listUrl)
+					append("/page/")
+					append(page.toString())
+
+					append("/?orderby=")
+					append(
+						when (filter.sortOrder) {
+							SortOrder.ALPHABETICAL -> append("titleasc")
+							SortOrder.POPULARITY -> append("popular")
+							SortOrder.UPDATED -> append("update")
+							else -> append("update")
+						},
+					)
+
+					val tagKey = "genre[]".urlEncoded()
+					val tagQuery =
+						if (filter.tags.isEmpty()) ""
+						else filter.tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
+					append(tagQuery)
+
+					if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append("&status=")
+							when (it) {
+								MangaState.ONGOING -> append("Ongoing")
+								MangaState.FINISHED -> append("Completed")
+								else -> append("")
+							}
+						}
+					}
+				}
+
+				null -> {
+					append(listUrl)
+					append("/?orderby=update&page=")
+					append(page.toString())
+				}
 			}
-			append(tagQuery)
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
