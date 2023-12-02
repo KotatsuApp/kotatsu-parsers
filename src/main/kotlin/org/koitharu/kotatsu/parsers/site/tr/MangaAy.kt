@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.tr
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -19,74 +20,110 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSour
 
 	override val configKeyDomain = ConfigKey.Domain("manga-ay.com")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		if (!query.isNullOrEmpty() || !tags.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
-			val url = "https://$domain/arama"
-			val doc = webClient.httpPost(
-				url,
-				mapOf(
-					"title" to query?.urlEncoded().orEmpty(),
-					"genres" to tag?.key.orEmpty(),
-				),
-			).parseHtml()
-			return doc.select(".table tr").map { tr ->
-				val a = tr.selectFirstOrThrow("a")
-				val href = a.attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = a.attrAsAbsoluteUrl("href"),
-					title = a.text(),
-					coverUrl = "",
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					description = null,
-					state = null,
-					author = null,
-					isNsfw = isNsfwSource,
-					source = source,
-				)
-			}
-		} else {
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append("/seriler")
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		when (filter) {
+			is MangaListFilter.Search -> {
 				if (page > 1) {
-					append("/")
-					append(page)
+					return emptyList()
 				}
-			}
-			val doc = webClient.httpGet(url).parseHtml().requireElementById("ecommerce-products")
-			return doc.select(".card").map { div ->
-				val a = div.selectFirstOrThrow("a")
-				val href = a.attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = a.attrAsAbsoluteUrl("href"),
-					title = div.selectLastOrThrow(".item-name").text(),
-					coverUrl = div.selectFirst("img")?.src().orEmpty(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					description = null,
-					state = null,
-					author = null,
-					isNsfw = isNsfwSource,
-					source = source,
+				return parseMangaListQueryOrTags(
+					webClient.httpPost(
+						"https://$domain/arama",
+						mapOf("title" to filter.query.urlEncoded(), "genres" to ""),
+					).parseHtml(),
 				)
 			}
+
+			is MangaListFilter.Advanced -> {
+
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.oneOrThrowIfMany()?.let {
+						if (page > 1) {
+							return emptyList()
+						}
+						return parseMangaListQueryOrTags(
+							webClient.httpPost(
+								"https://$domain/arama",
+								mapOf("title" to "", "genres" to it.key),
+							).parseHtml(),
+						)
+					}
+				} else {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/seriler")
+						if (page > 1) {
+							append("/")
+							append(page)
+						}
+					}
+					return parseMangaList(webClient.httpGet(url).parseHtml())
+				}
+
+			}
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/seriler")
+					if (page > 1) {
+						append("/")
+						append(page)
+					}
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
+			}
+		}
+
+		return emptyList()
+	}
+
+	private fun parseMangaList(doc: Document): List<Manga> {
+		return doc.requireElementById("ecommerce-products").select(".card").map { div ->
+			val a = div.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = a.attrAsAbsoluteUrl("href"),
+				title = div.selectLastOrThrow(".item-name").text(),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				description = null,
+				state = null,
+				author = null,
+				isNsfw = isNsfwSource,
+				source = source,
+			)
+		}
+	}
+
+	private fun parseMangaListQueryOrTags(doc: Document): List<Manga> {
+		return doc.select(".table tr").map { tr ->
+			val a = tr.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = a.attrAsAbsoluteUrl("href"),
+				title = a.text(),
+				coverUrl = "",
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				description = null,
+				state = null,
+				author = null,
+				isNsfw = isNsfwSource,
+				source = source,
+			)
 		}
 	}
 

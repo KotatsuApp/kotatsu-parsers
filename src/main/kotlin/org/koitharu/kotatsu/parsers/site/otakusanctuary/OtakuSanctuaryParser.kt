@@ -25,7 +25,7 @@ internal abstract class OtakuSanctuaryParser(
 		SortOrder.NEWEST,
 	)
 
-	protected open val listeurl = "Manga/Newest"
+	protected open val listUrl = "Manga/Newest"
 	protected open val datePattern = "dd/MM/yyyy"
 	protected open val lang = ""
 
@@ -40,60 +40,71 @@ internal abstract class OtakuSanctuaryParser(
 		"Done",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val isMultipleTagsSupported = false
 
-		val doc = if (!tags.isNullOrEmpty()) {
-			val url = buildString {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		val doc =
+			when (filter) {
 
-				append("https://$domain/Genre/MangaGenrePartial?id=")
-				append(tag?.key.orEmpty())
-				append("&lang=$lang")
-				append("&offset=")
-				append(page * pageSize)
-				append("&pagesize=$pageSize")
+				is MangaListFilter.Search -> {
+					if (page > 1) {
+						return emptyList()
+					}
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/Home/Search?search=")
+						append(filter.query.urlEncoded())
+					}
+					webClient.httpGet(url).parseHtml().requireElementById("collection-manga")
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						val url = buildString {
+							append("https://")
+							append(domain)
+							append("/Genre/MangaGenrePartial?id=")
+							filter.tags.oneOrThrowIfMany()?.let {
+								append(it.key)
+							}
+							append("&lang=")
+							append(lang)
+							append("&offset=")
+							append(page * pageSize)
+							append("&pagesize=")
+							append(pageSize)
+						}
+						webClient.httpGet(url).parseHtml()
+
+					} else {
+						val payload = HashMap<String, String>()
+						payload["Lang"] = lang
+						payload["Page"] = page.toString()
+						payload["Type"] = "Include"
+						when (filter.sortOrder) {
+							SortOrder.NEWEST -> payload["Dir"] = "CreatedDate"
+							SortOrder.UPDATED -> payload["Dir"] = "NewPostedDate"
+							else -> payload["Dir"] = "NewPostedDate"
+						}
+						webClient.httpPost("https://$domain/$listUrl", payload).parseHtml()
+					}
+
+				}
+
+				null -> {
+					val payload = HashMap<String, String>()
+					payload["Lang"] = lang
+					payload["Page"] = page.toString()
+					payload["Type"] = "Include"
+					payload["Dir"] = "NewPostedDate"
+					webClient.httpPost("https://$domain/$listUrl", payload).parseHtml()
+				}
 			}
 
-			webClient.httpGet(url).parseHtml()
-		} else if (!query.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
 
-			val url = buildString {
-				append("https://$domain/Home/Search?search=")
-				append(query.urlEncoded())
-			}
-
-			webClient.httpGet(url).parseHtml()
-		} else {
-			val url = "https://$domain/$listeurl"
-			val payload = HashMap<String, String>()
-			payload["Lang"] = lang
-			payload["Page"] = page.toString()
-			payload["Type"] = "Include"
-			when (sortOrder) {
-				SortOrder.NEWEST -> payload["Dir"] = "CreatedDate"
-				SortOrder.UPDATED -> payload["Dir"] = "NewPostedDate"
-				else -> payload["Dir"] = "NewPostedDate"
-			}
-			webClient.httpPost(url, payload).parseHtml()
-		}
-
-
-		val mangas = if (!query.isNullOrEmpty()) {
-			doc.requireElementById("collection-manga").select("div.picture-card")
-		} else {
-			doc.select("div.picture-card")
-		}
-
-		return mangas.map { div ->
-
+		return doc.select("div.picture-card").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),

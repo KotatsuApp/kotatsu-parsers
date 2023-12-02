@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.pt
 
 import okhttp3.Headers
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -16,77 +17,100 @@ internal class Bakai(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("bakai.org")
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			if (!query.isNullOrEmpty()) {
-				append("/search/?q=")
-				append(query.urlEncoded())
-				append("&quick=1&type=cms_records1&page=")
-				append(page.toString())
-			} else if (!tags.isNullOrEmpty()) {
-				append("/search/?tags=")
-				for (tag in tags) {
-					append(tag.key)
-					append(",")
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		when (filter) {
+
+			is MangaListFilter.Search -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/search1/?q=")
+					append(filter.query.urlEncoded())
+					append("&quick=1&type=cms_records1&updated_after=any&sortby=newest&page=")
+					append(page.toString())
 				}
-				append("&quick=1&type=cms_records1&page=")
-				append(page.toString())
-			} else {
-				append("/hentai/")
-				append("page/")
-				append(page.toString())
+				return parseMangaListQueryOrTags(webClient.httpGet(url).parseHtml())
+			}
+
+			is MangaListFilter.Advanced -> {
+				if (filter.tags.isNotEmpty()) {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/search1/?tags=")
+						append(filter.tags.joinToString(separator = ",") { it.key })
+						append("&updated_after=any&sortby=newest&search_and_or=and&page=")
+						append(page.toString())
+					}
+					return parseMangaListQueryOrTags(webClient.httpGet(url).parseHtml())
+				} else {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/hentai/page/")
+						append(page.toString())
+					}
+					return parseMangaList(webClient.httpGet(url).parseHtml())
+				}
+			}
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/hentai/page/")
+					append(page.toString())
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 		}
-		val doc = webClient.httpGet(url).parseHtml()
-		if (!tags.isNullOrEmpty() or !query.isNullOrEmpty()) {
-			return doc.select("ol.ipsStream li.ipsStreamItem")
-				.map { div ->
-					val href = div.selectFirstOrThrow("div.ipsStreamItem_snippet a").attrAsRelativeUrl("href")
-					Manga(
-						id = generateUid(href),
-						title = div.selectFirstOrThrow("h2.ipsStreamItem_title").text(),
-						altTitle = null,
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						isNsfw = true,
-						coverUrl = div.selectFirstOrThrow("span.ipsThumb img").attrAsAbsoluteUrl("src"),
-						tags = setOf(),
-						state = null,
-						author = null,
-						source = source,
-					)
-				}
-		} else {
-			return doc.select("section.ipsType_normal li.ipsGrid_span4")
-				.map { div ->
-					val href = div.selectFirstOrThrow("h2.ipsType_pageTitle a").attrAsRelativeUrl("href")
-					Manga(
-						id = generateUid(href),
-						title = div.selectFirstOrThrow("h2.ipsType_pageTitle").text(),
-						altTitle = null,
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						isNsfw = true,
-						coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
-						tags = setOf(),
-						state = null,
-						author = null,
-						source = source,
-					)
-				}
-		}
+	}
+
+	private fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select("section.ipsType_normal li.ipsGrid_span4")
+			.map { div ->
+				val href = div.selectFirstOrThrow("h2.ipsType_pageTitle a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					title = div.selectFirstOrThrow("h2.ipsType_pageTitle").text(),
+					altTitle = null,
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = true,
+					coverUrl = div.selectFirst("img")?.src().orEmpty(),
+					tags = setOf(),
+					state = null,
+					author = null,
+					source = source,
+				)
+			}
+	}
+
+	private fun parseMangaListQueryOrTags(doc: Document): List<Manga> {
+		return doc.select("ol.ipsStream li.ipsStreamItem")
+			.mapNotNull { div ->
+				val href =
+					div.selectFirst(".ipsStreamItem_snippet a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
+				Manga(
+					id = generateUid(href),
+					title = div.selectFirstOrThrow("h2.ipsStreamItem_title").text(),
+					altTitle = null,
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = true,
+					coverUrl = div.selectFirst(".ipsStreamItem_snippet img")?.src().orEmpty(),
+					tags = setOf(),
+					state = null,
+					author = null,
+					source = source,
+				)
+			}
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {

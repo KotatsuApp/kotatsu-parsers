@@ -41,7 +41,6 @@ internal abstract class MangaReaderParser(
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-	protected open var lastSearchPage = 1
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

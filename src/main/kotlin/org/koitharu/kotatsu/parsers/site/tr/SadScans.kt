@@ -15,20 +15,29 @@ internal class SadScans(context: MangaLoaderContext) : MangaParser(context, Mang
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("sadscans.com")
 
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
 			return emptyList()
 		}
+
 		val url = buildString {
-			append("https://$domain/series")
-			if (!query.isNullOrEmpty()) {
-				append("?search=")
-				append(query.urlEncoded())
+			append("https://")
+			append(domain)
+			append("/series")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("?search=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {}
+				null -> {}
 			}
 		}
+
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select(".series-list").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val href = "/" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h2").text(),
@@ -64,7 +73,7 @@ internal class SadScans(context: MangaLoaderContext) : MangaParser(context, Mang
 			chapters = doc.select(".chap-section .chap")
 				.mapChapters(reversed = true) { i, div ->
 					val a = div.selectFirstOrThrow("a")
-					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
+					val url = "/" + a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
 						name = a.text(),

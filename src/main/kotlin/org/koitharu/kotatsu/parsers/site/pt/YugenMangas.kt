@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -19,44 +18,71 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("yugenmangas.net.br")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		if (page > 1) {
+			return emptyList()
+		}
+
 		val json =
-			if (!query.isNullOrEmpty()) {
-				if (page > 1) {
-					return emptyList()
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+
+					val url = buildString {
+						append("https://api.")
+						append(domain)
+						append("/api/series/list/?query=")
+						append(filter.query.urlEncoded())
+					}
+					webClient.httpGet(url).parseJsonArray()
 				}
-				val url = buildString {
-					append("https://api.")
-					append(domain)
-					append("/api/series/list/?query=")
-					append(query.urlEncoded())
+
+				is MangaListFilter.Advanced -> {
+
+
+					if (filter.sortOrder == SortOrder.UPDATED) {
+						val url = buildString {
+							append("https://api.")
+							append(domain)
+							append("/api/latest_updates/")
+						}
+						webClient.httpGet(url).parseJsonArray()
+					} else {
+						val url = buildString {
+							append("https://api.")
+							append(domain)
+							append("/api/all_series/")
+						}
+						webClient.httpGet(url).parseJson().getJSONArray("series")
+					}
+
 				}
-				webClient.httpGet(url).parseJsonArray()
-			} else {
-				if (page > 1) {
-					return emptyList()
+
+				null -> {
+					val url = buildString {
+						append("https://api.")
+						append(domain)
+						append("/api/latest_updates/")
+					}
+					webClient.httpGet(url).parseJsonArray()
 				}
-				val url = buildString {
-					append("https://api.")
-					append(domain)
-					append("/api/all_series/?page=1")
-				}
-				webClient.httpGet(url).parseJson().getJSONArray("series")
 			}
 
 		return json.mapJSON { j ->
 			val slug = j.getString("slug")
+			val cover = if (!j.getString("cover").startsWith("https://")) {
+				// Some covers don't have the "/" so we ensure that the URL will be spelled correctly.
+				"https://$domain/media/" + j.getString("cover").removePrefix("/")
+			} else {
+				j.getString("cover")
+			}
 			Manga(
 				id = generateUid(slug),
 				url = slug,
 				publicUrl = slug,
 				title = j.getString("name"),
-				coverUrl = j.getString("cover"),
+				coverUrl = cover,
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -90,7 +116,7 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					else -> null
 				}
 			},
-			chapters = chapterManga.mapJSONIndexed { i, j ->
+			chapters = chapterManga.mapJSON { j ->
 				val url = "https://api.$domain/api/serie/${manga.url}/chapter/${j.getString("slug")}/images/imgs/"
 				MangaChapter(
 					id = generateUid(url),

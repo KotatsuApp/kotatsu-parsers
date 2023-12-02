@@ -17,51 +17,78 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val configKeyDomain = ConfigKey.Domain("www.brmangas.net")
 
+	override val isMultipleTagsSupported = false
+
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
-			append("https://$domain/")
-			if (!tags.isNullOrEmpty()) {
-				append("category/")
-				append(tag?.key.orEmpty())
-				if (page > 1) {
-					append("/page/$page/")
+			append("https://")
+			append(domain)
+			append('/')
+			when (filter) {
+				is MangaListFilter.Search -> {
+					if (page > 1) {
+						append("/page/$page/")
+					}
+					append("/?s=")
+					append(filter.query.urlEncoded())
 				}
-			} else if (!query.isNullOrEmpty()) {
-				if (page > 1) {
-					append("/page/$page/")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("category/")
+							append(it.key)
+							if (page > 1) {
+								append("/page/$page/")
+							}
+						}
+					} else {
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("/")
+							SortOrder.UPDATED -> append("manga/")
+							else -> append("manga/")
+						}
+						if (page > 1) {
+							append("page/$page/")
+						}
+					}
+
 				}
-				append("/?s=")
-				append(query.urlEncoded())
-			} else {
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("/")
-					SortOrder.UPDATED -> append("manga/")
-					else -> append("manga/")
-				}
-				if (page > 1) {
-					append("page/$page/")
+
+				null -> {
+					append("manga/")
+					if (page > 1) {
+						append("page/$page/")
+					}
 				}
 			}
+
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 
-		val item = if (sortOrder == SortOrder.POPULARITY) {
-			doc.select("div.listagem")[1].select("div.item") // To remove the 6 mangas updated on the home page
-		} else {
-			doc.select("div.listagem div.item")
-		}
+		val item =
+			when (filter) {
 
+				is MangaListFilter.Search -> {
+					doc.select("div.listagem div.item")
+				}
+
+				is MangaListFilter.Advanced -> {
+					if (filter.sortOrder == SortOrder.POPULARITY && filter.tags.isEmpty()) {
+						doc.select("div.listagem")[1].select("div.item") // To remove the 6 mangas updated on the home page
+					} else {
+						doc.select("div.listagem div.item")
+					}
+				}
+
+				null -> doc.select("div.listagem div.item")
+
+			}
 		return item.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(

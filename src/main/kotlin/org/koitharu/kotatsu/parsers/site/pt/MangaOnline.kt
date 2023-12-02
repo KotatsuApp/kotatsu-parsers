@@ -16,37 +16,40 @@ class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override val configKeyDomain = ConfigKey.Domain("mangaonline.biz")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!tags.isNullOrEmpty() -> {
-					append("/genero/")
-					append(tag?.key.orEmpty())
-					append("/")
-				}
+			when (filter) {
 
-				!query.isNullOrEmpty() -> {
+				is MangaListFilter.Search -> {
 					append("/search/")
-					append(query.urlEncoded())
-					append("/")
+					append(filter.query.urlEncoded())
+					append('/')
 				}
 
-				else -> {
-					append("/manga/")
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/genero/")
+							append(it.key)
+							append('/')
+						}
+					} else {
+						append("/manga/")
+					}
 				}
+
+				null -> append("/manga/")
+
 			}
 			if (page > 1) {
 				append("page/")
-				append(page)
-				append("/")
+				append(page.toString())
+				append('/')
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

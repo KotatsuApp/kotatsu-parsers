@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.tr
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -16,100 +18,134 @@ class TrWebtoon(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 
-	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val url = if (sortOrder == SortOrder.UPDATED && query.isNullOrEmpty() && tags.isNullOrEmpty()) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/son-eklenenler")
-				append("?page=")
-				append(page)
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		when (filter) {
+			is MangaListFilter.Search -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/webtoon-listesi?page=")
+					append(page.toString())
+					append("&q=")
+					append(filter.query.urlEncoded())
+					append("&sort=views&short_type=DESC")
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
-		} else {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/webtoon-listesi")
-				append("?page=")
-				append(page)
-				when {
-					!query.isNullOrEmpty() -> {
-						append("&q=")
-						append(query.urlEncoded())
+
+			is MangaListFilter.Advanced -> {
+
+				if (filter.sortOrder == SortOrder.UPDATED) {
+					if (filter.tags.isNotEmpty()) {
+						throw IllegalArgumentException("Sort order updated + Tags or States is not supported by this source")
+					}
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/son-eklenenler?page=")
+						append(page.toString())
+					}
+					return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
+				} else {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/webtoon-listesi?page=")
+						append(page.toString())
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("&genre=")
+							append(it.key)
+						}
+						filter.states.oneOrThrowIfMany()?.let {
+							append("&status=")
+							append(
+								when (it) {
+									MangaState.ONGOING -> "continues"
+									MangaState.FINISHED -> "complated"
+									else -> ""
+								},
+							)
+						}
+						append("&sort=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("views&short_type=DESC")
+							SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
+							else -> append("views&short_type=DESC")
+						}
 					}
 
-					!tags.isNullOrEmpty() -> {
-						append("&genre=")
-						append(tag?.key.orEmpty())
-					}
+					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
-				append("&sort=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views&short_type=DESC")
-					SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
-					else -> append("views&short_type=DESC")
+
+			}
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/son-eklenenler?page=")
+					append(page.toString())
 				}
+				return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
 			}
 		}
+	}
 
-		val doc = webClient.httpGet(url).parseHtml()
-		val mangas = if (sortOrder == SortOrder.UPDATED && query.isNullOrEmpty() && tags.isNullOrEmpty()) {
-			doc.select(".page-content div.bslist_item").map { li ->
-				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(domain),
-					coverUrl = li.selectFirst(".figure img")?.src().orEmpty(),
-					title = li.selectFirst(".title")?.text().orEmpty(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = when (doc.selectFirst("d-inline .badge")?.text()) {
-						"Devam Ediyor", "Güncel" -> MangaState.ONGOING
-						"Tamamlandı" -> MangaState.FINISHED
-						else -> null
-					},
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
-		} else {
-			doc.select(".row .col-xl-4 .card-body").map { li ->
-				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(domain),
-					coverUrl = li.selectFirst("img")?.src().orEmpty(),
-					title = li.selectFirst(".table-responsive a")?.text().orEmpty(),
-					altTitle = null,
-					rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
-						?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = when (doc.selectLast(".row .col-xl-4 .mt-2 .rounded-pill")?.text()) {
-						"Devam Ediyor", "Güncel" -> MangaState.ONGOING
-						"Tamamlandı" -> MangaState.FINISHED
-						else -> null
-					},
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
+
+	private fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select(".row .col-xl-4 .card-body").map { li ->
+			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				coverUrl = li.selectFirst("img")?.src().orEmpty(),
+				title = li.selectFirst(".table-responsive a")?.text().orEmpty(),
+				altTitle = null,
+				rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
+					?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = when (doc.selectLast(".row .col-xl-4 .mt-2 .rounded-pill")?.text()) {
+					"Devam Ediyor", "Güncel" -> MangaState.ONGOING
+					"Tamamlandı" -> MangaState.FINISHED
+					else -> null
+				},
+				source = source,
+				isNsfw = isNsfwSource,
+			)
 		}
+	}
 
-		return mangas
+	private fun parseMangaListUpdated(doc: Document): List<Manga> {
+		return doc.select(".page-content div.bslist_item").map { li ->
+			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				coverUrl = li.selectFirst(".figure img")?.src().orEmpty(),
+				title = li.selectFirst(".title")?.text().orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = when (doc.selectFirst("d-inline .badge")?.text()) {
+					"Devam Ediyor", "Güncel" -> MangaState.ONGOING
+					"Tamamlandı" -> MangaState.FINISHED
+					else -> null
+				},
+				source = source,
+				isNsfw = isNsfwSource,
+			)
+		}
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
