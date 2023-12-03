@@ -19,9 +19,83 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("truyentranhlh.net")
 	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 
 	private val mutex = Mutex()
 	private var tagCache: Map<String, MangaTag>? = null
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		val url = urlBuilder().apply {
+			addPathSegment("tim-kiem")
+			addQueryParameter("page", page.toString())
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					addQueryParameter("q", filter.query)
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					addQueryParameter(
+						"sort",
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> "update"
+							SortOrder.NEWEST -> "new"
+							SortOrder.RATING -> "like"
+							SortOrder.POPULARITY -> "top"
+							SortOrder.ALPHABETICAL -> "az"
+						},
+					)
+
+					if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							addQueryParameter(
+								"status",
+								when (it) {
+									MangaState.ONGOING -> "1"
+									MangaState.FINISHED -> "3"
+									MangaState.PAUSED -> "2"
+									else -> "0"
+								},
+							)
+						}
+					}
+
+					if (filter.tags.isNotEmpty()) {
+						val tagsQuery = filter.tags.joinToString(separator = ",") { it.key }
+						addEncodedQueryParameter("accept_genres", tagsQuery)
+					}
+				}
+
+				null -> {
+					addQueryParameter("sort", "update")
+				}
+			}
+
+		}.build()
+
+		return webClient.httpGet(url).parseHtml()
+			.select(".container .card.card-dark .row > .thumb-item-flow")
+			.mapNotNull {
+				val a = it.selectFirstOrThrow(".thumb-wrapper a")
+				Manga(
+					id = generateUid(a.attrAsRelativeUrl("href")),
+					url = a.attrAsRelativeUrl("href"),
+					publicUrl = a.attrAsAbsoluteUrl("href"),
+					title = it.select(".thumb_attr.series-title").text(),
+					altTitle = null,
+					rating = RATING_UNKNOWN,
+					isNsfw = false,
+					coverUrl = a.selectFirst("div[data-bg]")?.attrAsAbsoluteUrl("data-bg").orEmpty(),
+					tags = emptySet(),
+					state = null,
+					author = null,
+					source = source,
+				)
+			}
+	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -33,6 +107,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 		val state = when (infoEl?.selectFirst(".info-item:contains(Tình trạng) > .info-value")?.text()) {
 			"Đang tiến hành" -> MangaState.ONGOING
 			"Đã hoàn thành" -> MangaState.FINISHED
+			"Tạm ngưng" -> MangaState.PAUSED
 			else -> null
 		}
 		val rating = infoHeaderEl?.let {
@@ -66,53 +141,6 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 				)
 			},
 		)
-	}
-
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val sortQuery = when (sortOrder) {
-			SortOrder.UPDATED -> "update"
-			SortOrder.NEWEST -> "new"
-			SortOrder.RATING -> "like"
-			SortOrder.POPULARITY -> "top"
-			SortOrder.ALPHABETICAL -> "az"
-		}
-		val url = urlBuilder().apply {
-			addPathSegment("tim-kiem")
-			addQueryParameter("sort", sortQuery)
-			addQueryParameter("page", page.toString())
-			if (!query.isNullOrEmpty()) {
-				addQueryParameter("q", query)
-			}
-			if (!tags.isNullOrEmpty()) {
-				val tagsQuery = tags.joinToString(separator = ",") { it.key }
-				addEncodedQueryParameter("accept_genres", tagsQuery)
-			}
-		}.build()
-
-		return webClient.httpGet(url).parseHtml()
-			.select(".container .card.card-dark .row > .thumb-item-flow")
-			.mapNotNull {
-				val a = it.selectFirstOrThrow(".thumb-wrapper a")
-				Manga(
-					id = generateUid(a.attrAsRelativeUrl("href")),
-					url = a.attrAsRelativeUrl("href"),
-					publicUrl = a.attrAsAbsoluteUrl("href"),
-					title = it.select(".thumb_attr.series-title").text(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					isNsfw = false,
-					coverUrl = a.selectFirst("div[data-bg]")?.attrAsAbsoluteUrl("data-bg").orEmpty(),
-					tags = emptySet(),
-					state = null,
-					author = null,
-					source = source,
-				)
-			}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

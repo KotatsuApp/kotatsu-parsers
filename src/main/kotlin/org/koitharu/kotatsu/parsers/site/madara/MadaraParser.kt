@@ -180,15 +180,16 @@ internal abstract class MadaraParser(
 
 					is MangaListFilter.Advanced -> {
 
-						val tag = filter.tags.oneOrThrowIfMany()
 						if (filter.tags.isNotEmpty()) {
-							append("/$tagPrefix")
-							append(tag?.key.orEmpty())
-							if (pages > 1) {
-								append("/page/")
-								append(pages.toString())
+							filter.tags.oneOrThrowIfMany()?.let {
+								append("/$tagPrefix")
+								append(it.key)
+								if (pages > 1) {
+									append("/page/")
+									append(pages.toString())
+								}
+								append("/?")
 							}
-							append("/?")
 						} else {
 
 							if (pages > 1) {
@@ -241,8 +242,9 @@ internal abstract class MadaraParser(
 
 				is MangaListFilter.Advanced -> {
 
-					val tag = filter.tags.oneOrThrowIfMany()
-					payload["vars[wp-manga-genre]"] = tag?.key.orEmpty()
+					filter.tags.oneOrThrowIfMany()?.let {
+						payload["vars[wp-manga-genre]"] = it.key
+					}
 
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"

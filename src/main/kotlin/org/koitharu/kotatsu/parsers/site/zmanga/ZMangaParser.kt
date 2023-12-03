@@ -21,13 +21,9 @@ internal abstract class ZMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.POPULARITY,
-		SortOrder.ALPHABETICAL,
-		SortOrder.NEWEST,
-		SortOrder.RATING,
-	)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
 	protected open val listUrl = "advanced-search/"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -50,42 +46,56 @@ internal abstract class ZMangaParser(
 		"Completed",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/$listUrl")
+			append('/')
+			append(listUrl)
 			if (page > 1) {
 				append("page/")
 				append(page.toString())
-				append("/")
+				append('/')
 			}
 
-			append("?order=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("popular")
-				SortOrder.UPDATED -> append("update")
-				SortOrder.ALPHABETICAL -> append("title")
-				SortOrder.NEWEST -> append("latest")
-				SortOrder.RATING -> append("rating")
-			}
-			if (!query.isNullOrEmpty()) {
-				append("&title=")
-				append(query.urlEncoded())
-			}
+			when (filter) {
 
-			if (!tags.isNullOrEmpty()) {
-				for (tag in tags) {
-					append("&")
-					append("genre[]".urlEncoded())
-					append("=")
-					append(tag.key)
+				is MangaListFilter.Search -> {
+					append("&title=")
+					append(filter.query.urlEncoded())
 				}
+
+				is MangaListFilter.Advanced -> {
+
+					append("?order=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("popular")
+						SortOrder.UPDATED -> append("update")
+						SortOrder.ALPHABETICAL -> append("title")
+						SortOrder.NEWEST -> append("latest")
+						SortOrder.RATING -> append("rating")
+					}
+
+					filter.tags.forEach {
+						append("&")
+						append("genre[]".urlEncoded())
+						append("=")
+						append(it.key)
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								else -> ""
+							},
+						)
+					}
+				}
+
+				null -> append("?order=update")
 			}
 		}
 

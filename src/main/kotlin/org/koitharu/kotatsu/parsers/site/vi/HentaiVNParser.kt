@@ -35,6 +35,57 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		SortOrder.NEWEST,
 	)
 
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+		return when (filter) {
+
+			is MangaListFilter.Search -> {
+				val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
+				urlBuilder()
+				val searchUrl =
+					"/tim-kiem-truyen.html?key=${filter.query.urlEncoded()}&page=$page".toAbsoluteUrl(domain)
+				val docs = webClient.httpGet(searchUrl).parseHtml()
+				parseMainList(docs, page)
+			}
+
+			is MangaListFilter.Advanced -> {
+				val pageSize = if (filter.tags.isEmpty()) PAGE_SIZE else SEARCH_PAGE_SIZE
+				val page = (offset / pageSize.toFloat()).toIntUp() + 1
+
+				if (filter.tags.isNotEmpty()) {
+					val url = buildString {
+						val tagKey = "tag[]".urlEncoded()
+						append("/forum/search-plus.php?name=")
+						append("&dou=&char=")
+						filter.tags.forEach { tag ->
+							append("&")
+							append(tagKey)
+							append("=")
+							append(tag.key)
+						}
+						append("&search=")
+						append("&page=")
+						append(page)
+					}.toAbsoluteUrl(domain)
+
+					val docs = webClient.httpGet(url).parseHtml()
+					return parseAdvanceSearch(docs, page)
+				} else {
+					val site = if (filter.sortOrder == SortOrder.UPDATED) "/chap-moi" else "/danh-sach"
+					val url = "$site.html?page=$page".toAbsoluteUrl(domain)
+					context.cookieJar.insertCookies(domain, *getSortCookies(filter.sortOrder))
+					val docs = webClient.httpGet(url).parseHtml()
+					parseMainList(docs, page)
+				}
+			}
+
+			null -> {
+				val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
+				val url = "/chap-moi.html?page=$page".toAbsoluteUrl(domain)
+				parseMainList(webClient.httpGet(url).parseHtml(), page)
+			}
+		}
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chapterDeferred = async { fetchChapters(manga.url) }
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -77,48 +128,6 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			} ?: RATING_UNKNOWN,
 			chapters = chapterDeferred.await(),
 		)
-	}
-
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
-		val pageSize = if (tags.isNullOrEmpty()) PAGE_SIZE else SEARCH_PAGE_SIZE
-		val page = (offset / pageSize.toFloat()).toIntUp() + 1
-		return when {
-			!tags.isNullOrEmpty() -> {
-				val url = buildString {
-					val tagKey = "tag[]".urlEncoded()
-					append("/forum/search-plus.php?name=")
-					append(query?.urlEncoded().orEmpty())
-					append("&dou=&char=")
-					tags.forEach { tag ->
-						append("&")
-						append(tagKey)
-						append("=")
-						append(tag.key)
-					}
-					append("&search=")
-					append("&page=")
-					append(page)
-				}.toAbsoluteUrl(domain)
-
-				val docs = webClient.httpGet(url).parseHtml()
-				return parseAdvanceSearch(docs, page)
-			}
-
-			!query.isNullOrEmpty() -> {
-				urlBuilder()
-				val searchUrl = "/tim-kiem-truyen.html?key=${query.urlEncoded()}&page=$page".toAbsoluteUrl(domain)
-				val docs = webClient.httpGet(searchUrl).parseHtml()
-				parseMainList(docs, page)
-			}
-
-			else -> {
-				val site = if (sortOrder == SortOrder.UPDATED) "/chap-moi" else "/danh-sach"
-				val url = "$site.html?page=$page".toAbsoluteUrl(domain)
-				context.cookieJar.insertCookies(domain, *getSortCookies(sortOrder))
-				val docs = webClient.httpGet(url).parseHtml()
-				parseMainList(docs, page)
-			}
-		}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

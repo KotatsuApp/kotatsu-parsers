@@ -16,7 +16,10 @@ internal abstract class VmpParser(
 ) : PagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+
+	override val isMultipleTagsSupported = false
 
 	protected open val listUrl = "xxx/"
 	protected open val geneUrl = "genero/"
@@ -26,27 +29,42 @@ internal abstract class VmpParser(
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
-			append("https://$domain/")
-			if (!tags.isNullOrEmpty()) {
-				append(geneUrl)
-				append(tag?.key.orEmpty())
-				append("/page/")
-				append(page.toString())
-			} else {
-				append(listUrl)
-				append("/page/")
-				append(page.toString())
-				if (!query.isNullOrEmpty()) {
+			append("https://")
+			append(domain)
+			append('/')
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append(listUrl)
+					append("/page/")
+					append(page.toString())
 					append("?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(geneUrl)
+							append(it.key)
+							append("/page/")
+							append(page.toString())
+						}
+					} else {
+						append(listUrl)
+						append("/page/")
+						append(page.toString())
+					}
+				}
+
+				null -> {
+					append(listUrl)
+					append("/page/")
+					append(page.toString())
 				}
 			}
 		}

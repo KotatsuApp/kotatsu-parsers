@@ -14,40 +14,70 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
 	override val configKeyDomain = ConfigKey.Domain("truyenqqvn.com")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tagQuery = if (tags.isNullOrEmpty()) "" else tags.joinToString(separator = ",") { it.key }
-		val url = if (!query.isNullOrEmpty()) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/tim-kiem/trang-$page.html")
-				append("?q=")
-				append(query.urlEncoded())
-			}
-		} else {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/tim-kiem-nang-cao/trang-$page.html")
-				append("?status=-1&country=0&sort=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("4")
-					SortOrder.UPDATED -> append("2")
-					SortOrder.NEWEST -> append("0")
-					else -> append("2")
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		val url =
+			when (filter) {
+				is MangaListFilter.Search -> {
+					buildString {
+						append("https://")
+						append(domain)
+						append("/tim-kiem/trang-$page.html")
+						append("?q=")
+						append(filter.query.urlEncoded())
+					}
 				}
-				append("&category=")
-				append(tagQuery)
-				append("&notcategory=&minchapter=0")
+
+				is MangaListFilter.Advanced -> {
+					buildString {
+						append("https://")
+						append(domain)
+						append("/tim-kiem-nang-cao/trang-")
+						append(page.toString())
+						append(".html?country=0&sort=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("4")
+							SortOrder.UPDATED -> append("2")
+							SortOrder.NEWEST -> append("0")
+							else -> append("2")
+						}
+						if (filter.states.isNotEmpty()) {
+							filter.states.oneOrThrowIfMany()?.let {
+								append("&status=")
+								append(
+									when (it) {
+										MangaState.ONGOING -> "0"
+										MangaState.FINISHED -> "1"
+										else -> "-1"
+									},
+								)
+							}
+						} else {
+							append("&status=-1")
+						}
+
+						append("&category=")
+						append(filter.tags.joinToString(separator = ",") { it.key })
+						append("&notcategory=&minchapter=0")
+					}
+				}
+
+				null -> {
+					buildString {
+						append("https://")
+						append(domain)
+						append("/tim-kiem-nang-cao/trang-")
+						append(page.toString())
+						append(".html?status=-1&country=0&sort=2&category=&notcategory=&minchapter=0")
+					}
+
+				}
 			}
-		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.requireElementById("main_homepage").select("li").map { li ->
 			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")

@@ -7,6 +7,4 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 
 @MangaSourceParser("NETTRUYENMAX", "NettruyenMax", "vi")
 internal class Nettruyenmax(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.NETTRUYENMAX, "www.nettruyenus.com", 36) {
-	override val listUrl = "/tim-truyen"
-}
+	WpComicsParser(context, MangaSource.NETTRUYENMAX, "www.nettruyenus.com", 36)
