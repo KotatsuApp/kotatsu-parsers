@@ -22,13 +22,20 @@ import java.util.*
 private const val HEADER_ENCODING = "Content-Encoding"
 private const val PAGE_SIZE = 60
 
+// NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
 class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIUKR), Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
 	private val allManga = SoftSuspendLazy {
-		webClient.httpGet("https://$domain/search/objects.json").parseJson().getJSONArray("manga").toJSONList()
+		runCatchingCancellable {
+			webClient.httpGet("https://$domain/search/objects.json").parseJson()
+		}.recoverCatchingCancellable {
+			webClient.httpGet("https://$domain/search/objects2.json").parseJson()
+		}.recoverCatchingCancellable {
+			webClient.httpGet("https://$domain/search/objects69.json").parseJson()
+		}.getOrThrow().getJSONArray("manga").toJSONList()
 	}
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
