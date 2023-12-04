@@ -39,7 +39,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					append("/search/?q=")
+					append("/search/?q=pages:>0 ")
 					append(filter.query.urlEncoded())
 					append("&")
 				}
