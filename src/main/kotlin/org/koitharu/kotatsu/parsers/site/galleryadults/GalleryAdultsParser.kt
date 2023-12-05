@@ -6,6 +6,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -25,7 +26,6 @@ internal abstract class GalleryAdultsParser(
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -37,18 +37,19 @@ internal abstract class GalleryAdultsParser(
 				}
 
 				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							if (it.key == "languageKey") {
-								append("/language")
-								append(it.title)
-								append("/?")
-							} else {
-								append("/tag/")
-								append(it.key)
-								append("/?")
-							}
-						}
+					val tag = filter.tags.oneOrThrowIfMany()
+					val lang = filter.locale
+					if (tag != null && lang != null) {
+						throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_LOCALE_GENRES_NOT_SUPPORTED)
+					}
+					if (tag != null) {
+						append("/tag/")
+						append(tag.key)
+						append("/?")
+					} else if (filter.locale != null) {
+						append("/language/")
+						append(filter.locale.toLanguagePath())
+						append("/?")
 					} else {
 						append("/?")
 					}
@@ -102,39 +103,30 @@ internal abstract class GalleryAdultsParser(
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.ENGLISH,
+		Locale.FRENCH,
+		Locale.JAPANESE,
+		Locale.CHINESE,
+		Locale("es"),
+		Locale("ru"),
+		Locale("ko"),
+		Locale.GERMAN,
+		Locale("id"),
+		Locale.ITALIAN,
+		Locale("pt"),
+		Locale("tr"),
+		Locale("th"),
+		Locale("vi"),
+	)
+
 	protected open val pathTagUrl = "/tags/popular/?page="
 	protected open val selectTags = ".tags_page ul.tags li"
-	protected open val listLanguage = arrayOf(
-		"/english",
-		"/french",
-		"/japanese",
-		"/chinese",
-		"/spanish",
-		"/russian",
-		"/korean",
-		"/german",
-		"/indonesian",
-		"/italian",
-		"/portuguese",
-		"/turkish",
-		"/thai",
-		"/vietnamese",
-	) // The "/" is used to move them up in the tag list and therefore also in the url.
 
 	private suspend fun getTags(page: Int): Set<MangaTag> {
 		val url = "https://$domain$pathTagUrl$page"
 		val root = webClient.httpGet(url).parseHtml().selectFirstOrThrow(selectTags)
-		val tagLanguage = ArrayList<MangaTag>(listLanguage.size)
-		for (language in listLanguage) {
-			tagLanguage.add(
-				MangaTag(
-					key = "languageKey",
-					title = language,
-					source = source,
-				),
-			)
-		}
-		return root.parseTags() + tagLanguage
+		return root.parseTags()
 	}
 
 	protected open fun Element.parseTags() = select("a").mapToSet {
@@ -142,7 +134,7 @@ internal abstract class GalleryAdultsParser(
 		val name = it.html().substringBefore("<")
 		MangaTag(
 			key = key,
-			title = name,
+			title = name.toTitleCase(),
 			source = source,
 		)
 	}
@@ -203,5 +195,9 @@ internal abstract class GalleryAdultsParser(
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.requireElementById(idImg).src() ?: doc.parseFailed("Image src not found")
+	}
+
+	protected open fun Locale.toLanguagePath() = when (language) {
+		else -> getDisplayLanguage(Locale.ENGLISH).lowercase()
 	}
 }

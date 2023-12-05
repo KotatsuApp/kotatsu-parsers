@@ -1,15 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import org.jsoup.internal.StringUtil
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("HENTAI3", "3Hentai", type = ContentType.HENTAI)
 internal class Hentai3(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAI3, "3hentai.net") {
+	GalleryAdultsParser(context, MangaSource.HENTAI3, "3hentai.net", pageSize = 30) {
 
 	override val selectGallery = ".doujin "
 	override val selectGalleryLink = "a"
@@ -21,19 +22,20 @@ internal class Hentai3(context: MangaLoaderContext) :
 	override val selectLanguageChapter = "div.tag-container:contains(Languages) a"
 	override val selectUrlChapter = "#main-cover a"
 	override val idImg = ".js-main-img"
-	override val listLanguage = arrayOf(
-		"/english",
-		"/spanish",
-		"/french",
-		"/italian",
-		"/portuguese",
-		"/russian",
-		"/japanese",
-	)
 
 	override val isMultipleTagsSupported = true
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.ENGLISH,
+		Locale.FRENCH,
+		Locale.JAPANESE,
+		Locale("es"),
+		Locale("ru"),
+		Locale.ITALIAN,
+		Locale("pt"),
+	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
@@ -49,24 +51,26 @@ internal class Hentai3(context: MangaLoaderContext) :
 				}
 
 				is MangaListFilter.Advanced -> {
-
-					if (filter.tags.isNotEmpty() && filter.tags.size > 1) {
+					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search?q=")
-						append(buildQuery(filter.tags))
+						append(buildQuery(filter.tags, filter.locale))
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("&sort=popular")
 						}
 						append("&page=")
 						append(page.toString())
+					} else if (filter.locale != null) {
+						append("/language/")
+						append(filter.locale.toLanguagePath())
+						append("/")
+						append(page.toString())
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("?sort=popular")
+						}
 					} else if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
-							if (it.key == "languageKey") {
-								append("/language")
-								append(it.title)
-							} else {
-								append("/tags/")
-								append(it.key)
-							}
+							append("/tags/")
+							append(it.key)
 						}
 						append("/")
 						append(page.toString())
@@ -93,12 +97,18 @@ internal class Hentai3(context: MangaLoaderContext) :
 		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
 
-	private fun buildQuery(tags: Collection<MangaTag>) =
-		tags.joinToString(separator = " ") { tag ->
-			if (tag.key == "languageKey") {
-				"language:\"${tag.title.removePrefix("/")}\""
-			} else {
-				"tag:\"${tag.title}\""
-			}
+	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {
+		val joiner = StringUtil.StringJoiner(" ")
+		tags.forEach { tag ->
+			joiner.add("tag:\"")
+			joiner.append(tag.key)
+			joiner.append("\"")
 		}
+		language?.let { lc ->
+			joiner.add("language:\"")
+			joiner.append(lc.toLanguagePath())
+			joiner.append("\"")
+		}
+		return joiner.complete()
+	}
 }

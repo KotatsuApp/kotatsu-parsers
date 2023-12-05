@@ -1,15 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.lang.IllegalArgumentException
+import java.util.*
 
 @MangaSourceParser("NHENTAIUK", "NHentai.uk", type = ContentType.HENTAI)
 internal class NHentaiUk(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.NHENTAIUK, "nhentai.uk", 50) {
+	GalleryAdultsParser(context, MangaSource.NHENTAIUK, "nhentai.uk", pageSize = 50) {
 	override val selectGallery = ".gallery"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"
@@ -19,18 +20,19 @@ internal class NHentaiUk(context: MangaLoaderContext) :
 	override val selectAuthor = "div.tag-container:contains(Artists:) a"
 	override val selectLanguageChapter = "div.tag-container:contains(Languages:) a"
 	override val idImg = "image-container"
-	override val listLanguage = arrayOf(
-		"/english",
-		"/french",
-		"/japanese",
-		"/chinese",
-		"/spanish",
-		"/russian",
-		"/korean",
-		"/german",
-		"/italian",
-		"/portuguese",
-		"/turkish",
+
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.ENGLISH,
+		Locale.FRENCH,
+		Locale.JAPANESE,
+		Locale.CHINESE,
+		Locale("es"),
+		Locale("ru"),
+		Locale("ko"),
+		Locale.GERMAN,
+		Locale("pt"),
+		Locale.ITALIAN,
+		Locale("tr"),
 	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -41,23 +43,32 @@ internal class NHentaiUk(context: MangaLoaderContext) :
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					throw IllegalArgumentException("Search is not supported by this source")
+					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 				}
 
 				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							if (it.key == "languageKey") {
-								append("/language")
-								append(it.title)
-							} else {
+					when {
+						filter.locale != null && filter.tags.isNotEmpty() -> {
+							throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_LOCALE_GENRES_NOT_SUPPORTED)
+						}
+
+						filter.locale != null -> {
+							append("/language")
+							append(filter.locale.toLanguagePath())
+							append("/?p=")
+						}
+
+						filter.tags.isNotEmpty() -> {
+							filter.tags.oneOrThrowIfMany()?.let {
 								append("/tag/")
 								append(it.key)
 							}
+							append("/?p=")
 						}
-						append("/?p=")
-					} else {
-						append("/home?p=")
+
+						else -> {
+							append("/home?p=")
+						}
 					}
 				}
 

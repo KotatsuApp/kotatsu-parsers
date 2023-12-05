@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import okhttp3.Headers
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -8,7 +9,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
-import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -60,7 +60,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 						}
 
 					} else if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
-						throw IllegalArgumentException("Source does not support tag + states filters")
+						throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED)
 					} else {
 						when (filter.sortOrder) {
 							SortOrder.POPULARITY -> append("popular-comic")

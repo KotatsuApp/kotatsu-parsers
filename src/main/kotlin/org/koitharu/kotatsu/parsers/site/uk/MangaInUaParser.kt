@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.uk
 
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -23,6 +24,8 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua")
 
+	override val isMultipleTagsSupported: Boolean = false
+
 	private val userHashRegex by lazy {
 		Regex("site_login_hash\\s*=\\s*\'([^\']+)\'", RegexOption.IGNORE_CASE)
 	}
@@ -40,7 +43,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
 			tags.size == 1 -> "${tags.first().key}/page/$page"
-			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 genre")
+			tags.size > 1 -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
 			else -> "/mangas/page/$page".toAbsoluteUrl(domain)
 		}
 		val doc = webClient.httpGet(url).parseHtml()

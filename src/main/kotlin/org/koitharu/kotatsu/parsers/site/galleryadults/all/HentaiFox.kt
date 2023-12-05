@@ -1,12 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("HENTAIFOX", "HentaiFox", type = ContentType.HENTAI)
 internal class HentaiFox(context: MangaLoaderContext) :
@@ -16,21 +17,6 @@ internal class HentaiFox(context: MangaLoaderContext) :
 	override val selectTags = ".list_tags"
 	override val selectTag = "ul.tags"
 	override val selectLanguageChapter = "ul.languages a.tag_btn"
-	override val listLanguage = arrayOf(
-		"/english",
-		"/french",
-		"/japanese",
-		"/chinese",
-		"/spanish",
-		"/russian",
-		"/korean",
-		"/indonesian",
-		"/italian",
-		"/portuguese",
-		"/turkish",
-		"/thai",
-		"/vietnamese",
-	)
 
 	override val isMultipleTagsSupported = true
 
@@ -51,9 +37,9 @@ internal class HentaiFox(context: MangaLoaderContext) :
 				}
 
 				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty() && filter.tags.size > 1) {
+					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search/?q=")
-						append(buildQuery(filter.tags))
+						append(buildQuery(filter.tags, filter.locale))
 						if (page > 1) {
 							append("&page=")
 							append(page.toString())
@@ -64,14 +50,22 @@ internal class HentaiFox(context: MangaLoaderContext) :
 						}
 					} else if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
-							if (it.key == "languageKey") {
-								append("/language")
-								append(it.title)
-							} else {
-								append("/tag/")
-								append(it.key)
-							}
+							append("/tag/")
+							append(it.key)
 						}
+						append("/")
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("popular/")
+						}
+
+						if (page > 1) {
+							append("/pag/")
+							append(page.toString())
+							append("/")
+						}
+					} else if (filter.locale != null) {
+						append("/language/")
+						append(filter.locale.toLanguagePath())
 						append("/")
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("popular/")
@@ -122,12 +116,14 @@ internal class HentaiFox(context: MangaLoaderContext) :
 		)
 	}
 
-	private fun buildQuery(tags: Collection<MangaTag>) =
-		tags.joinToString(separator = " ") { tag ->
-			if (tag.key == "languageKey") {
-				tag.title.removePrefix("/")
-			} else {
-				tag.key
-			}
+	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {
+		val joiner = StringUtil.StringJoiner(" ")
+		tags.forEach { tag ->
+			joiner.add(tag.key)
 		}
+		language?.let { lc ->
+			joiner.add(lc.toLanguagePath())
+		}
+		return joiner.complete()
+	}
 }

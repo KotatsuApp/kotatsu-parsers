@@ -1,18 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.en
 
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
-import java.lang.IllegalArgumentException
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("RIZZCOMIC", "RizzComic", "en")
 internal class RizzComic(context: MangaLoaderContext) :
@@ -35,7 +31,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					throw IllegalArgumentException("Search is not supported by this source")
+					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 				}
 
 				is MangaListFilter.Advanced -> {

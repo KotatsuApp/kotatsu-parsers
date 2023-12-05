@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -10,7 +11,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
-import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -46,7 +46,7 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 			append(domain)
 			when (filter) {
 				is MangaListFilter.Search -> {
-					throw IllegalArgumentException("Search is not supported by this source")
+					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 				}
 
 				is MangaListFilter.Advanced -> {

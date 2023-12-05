@@ -6,10 +6,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("DOUJINDESUUK", "DoujinDesu.uk", type = ContentType.HENTAI)
 internal class DoujinDesuUk(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.DOUJINDESUUK, "doujindesu.uk", 50) {
+	GalleryAdultsParser(context, MangaSource.DOUJINDESUUK, "doujindesu.uk", 25) {
 	override val selectGallery = ".gallery"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"
@@ -19,10 +20,11 @@ internal class DoujinDesuUk(context: MangaLoaderContext) :
 	override val selectAuthor = "div.tag-container:contains(Artists) a"
 	override val selectLanguageChapter = "div.tag-container:contains(Languages) a"
 	override val idImg = "image-container"
-	override val listLanguage = arrayOf(
-		"/english",
-		"/japanese",
-		"/chinese",
+
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.ENGLISH,
+		Locale.JAPANESE,
+		Locale.CHINESE,
 	)
 
 	override fun parseMangaList(doc: Document): List<Manga> {
