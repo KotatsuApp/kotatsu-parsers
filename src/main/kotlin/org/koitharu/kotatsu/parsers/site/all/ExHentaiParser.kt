@@ -121,10 +121,10 @@ internal class ExHentaiParser(
 		return root.children().mapNotNull { tr ->
 			if (tr.childrenSize() != 2) return@mapNotNull null
 			val (td1, td2) = tr.children()
-			val glink = td2.selectFirstOrThrow("div.glink")
-			val a = glink.parents().select("a").first() ?: glink.parseFailed("link not found")
+			val gLink = td2.selectFirstOrThrow("div.glink")
+			val a = gLink.parents().select("a").first() ?: gLink.parseFailed("link not found")
 			val href = a.attrAsRelativeUrl("href")
-			val tagsDiv = glink.nextElementSibling() ?: glink.parseFailed("tags div not found")
+			val tagsDiv = gLink.nextElementSibling() ?: gLink.parseFailed("tags div not found")
 			val mainTag = td2.selectFirst("div.cn")?.let { div ->
 				MangaTag(
 					title = div.text().toTitleCase(),
@@ -134,7 +134,7 @@ internal class ExHentaiParser(
 			}
 			Manga(
 				id = generateUid(href),
-				title = glink.text().cleanupTitle(),
+				title = gLink.text().cleanupTitle(),
 				altTitle = null,
 				url = href,
 				publicUrl = a.absUrl("href"),

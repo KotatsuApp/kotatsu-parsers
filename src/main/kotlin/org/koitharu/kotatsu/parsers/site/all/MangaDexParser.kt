@@ -80,7 +80,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 						}
 					}
 					filter.locale?.let {
-						append("&originalLanguage[]=")
+						append("&availableTranslatedLanguage[]=")
 						append(it.language)
 					}
 				}

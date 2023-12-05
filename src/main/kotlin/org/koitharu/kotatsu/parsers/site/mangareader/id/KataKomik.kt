@@ -8,9 +8,6 @@ import java.util.*
 
 @MangaSourceParser("KATAKOMIK", "KataKomik", "id")
 internal class KataKomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KATAKOMIK, "katakomik.online", pageSize = 20, searchPageSize = 20) {
-
-	override val datePattern = "MMM d, yyyy"
+	MangaReaderParser(context, MangaSource.KATAKOMIK, "katakomik.my.id", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
-
 }
