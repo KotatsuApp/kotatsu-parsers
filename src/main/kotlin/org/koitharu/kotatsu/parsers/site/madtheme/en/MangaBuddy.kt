@@ -34,6 +34,5 @@ internal class MangaBuddy(context: MangaLoaderContext) :
 			)
 		}
 		return pages
-
 	}
 }

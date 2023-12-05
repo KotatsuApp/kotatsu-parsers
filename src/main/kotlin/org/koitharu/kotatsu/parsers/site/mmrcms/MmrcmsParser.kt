@@ -55,87 +55,114 @@ internal abstract class MmrcmsParser(
 		"مكتملة",
 	)
 
+	override val isMultipleTagsSupported = false
+
 	protected open val imgUpdated = "/cover/cover_250x350.jpg"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val url = if (!query.isNullOrEmpty() || !tags.isNullOrEmpty() || sortOrder != SortOrder.UPDATED) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/$listUrl/")
-				append("?page=")
-				append(page.toString())
-				append("&asc=true&author=&tag=")
-				append("&alpha=")
-				if (!query.isNullOrEmpty()) {
-					append(query.urlEncoded())
-				}
-				append("&cat=")
-				if (!tags.isNullOrEmpty()) {
-					append(tag?.key.orEmpty())
-				}
-				append("&sortBy=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.ALPHABETICAL -> append("name")
-					else -> append("name")
-				}
-			}
-		} else {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/latest-release")
-				append("?page=")
-				append(page.toString())
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
-		if (!query.isNullOrEmpty() || !tags.isNullOrEmpty() || sortOrder != SortOrder.UPDATED) {
-			return doc.select("div.media").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = div.selectFirst("img")?.src().orEmpty(),
-					title = div.selectFirstOrThrow("div.media-body h5").text().orEmpty(),
-					altTitle = null,
-					rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
-		} else {
-			return doc.select("div.manga-item").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				val deeplink = href.substringAfterLast("/")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = "https://$domain/uploads/manga/$deeplink$imgUpdated",
-					title = div.selectFirstOrThrow("h3 a").text().orEmpty(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
+		when (filter) {
+
+			is MangaListFilter.Search -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append('/')
+					append(listUrl)
+					append("/?page=")
+					append(page.toString())
+					append("&asc=true&author=&tag=&alpha=")
+					append(filter.query.urlEncoded())
+					append("&cat=&sortBy=views")
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
+			}
+
+			is MangaListFilter.Advanced -> {
+
+				if (filter.sortOrder == SortOrder.UPDATED) {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/latest-release?page=")
+						append(page.toString())
+					}
+					return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
+
+				} else {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append('/')
+						append(listUrl)
+						append("/?page=")
+						append(page.toString())
+						append("&asc=true&author=&tag=&alpha=&cat=")
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+						append("&sortBy=")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> append("views")
+							SortOrder.ALPHABETICAL -> append("name")
+							else -> append("name")
+						}
+					}
+					return parseMangaList(webClient.httpGet(url).parseHtml())
+				}
+			}
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/latest-release?page=")
+					append(page.toString())
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
+			}
+		}
+	}
+
+	protected open fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select("div.media").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirstOrThrow("div.media-body h5").text().orEmpty(),
+				altTitle = null,
+				rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+				isNsfw = isNsfwSource,
+			)
+		}
+	}
+
+	protected open fun parseMangaListUpdated(doc: Document): List<Manga> {
+		return doc.select("div.manga-item").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val deeplink = href.substringAfterLast("/")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = "https://$domain/uploads/manga/$deeplink$imgUpdated",
+				title = div.selectFirstOrThrow("h3 a").text().orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+				isNsfw = isNsfwSource,
+			)
+		}
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {

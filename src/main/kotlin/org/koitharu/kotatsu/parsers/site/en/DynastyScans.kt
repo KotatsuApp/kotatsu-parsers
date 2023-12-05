@@ -1,8 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import androidx.collection.ArraySet
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.json.JSONArray
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -22,85 +27,128 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			if (!query.isNullOrEmpty()) {
-				append("/search?q=")
-				append(query.urlEncoded())
-				append("&")
-				append("classes[]".urlEncoded())
-				append("=Serie&page=")
-				append(page.toString())
-			} else if (!tags.isNullOrEmpty()) {
-				append("/tags/")
-				for (tag in tags) {
-					append(tag.key)
-				}
-				append("?view=groupings&page=")
-				append(page.toString())
-			} else {
-				append("/series?view=cover&page=")
-				append(page.toString())
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
+	override val isMultipleTagsSupported = false
 
-		// There are no images on the search page
-		if (!query.isNullOrEmpty()) {
-			return doc.select("dl.chapter-list dd")
-				.map { div ->
-					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-					Manga(
-						id = generateUid(href),
-						title = div.selectFirstOrThrow("a").text(),
-						altTitle = null,
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						isNsfw = false,
-						coverUrl = "",
-						tags = div.select("span.tags a").mapNotNullToSet { a ->
-							MangaTag(
-								key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-								title = a.text(),
-								source = source,
-							)
-						},
-						state = null,
-						author = null,
-						source = source,
-					)
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		when (filter) {
+			is MangaListFilter.Search -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/search?q=")
+					append(filter.query.urlEncoded())
+					append("&")
+					append("classes[]".urlEncoded())
+					append("=Serie&page=")
+					append(page.toString())
 				}
-		} else {
-			return doc.select("li.span2")
-				.map { div ->
-					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-					Manga(
-						id = generateUid(href),
-						title = div.selectFirstOrThrow("div.caption").text(),
-						altTitle = null,
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						isNsfw = false,
-						coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
-						tags = setOf(),
-						state = null,
-						author = null,
-						source = source,
-					)
+				return parseMangaListQuery(webClient.httpGet(url).parseHtml())
+			}
+
+			is MangaListFilter.Advanced -> {
+
+				val url = buildString {
+					append("https://")
+					append(domain)
+					if (filter.tags.isNotEmpty()) {
+						append("/tags/")
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+						append("?view=groupings")
+					} else {
+						append("/series?view=cover")
+
+					}
+
+					append("&page=")
+					append(page.toString())
 				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
+			}
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/series?view=cover&page=")
+					append(page.toString())
+				}
+				return parseMangaList(webClient.httpGet(url).parseHtml())
+			}
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+
+	private fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select("li.span2")
+			.map { div ->
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					title = div.selectFirstOrThrow("div.caption").text(),
+					altTitle = null,
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = false,
+					coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
+					tags = setOf(),
+					state = null,
+					author = null,
+					source = source,
+				)
+			}
+	}
+
+	private fun parseMangaListQuery(doc: Document): List<Manga> {
+		return doc.select("dl.chapter-list dd")
+			.map { div ->
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					title = div.selectFirstOrThrow("a").text(),
+					altTitle = null,
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = false,
+					coverUrl = "",
+					tags = div.select("span.tags a").mapNotNullToSet { a ->
+						MangaTag(
+							key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+							title = a.text(),
+							source = source,
+						)
+					},
+					state = null,
+					author = null,
+					source = source,
+				)
+			}
+	}
+
+	override suspend fun getAvailableTags(): Set<MangaTag> {
+		return coroutineScope {
+			(1..3).map { page ->
+				async { getTags(page) }
+			}
+		}.awaitAll().flattenTo(ArraySet(360))
+	}
+
+	private suspend fun getTags(page: Int): Set<MangaTag> {
+		val url = "https://$domain/tags?page=$page"
+		val root = webClient.httpGet(url).parseHtml()
+		return root.selectFirstOrThrow(".tag-list ").parseTags()
+	}
+
+	private fun Element.parseTags() = select("a").mapToSet {
+		MangaTag(
+			key = it.attr("href").removeSuffix('/').substringAfterLast('/'),
+			title = it.text(),
+			source = source,
+		)
+	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -110,19 +158,14 @@ internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(cont
 			altTitle = null,
 			state = when (root.select("h2.tag-title small").last()?.text()) {
 				"— Ongoing" -> MangaState.ONGOING
-				"— Completed" -> MangaState.FINISHED
+				"— Completed", "— Completed and Licensed" -> MangaState.FINISHED
+				"— Dropped", "— Licensed and Removed", "— Abandoned" -> MangaState.ABANDONED
+				"— On Hiatus" -> MangaState.PAUSED
 				else -> null
 			},
 			coverUrl = root.selectFirst("img.thumbnail")?.src()
 				.orEmpty(), // It is needed if the manga was found via the search.
-			tags = root.select("div.tag-tags a").mapNotNullToSet { a ->
-				val href = a.attr("href").removeSuffix('/').substringAfterLast('/')
-				MangaTag(
-					key = href,
-					title = a.text(),
-					source = source,
-				)
-			},
+			tags = root.selectFirstOrThrow("div.tag-tags").parseTags(),
 			author = null,
 			description = null,
 			chapters = chapters,

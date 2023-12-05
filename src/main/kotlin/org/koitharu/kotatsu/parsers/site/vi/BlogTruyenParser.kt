@@ -29,8 +29,117 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	override val isMultipleTagsSupported = false
+
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
 	private var cacheTags = SuspendLazy(::fetchTags)
+
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
+		return when (filter) {
+
+			is MangaListFilter.Search -> {
+				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${filter.query.urlEncoded()}&p=$page"
+				val searchContent = webClient.httpGet(searchUrl).parseHtml()
+					.selectFirst("section.list-manga-bycate > div.list")
+				parseMangaList(searchContent)
+			}
+
+			is MangaListFilter.Advanced -> {
+
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.oneOrThrowIfMany().let {
+						val categoryAjax =
+							"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${it?.key}&orderBy=5&p=$page"
+						val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
+						parseMangaList(listContent)
+					}
+				} else {
+					getNormalList(page)
+				}
+			}
+
+			null -> getNormalList(page)
+		}
+	}
+
+	private suspend fun getNormalList(page: Int): List<Manga> {
+		val pageLink = "https://${domain}/page-$page"
+		val doc = webClient.httpGet(pageLink).parseHtml()
+		val listElements = doc.selectFirstOrThrow("section.list-mainpage.listview")
+			.select("div.bg-white.storyitem")
+
+		return listElements.mapNotNull { el ->
+			val linkTag = el.selectFirst("div.fl-l > a") ?: return@mapNotNull null
+			val relativeUrl = linkTag.attrAsRelativeUrl("href")
+			val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
+				el.select("footer > div.category > a").mapNotNullToSet { a ->
+					tagMap[a.text()]
+				}
+			}
+
+			Manga(
+				id = generateUid(relativeUrl),
+				title = linkTag.attr("title"),
+				altTitle = null,
+				description = el.selectFirst("p.al-j.break.line-height-15")?.text(),
+				url = relativeUrl,
+				publicUrl = relativeUrl.toAbsoluteUrl(domain),
+				coverUrl = linkTag.selectLast("img")?.src().orEmpty(),
+				source = source,
+				tags = tags ?: emptySet(),
+				isNsfw = false,
+				rating = RATING_UNKNOWN,
+				author = null,
+				state = null,
+			)
+		}
+	}
+
+	private fun parseMangaList(listElement: Element?): List<Manga> {
+		listElement ?: return emptyList()
+
+		return listElement.select("span.tiptip[data-tiptip]").mapNotNull {
+			val mangaInfo = listElement.getElementById(it.attr("data-tiptip")) ?: return@mapNotNull null
+			val a = it.selectFirst("a") ?: return@mapNotNull null
+			val relativeUrl = a.attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(relativeUrl),
+				title = a.text(),
+				altTitle = null,
+				description = mangaInfo.select("div.al-j.fs-12").text(),
+				url = relativeUrl,
+				publicUrl = relativeUrl.toAbsoluteUrl(domain),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.src().orEmpty(),
+				isNsfw = false,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+			)
+		}
+	}
+
+	override suspend fun getAvailableTags(): Set<MangaTag> {
+		return cacheTags.get().values.toSet()
+	}
+
+	private suspend fun fetchTags(): Map<String, MangaTag> {
+		val doc = webClient.httpGet("/timkiem/nangcao".toAbsoluteUrl(domain)).parseHtml()
+		val tagItems = doc.select("li[data-id]")
+		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
+		for (tag in tagItems) {
+			val title = tag.text().trim()
+			tagMap[tag.text().trim()] = MangaTag(
+				title = title,
+				key = tag.attr("data-id"),
+				source = source,
+			)
+		}
+		return tagMap
+	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -70,7 +179,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
-			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.imageUrl(),
+			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src().orEmpty(),
 			state = state,
 			rating = rating ?: RATING_UNKNOWN,
 			isNsfw = doc.getElementById("warningCategory") != null,
@@ -98,90 +207,6 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		return when {
-			!query.isNullOrEmpty() -> {
-				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${query.urlEncoded()}&p=$page"
-				val searchContent = webClient.httpGet(searchUrl).parseHtml()
-					.selectFirst("section.list-manga-bycate > div.list")
-				parseMangaList(searchContent)
-			}
-
-			!tags.isNullOrEmpty() -> {
-				val tag = tags.oneOrThrowIfMany()!!
-				val categoryAjax =
-					"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
-				val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
-				parseMangaList(listContent)
-			}
-
-			else -> getNormalList(page)
-		}
-	}
-
-	private suspend fun getNormalList(page: Int): List<Manga> {
-		val pageLink = "https://${domain}/page-$page"
-		val doc = webClient.httpGet(pageLink).parseHtml()
-		val listElements = doc.selectFirstOrThrow("section.list-mainpage.listview")
-			.select("div.bg-white.storyitem")
-
-		return listElements.mapNotNull { el ->
-			val linkTag = el.selectFirst("div.fl-l > a") ?: return@mapNotNull null
-			val relativeUrl = linkTag.attrAsRelativeUrl("href")
-			val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
-				el.select("footer > div.category > a").mapNotNullToSet { a ->
-					tagMap[a.text()]
-				}
-			}
-
-			Manga(
-				id = generateUid(relativeUrl),
-				title = linkTag.attr("title"),
-				altTitle = null,
-				description = el.selectFirst("p.al-j.break.line-height-15")?.text(),
-				url = relativeUrl,
-				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = linkTag.selectLast("img")?.imageUrl().orEmpty(),
-				source = source,
-				tags = tags ?: emptySet(),
-				isNsfw = false,
-				rating = RATING_UNKNOWN,
-				author = null,
-				state = null,
-			)
-		}
-	}
-
-	private fun parseMangaList(listElement: Element?): List<Manga> {
-		listElement ?: return emptyList()
-
-		return listElement.select("span.tiptip[data-tiptip]").mapNotNull {
-			val mangaInfo = listElement.getElementById(it.attr("data-tiptip")) ?: return@mapNotNull null
-			val a = it.selectFirst("a") ?: return@mapNotNull null
-			val relativeUrl = a.attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(relativeUrl),
-				title = a.text(),
-				altTitle = null,
-				description = mangaInfo.select("div.al-j.fs-12").text(),
-				url = relativeUrl,
-				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.imageUrl().orEmpty(),
-				isNsfw = false,
-				rating = RATING_UNKNOWN,
-				tags = emptySet(),
-				author = null,
-				state = null,
-				source = source,
-			)
-		}
-	}
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		fun generateImageId(index: Int) = generateUid("${chapter.url}/$index")
 
@@ -191,7 +216,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 			pages.add(
 				MangaPage(
 					id = generateImageId(pages.size),
-					url = img.imageUrl(),
+					url = img.src().orEmpty(),
 					preview = null,
 					source = source,
 				),
@@ -217,31 +242,5 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		}
 
 		return pages
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return cacheTags.get().values.toSet()
-	}
-
-
-	private suspend fun fetchTags(): Map<String, MangaTag> {
-		val doc = webClient.httpGet("/timkiem/nangcao".toAbsoluteUrl(domain)).parseHtml()
-		val tagItems = doc.select("li[data-id]")
-		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
-		for (tag in tagItems) {
-			val title = tag.text().trim()
-			tagMap[tag.text().trim()] = MangaTag(
-				title = title,
-				key = tag.attr("data-id"),
-				source = source,
-			)
-		}
-		return tagMap
-	}
-
-	private fun Element.imageUrl(): String {
-		return attrAsAbsoluteUrlOrNull("src")
-			?: attrAsAbsoluteUrlOrNull("data-cfsrc")
-			?: ""
 	}
 }

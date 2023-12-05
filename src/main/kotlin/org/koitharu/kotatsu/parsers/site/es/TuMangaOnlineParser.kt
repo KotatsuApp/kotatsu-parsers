@@ -32,41 +32,47 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.RATING,
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-
-		val order =
-			when (sortOrder) {
-				SortOrder.POPULARITY -> "likes_count"
-				SortOrder.UPDATED -> "release_date"
-				SortOrder.NEWEST -> "creation"
-				SortOrder.ALPHABETICAL -> "alphabetically"
-				SortOrder.RATING -> "score"
-
-			}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
+			append("https://")
+			append(domain)
 			append("/library")
-			if (query.isNullOrEmpty()) {
-				append("?order_item=")
-				append(order)
-				append("&order_dir=desc")
-				append("&filter_by=title")
-				if (tags != null) {
-					for (tag in tags) {
-						append("&genders[]=${tag.key}")
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append("?title=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					append("?order_item=")
+					append(
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> "likes_count"
+							SortOrder.UPDATED -> "release_date"
+							SortOrder.NEWEST -> "creation"
+							SortOrder.ALPHABETICAL -> "alphabetically"
+							SortOrder.RATING -> "score"
+
+						},
+					)
+					append("&order_dir=desc")
+					append("&filter_by=title")
+					if (filter.tags.isNotEmpty()) {
+						for (tag in filter.tags) {
+							append("&genders[]=")
+							append(tag.key)
+						}
 					}
 				}
-			} else {
-				append("?title=$query")
-			}
-			append("&_pg=1")
-			append("&page=$page")
-		}.toAbsoluteUrl(domain)
 
+				null -> {
+					append("?order_item=release_date&order_dir=desc&filter_by=title")
+				}
+			}
+			append("&_pg=1&page=")
+			append(page.toString())
+		}
 		val doc = webClient.httpGet(url, headers).parseHtml()
 		val items = doc.body().select("div.element")
 		return items.mapNotNull { item ->
@@ -95,6 +101,13 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		val contents = doc.body().selectFirstOrThrow("section.element-header-content")
 		return manga.copy(
 			description = contents.selectFirst("p.element-description")?.html(),
+			tags = contents.select("h6 a").mapNotNullToSet { a ->
+				MangaTag(
+					key = a.attr("href").substringBefore("&").substringAfterLast("="),
+					title = a.text(),
+					source = source,
+				)
+			},
 			largeCoverUrl = contents.selectFirst(".book-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
 			author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", "),
@@ -105,9 +118,9 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 			} else {
 				val chapters = ChaptersListBuilder(10)
 				doc.select(regularChapterListSelector).reversed().forEachIndexed { i, item ->
-					val chaptername = item.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
-					val scanelement = item.select("ul.chapter-list > li")
-					scanelement.forEach { chapters.add(regularChapterFromElement(it, chaptername, i)) }
+					val chapterName = item.select("div.col-10.text-truncate").text().replace("&nbsp;", " ").trim()
+					val scanElement = item.select("ul.chapter-list > li")
+					scanElement.forEach { chapters.add(regularChapterFromElement(it, chapterName, i)) }
 				}
 				chapters.toList()
 			},

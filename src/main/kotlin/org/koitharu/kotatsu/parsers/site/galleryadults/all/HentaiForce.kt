@@ -35,50 +35,60 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		"/vietnamese",
 	)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val isMultipleTagsSupported = true
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
-			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				val tag = tags.single()
-				if (tag.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-				} else {
-					append("/tag/")
-					append(tag.key)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search?q=")
+					append(filter.query.urlEncoded())
+					append("&page=")
 				}
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("/popular")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty() && filter.tags.size > 1) {
+						append("/search?q=")
+						append(buildQuery(filter.tags))
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("&sort=popular")
+						}
+						append("&page=")
+					} else if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+							} else {
+								append("/tag/")
+								append(it.key)
+							}
+						}
+						append("/")
+
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("popular/")
+						}
+						append("?")
+					} else {
+						append("/page/")
+					}
 				}
-				append("/")
-			} else if (!query.isNullOrEmpty()) {
-				append("/search?q=")
-				append(query.urlEncoded())
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("&sort=popular")
-				}
-				append("&page=")
-			} else {
-				append("/page/")
+
+				null -> append("/page/")
 			}
-			append(page)
+			append(page.toString())
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 

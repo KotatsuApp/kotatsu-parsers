@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 @MangaSourceParser("TOONITUBE", "TooniTube", "en", ContentType.HENTAI)
 internal class TooniTube(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.TOONITUBE, "toonitube.com") {
-
 	override val selectDesc = "div.summary div.section-body p.content"
 }

@@ -32,35 +32,63 @@ internal abstract class FoolSlideParser(
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val doc = if (!query.isNullOrEmpty()) {
-			val url = buildString {
-				append("https://$domain/$searchUrl")
-				if (page > 1) {
-					return emptyList()
-				}
-			}
-			val q = query.urlEncoded()
-			webClient.httpPost(url, "search=$q").parseHtml()
-		} else {
-			val url = buildString {
-				append("https://$domain/$listUrl")
-				// For some sites that don't have enough manga and page 2 links to page 1
-				if (!pagination) {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		val doc =
+			when (filter) {
+				is MangaListFilter.Search -> {
 					if (page > 1) {
 						return emptyList()
 					}
-				} else {
-					append(page.toString())
+
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/")
+						append(searchUrl)
+					}
+
+					webClient.httpPost(url, "search=${filter.query.urlEncoded()}").parseHtml()
+				}
+
+				is MangaListFilter.Advanced -> {
+
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/")
+						append(listUrl)
+						// For some sites that don't have enough manga and page 2 links to page 1
+						if (!pagination) {
+							if (page > 1) {
+								return emptyList()
+							}
+						} else {
+							append(page.toString())
+						}
+					}
+					webClient.httpGet(url).parseHtml()
+
+				}
+
+				null -> {
+					val url = buildString {
+						append("https://")
+						append(domain)
+						append("/")
+						append(listUrl)
+						if (!pagination) {
+							if (page > 1) {
+								return emptyList()
+							}
+						} else {
+							append(page.toString())
+						}
+					}
+					webClient.httpGet(url).parseHtml()
+
 				}
 			}
-			webClient.httpGet(url).parseHtml()
-		}
+
 		return doc.select("div.list div.group").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(

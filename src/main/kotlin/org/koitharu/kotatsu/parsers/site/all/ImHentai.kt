@@ -24,43 +24,50 @@ internal class ImHentai(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-
-			if (!query.isNullOrEmpty()) {
-				append("/search/?key=")
-				append(query.urlEncoded())
-				append("&page=")
-				append(page)
-			} else if (!tags.isNullOrEmpty()) {
-				append("/tag/")
-				append(tag?.key.orEmpty())
-				append("/")
-				when (sortOrder) {
-					SortOrder.UPDATED -> append("")
-					SortOrder.POPULARITY -> append("popular/")
-					else -> append("")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search/?key=")
+					append(filter.query.urlEncoded())
+					append("&page=")
+					append(page)
 				}
-				append("?page=")
-				append(page)
-			} else {
-				append("/search/?page=")
-				append(page)
-				when (sortOrder) {
-					SortOrder.UPDATED -> append("&lt=1&pp=0")
-					SortOrder.POPULARITY -> append("&lt=0&pp=1")
-					SortOrder.RATING -> append("&lt=0&pp=0")
-					else -> append("&lt=1&pp=0")
+
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/tag/")
+						append(tag?.key.orEmpty())
+						append("/")
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> append("")
+							SortOrder.POPULARITY -> append("popular/")
+							else -> append("")
+						}
+						append("?page=")
+						append(page)
+					} else {
+						append("/search/?page=")
+						append(page)
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> append("&lt=1&pp=0")
+							SortOrder.POPULARITY -> append("&lt=0&pp=1")
+							SortOrder.RATING -> append("&lt=0&pp=0")
+							else -> append("&lt=1&pp=0")
+						}
+					}
+				}
+
+				null -> {
+					append("/search/?lt=1&pp=0&page=")
+					append(page)
 				}
 			}
+
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("div.galleries div.thumb").map { div ->

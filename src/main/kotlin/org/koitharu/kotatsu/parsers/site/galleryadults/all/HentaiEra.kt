@@ -25,7 +25,9 @@ internal class HentaiEra(context: MangaLoaderContext) :
 		"/russian",
 	)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+
+	override val isMultipleTagsSupported = true
 
 	override fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
 		val key = it.attr("href").removeSuffix('/').substringAfterLast('/')
@@ -37,46 +39,54 @@ internal class HentaiEra(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (query.isNullOrEmpty() && tags != null && tags.size > 1) {
-			return getListPage(page, buildQuery(tags), emptySet(), sortOrder)
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				val tag = tags.single()
-				if (tag.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-				} else {
-					append("/tag/")
-					append(tag.key)
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append("/search/?key=")
+					append(filter.query.urlEncoded())
+					append("&")
 				}
-				append("/")
-				if (sortOrder == SortOrder.POPULARITY) {
-					append("popular/")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty() && filter.tags.size > 1) {
+						append("/search/?key=")
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append(buildQuery(filter.tags).replace("&lt=1&dl=0&pp=0&tr=0", "&lt=0&dl=0&pp=1&tr=0"))
+						} else {
+							append(buildQuery(filter.tags))
+						}
+						append("&")
+					} else if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+							} else {
+								append("/tag/")
+								append(it.key)
+							}
+						}
+						append("/")
+
+						if (filter.sortOrder == SortOrder.POPULARITY) {
+							append("popular/")
+						}
+						append("?")
+					} else {
+						append("/?")
+					}
 				}
-				append("?")
-			} else if (!query.isNullOrEmpty()) {
-				append("/search/?key=")
-				if (sortOrder == SortOrder.POPULARITY) {
-					append(query.replace("&lt=1&dl=0&pp=0&tr=0", "&lt=0&dl=0&pp=1&tr=0"))
-				} else {
-					append(query)
-				}
-				append("&")
-			} else {
-				append("/?")
+
+				null -> append("/?")
 			}
 			append("page=")
-			append(page)
+			append(page.toString())
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 

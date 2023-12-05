@@ -17,60 +17,52 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 
 	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"
+	override val availableStates: Set<MangaState> = emptySet()
+	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			if (page > lastSearchPage) {
-				return emptyList()
-			}
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append("/page/")
-				append(page)
-				append("/?s=")
-				append(query.urlEncoded())
-			}
-			val docs = webClient.httpGet(url).parseHtml()
-			lastSearchPage = docs.selectFirst(".pagination .next")
-				?.previousElementSibling()
-				?.text()?.toIntOrNull() ?: 1
-			return parseMangaList(docs)
-		}
-		if (!tags.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
-			val tag = tags.oneOrThrowIfMany()
-			val url = buildString {
-				append("https://")
-				append(domain)
-				append("/genres/?genre=")
-				append(tag?.key.orEmpty())
-			}
-			return parseMangaList(webClient.httpGet(url).parseHtml())
-		}
-		if (page > 1) {
-			return emptyList()
-		}
-		val sortQuery = when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "az"
-			SortOrder.NEWEST -> "new"
-			SortOrder.POPULARITY -> "views"
-			SortOrder.UPDATED -> ""
-			else -> ""
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append(listUrl)
-			append("/?order=")
-			append(sortQuery)
+
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append("/page/")
+					append(page.toString())
+					append("/?s=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					if (page > 1) {
+						return emptyList()
+					}
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/genres/?genre=")
+							append(it.key)
+						}
+					} else {
+						append(listUrl)
+						append("/?order=")
+						append(
+							when (filter.sortOrder) {
+								SortOrder.ALPHABETICAL -> "az"
+								SortOrder.NEWEST -> "new"
+								SortOrder.POPULARITY -> "views"
+								SortOrder.UPDATED -> ""
+								else -> ""
+							},
+						)
+					}
+				}
+
+				null -> {
+					append(listUrl)
+				}
+			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}

@@ -39,26 +39,37 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 	)
 
+	override val isMultipleTagsSupported = false
+
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
 
 	@InternalParsersApi
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val page = (offset / 20f).toIntUp().inc()
 		val domain = getDomain("seiga")
-		val url = when {
-			!query.isNullOrEmpty() -> return if (offset == 0) getSearchList(query, page) else emptyList()
-			tags.isNullOrEmpty() -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
-			tags.size == 1 -> "https://$domain/manga/list?category=${tags.first().key}&page=$page" +
-				"&sort=${getSortKey(sortOrder)}"
+		val url =
+			when (filter) {
+				is MangaListFilter.Search -> {
+					return if (offset == 0) getSearchList(filter.query, page) else emptyList()
+				}
 
-			tags.size > 1 -> throw IllegalArgumentException("This source supports only 1 category")
-			else -> "https://$domain/manga/list?page=$page&sort=${getSortKey(sortOrder)}"
-		}
+				is MangaListFilter.Advanced -> {
+
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany().let {
+							"https://$domain/manga/list?category=${it?.key}&page=$page&sort=${getSortKey(filter.sortOrder)}"
+						}
+
+					} else {
+						"https://$domain/manga/list?page=$page&sort=${getSortKey(filter.sortOrder)}"
+					}
+
+				}
+
+				null -> "https://$domain/manga/list?page=$page"
+			}
+
 		val doc = webClient.httpGet(url).parseHtml()
 		val comicList = doc.body().select("#comic_list > ul > li") ?: doc.parseFailed("Container not found")
 		val items = comicList.select("div > .description > div > div")
@@ -145,12 +156,12 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${getDomain("seiga")}/manga/list").parseHtml()
-		val root = doc.body().selectOrThrow("#mg_category_list > ul > li")
+		val root = doc.body().selectOrThrow("#mg_category_list > ul > li").drop(1)
 		return root.mapToSet { li ->
 			val a = li.selectFirstOrThrow("a")
 			MangaTag(
 				title = a.text(),
-				key = a.attrAsRelativeUrlOrNull("href").orEmpty(),
+				key = a.attrAsRelativeUrl("href").substringAfter("category=").substringBefore("&"),
 				source = source,
 			)
 		}

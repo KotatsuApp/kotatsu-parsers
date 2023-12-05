@@ -14,50 +14,71 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val listUrl = "mangax/"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
 
-			when {
-				!query.isNullOrEmpty() -> {
-					append("/page/")
-					append(pages.toString())
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					if (page > 1) {
+						append("/page/")
+						append(page.toString())
+					}
 					append("/?s=")
-					append(query.urlEncoded())
-					append("&post_type=wp-manga&")
+					append(filter.query.urlEncoded())
+					append("&post_type=wp-manga")
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					append("/page/")
-					append(pages.toString())
-					append("?")
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+						if (page > 1) {
+							append("/page/")
+							append(page.toString())
+						}
+						append("/?")
+					} else {
+						if (page > 1) {
+							append("/page/")
+							append(page.toString())
+						}
+						append("/?s=&post_type=wp-manga")
+						filter.states.forEach {
+							append("&status[]=")
+							when (it) {
+								MangaState.ONGOING -> append("on-going")
+								MangaState.FINISHED -> append("end")
+								MangaState.ABANDONED -> append("canceled")
+								MangaState.PAUSED -> append("on-hold")
+							}
+						}
+						append("&")
+					}
+
+					append("m_orderby=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.NEWEST -> append("new-manga")
+						SortOrder.ALPHABETICAL -> append("alphabet")
+						SortOrder.RATING -> append("rating")
+					}
 				}
 
-				else -> {
-
-					append("/$listUrl")
-					append("/page/")
-					append(pages.toString())
-					append("?")
+				null -> {
+					append("/?s&post_type=wp-manga&m_orderby=latest")
 				}
-			}
-			append("m_orderby=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("new-manga")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				SortOrder.RATING -> append("rating")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

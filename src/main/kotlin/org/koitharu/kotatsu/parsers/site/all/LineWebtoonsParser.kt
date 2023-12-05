@@ -132,83 +132,117 @@ internal abstract class LineWebtoonsParser(
 			}
 	}
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val genre = tags.oneOrThrowIfMany()?.key ?: "ALL"
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+		val manga =
+			when (filter) {
+				is MangaListFilter.Search -> {
+					makeRequest("/lineWebtoon/webtoon/searchChallenge?query=${filter.query.urlEncoded()}&startIndex=${offset + 1}&pageSize=20")
+						.getJSONObject("challengeSearch")
+						.getJSONArray("titleList")
+						.mapJSON { jo ->
+							val titleNo = jo.getLong("titleNo")
 
-		val sortOrderStr = when (sortOrder) {
-			SortOrder.UPDATED -> "UPDATE"
-			SortOrder.POPULARITY -> "READ_COUNT"
-			SortOrder.RATING -> "LIKEIT"
-			else -> throw IllegalArgumentException("Unsupported sort order: $sortOrder")
-		}
+							Manga(
+								id = generateUid(titleNo),
+								title = jo.getString("title"),
+								altTitle = null,
+								url = titleNo.toString(),
+								publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
+								rating = RATING_UNKNOWN,
+								isNsfw = isNsfwSource,
+								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+								largeCoverUrl = null,
+								tags = emptySet(),
+								author = jo.getStringOrNull("writingAuthorName"),
+								description = null,
+								state = null,
+								source = source,
+							)
+						}
+				}
 
-		val manga = if (query != null) {
-			if (!tags.isNullOrEmpty()) {
-				throw IllegalArgumentException("This source does not support search with tags")
+				is MangaListFilter.Advanced -> {
+
+					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
+
+					val sortOrderStr = when (filter.sortOrder) {
+						SortOrder.UPDATED -> "UPDATE"
+						SortOrder.POPULARITY -> "READ_COUNT"
+						SortOrder.RATING -> "LIKEIT"
+						else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
+					}
+
+					val result =
+						makeRequest("/lineWebtoon/webtoon/challengeGenreTitleList.json?genre=$genre&sortOrder=$sortOrderStr&startIndex=${offset + 1}&pageSize=20")
+
+					val genres = result.getJSONObject("genreList")
+						.getJSONArray("challengeGenres")
+						.mapJSON { jo -> parseTag(jo) }
+						.associateBy { tag -> tag.key }
+
+					result
+						.getJSONObject("titleList")
+						.getJSONArray("titles")
+						.mapJSON { jo ->
+							val titleNo = jo.getLong("titleNo")
+
+							Manga(
+								id = generateUid(titleNo),
+								title = jo.getString("title"),
+								altTitle = null,
+								url = titleNo.toString(),
+								publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
+								rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
+								isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+								largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
+								tags = setOfNotNull(genres[jo.getString("representGenre")]),
+								author = jo.getStringOrNull("writingAuthorName"),
+								description = jo.getString("synopsis"),
+								// I don't think the API provides this info
+								state = null,
+								source = source,
+							)
+						}
+				}
+
+				null -> {
+
+					val result =
+						makeRequest("/lineWebtoon/webtoon/challengeGenreTitleList.json?genre=ALL&sortOrder=UPDATE&startIndex=${offset + 1}&pageSize=20")
+
+					val genres = result.getJSONObject("genreList")
+						.getJSONArray("challengeGenres")
+						.mapJSON { jo -> parseTag(jo) }
+						.associateBy { tag -> tag.key }
+
+					result
+						.getJSONObject("titleList")
+						.getJSONArray("titles")
+						.mapJSON { jo ->
+							val titleNo = jo.getLong("titleNo")
+
+							Manga(
+								id = generateUid(titleNo),
+								title = jo.getString("title"),
+								altTitle = null,
+								url = titleNo.toString(),
+								publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
+								rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
+								isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+								largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
+								tags = setOfNotNull(genres[jo.getString("representGenre")]),
+								author = jo.getStringOrNull("writingAuthorName"),
+								description = jo.getString("synopsis"),
+								// I don't think the API provides this info
+								state = null,
+								source = source,
+							)
+						}
+				}
 			}
 
-			makeRequest("/lineWebtoon/webtoon/searchChallenge?query=${query.urlEncoded()}&startIndex=${offset + 1}&pageSize=20")
-				.getJSONObject("challengeSearch")
-				.getJSONArray("titleList")
-				.mapJSON { jo ->
-					val titleNo = jo.getLong("titleNo")
-
-					Manga(
-						id = generateUid(titleNo),
-						title = jo.getString("title"),
-						altTitle = null,
-						url = titleNo.toString(),
-						publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
-						rating = RATING_UNKNOWN,
-						isNsfw = isNsfwSource,
-						coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-						largeCoverUrl = null,
-						tags = emptySet(),
-						author = jo.getStringOrNull("writingAuthorName"),
-						description = null,
-						state = null,
-						source = source,
-					)
-				}
-		} else {
-			val result =
-				makeRequest("/lineWebtoon/webtoon/challengeGenreTitleList.json?genre=$genre&sortOrder=$sortOrderStr&startIndex=${offset + 1}&pageSize=20")
-
-			val genres = result.getJSONObject("genreList")
-				.getJSONArray("challengeGenres")
-				.mapJSON { jo -> parseTag(jo) }
-				.associateBy { tag -> tag.key }
-
-			result
-				.getJSONObject("titleList")
-				.getJSONArray("titles")
-				.mapJSON { jo ->
-					val titleNo = jo.getLong("titleNo")
-
-					Manga(
-						id = generateUid(titleNo),
-						title = jo.getString("title"),
-						altTitle = null,
-						url = titleNo.toString(),
-						publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
-						rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-						isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
-						coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-						largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
-						tags = setOfNotNull(genres[jo.getString("representGenre")]),
-						author = jo.getStringOrNull("writingAuthorName"),
-						description = jo.getString("synopsis"),
-						// I don't think the API provides this info
-						state = null,
-						source = source,
-					)
-				}
-		}
 
 		return manga
 	}
@@ -309,10 +343,10 @@ internal abstract class LineWebtoonsParser(
 		}
 
 		fun makeEncryptUrl(urlBuilder: HttpUrl.Builder) {
-			val msgpad = Calendar.getInstance().timeInMillis.toString()
-			val digest = getMessageDigest(getMessage(urlBuilder.build().toString(), msgpad))
+			val msgPad = Calendar.getInstance().timeInMillis.toString()
+			val digest = getMessageDigest(getMessage(urlBuilder.build().toString(), msgPad))
 			urlBuilder
-				.addQueryParameter("msgpad", msgpad)
+				.addQueryParameter("msgpad", msgPad)
 				.addQueryParameter("md", digest)
 //				.addEncodedQueryParameter("md", digest.urlEncoded())
 		}

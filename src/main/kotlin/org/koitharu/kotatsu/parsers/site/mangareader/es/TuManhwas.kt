@@ -12,41 +12,41 @@ import java.util.ArrayList
 import java.util.Calendar
 import java.util.EnumSet
 
-@MangaSourceParser("TU_MANHWAS", "TuManhwas", "es")
+@MangaSourceParser("TU_MANHWAS", "TuManhwas.com", "es")
 internal class TuManhwas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TU_MANHWAS, "tumanhwas.com", 20, 20) {
 	override val listUrl = "/biblioteca"
 	override val selectPage = "div#readerarea img"
-
-
-	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.NEWEST)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
+	override val availableStates: Set<MangaState> = emptySet()
+	override val isMultipleTagsSupported = false
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("?page=")
-			append(page)
-			if (!tags.isNullOrEmpty()) {
-				append("&genero=")
-				append(tag?.key.orEmpty())
-			}
-			if (!query.isNullOrEmpty()) {
-				append("&search=")
-				append(query.urlEncoded())
-			}
+			append(page.toString())
+			when (filter) {
 
+				is MangaListFilter.Search -> {
+					append("&search=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("&genero=")
+						append(it.key)
+					}
+				}
+
+				null -> {}
+			}
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
 import okhttp3.Headers
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -16,9 +17,7 @@ import java.util.*
 internal class LegacyScansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.LEGACY_SCANS, 18) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.POPULARITY,
-	)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 
@@ -26,86 +25,96 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		.add("User-Agent", UserAgents.CHROME_MOBILE)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val end = page * pageSize
 		val start = end - (pageSize - 1)
-		val url = if (!query.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
-			buildString {
-				append("https://api.$domain/misc/home/search?title=")
-				append(query.urlEncoded())
-			}
-		} else {
-			buildString {
-				append("https://api.$domain/misc/comic/search/query?status=&order=&genreNames=")
-				if (!tags.isNullOrEmpty()) {
-					for (tag in tags) {
-						append(tag.key)
-						append(',')
-					}
+
+		when (filter) {
+			is MangaListFilter.Search -> {
+				if (page > 1) {
+					return emptyList()
 				}
-				append("&type=&start=")
-				append(start)
-				append("&end=")
-				append(end)
+				val url = buildString {
+					append("https://api.$domain/misc/home/search?title=")
+					append(filter.query.urlEncoded())
+				}
+				return parseMangaListQuery(webClient.httpGet(url).parseJson())
 			}
 
-		}
-		val json = webClient.httpGet(url).parseJson()
-		return if (!query.isNullOrEmpty()) {
-			json.getJSONArray("results").mapJSON { j ->
-				val slug = j.getString("slug")
-				val urlManga = "https://$domain/comics/$slug"
-				Manga(
-					id = generateUid(urlManga),
-					title = j.getString("title"),
-					altTitle = null,
-					url = urlManga,
-					publicUrl = urlManga,
-					rating = RATING_UNKNOWN,
-					isNsfw = false,
-					coverUrl = "",
-					tags = setOf(),
-					state = null,
-					author = null,
-					source = source,
-				)
+			is MangaListFilter.Advanced -> {
+				val url = buildString {
+					append("https://api.")
+					append(domain)
+					append("/misc/comic/search/query?status=&order=&genreNames=")
+					append(filter.tags.joinToString(",") { it.key })
+					append("&type=&start=")
+					append(start)
+					append("&end=")
+					append(end)
+				}
+				return parseMangaList(webClient.httpGet(url).parseJson())
 			}
-		} else {
-			json.getJSONArray("comics").mapJSON { j ->
-				val slug = j.getString("slug")
-				val urlManga = "https://$domain/comics/$slug"
-				Manga(
-					id = generateUid(urlManga),
-					title = j.getString("title"),
-					altTitle = null,
-					url = urlManga,
-					publicUrl = urlManga,
-					rating = RATING_UNKNOWN,
-					isNsfw = false,
-					coverUrl = "https://api.$domain/" + j.getString("cover"),
-					tags = setOf(),
-					state = null,
-					author = null,
-					source = source,
-				)
-			}
-		}
 
+			null -> {
+				val url = buildString {
+					append("https://api.")
+					append(domain)
+					append("/misc/comic/search/query?status=&order=&genreNames=&type=&start=")
+					append(start)
+					append("&end=")
+					append(end)
+				}
+				return parseMangaList(webClient.httpGet(url).parseJson())
+			}
+		}
+	}
+
+
+	private fun parseMangaList(json: JSONObject): List<Manga> {
+		return json.getJSONArray("comics").mapJSON { j ->
+			val slug = j.getString("slug")
+			val urlManga = "https://$domain/comics/$slug"
+			Manga(
+				id = generateUid(urlManga),
+				title = j.getString("title"),
+				altTitle = null,
+				url = urlManga,
+				publicUrl = urlManga,
+				rating = RATING_UNKNOWN,
+				isNsfw = false,
+				coverUrl = "https://api.$domain/" + j.getString("cover"),
+				tags = setOf(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
+	}
+
+	private fun parseMangaListQuery(json: JSONObject): List<Manga> {
+		return json.getJSONArray("results").mapJSON { j ->
+			val slug = j.getString("slug")
+			val urlManga = "https://$domain/comics/$slug"
+			Manga(
+				id = generateUid(urlManga),
+				title = j.getString("title"),
+				altTitle = null,
+				url = urlManga,
+				publicUrl = urlManga,
+				rating = RATING_UNKNOWN,
+				isNsfw = false,
+				coverUrl = "",
+				tags = setOf(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH)
-
 		return manga.copy(
 			altTitle = null,
 			tags = root.select("div.serieGenre span").mapNotNullToSet { span ->
@@ -156,7 +165,6 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		val script = doc.requireElementById("__NUXT_DATA__").data()
 			.substringAfterLast("\"genres\"").substringBeforeLast("\"comics\"")
 			.split("\",\"").drop(1)
-
 		return script.mapNotNullToSet { tag ->
 			MangaTag(
 				key = tag.substringBeforeLast("\",{"),

@@ -20,49 +20,54 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 		SortOrder.UPDATED,
 	)
 
+	override val isMultipleTagsSupported = false
+
 	override val configKeyDomain = ConfigKey.Domain("scantrad-union.com")
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/tag/")
-					for (tag in tags) {
-						append(tag.key)
-						append(',')
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/tag/")
+							append(it.key)
+							append("/page/")
+							append(page.toString())
+							append("/")
+						}
+					} else {
+						if (filter.sortOrder == SortOrder.ALPHABETICAL) {
+							append("/manga/page/")
+							append(page.toString())
+							append("/")
+						}
+
+						if (filter.sortOrder == SortOrder.UPDATED && page > 1) {
+							return emptyList()
+						}
+
 					}
-					append("/page/")
+
+				}
+
+				null -> {
+					append("/manga/page/")
 					append(page.toString())
-				}
-
-				else -> {
-					if (sortOrder == SortOrder.ALPHABETICAL) {
-						append("/manga/")
-						append("/page/")
-						append(page.toString())
-					}
-
-					if (sortOrder == SortOrder.UPDATED) {
-						append("")
-					}
+					append("/")
 				}
 			}
 		}
@@ -180,9 +185,8 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 		val root = body.select(".asp_gochosen")[1]
 		val list = root?.select("option").orEmpty()
 		return list.mapToSet { li ->
-
 			MangaTag(
-				key = li.text(),
+				key = li.text().lowercase().replace(" ", "-"),
 				title = li.text(),
 				source = source,
 			)

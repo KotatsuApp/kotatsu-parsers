@@ -18,6 +18,78 @@ class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
 
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		val url = urlBuilder().apply {
+			addPathSegment("manga")
+			addPathSegment("page")
+			addPathSegment("$page/")
+
+			when (filter) {
+				is MangaListFilter.Search -> {
+					addQueryParameter("title", filter.query)
+				}
+
+				is MangaListFilter.Advanced -> {
+					addQueryParameter("title", "")
+					addQueryParameter(
+						"order",
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> "update"
+							SortOrder.POPULARITY -> "popular"
+							SortOrder.ALPHABETICAL -> "title"
+							SortOrder.NEWEST -> "latest"
+							else -> "latest"
+						},
+					)
+
+					filter.tags.forEach {
+						addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						addEncodedQueryParameter(
+							"statusx",
+							when (it) {
+								MangaState.ONGOING -> "Publishing"
+								MangaState.FINISHED -> "Finished"
+								else -> ""
+							},
+						)
+					}
+				}
+
+				null -> addQueryParameter("order", "update")
+			}
+		}.build()
+
+		return webClient.httpGet(url).parseHtml()
+			.requireElementById("archives")
+			.selectFirstOrThrow("div.entries")
+			.select(".entry")
+			.map {
+				val titleTag = it.selectFirstOrThrow(".metadata > a")
+				val relativeUrl = titleTag.attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(relativeUrl),
+					title = titleTag.attr("title"),
+					altTitle = null,
+					url = relativeUrl,
+					publicUrl = relativeUrl.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					isNsfw = true,
+					coverUrl = it.selectFirst(".thumbnail > img")?.src().orEmpty(),
+					tags = emptySet(),
+					state = null,
+					author = null,
+					largeCoverUrl = null,
+					description = null,
+					source = source,
+				)
+			}
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().selectFirstOrThrow("#archive")
 		val chapterDateFormat = SimpleDateFormat("EEEE, dd MMMM yyyy", sourceLocale)
@@ -56,56 +128,6 @@ class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 					)
 				},
 		)
-	}
-
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val url = urlBuilder().apply {
-			addPathSegment("manga")
-			addPathSegment("page")
-			addPathSegment("$page/")
-			val order = when (sortOrder) {
-				SortOrder.UPDATED -> "update"
-				SortOrder.POPULARITY -> "popular"
-				SortOrder.ALPHABETICAL -> "title"
-				SortOrder.NEWEST -> "latest"
-				else -> throw IllegalArgumentException("Sort order not supported")
-			}
-			addQueryParameter("order", order)
-			addQueryParameter("title", query.orEmpty())
-			tags?.forEach {
-				addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
-			}
-		}.build()
-
-		return webClient.httpGet(url).parseHtml()
-			.requireElementById("archives")
-			.selectFirstOrThrow("div.entries")
-			.select(".entry")
-			.map {
-				val titleTag = it.selectFirstOrThrow(".metadata > a")
-				val relativeUrl = titleTag.attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(relativeUrl),
-					title = titleTag.attr("title"),
-					altTitle = null,
-					url = relativeUrl,
-					publicUrl = relativeUrl.toAbsoluteUrl(domain),
-					rating = RATING_UNKNOWN,
-					isNsfw = true,
-					coverUrl = it.selectFirst(".thumbnail > img")?.src().orEmpty(),
-					tags = emptySet(),
-					state = null,
-					author = null,
-					largeCoverUrl = null,
-					description = null,
-					source = source,
-				)
-			}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

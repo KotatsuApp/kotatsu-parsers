@@ -23,44 +23,75 @@ internal abstract class LikeMangaParser(
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
+
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/?act=search&f")
-			append("[sortby]".urlEncoded())
-			append("=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("hot")
-				SortOrder.UPDATED -> append("lastest-chap")
-				SortOrder.NEWEST -> append("lastest-manga")
-				else -> append("lastest-chap")
+			append("/?act=search")
+
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("&f")
+					append("[keyword]".urlEncoded())
+					append("=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					append("&f")
+					append("[sortby]".urlEncoded())
+					append("=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("hot")
+						SortOrder.UPDATED -> append("lastest-chap")
+						SortOrder.NEWEST -> append("lastest-manga")
+						else -> append("lastest-chap")
+					}
+
+					if (filter.tags.isNotEmpty()) {
+						append("&f")
+						append("[genres]".urlEncoded())
+						append("=")
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&f")
+						append("[status]".urlEncoded())
+						append("=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "in-process"
+								MangaState.FINISHED -> "complete"
+								MangaState.PAUSED -> "pause"
+								else -> "all"
+							},
+						)
+					}
+				}
+
+				null -> {
+					append("&f")
+					append("[sortby]".urlEncoded())
+					append("=lastest-chap")
+				}
 			}
+
 			if (page > 1) {
 				append("&pageNum=")
 				append(page)
 			}
-			if (!tags.isNullOrEmpty()) {
-				append("&f")
-				append("[genres]".urlEncoded())
-				append("=")
-				append(tag?.key.orEmpty())
-			}
-			if (!query.isNullOrEmpty()) {
-				append("&f")
-				append("[keyword]".urlEncoded())
-				append("=")
-				append(query.urlEncoded())
-			}
+
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("div.card-body div.video").map { div ->

@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.animebootstrap.fr
 
-
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
@@ -13,20 +12,14 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 
-
 @MangaSourceParser("PAPSCAN", "PapScan", "fr")
 internal class PapScan(context: MangaLoaderContext) :
 	AnimeBootstrapParser(context, MangaSource.PAPSCAN, "papscan.com") {
-
 	override val sourceLocale: Locale = Locale.ENGLISH
-
 	override val isMultipleTagsSupported = false
-
 	override val listUrl = "/liste-manga"
-
 	override val selectState = "div.anime__details__widget li:contains(En cours)"
 	override val selectTag = "div.anime__details__widget li:contains(Genre) a"
-
 	override val selectChapter = "ul.chapters li"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -34,40 +27,39 @@ internal class PapScan(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL,
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-
-		val tag = tags.oneOrThrowIfMany()
-
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/filterList")
 			append("?page=")
 			append(page.toString())
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("&alpha=")
+					append(filter.query.urlEncoded())
+				}
 
-			if (!query.isNullOrEmpty()) {
-				append("&alpha=")
-				append(query.urlEncoded())
-			}
+				is MangaListFilter.Advanced -> {
 
-			if (!tags.isNullOrEmpty()) {
-				append("&cat=")
-				append(tag?.key.orEmpty())
-			}
-			append("&sortBy=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.ALPHABETICAL -> append("name")
-				else -> append("updated")
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("&cat=")
+						append(it.key)
+					}
+
+					append("&sortBy=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.ALPHABETICAL -> append("name")
+						else -> append("updated")
+					}
+
+				}
+
+				null -> append("&sortBy=updated")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.product__item").map { div ->
 			val href = div.selectFirstOrThrow("h5 a").attrAsRelativeUrl("href")
 			Manga(
@@ -103,17 +95,13 @@ internal class PapScan(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = async { getChapters(doc) }
-
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
 		val state = if (doc.select(selectState).isNullOrEmpty()) {
 			MangaState.FINISHED
 		} else {
 			MangaState.ONGOING
 		}
-
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
@@ -145,5 +133,4 @@ internal class PapScan(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }

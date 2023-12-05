@@ -24,15 +24,20 @@ internal abstract class NepnepParser(
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
 			return emptyList()
 		}
+
+		var foundTag = true
+		var foundState = true
+
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
 		val json = JSONArray(
 			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
@@ -41,18 +46,18 @@ internal abstract class NepnepParser(
 				.trim()
 				.replace(';', ' '),
 		)
-
-
 		val manga = ArrayList<Manga>(json.length())
+
 
 		for (i in 0 until json.length()) {
 			val m = json.getJSONObject(i)
 			val href = "/manga/" + m.getString("i")
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
-			when {
-				!query.isNullOrEmpty() -> {
-					if (m.getString("s").contains(query, ignoreCase = true) || m.getString("al")
-							.contains(query, ignoreCase = true)
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					if (m.getString("s").contains(filter.query, ignoreCase = true) || m.getString("al")
+							.contains(filter.query, ignoreCase = true)
 					) {
 						manga.add(
 							addManga(href, imgUrl, m),
@@ -60,29 +65,49 @@ internal abstract class NepnepParser(
 					}
 				}
 
-				!tags.isNullOrEmpty() -> {
-					val a = m.getJSONArray("g").toString()
-					var found = true
-					tags.forEach {
-						if (!a.contains(it.key, ignoreCase = true)) {
-							found = false
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						val tagsJon = m.getJSONArray("g").toString()
+						filter.tags.forEach {
+							foundTag = false
+							if (tagsJon.contains(it.key, ignoreCase = true)) {
+								foundTag = true
+							}
 						}
 					}
-					if (found) {
-						manga.add(
-							addManga(href, imgUrl, m),
-						)
+
+					if (filter.states.isNotEmpty()) {
+						val stateJson = m.getString("ps")
+						filter.states.oneOrThrowIfMany().let {
+							foundState = false
+							if (stateJson.contains(
+									when (it) {
+										MangaState.ONGOING -> "Ongoing"
+										MangaState.FINISHED -> "Complete"
+										MangaState.ABANDONED -> "Cancelled"
+										MangaState.PAUSED -> "Hiatus"
+										else -> ""
+									},
+									ignoreCase = true,
+								)
+							) {
+								foundState = true
+							}
+						}
+					}
+
+					if (foundTag && foundState) {
+						manga.add(addManga(href, imgUrl, m))
 					}
 				}
 
-				else -> {
+				null -> {
 					manga.add(
 						addManga(href, imgUrl, m),
 					)
 				}
 			}
-
-
 		}
 		return manga
 	}

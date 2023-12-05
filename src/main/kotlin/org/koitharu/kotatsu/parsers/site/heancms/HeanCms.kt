@@ -27,6 +27,8 @@ internal abstract class HeanCms(
 		SortOrder.POPULARITY,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
@@ -34,50 +36,54 @@ internal abstract class HeanCms(
 	protected open val pathManga = "series"
 
 	//For some sources, you need to send a json. For the moment, this part only works in Get. ( ex source need json gloriousscan.com , omegascans.org )
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-
-		var firstTag = false
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://api.")
 			append(domain)
 			append("/query?query_string=")
-
-			if (!query.isNullOrEmpty()) {
-				append(query.urlEncoded())
-			}
-
-			append("&series_status=All&order=desc&orderBy=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("total_views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("created_at")
-				SortOrder.ALPHABETICAL -> append("title")
-				else -> append("latest")
-			}
-
-			append("&series_type=Comic&page=")
-			append(page)
-			append("&perPage=12&tags_ids=")
-			append("[".urlEncoded())
-			if (!tags.isNullOrEmpty()) {
-				for (tag in tags) {
-					// Just to make it fit [1,2,44] ect
-					if (!firstTag) {
-						firstTag = true
-					} else {
-						append(",")
-					}
-					append(tag.key)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append(filter.query.urlEncoded())
 				}
+
+				is MangaListFilter.Advanced -> {
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&series_status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "Ongoing"
+								MangaState.FINISHED -> "Completed"
+								MangaState.ABANDONED -> "Dropped"
+								MangaState.PAUSED -> "Hiatus"
+							},
+						)
+
+					}
+					append("&order=desc")
+					append("&orderBy=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("total_views")
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.NEWEST -> append("created_at")
+						SortOrder.ALPHABETICAL -> append("title")
+						else -> append("latest")
+					}
+					append("&series_type=Comic&perPage=12")
+					append("&tags_ids=")
+					append("[".urlEncoded())
+					append(filter.tags.joinToString(",") { it.key })
+					append("]".urlEncoded())
+
+				}
+
+				null -> {}
 			}
-			append("]".urlEncoded())
+			append("&page=")
+			append(page.toString())
 		}
 		val json = webClient.httpGet(url).parseJson()
+
 		return json.getJSONArray("data").mapJSON { j ->
 			val slug = j.getString("series_slug")
 			val urlManga = "https://$domain/$pathManga/$slug"
@@ -107,7 +113,9 @@ internal abstract class HeanCms(
 				source = source,
 			)
 		}
+
 	}
+
 
 	protected open val datePattern = "yyyy-MM-dd"
 	override suspend fun getDetails(manga: Manga): Manga {

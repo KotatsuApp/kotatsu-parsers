@@ -26,48 +26,48 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val availableStates: Set<MangaState> get() = emptySet()
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+
+				is MangaListFilter.Search -> {
 					append("/search?q=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+					} else {
+						append("/$listUrl")
+					}
+
 					if (page > 1) {
 						append(page.toString())
 					}
-					append("?")
+
+					append("?orderby=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("trending")
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.ALPHABETICAL -> append("alphabet")
+						SortOrder.RATING -> append("rating")
+						else -> append("latest")
+					}
 				}
 
-				else -> {
-					append("/$listUrl")
-					if (page > 1) {
-						append(page)
-					}
-					append("?")
+				null -> {
+					append("?s&post_type=wp-manga&m_orderby=latest")
 				}
-			}
-			append("m_orderby=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("trending")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.ALPHABETICAL -> append("alphabet")
-				SortOrder.RATING -> append("rating")
-				else -> append("latest")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -35,21 +36,27 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		if (page > 1) {
+			return emptyList()
+		}
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (page == 1) {
-				if (sortOrder == SortOrder.ALPHABETICAL) {
-					append("/mangas")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					throw IllegalArgumentException("Search is not supported by this source")
 				}
-			} else {
-				return emptyList()
+
+				is MangaListFilter.Advanced -> {
+
+					if (filter.sortOrder == SortOrder.ALPHABETICAL) {
+						append("/mangas")
+					}
+				}
+
+				null -> {}
 			}
 		}
 

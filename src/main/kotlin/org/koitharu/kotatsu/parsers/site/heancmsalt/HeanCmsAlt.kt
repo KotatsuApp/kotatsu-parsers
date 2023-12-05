@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -33,23 +34,24 @@ internal abstract class HeanCmsAlt(
 	protected open val selectManga = "div.grid.grid-cols-2 div:not([class]):contains(M)"
 	protected open val selectMangaTitle = "h5"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		// No search or tag
-		if (!query.isNullOrEmpty()) {
-			return emptyList()
-		}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					throw IllegalArgumentException("Search is not supported by this source")
+				}
+
+				is MangaListFilter.Advanced -> {
+				}
+
+				null -> {}
+			}
 			if (page > 1) {
 				append("?page=")
-				append(page)
+				append(page.toString())
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

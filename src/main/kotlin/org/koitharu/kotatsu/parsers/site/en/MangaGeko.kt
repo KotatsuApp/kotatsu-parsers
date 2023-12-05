@@ -25,42 +25,49 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
-		val url = if (!query.isNullOrEmpty()) {
-			if (page > 1) {
-				return emptyList()
-			}
-			buildString {
-				append("https://$domain/search/?search=")
-				append(query.urlEncoded())
-			}
-		} else {
-			buildString {
-				append("https://$domain/browse-comics/?results=")
-				append(page)
-				append("&filter=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.UPDATED -> append("Updated")
-					SortOrder.NEWEST -> append("New")
-					else -> append("Updated")
+		val url = buildString {
+			append("https://")
+			append(domain)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					if (page > 1) {
+						return emptyList()
+					}
+					append("/search/?search=")
+					append(filter.query.urlEncoded())
 				}
-				if (!tags.isNullOrEmpty()) {
-					append("&genre=")
-					append(tag?.key.orEmpty())
+
+				is MangaListFilter.Advanced -> {
+
+					append("/browse-comics/?results=")
+					append(page)
+
+					append("&filter=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("Updated")
+						SortOrder.NEWEST -> append("New")
+						else -> append("Updated")
+					}
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("&genre=")
+							append(it.key)
+						}
+					}
+				}
+
+				null -> {
+					append("/browse-comics/?results=")
+					append(page)
+					append("&filter=Updated")
 				}
 			}
 		}
-
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("li.novel-item").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(

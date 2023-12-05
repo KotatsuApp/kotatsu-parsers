@@ -23,46 +23,48 @@ internal class InstaManhwa(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val availableStates: Set<MangaState> get() = emptySet()
+
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-
-			when {
-				!query.isNullOrEmpty() -> {
-
-					append("/?search=")
-					append(query.urlEncoded())
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search?q=")
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(pages.toString())
-					append("&post_type=wp-manga&post_type=wp-manga")
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/genre/")
-					append(tag?.key.orEmpty())
-					append("?page=")
-					append(pages.toString())
+				is MangaListFilter.Advanced -> {
 
-				}
-
-				else -> {
-
-					when (sortOrder) {
-						SortOrder.UPDATED -> append("/latest")
-						SortOrder.NEWEST -> append("/new")
-						SortOrder.ALPHABETICAL -> append("/alphabet")
-						else -> append("/latest")
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/genre/")
+						append(tag?.key.orEmpty())
+						append("?page=")
+						append(page.toString())
+					} else {
+						when (filter.sortOrder) {
+							SortOrder.UPDATED -> append("/latest")
+							SortOrder.NEWEST -> append("/new")
+							SortOrder.ALPHABETICAL -> append("/alphabet")
+							else -> append("/latest")
+						}
+						append("?page=")
+						append(page.toString())
 					}
-					append("?page=")
-					append(pages.toString())
+				}
+
+				null -> {
+					append("/latest?page=")
+					append(page.toString())
 				}
 			}
 		}

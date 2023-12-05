@@ -22,35 +22,69 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 		SortOrder.UPDATED,
 	)
 
-	private val regexTag = Regex("[^\\-]+-[^\\-]+-[^\\-]+-[^\\-]+-[^\\-]+-[^\\-]+")
+	override val availableStates: Set<MangaState> = EnumSet.of(
+		MangaState.ONGOING,
+		MangaState.FINISHED,
+	)
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val sortKey = when (sortOrder) {
-			SortOrder.ALPHABETICAL -> "?name.az"
-			SortOrder.RATING -> "?rating.za"
-			SortOrder.UPDATED -> "?last_chapter_time.za"
-			else -> ""
-		}
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val page = (offset / 30) + 1
-		val url = when {
-			!query.isNullOrEmpty() -> {
-				if (offset != 0) {
-					return emptyList()
+		val url = buildString {
+			append("https://")
+			append(domain)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search?name=")
+					append(filter.query.urlEncoded())
+					append("&page=")
+					append(page.toString())
 				}
-				"/search?name=${query.urlEncoded()}".toAbsoluteUrl(domain)
-			}
 
-			tags.isNullOrEmpty() -> "/directory/$page.htm$sortKey".toAbsoluteUrl(domain)
-			tags.size == 1 -> "/directory/${tags.first().key}/$page.htm$sortKey".toAbsoluteUrl(domain)
-			else -> tags.joinToString(
-				prefix = "/search?page=$page".toAbsoluteUrl(domain),
-			) { tag ->
-				"&genres[${tag.key}]=1"
+				is MangaListFilter.Advanced -> {
+					append("/directory/")
+					append("0-")
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append(it.key)
+						}
+					} else {
+						append("0")
+					}
+					append("-0-")
+
+					if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									MangaState.ONGOING -> "ongoing"
+									MangaState.FINISHED -> "completed"
+									else -> "0"
+								},
+							)
+						}
+					} else {
+						append("0")
+					}
+
+					append("-0-0/")
+					append(page.toString())
+					append(".htm")
+
+					append(
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> ""
+							SortOrder.UPDATED -> "?last_chapter_time.za"
+							SortOrder.ALPHABETICAL -> "?name.az"
+							SortOrder.RATING -> "?rating.za"
+							else -> "?last_chapter_time.za"
+						},
+					)
+				}
+
+				null -> append("/directory/$page.htm?last_chapter_time.za")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -81,7 +115,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 				tags = li.selectFirst("p.keyWord")?.select("a")?.mapNotNullToSet tags@{ x ->
 					MangaTag(
 						title = x.attr("title").toTitleCase(),
-						key = x.attr("href").parseTagKey() ?: return@tags null,
+						key = x.attr("href").substringAfter("/directory/0-").substringBefore("-0-"),
 						source = MangaSource.MANGATOWN,
 					)
 				}.orEmpty(),
@@ -106,7 +140,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 			}?.select("a")?.mapNotNull { a ->
 				MangaTag(
 					title = a.attr("title").toTitleCase(),
-					key = a.attr("href").parseTagKey() ?: return@mapNotNull null,
+					key = a.attr("href").substringAfter("/directory/0-").substringBefore("-0-"),
 					source = MangaSource.MANGATOWN,
 				)
 			}.orEmpty(),
@@ -165,10 +199,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 			?.nextElementSibling() ?: doc.parseFailed("Root not found")
 		return root.select("li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
-			val key = a.attr("href").parseTagKey()
-			if (key.isNullOrEmpty()) {
-				return@mapNotNullToSet null
-			}
+			val key = a.attr("href").substringAfter("/directory/0-").substringBefore("-0-")
 			MangaTag(
 				source = MangaSource.MANGATOWN,
 				key = key,
@@ -211,6 +242,4 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 			)
 		}
 	}
-
-	private fun String.parseTagKey() = split('/').findLast { regexTag matches it }
 }

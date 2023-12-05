@@ -23,6 +23,10 @@ internal abstract class SinmhParser(
 		SortOrder.POPULARITY,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+	override val isMultipleTagsSupported = false
+
 	protected open val searchUrl = "search/"
 	protected open val listUrl = "list/"
 
@@ -41,40 +45,55 @@ internal abstract class SinmhParser(
 		"已完结",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
-					append("/$searchUrl?keywords=")
-					append(query.urlEncoded())
+			append('/')
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					append(searchUrl)
+					append("?keywords=")
+					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page)
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$listUrl")
-					append(tag?.key.orEmpty())
-					append("/$page/")
-				}
+				is MangaListFilter.Advanced -> {
+					append(listUrl)
+					filter.tags.oneOrThrowIfMany()?.let {
+						append(it.key)
+					}
 
-				else -> {
+					filter.states.oneOrThrowIfMany()?.let {
+						append(
+							when (it) {
+								MangaState.ONGOING -> "-lianzai"
+								MangaState.FINISHED -> "-wanjie"
+								else -> ""
+							},
+						)
+					}
 
-					append("/$listUrl")
-					when (sortOrder) {
+					if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
+						append('/')
+					}
+
+					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("click/")
 						SortOrder.UPDATED -> append("update/")
-						else -> append("")
+						else -> append("/")
 					}
-					append("?page=")
-					append(page)
+					append(page.toString())
+					append('/')
+				}
+
+				null -> {
+					append(listUrl)
+					append("update/")
+					append(page.toString())
+					append('/')
 				}
 			}
 

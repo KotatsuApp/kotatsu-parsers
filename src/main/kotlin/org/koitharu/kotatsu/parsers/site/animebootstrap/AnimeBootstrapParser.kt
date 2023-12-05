@@ -11,8 +11,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-// see https://themewagon.com/themes/free-bootstrap-4-html5-gaming-anime-website-template-anime/
-
 internal abstract class AnimeBootstrapParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -40,13 +38,7 @@ internal abstract class AnimeBootstrapParser(
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -55,23 +47,31 @@ internal abstract class AnimeBootstrapParser(
 			append(page.toString())
 			append("&type=all")
 
-			if (!query.isNullOrEmpty()) {
-				append("&search=")
-				append(query.urlEncoded())
-			}
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("&search=")
+					append(filter.query.urlEncoded())
+				}
 
-			if (!tags.isNullOrEmpty()) {
-				append("&categorie=")
-				append(tag?.key.orEmpty())
-			}
+				is MangaListFilter.Advanced -> {
 
-			append("&sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("view")
-				SortOrder.UPDATED -> append("updated")
-				SortOrder.ALPHABETICAL -> append("default")
-				SortOrder.NEWEST -> append("published")
-				else -> append("updated")
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("&categorie=")
+						append(it.key)
+					}
+
+					append("&sort=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("view")
+						SortOrder.UPDATED -> append("updated")
+						SortOrder.ALPHABETICAL -> append("default")
+						SortOrder.NEWEST -> append("published")
+						else -> append("updated")
+					}
+
+				}
+
+				null -> append("&sort=updated")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -115,11 +115,8 @@ internal abstract class AnimeBootstrapParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = async { getChapters(doc) }
-
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
 		val state = if (doc.select(selectState).isNullOrEmpty()) {
 			MangaState.FINISHED
 		} else {

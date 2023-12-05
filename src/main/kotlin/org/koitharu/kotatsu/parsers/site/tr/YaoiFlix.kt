@@ -16,43 +16,50 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 
 	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.pro")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					if (page > 1) {
 						append("/page/")
-						append(page)
+						append(page.toString())
 					}
 					append("/?s=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/dizi-kategori/")
-					append(tag?.key.orEmpty())
-					append("/")
-					if (page > 1) {
-						append("page/")
-						append(page)
-						append("/")
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("/dizi-kategori/")
+							append(it.key)
+							append("/")
+							if (page > 1) {
+								append("page/")
+								append(page.toString())
+								append('/')
+							}
+						}
+					} else {
+						append("/tum-seriler/")
+						if (page > 1) {
+							append("page/")
+							append(page.toString())
+							append('/')
+						}
 					}
 				}
 
-				else -> {
+				null -> {
 					append("/tum-seriler/")
 					if (page > 1) {
 						append("page/")
-						append(page)
-						append("/")
+						append(page.toString())
+						append('/')
 					}
 				}
 			}

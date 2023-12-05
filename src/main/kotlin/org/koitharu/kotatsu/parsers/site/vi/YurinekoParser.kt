@@ -5,30 +5,12 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.json.asIterable
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.parseJsonArray
-import org.koitharu.kotatsu.parsers.util.requireElementById
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
@@ -44,45 +26,25 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	private val apiDomain
 		get() = "api.$domain"
 
-	override suspend fun getDetails(manga: Manga): Manga {
-		val response = webClient.httpGet(manga.url.toAbsoluteUrl(apiDomain)).parseJson()
-		val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-		return manga.copy(
-			chapters = response.getJSONArray("chapters")
-				.toJSONList()
-				.mapChapters(true) { i, jo ->
-					val mangaId = jo.getInt("mangaID")
-					val chapterId = jo.getInt("id")
-					MangaChapter(
-						id = generateUid(chapterId.toLong()),
-						name = jo.getString("name"),
-						number = i + 1,
-						scanlator = null,
-						url = "/read/$mangaId/$chapterId",
-						uploadDate = df.tryParse(jo.getString("date")),
-						branch = null,
-						source = source,
-					)
-				},
-		)
-	}
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+		val listUrl =
+			when (filter) {
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val listUrl = when {
-			!query.isNullOrEmpty() -> "/search?query=${query.urlEncoded()}&page=$page"
-			tags.isNullOrEmpty() -> "/lastest2?page=$page"
-			tags.size == 1 -> "/searchType?type=tag&id=${tags.first().key}&page=$page"
-			else -> {
-				// Sort order is different when filter with multiple tags
-				val tagKeys = tags.joinToString(separator = ",") { it.key }
-				"/advancedSearch?genre=$tagKeys&notGenre=&sort=7&minChapter=1&status=0&page=$page"
+				is MangaListFilter.Search -> {
+					"/search?query=${filter.query.urlEncoded()}&page=$page"
+				}
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						val tagKeys = filter.tags.joinToString(separator = ",") { it.key }
+						"/advancedSearch?genre=$tagKeys&notGenre=&sort=7&minChapter=1&status=0&page=$page"
+					} else {
+						"/lastest2?page=$page"
+					}
+				}
+
+				null -> "/lastest2?page=$page"
 			}
-		}
 		val jsonResponse = webClient.httpGet(listUrl.toAbsoluteUrl(apiDomain)).parseJson()
 		return jsonResponse.getJSONArray("result")
 			.mapJSON { jo ->
@@ -117,6 +79,29 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 					source = source,
 				)
 			}
+	}
+
+	override suspend fun getDetails(manga: Manga): Manga {
+		val response = webClient.httpGet(manga.url.toAbsoluteUrl(apiDomain)).parseJson()
+		val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+		return manga.copy(
+			chapters = response.getJSONArray("chapters")
+				.toJSONList()
+				.mapChapters(true) { i, jo ->
+					val mangaId = jo.getInt("mangaID")
+					val chapterId = jo.getInt("id")
+					MangaChapter(
+						id = generateUid(chapterId.toLong()),
+						name = jo.getString("name"),
+						number = i + 1,
+						scanlator = null,
+						url = "/read/$mangaId/$chapterId",
+						uploadDate = df.tryParse(jo.getString("date")),
+						branch = null,
+						source = source,
+					)
+				},
+		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

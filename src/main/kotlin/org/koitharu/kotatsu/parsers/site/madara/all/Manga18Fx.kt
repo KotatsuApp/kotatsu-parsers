@@ -19,39 +19,49 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 	override val selectDate = "span.chapter-time"
 	override val selectChapter = "li.a-h"
 	override val selectBodyPage = "div.read-content"
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
+
+	override val availableStates: Set<MangaState> get() = emptySet()
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-			when {
-				!query.isNullOrEmpty() -> {
-
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/search?q=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(pages)
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/$tagPrefix")
-					append(tag?.key.orEmpty())
-					if (pages > 1) {
-						append("/")
-						append(pages)
+				is MangaListFilter.Advanced -> {
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("/$tagPrefix")
+						append(tag?.key.orEmpty())
+						if (page > 1) {
+							append("/")
+							append(page.toString())
+						}
+					} else {
+						if (page > 1) {
+							append("/page/")
+							append(page)
+						}
 					}
 				}
 
-				else -> {
-					if (pages > 1) {
+				null -> {
+					if (page > 1) {
 						append("/page/")
-						append(pages)
+						append(page)
 					}
 				}
 			}

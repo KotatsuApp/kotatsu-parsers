@@ -3,8 +3,9 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -13,48 +14,46 @@ import java.util.*
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
-
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val selectPage = "div#chapter_imgs img"
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableStates: Set<MangaState> get() = emptySet()
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	init {
+		paginator.firstPage = 1
+		searchPaginator.firstPage = 1
+	}
 
-		val tag = tags.oneOrThrowIfMany()
-
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			val pages = page + 1
-
-			when {
-				!query.isNullOrEmpty() -> {
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("/mangas?buscar=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 					append("&page=")
-					append(pages.toString())
+					append(page.toString())
 				}
 
-				!tags.isNullOrEmpty() -> {
-					append("/mangas?tag=")
-					append(tag?.key.orEmpty())
-					append("&page=")
-					append(pages.toString())
+				is MangaListFilter.Advanced -> {
+
+					append("/mangas?page=")
+					append(page.toString())
+
+					val tag = filter.tags.oneOrThrowIfMany()
+					if (filter.tags.isNotEmpty()) {
+						append("&tag=")
+						append(tag?.key.orEmpty())
+					}
 				}
 
-				else -> {
-
-					append("/mangas")
-					append("?page=")
-					append(pages.toString())
+				null -> {
+					append("/mangas?page=")
+					append(page.toString())
 				}
 			}
 		}
+
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.video-bg div.col-6 ").map { div ->

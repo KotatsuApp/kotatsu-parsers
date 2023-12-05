@@ -27,7 +27,11 @@ internal abstract class FmreaderParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val isMultipleTagsSupported = false
+	override val availableStates: Set<MangaState> = EnumSet.of(
+		MangaState.ONGOING,
+		MangaState.FINISHED,
+		MangaState.ABANDONED,
+	)
 
 	protected open val listUrl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -40,58 +44,73 @@ internal abstract class FmreaderParser(
 
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
-		"On going",
-		"Incomplete",
-		"En curso",
+		"on going",
+		"incomplete",
+		"en curso",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
-		"Completed",
-		"Completado",
+		"completed",
+		"completado",
 	)
 
 	@JvmField
 	protected val abandoned: Set<String> = hashSetOf(
-		"Canceled",
-		"Cancelled",
-		"Drop",
+		"canceled",
+		"cancelled",
+		"drop",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("?page=")
 			append(page.toString())
-			when {
-				!query.isNullOrEmpty() -> {
-
+			when (filter) {
+				is MangaListFilter.Search -> {
 					append("&name=")
-					append(query.urlEncoded())
+					append(filter.query.urlEncoded())
 				}
 
-				!tags.isNullOrEmpty() -> {
+				is MangaListFilter.Advanced -> {
+
 					append("&genre=")
-					append(tag?.key.orEmpty())
+					append(filter.tags.joinToString(",") { it.key })
+
+
+					append("&sort=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.UPDATED -> append("last_update")
+						SortOrder.ALPHABETICAL -> append("name")
+						else -> append("last_update")
+					}
+
+					append("&m_status=")
+					filter.states.oneOrThrowIfMany()?.let {
+						append(
+							when (it) {
+								MangaState.ONGOING -> "2"
+								MangaState.FINISHED -> "1"
+								MangaState.ABANDONED -> "3"
+								else -> ""
+							},
+						)
+					}
+
 				}
-			}
-			append("&sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("last_update")
-				SortOrder.ALPHABETICAL -> append("name")
-				else -> append("last_update")
+
+				null -> append("&sort=last_update")
 			}
 		}
-		val doc = webClient.httpGet(url).parseHtml()
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+
+	}
+
+	protected open fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.thumb-item-flow").map { div ->
 			val href = div.selectFirstOrThrow("div.series-title a").attrAsRelativeUrl("href")
 			Manga(
@@ -99,8 +118,8 @@ internal abstract class FmreaderParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("data-bg")
-					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
-						.substringBeforeLast("')"),
+					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("(")
+						.substringBefore(")"),
 				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
@@ -140,7 +159,7 @@ internal abstract class FmreaderParser(
 		val desc = doc.selectFirst(selectDesc)?.html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				in abandoned -> MangaState.ABANDONED

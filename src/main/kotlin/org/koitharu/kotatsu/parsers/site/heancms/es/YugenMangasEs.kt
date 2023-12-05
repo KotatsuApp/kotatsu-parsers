@@ -2,19 +2,10 @@ package org.koitharu.kotatsu.parsers.site.heancms.es
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas.lat", "es", ContentType.HENTAI)
 internal class YugenMangasEs(context: MangaLoaderContext) :
@@ -22,46 +13,55 @@ internal class YugenMangasEs(context: MangaLoaderContext) :
 
 	private val domainAlt = "yugenmangas.net"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		var firstTag = false
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://api.")
 			append(domainAlt)
 			append("/query?query_string=")
-			if (!query.isNullOrEmpty()) {
-				append(query.urlEncoded())
-			}
-			append("&series_status=All&order=desc&orderBy=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("total_views")
-				SortOrder.UPDATED -> append("latest")
-				SortOrder.NEWEST -> append("created_at")
-				SortOrder.ALPHABETICAL -> append("title")
-				else -> append("latest")
-			}
-			append("&series_type=Comic&page=")
-			append(page)
-			append("&perPage=12&tags_ids=")
-			append("[".urlEncoded())
-			if (!tags.isNullOrEmpty()) {
-				for (tag in tags) {
-					// Just to make it fit [1,2,44] ect
-					if (!firstTag) {
-						firstTag = true
-					} else {
-						append(",")
-					}
-					append(tag.key)
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append(filter.query.urlEncoded())
 				}
+
+				is MangaListFilter.Advanced -> {
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&series_status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "Ongoing"
+								MangaState.FINISHED -> "Completed"
+								MangaState.ABANDONED -> "Dropped"
+								MangaState.PAUSED -> "Hiatus"
+							},
+						)
+
+					}
+					append("&order=desc")
+					append("&orderBy=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("total_views")
+						SortOrder.UPDATED -> append("latest")
+						SortOrder.NEWEST -> append("created_at")
+						SortOrder.ALPHABETICAL -> append("title")
+						else -> append("latest")
+					}
+					append("&series_type=Comic&perPage=12")
+					append("&tags_ids=")
+					append("[".urlEncoded())
+					append(filter.tags.joinToString(",") { it.key })
+					append("]".urlEncoded())
+				}
+
+				null -> {}
 			}
-			append("]".urlEncoded())
+
+			append("&page=")
+			append(page.toString())
 		}
+
 		val json = webClient.httpGet(url).parseJson()
+
 		return json.getJSONArray("data").mapJSON { j ->
 			val slug = j.getString("series_slug")
 			val urlManga = "https://$domain/series/$slug"

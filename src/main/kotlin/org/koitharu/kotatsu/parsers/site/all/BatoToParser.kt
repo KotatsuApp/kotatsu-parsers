@@ -33,6 +33,8 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.ALPHABETICAL,
 	)
 
+	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+
 	override val configKeyDomain = ConfigKey.Domain(
 		"bato.to",
 		"batocomic.com",
@@ -61,37 +63,64 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		"zbato.org",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			return search(page, query)
-		}
-		@Suppress("NON_EXHAUSTIVE_WHEN_STATEMENT")
-		val url = buildString {
-			append("https://")
-			append(domain)
-			append("/browse?sort=")
-			when (sortOrder) {
-				SortOrder.UPDATED,
-				-> append("update.za")
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
-				SortOrder.POPULARITY -> append("views_a.za")
-				SortOrder.NEWEST -> append("create.za")
-				SortOrder.ALPHABETICAL -> append("title.az")
-				SortOrder.RATING -> Unit
+		when (filter) {
+			is MangaListFilter.Search -> {
+				return search(page, filter.query)
 			}
-			if (!tags.isNullOrEmpty()) {
-				append("&genres=")
-				appendAll(tags, ",") { it.key }
+
+			is MangaListFilter.Advanced -> {
+
+				val url = buildString {
+					append("https://")
+					append(domain)
+
+					append("/browse?sort=")
+					when (filter.sortOrder) {
+						SortOrder.UPDATED -> append("update.za")
+						SortOrder.POPULARITY -> append("views_a.za")
+						SortOrder.NEWEST -> append("create.za")
+						SortOrder.ALPHABETICAL -> append("title.az")
+						else -> append("update.za")
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&release=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								MangaState.ABANDONED -> "cancelled"
+								MangaState.PAUSED -> "hiatus"
+							},
+						)
+					}
+					// langs= en ...
+
+					if (filter.tags.isNotEmpty()) {
+						append("&genres=")
+						appendAll(filter.tags, ",") { it.key }
+					}
+
+					append("&page=")
+					append(page)
+				}
+
+				return parseList(url, page)
 			}
-			append("&page=")
-			append(page)
+
+			null -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+					append("/browse?sort=update.za")
+					append("&page=")
+					append(page)
+				}
+				return parseList(url, page)
+			}
 		}
-		return parseList(url, page)
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -109,9 +138,11 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				?.selectFirst(".limit-html")
 				?.html(),
 			tags = manga.tags + attrs["Genres:"]?.parseTags().orEmpty(),
-			state = when (attrs["Release status:"]?.text()) {
+			state = when (attrs["Original work:"]?.text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED
+				"Cancelled" -> MangaState.ABANDONED
+				"Hiatus" -> MangaState.PAUSED
 				else -> manga.state
 			},
 			author = attrs["Authors:"]?.text()?.trim() ?: manga.author,

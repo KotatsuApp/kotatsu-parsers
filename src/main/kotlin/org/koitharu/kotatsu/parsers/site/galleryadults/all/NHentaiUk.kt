@@ -33,33 +33,39 @@ internal class NHentaiUk(context: MangaLoaderContext) :
 		"/turkish",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				if (tag?.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-					append("/?p=")
-				} else {
-					append("/tag/")
-					append(tag?.key)
-					append("/?p=")
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					throw IllegalArgumentException("Search is not supported by this source")
 				}
-			} else if (!query.isNullOrEmpty()) {
-				throw IllegalArgumentException("Search is not supported by this source")
-			} else {
-				append("/home?p=")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+							} else {
+								append("/tag/")
+								append(it.key)
+							}
+						}
+						append("/?p=")
+					} else {
+						append("/home?p=")
+					}
+				}
+
+				null -> append("/?")
 			}
-			append(page)
+			append(page.toString())
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 

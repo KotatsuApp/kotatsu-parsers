@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.mmrcms.ar
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -19,83 +20,24 @@ internal class Onma(context: MangaLoaderContext) :
 	override val selectAut = "h3:contains(المؤلف) .text"
 	override val selectTag = "h3:contains(التصنيفات) .text"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val url = if (sortOrder == SortOrder.UPDATED) {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/latest-release")
-				append("?page=")
-				append(page.toString())
-			}
-		} else {
-			buildString {
-				append("https://")
-				append(domain)
-				append("/$listUrl/")
-				append("?page=")
-				append(page.toString())
-				append("&asc=true&author=&tag=")
-				append("&alpha=")
-				if (!query.isNullOrEmpty()) {
-					append(query.urlEncoded())
-				}
-				append("&cat=")
-				if (!tags.isNullOrEmpty()) {
-					append(tag?.key.orEmpty())
-				}
-				append("&sortBy=")
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("views")
-					SortOrder.ALPHABETICAL -> append("name")
-					else -> append("views")
-				}
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
-		if (sortOrder == SortOrder.UPDATED) {
-			return doc.select("div.manga-item").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				val deeplink = href.substringAfterLast('/')
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = "https://$domain/uploads/manga/$deeplink$imgUpdated",
-					title = div.selectFirstOrThrow("div.content-left a").text().orEmpty(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
-		} else {
-			return doc.select("div.chapter-container").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = div.selectFirst("img")?.src().orEmpty(),
-					title = div.selectFirstOrThrow("h5.media-heading").text().orEmpty(),
-					altTitle = null,
-					rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
+
+	override fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select("div.chapter-container").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirstOrThrow("h5.media-heading").text().orEmpty(),
+				altTitle = null,
+				rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+				isNsfw = isNsfwSource,
+			)
 		}
 	}
 

@@ -3,13 +3,7 @@ package org.koitharu.kotatsu.parsers.site.fmreader.ja
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.fmreader.FmreaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -27,40 +21,7 @@ internal class Klz9(context: MangaLoaderContext) :
 	override val selectPage = "img"
 	override val selectBodyTag = "div.panel-body a"
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
-		val url = buildString {
-			append("https://")
-			append(domain)
-			append("/$listUrl")
-			append("?page=")
-			append(page.toString())
-			when {
-				!query.isNullOrEmpty() -> {
-
-					append("&name=")
-					append(query.urlEncoded())
-				}
-
-				!tags.isNullOrEmpty() -> {
-					append("&genre=")
-					append(tag?.key.orEmpty())
-				}
-			}
-			append("&sort=")
-			when (sortOrder) {
-				SortOrder.POPULARITY -> append("views")
-				SortOrder.UPDATED -> append("last_update")
-				SortOrder.ALPHABETICAL -> append("name")
-				else -> append("last_update")
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
+	override fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.thumb-item-flow").map { div ->
 			val href = "/" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -112,7 +73,6 @@ internal class Klz9(context: MangaLoaderContext) :
 		val docLoad = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
 		return docLoad.select(selectPage).map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-
 			MangaPage(
 				id = generateUid(url),
 				url = url,

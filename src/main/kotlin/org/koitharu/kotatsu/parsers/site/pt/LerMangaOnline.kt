@@ -7,7 +7,6 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.lang.IllegalArgumentException
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,30 +17,48 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 
 	override val configKeyDomain = ConfigKey.Domain("lermangaonline.com.br")
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			throw IllegalArgumentException("Search is not supported by this source")
-		}
-		val tag = tags.oneOrThrowIfMany()
+	override val isMultipleTagsSupported = false
+
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/")
-			if (!tags.isNullOrEmpty()) {
-				append(tag?.key.orEmpty())
-				append("/")
-			}
-			if (page > 1) {
-				append("page/")
-				append(page)
-				append("/")
+			append('/')
+			when (filter) {
+				is MangaListFilter.Search -> {
+					if (page > 1) {
+						append("page/")
+						append(page.toString())
+						append("/")
+					}
+					append("?s=")
+					append(filter.query.urlEncoded())
+				}
+
+				is MangaListFilter.Advanced -> {
+					filter.tags.oneOrThrowIfMany()?.let {
+						append(it.key)
+						append('/')
+					}
+
+					if (page > 1) {
+						append("page/")
+						append(page.toString())
+						append('/')
+					}
+				}
+
+				null -> {
+					if (page > 1) {
+						append("page/")
+						append(page.toString())
+						append('/')
+					}
+				}
 			}
 		}
+
 		return parseManga(webClient.httpGet(url).parseHtml())
 	}
 

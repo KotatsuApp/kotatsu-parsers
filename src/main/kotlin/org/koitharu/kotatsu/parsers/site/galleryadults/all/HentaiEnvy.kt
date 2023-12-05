@@ -32,40 +32,45 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 		"/portuguese",
 	)
 
-	override val sortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			if (!tags.isNullOrEmpty()) {
-				if (tag?.key == "languageKey") {
-					append("/language")
-					append(tag.title)
-					append("/?")
-				} else {
-					append("/tag/")
-					append(tag?.key.orEmpty())
-					if (sortOrder == SortOrder.POPULARITY) {
-						append("/popular")
-					}
-					append("/?")
+			when (filter) {
+				is MangaListFilter.Search -> {
+					append("/search/?s_key=")
+					append(filter.query.urlEncoded())
+					append("&")
 				}
-			} else if (!query.isNullOrEmpty()) {
-				append("/search/?s_key=")
-				append(query.urlEncoded())
-				append("&")
-			} else {
-				append("/?")
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							if (it.key == "languageKey") {
+								append("/language")
+								append(it.title)
+								append("/?")
+							} else {
+								append("/tag/")
+								append(it.key)
+								if (filter.sortOrder == SortOrder.POPULARITY) {
+									append("/popular")
+								}
+								append("/?")
+							}
+						}
+					} else {
+						append("/?")
+					}
+				}
+
+				null -> append("/?")
 			}
 			append("page=")
 			append(page)
+
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}

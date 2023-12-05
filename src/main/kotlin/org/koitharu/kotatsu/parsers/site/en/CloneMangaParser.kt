@@ -19,11 +19,25 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
 	@InternalParsersApi
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
-		if (query != null || offset > 0) {
-			return emptyList()
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+
+		val link = when (filter) {
+			is MangaListFilter.Search -> {
+				return emptyList()
+			}
+
+			is MangaListFilter.Advanced -> {
+				if (offset > 0) {
+					return emptyList()
+				}
+
+				"https://$domain/viewer_landing.php"
+			}
+
+			null -> "https://$domain/viewer_landing.php"
+
 		}
-		val link = "https://$domain/viewer_landing.php"
+
 		val doc = webClient.httpGet(link).parseHtml()
 		val mangas = doc.getElementsByClass("comicPreviewContainer")
 		return mangas.mapNotNull { item ->

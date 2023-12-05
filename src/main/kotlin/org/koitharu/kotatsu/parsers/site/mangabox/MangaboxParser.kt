@@ -21,9 +21,12 @@ internal abstract class MangaboxParser(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listUrl = "/genre-all"
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+	protected open val listUrl = "/advanced_search"
 	protected open val searchUrl = "/search/story/"
 	protected open val datePattern = "MMM dd,yy"
 
@@ -36,50 +39,64 @@ internal abstract class MangaboxParser(
 
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
-		"Ongoing",
+		"ongoing",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
-		"Completed",
+		"completed",
 	)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		val tag = tags.oneOrThrowIfMany()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
+			append(listUrl)
+			append("/?s=all")
+			when (filter) {
 
-			if (!query.isNullOrEmpty()) {
-				append(searchUrl)
-				append(query.urlEncoded())
-				append("?page=")
-				append(page.toString())
+				is MangaListFilter.Search -> {
+					append("&keyw=")
+					append(filter.query.urlEncoded())
+				}
 
-			} else if (!tags.isNullOrEmpty()) {
-				append("/")
-				append(tag?.key.orEmpty())
-				append("/")
-				append(page.toString())
-			} else {
-				append("$listUrl/")
-				if (page > 1) {
-					append(page.toString())
+				is MangaListFilter.Advanced -> {
+
+					if (filter.tags.isNotEmpty()) {
+						append("&g_i=")
+						filter.tags.forEach {
+							append("_")
+							append(it.key)
+							append("_")
+						}
+					}
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&sts=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								else -> ""
+							},
+						)
+					}
+
+					append("&orby=")
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("topview")
+						SortOrder.UPDATED -> append("")
+						SortOrder.NEWEST -> append("newest")
+						SortOrder.ALPHABETICAL -> append("az")
+						else -> append("")
+					}
 				}
-				when (sortOrder) {
-					SortOrder.POPULARITY -> append("?type=topview")
-					SortOrder.UPDATED -> append("")
-					SortOrder.NEWEST -> append("?type=newest")
-					else -> append("")
-				}
+
+				null -> {}
 			}
 
-
+			append("&page=")
+			append(page.toString())
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
@@ -109,7 +126,8 @@ internal abstract class MangaboxParser(
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		return doc.select(selectTagMap).mapNotNullToSet { a ->
+		val tags = doc.select(selectTagMap).drop(1) // remove all tags
+		return tags.mapNotNullToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast('/')
 			val name = a.attr("title").replace(" Manga", "")
 			MangaTag(
@@ -129,25 +147,18 @@ internal abstract class MangaboxParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val chaptersDeferred = async { getChapters(doc) }
-
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
 		val stateDiv = doc.select(selectState).text()
-
 		val state = stateDiv.let {
-			when (it) {
+			when (it.lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				else -> null
 			}
 		}
-
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
-
 		val aut = doc.body().select(selectAut).eachText().joinToString()
-
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
