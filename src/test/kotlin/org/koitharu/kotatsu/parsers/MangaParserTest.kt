@@ -115,6 +115,26 @@ internal class MangaParserTest {
 		assert(list.all { it.source == source })
 	}
 
+	@ParameterizedTest(name = "{index}|locale|{0}")
+	@MangaSources
+	fun locale(source: MangaSource) = runTest {
+		val parser = context.newParserInstance(source)
+		val locales = parser.getAvailableLocales()
+		if (locales.isEmpty()) {
+			return@runTest
+		}
+		val filter = MangaListFilter.Advanced(
+			sortOrder = parser.availableSortOrders.first(),
+			tags = setOf(),
+			locale = locales.random(),
+			states = setOf(),
+		)
+		val list = parser.getList(offset = 0, filter)
+		checkMangaList(list, filter.locale.toString())
+		assert(list.all { it.source == source })
+	}
+
+
 	@ParameterizedTest(name = "{index}|details|{0}")
 	@MangaSources
 	fun details(source: MangaSource) = runTest {

@@ -79,6 +79,10 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							MangaState.PAUSED -> append("hiatus")
 						}
 					}
+					filter.locale?.let {
+						append("&originalLanguage[]=")
+						append(it.language)
+					}
 				}
 
 				null -> {
@@ -181,6 +185,15 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				source = source,
 			)
 		}
+	}
+
+	override suspend fun getAvailableLocales(): Set<Locale> {
+		val head = webClient.httpGet("https://$domain/").parseHtml().head()
+		return head.getElementsByAttributeValue("property", "og:locale:alternate")
+			.mapNotNullToSet { meta ->
+				val raw = meta.attrOrNull("content") ?: return@mapNotNullToSet null
+				Locale(raw.substringBefore('_'), raw.substringAfter('_', ""))
+			}
 	}
 
 	private fun JSONObject.firstStringValue() = values().next() as String
