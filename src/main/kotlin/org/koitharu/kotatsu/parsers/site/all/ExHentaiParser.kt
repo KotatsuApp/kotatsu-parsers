@@ -65,38 +65,45 @@ internal class ExHentaiParser(
 		paginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		var search = query?.urlEncoded().orEmpty()
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val next = nextPages.get(page, 0L)
+
 		if (page > 0 && next == 0L) {
 			assert(false) { "Page timestamp not found" }
 			return emptyList()
 		}
+
+		var search = ""
+
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/?next=")
 			append(next)
-			if (!tags.isNullOrEmpty()) {
-				var fCats = 0
-				for (tag in tags) {
-					tag.key.toIntOrNull()?.let { fCats = fCats or it } ?: run {
-						search += tag.key + " "
+			when (filter) {
+
+				is MangaListFilter.Search -> {
+					search += filter.query.urlEncoded()
+					append("&f_search=")
+					append(search.trim().replace(' ', '+'))
+				}
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						var fCats = 0
+						for (tag in filter.tags) {
+							tag.key.toIntOrNull()?.let { fCats = fCats or it } ?: run {
+								search += tag.key + " "
+							}
+						}
+						if (fCats != 0) {
+							append("&f_cats=")
+							append(1023 - fCats)
+						}
 					}
 				}
-				if (fCats != 0) {
-					append("&f_cats=")
-					append(1023 - fCats)
-				}
-			}
-			if (search.isNotEmpty()) {
-				append("&f_search=")
-				append(search.trim().replace(' ', '+'))
+
+				null -> {}
 			}
 			// by unknown reason cookie "sl=dm_2" is ignored, so, we should request it again
 			if (updateDm) {
@@ -107,6 +114,7 @@ internal class ExHentaiParser(
 				append("&f_sh=on")
 			}
 		}
+
 		val body = webClient.httpGet(url).parseHtml().body()
 		val root = body.selectFirst("table.itg")
 			?.selectFirst("tbody")
@@ -114,7 +122,7 @@ internal class ExHentaiParser(
 				body.parseFailed("Cannot find root")
 			} else {
 				updateDm = true
-				return getListPage(page, query, tags, sortOrder)
+				return getListPage(page, filter)
 			}
 		updateDm = false
 		nextPages[page + 1] = getNextTimestamp(body)

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("NOBLESSETRANSLATIONS", "NoblesseTranslations", "es")
-internal class NoblesseTranslations(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.NOBLESSETRANSLATIONS, "www.noblessev1.com")
+@MangaSourceParser("HOUSEMANGAS", "HouseMangas", "es")
+internal class HouseMangas(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.HOUSEMANGAS, "housemangas.com")

@@ -158,8 +158,7 @@ internal abstract class MadaraParser(
 	protected open val listUrl = "manga/"
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		val doc = if (withoutAjax) {
+		if (withoutAjax) {
 			val pages = page + 1
 
 			val url = buildString {
@@ -224,7 +223,7 @@ internal abstract class MadaraParser(
 					}
 				}
 			}
-			webClient.httpGet(url).parseHtml()
+			return parseMangaList(webClient.httpGet(url).parseHtml())
 		} else {
 			val payload = if (filter?.sortOrder == SortOrder.RATING) {
 				createRequestTemplate(ratingRequest)
@@ -274,12 +273,16 @@ internal abstract class MadaraParser(
 				}
 			}
 
-			webClient.httpPost(
-				"https://$domain/wp-admin/admin-ajax.php",
-				payload,
-			).parseHtml()
+			return parseMangaList(
+				webClient.httpPost(
+					"https://$domain/wp-admin/admin-ajax.php",
+					payload,
+				).parseHtml(),
+			)
 		}
+	}
 
+	protected open fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
 		}.map { div ->

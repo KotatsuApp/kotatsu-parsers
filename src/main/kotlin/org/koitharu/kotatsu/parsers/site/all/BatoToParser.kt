@@ -96,7 +96,11 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 							},
 						)
 					}
-					// langs= en ...
+
+					filter.locale?.let {
+						append("&langs=")
+						append(it.language)
+					}
 
 					if (filter.tags.isNotEmpty()) {
 						append("&genres=")
@@ -209,6 +213,19 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			return result
 		}
 		throw ParseException("Cannot find gernes list", scripts[0].baseUri())
+	}
+
+	override suspend fun getAvailableLocales(): Set<Locale> {
+		val jsRaw = webClient.httpGet("https://$domain/amsta/build/jss-btoto_v22.js").parseRaw()
+		val langRaw = jsRaw.substringAfter("items: {").substringBefore(",\"_t\"").split("code\":\"").drop(1)
+		return langRaw.mapNotNullToSet {
+			val lang = it.substringBefore("\",\"")
+			if (lang.contains("-")) {
+				return@mapNotNullToSet null
+			} else {
+				Locale(lang)
+			}
+		}
 	}
 
 	private suspend fun search(page: Int, query: String): List<Manga> {
