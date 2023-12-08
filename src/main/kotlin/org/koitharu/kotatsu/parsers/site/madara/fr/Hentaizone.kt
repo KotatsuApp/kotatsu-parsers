@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
@@ -18,40 +19,42 @@ internal class Hentaizone(context: MangaLoaderContext) :
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.FRENCH
 
-	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
-		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
+
+	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		val doc = webClient.httpPost(url, emptyMap()).parseHtml()
-
-		return doc.select("li.wp-manga-chapter").mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirstOrThrow("a")
-			val href = a.attrAsRelativeUrl("href") + "?style=list"
-
-			// correct parse date missing a "."
-			val dateOrg = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
-			val dateCorrectParse = dateOrg
-				.replace("Jan", "janv.")
-				.replace("Fév", "févr.")
-				.replace("Mar", "mars")
-				.replace("avr", "avr.")
-				.replace("juil", "juil.")
-				.replace("Sep", "sept.")
-				.replace("nov", "nov.")
-				.replace("oct", "oct.")
-				.replace("déc", "déc.")
+		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
+			val a = li.selectFirst("a")
+			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val link = href + stylePage
+			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
+			val dateCorrectParse = dateReplace(dateText ?: "janv 1, 1970")
+			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				url = href,
-				name = a.text(),
+				name = name,
 				number = i + 1,
-				branch = null,
+				url = link,
 				uploadDate = parseChapterDate(
 					dateFormat,
 					dateCorrectParse,
 				),
-				scanlator = null,
 				source = source,
+				scanlator = null,
+				branch = null,
 			)
 		}
+	}
+
+	private fun dateReplace(date: String): String {
+		return date.lowercase()
+			.replace("jan", "janv.")
+			.replace("fév", "févr.")
+			.replace("mar", "mars")
+			.replace("avr", "avr.")
+			.replace("juil", "juil.")
+			.replace("sep", "sept.")
+			.replace("nov", "nov.")
+			.replace("oct", "oct.")
+			.replace("déc", "déc.")
 	}
 }

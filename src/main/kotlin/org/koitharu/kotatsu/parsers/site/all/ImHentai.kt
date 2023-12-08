@@ -22,49 +22,42 @@ internal class ImHentai(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("imhentai.xxx")
 
-	override val isMultipleTagsSupported = false
-
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
+			append("/search/?page=")
+			append(page.toString())
 			when (filter) {
 				is MangaListFilter.Search -> {
-					append("/search/?key=")
+					append("&key=")
 					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page)
 				}
 
 				is MangaListFilter.Advanced -> {
 
-					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
-						append("/tag/")
-						append(tag?.key.orEmpty())
-						append("/")
-						when (filter.sortOrder) {
-							SortOrder.UPDATED -> append("")
-							SortOrder.POPULARITY -> append("popular/")
-							else -> append("")
-						}
-						append("?page=")
-						append(page)
-					} else {
-						append("/search/?page=")
-						append(page)
-						when (filter.sortOrder) {
-							SortOrder.UPDATED -> append("&lt=1&pp=0")
-							SortOrder.POPULARITY -> append("&lt=0&pp=1")
-							SortOrder.RATING -> append("&lt=0&pp=0")
-							else -> append("&lt=1&pp=0")
-						}
+						append("&key=")
+						append(filter.tags.joinToString(separator = ",") { it.key })
+					}
+
+					var lang = "&en=1&jp=1&es=1&fr=1&kr=1&de=1&ru=1"
+					filter.locale?.let {
+						lang = "&en=0&jp=0&es=0&fr=0&kr=0&de=0&ru=0"
+						lang = lang.replace("${it.language}=0", "${it.language}=1")
+					}
+					append(lang)
+
+					when (filter.sortOrder) {
+						SortOrder.UPDATED -> append("&lt=1&pp=0")
+						SortOrder.POPULARITY -> append("&lt=0&pp=1")
+						SortOrder.RATING -> append("&lt=0&pp=0")
+						else -> append("&lt=1&pp=0")
 					}
 				}
 
 				null -> {
-					append("/search/?lt=1&pp=0&page=")
-					append(page)
+					append("&lt=1&pp=0")
 				}
 			}
 
@@ -114,6 +107,10 @@ internal class ImHentai(context: MangaLoaderContext) :
 			source = source,
 		)
 	}
+
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.ENGLISH, Locale.JAPANESE, Locale("es"), Locale.FRENCH, Locale("kr"), Locale.GERMAN, Locale("ru"),
+	)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

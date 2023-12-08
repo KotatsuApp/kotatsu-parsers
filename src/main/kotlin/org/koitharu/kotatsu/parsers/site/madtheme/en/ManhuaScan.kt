@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.madtheme.all
+package org.koitharu.kotatsu.parsers.site.madtheme.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.Locale
 
-@MangaSourceParser("MANHUASCAN", "ManhuaScan.io", "")
+@MangaSourceParser("MANHUASCAN", "ManhuaScan.io", "en")
 internal class ManhuaScan(context: MangaLoaderContext) :
 	MadthemeParser(context, MangaSource.MANHUASCAN, "manhuascan.io") {
 	override val sourceLocale: Locale = Locale.ENGLISH

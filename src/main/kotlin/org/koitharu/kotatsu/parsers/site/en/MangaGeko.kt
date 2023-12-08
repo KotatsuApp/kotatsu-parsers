@@ -17,7 +17,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
-	override val configKeyDomain = ConfigKey.Domain("www.mangageko.com")
+	override val configKeyDomain = ConfigKey.Domain("www.mgeko.com", "www.mangageko.com")
 
 	override val isMultipleTagsSupported = false
 

@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RESETSCANS", "ResetScans", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RESETSCANS, "reset-scans.com", 18) {
+	MadaraParser(context, MangaSource.RESETSCANS, "reset-scans.us", 18) {
 	override val datePattern = "MMM dd"
 }

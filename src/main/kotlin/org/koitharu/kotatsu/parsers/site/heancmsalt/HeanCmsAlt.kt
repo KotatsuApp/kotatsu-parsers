@@ -127,10 +127,10 @@ internal abstract class HeanCmsAlt(
 		}
 	}
 
-	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
+	protected open fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.startsWith("hace ") -> parseRelativeDate(date)
+			d.startsWith("hace ") || d.endsWith(" antes") -> parseRelativeDate(date)
 			else -> dateFormat.tryParse(date)
 		}
 	}
@@ -153,7 +153,7 @@ internal abstract class HeanCmsAlt(
 				)
 			}.timeInMillis
 
-			WordSet("mes").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+			WordSet("mes", "meses").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
 			WordSet("año").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}

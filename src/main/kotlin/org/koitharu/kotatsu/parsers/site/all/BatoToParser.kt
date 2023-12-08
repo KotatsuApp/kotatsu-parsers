@@ -215,18 +215,21 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		throw ParseException("Cannot find gernes list", scripts[0].baseUri())
 	}
 
-	override suspend fun getAvailableLocales(): Set<Locale> {
-		val jsRaw = webClient.httpGet("https://$domain/amsta/build/jss-btoto_v22.js").parseRaw()
-		val langRaw = jsRaw.substringAfter("items: {").substringBefore(",\"_t\"").split("code\":\"").drop(1)
-		return langRaw.mapNotNullToSet {
-			val lang = it.substringBefore("\",\"")
-			if (lang.contains("-")) {
-				return@mapNotNullToSet null
-			} else {
-				Locale(lang)
-			}
-		}
-	}
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.CHINESE, Locale.ENGLISH, Locale.US, Locale.FRENCH, Locale.GERMAN, Locale.ITALIAN, Locale.JAPANESE,
+		Locale("af"), Locale("ar"), Locale("az"), Locale("eu"), Locale("be"),
+		Locale("bn"), Locale("bs"), Locale("bg"), Locale("my"), Locale("km"),
+		Locale("ceb"), Locale("zh_hk"), Locale("zh_tw"), Locale("hr"), Locale("cs"),
+		Locale("da"), Locale("nl"), Locale("eo"), Locale("et"), Locale("fil"),
+		Locale("fi"), Locale("ka"), Locale("el"), Locale("ht"), Locale("he"),
+		Locale("hi"), Locale("hu"), Locale("id"), Locale("kk"), Locale("ko"),
+		Locale("lv"), Locale("ms"), Locale("ml"), Locale("mo"), Locale("mn"),
+		Locale("ne"), Locale("no"), Locale("fa"), Locale("pl"), Locale("pt"),
+		Locale("pt_br"), Locale("pt_pt"), Locale("ro"), Locale("ru"), Locale("sr"),
+		Locale("si"), Locale("sk"), Locale("es"), Locale("es_419"), Locale("ta"),
+		Locale("te"), Locale("th"), Locale("ti"), Locale("tr"), Locale("uk"),
+		Locale("vi"), Locale("zu"),
+	)
 
 	private suspend fun search(page: Int, query: String): List<Manga> {
 		val url = buildString {

@@ -26,16 +26,8 @@ internal class ToonFr(context: MangaLoaderContext) :
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href") + "?style=list"
 			// correct parse date missing a "."
-			val dateOrg = li.selectFirst("span.chapter-release-date i")?.text() ?: "janv 1, 2000"
-			val dateCorrectParse = dateOrg
-				.replace("Jan", "janv.")
-				.replace("Févr", "févr.")
-				.replace("Avr", "avr.")
-				.replace("Juil", "juil.")
-				.replace("Sept", "sept.")
-				.replace("Nov", "nov.")
-				.replace("Oct", "oct.")
-				.replace("Déc", "déc.")
+			val dateText = li.selectFirst("span.chapter-release-date i")?.text()
+			val dateCorrectParse = dateReplace(dateText ?: "janv 1, 1970")
 			MangaChapter(
 				id = generateUid(href),
 				url = href,
@@ -50,6 +42,19 @@ internal class ToonFr(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
+	}
+
+	private fun dateReplace(date: String): String {
+		return date.lowercase()
+			.replace("jan", "janv.")
+			.replace("fév", "févr.")
+			.replace("mar", "mars")
+			.replace("avr", "avr.")
+			.replace("juil", "juil.")
+			.replace("sep", "sept.")
+			.replace("nov", "nov.")
+			.replace("oct", "oct.")
+			.replace("déc", "déc.")
 	}
 }
 

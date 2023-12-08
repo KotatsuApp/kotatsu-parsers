@@ -1,7 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import androidx.collection.ArrayMap
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -40,7 +43,7 @@ internal class ExHentaiParser(
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
 	private var updateDm = false
 	private val nextPages = SparseArrayCompat<Long>()
-	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(true)
+	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
 
 	override val isAuthorized: Boolean
 		get() {
@@ -89,17 +92,31 @@ internal class ExHentaiParser(
 				}
 
 				is MangaListFilter.Advanced -> {
+
+					append("&f_search=")
+
+					var fCats = 0
 					if (filter.tags.isNotEmpty()) {
-						var fCats = 0
-						for (tag in filter.tags) {
-							tag.key.toIntOrNull()?.let { fCats = fCats or it } ?: run {
-								search += tag.key + " "
+						filter.tags.forEach {
+							if (it.title.startsWith("- ")) {
+								it.key.toIntOrNull()?.let { fCats = fCats or it } ?: run {
+									search += it.key + " "
+								}
+							} else {
+								append(" tag:".urlEncoded())
+								append(it.key)
 							}
 						}
-						if (fCats != 0) {
-							append("&f_cats=")
-							append(1023 - fCats)
-						}
+					}
+
+					if (filter.locale != null) {
+						append(" language:".urlEncoded())
+						append(filter.locale.toLanguagePath())
+					}
+
+					if (fCats != 0) {
+						append("&f_cats=")
+						append(1023 - fCats)
 					}
 				}
 
@@ -163,8 +180,18 @@ internal class ExHentaiParser(
 		val root = doc.body().selectFirstOrThrow("div.gm")
 		val cover = root.getElementById("gd1")?.children()?.first()
 		val title = root.getElementById("gd2")
-		val taglist = root.getElementById("taglist")
+		val tagList = root.getElementById("taglist")
 		val tabs = doc.body().selectFirst("table.ptt")?.selectFirst("tr")
+		val lang =
+			root.getElementById("gd3")?.selectFirst("tr:contains(Language)")?.selectFirst(".gdt2")?.text() ?: "Unknown"
+
+		val tagMap = getOrCreateTagMap()
+		val tagF =
+			tagList?.selectFirst("tr:contains(female:)")?.select("a")?.mapNotNullToSet { tagMap[it.text()] }.orEmpty()
+		val tagM =
+			tagList?.selectFirst("tr:contains(male:)")?.select("a")?.mapNotNullToSet { tagMap[it.text()] }.orEmpty()
+		val tags = tagF + tagM
+
 		return manga.copy(
 			title = title?.getElementById("gn")?.text()?.cleanupTitle() ?: manga.title,
 			altTitle = title?.getElementById("gj")?.text()?.cleanupTitle() ?: manga.altTitle,
@@ -174,10 +201,11 @@ internal class ExHentaiParser(
 				?.toFloatOrNull()
 				?.div(5f) ?: manga.rating,
 			largeCoverUrl = cover?.styleValueOrNull("background")?.cssUrl(),
-			description = taglist?.select("tr")?.joinToString("<br>") { tr ->
+			tags = tags,
+			description = tagList?.select("tr")?.joinToString("<br>") { tr ->
 				val (tc, td) = tr.children()
-				val subtags = td.select("a").joinToString { it.html() }
-				"<b>${tc.html()}</b> $subtags"
+				val subTags = td.select("a").joinToString { it.html() }
+				"<b>${tc.html()}</b> $subTags"
 			},
 			chapters = tabs?.select("a")?.findLast { a ->
 				a.text().toIntOrNull() != null
@@ -194,7 +222,7 @@ internal class ExHentaiParser(
 						uploadDate = 0L,
 						source = source,
 						scanlator = null,
-						branch = null,
+						branch = lang,
 					)
 				}
 				chapters.toList()
@@ -221,18 +249,78 @@ internal class ExHentaiParser(
 		return doc.body().requireElementById("img").attrAsAbsoluteUrl("src")
 	}
 
+	private val tags =
+		"ahegao,anal,angel,apron,bandages,bbw,bdsm,beauty mark,big areolae,big ass,big breasts,big clit,big lips," +
+			"big nipples,bikini,blackmail,bloomers,blowjob,bodysuit,bondage,breast expansion,bukkake,bunny girl,business suit," +
+			"catgirl,centaur,cheating,chinese dress,christmas,collar,corset,cosplaying,cowgirl,crossdressing,cunnilingus," +
+			"dark skin,daughter,deepthroat,defloration,demon girl,double penetration,dougi,dragon,drunk,elf,exhibitionism,farting," +
+			"females only,femdom,filming,fingering,fishnets,footjob,fox girl,furry,futanari,garter belt,ghost,giantess," +
+			"glasses,gloves,goblin,gothic lolita,growth,guro,gyaru,hair buns,hairy,hairy armpits,handjob,harem,hidden sex," +
+			"horns,huge breasts,humiliation,impregnation,incest,inverted nipples,kemonomimi,kimono,kissing,lactation," +
+			"latex,leg lock,leotard,lingerie,lizard girl,maid,masked face,masturbation,midget,miko,milf,mind break," +
+			"mind control,monster girl,mother,muscle,nakadashi,netorare,nose hook,nun,nurse,oil,paizuri,panda girl," +
+			"pantyhose,piercing,pixie cut,policewoman,ponytail,pregnant,rape,rimjob,robot,scat,lolicon,schoolgirl uniform," +
+			"sex toys,shemale,sister,small breasts,smell,sole dickgirl,sole female,squirting,stockings,sundress,sweating," +
+			"swimsuit,swinging,tail,tall girl,teacher,tentacles,thigh high boots,tomboy,transformation,twins,twintails," +
+			"unusual pupils,urination,vore,vtuber,widow,wings,witch,wolf girl,x-ray,yuri,zombie,sole male,males only,yaoi," +
+			"tomgirl,tall man,oni,shotacon,prostate massage,policeman,males only,huge penis,fox boy,feminization,dog boy,dickgirl on male,big penis"
+
+	private var tagCache: ArrayMap<String, MangaTag>? = null
+	private val mutex = Mutex()
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
+		return getOrCreateTagMap().values.toSet()
+	}
+
+	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
+		val tagMap = ArrayMap<String, MangaTag>()
+		val tagElements = tags.split(",")
+		for (el in tagElements) {
+			if (el.isEmpty()) continue
+			tagMap[el] = MangaTag(
+				title = el,
+				key = el,
+				source = source,
+			)
+		}
+
 		val doc = webClient.httpGet("https://${domain}").parseHtml()
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
-		return root.select("div.cs").mapNotNullToSet { div ->
-			val id = div.id().substringAfterLast('_').toIntOrNull()
-				?: return@mapNotNullToSet null
-			MangaTag(
-				title = div.text().toTitleCase(),
+		root.select("div.cs").mapNotNullToSet { div ->
+			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@mapNotNullToSet null
+			val name = "- " + div.text().toTitleCase()
+			tagMap[name] = MangaTag(
+				title = name,
 				key = id.toString(),
 				source = source,
 			)
 		}
+
+		tagCache = tagMap
+		return@withLock tagMap
+	}
+
+	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
+		Locale.JAPANESE,
+		Locale.ENGLISH,
+		Locale.CHINESE,
+		Locale("nl"),
+		Locale.FRENCH,
+		Locale.GERMAN,
+		Locale("hu"),
+		Locale.ITALIAN,
+		Locale("kr"),
+		Locale("pl"),
+		Locale("pt"),
+		Locale("ru"),
+		Locale("es"),
+		Locale("th"),
+		Locale("vi"),
+	)
+
+	private fun Locale.toLanguagePath() = when (language) {
+		else -> getDisplayLanguage(Locale.ENGLISH).lowercase()
 	}
 
 	override suspend fun getUsername(): String {
