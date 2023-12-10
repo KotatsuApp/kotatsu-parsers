@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FLIXSCANS", "FlixScans", "ar")
+@MangaSourceParser("FLIXSCANS", "FlixScans.com", "ar")
 internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
@@ -40,7 +40,6 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 					append("https://api.")
 					append(domain)
 					append("/api/v1/")
-
 					if (filter.tags.isNotEmpty() || filter.states.isNotEmpty()) {
 						if (page > 1) {
 							return emptyList()
@@ -67,7 +66,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 						append("&serie_type=webtoon")
 
 					} else {
-						append("webtoon/homepage/latest/home?page=")
+						append("webtoon/pages/latest/romance?page=")
 						append(page.toString())
 					}
 				}
@@ -76,7 +75,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 			}
 
 			null -> {
-				val url = "https://api.$domain/api/v1/webtoon/homepage/latest/home?page=$page"
+				val url = "https://api.$domain/api/v1/webtoon/pages/latest/romance?page=$page"
 				webClient.httpGet(url).parseJson().getJSONArray("data")
 			}
 		}
