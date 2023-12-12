@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.id
 
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -19,6 +20,12 @@ class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+
+
+	override val headers: Headers = Headers.Builder()
+		.add("X-Requested-With", "XMLHttpRequest")
+		.add("Referer", "https://$domain/")
+		.build()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = urlBuilder().apply {
