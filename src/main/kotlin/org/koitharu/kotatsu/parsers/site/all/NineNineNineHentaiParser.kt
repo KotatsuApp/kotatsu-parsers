@@ -15,7 +15,6 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
@@ -30,6 +29,7 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.toCamelCase
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
@@ -105,7 +105,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		return tags.mapJSONToSet {
 			val name = it.getString("name")
 			MangaTag(
-				title = name.capitalize(),
+				title = name.toCamelCase(),
 				key = name,
 				source = source
 			)
@@ -124,7 +124,9 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			is MangaListFilter.Search -> {
 				getSearchList(page, filter.query, null, null, filter.sortOrder)
 			}
-			else -> emptyList()
+			else -> {
+				getPopularList(page, null)
+			}
 		}
 	}
 
@@ -217,7 +219,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			publicUrl = "/hchapter/$id".toAbsoluteUrl(domain),
 			tags = emptySet(),
 			source = source,
-			state = MangaState.FINISHED,
+			state = null,
 			rating = RATING_UNKNOWN,
 		)
 	}
@@ -274,16 +276,16 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			altTitle = name,
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
-			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.capitalize() },
+			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() },
 			isNsfw = true,
 			tags = tags?.mapToSet {
 				MangaTag(
-					title = it.name.capitalize(),
+					title = it.name.toCamelCase(),
 					key = it.name,
 					source = source
 				)
 			}.orEmpty(),
-			state = MangaState.FINISHED,
+			state = null,
 			description = entry.getStringOrNull("description"),
 			chapters = listOf(
 				MangaChapter(
@@ -291,7 +293,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 					name = name,
 					number = 1,
 					url = id,
-					uploadDate = kotlin.runCatching {
+					uploadDate = runCatching {
 						dateFormat.parse(entry.getString("uploadDate"))!!.time
 					}.getOrDefault(0L),
 					branch = entry.getStringOrNull("language")?.let {
@@ -309,7 +311,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 						"artistcg" -> "ArtistCG"
 						"gamecg" -> "GameCG"
 						"imageset" -> "ImageSet"
-						else -> entry.getStringOrNull("format")?.capitalize()
+						else -> entry.getStringOrNull("format")?.toCamelCase()
 					},
 					source = source
 				)
@@ -317,7 +319,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		)
 	}
 
-	data class SiteTag(
+	private data class SiteTag(
 		val name: String,
 		val type: String?,
 	)
@@ -394,19 +396,5 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		private const val size = 20
 		private val shortenTitleRegex = Regex("""(\[[^]]*]|[({][^)}]*[)}])""")
 		private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
-
-		private fun String.capitalize(): String {
-			return this.trim().split(" ").joinToString(" ") { word ->
-				word.replaceFirstChar {
-					if (it.isLowerCase()) {
-						it.titlecase(
-							Locale.getDefault(),
-						)
-					} else {
-						it.toString()
-					}
-				}
-			}
-		}
 	}
 }
