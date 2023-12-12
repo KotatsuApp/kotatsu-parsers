@@ -19,6 +19,7 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.SuspendLazy
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -75,17 +76,13 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		return chain.proceed(newRequest)
 	}
 
-	private var cdnUrl: String? = null
+	private val cdnHost = SuspendLazy(::getUpdatedCdnHost)
 
-	private suspend fun getCdnUrl(): String {
-		if (cdnUrl.isNullOrEmpty()) {
-			val url = "https://$domain/manga-home"
-			val response = webClient.httpGet(url).parseHtml()
-			val cdn = response.selectFirst("img.v-thumbnail")?.attr("data-src")
-			cdnUrl = cdn?.toHttpUrlOrNull()?.host
-		}
-
-		return cdnUrl ?: "edge.fast4speed.rsvp"
+	private suspend fun getUpdatedCdnHost(): String {
+		val url = "https://$domain/manga-home"
+		val response = webClient.httpGet(url).parseHtml()
+		val cdn = response.selectFirst("img.v-thumbnail")?.attr("data-src")
+		return cdn?.toHttpUrlOrNull()?.host ?: "edge.fast4speed.rsvp"
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
@@ -212,7 +209,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			coverUrl = when {
 				cover?.startsWith("http") == true -> cover
 				cover == null -> ""
-				else -> "https://${getCdnUrl()}/$cover"
+				else -> "https://${cdnHost.get()}/$cover"
 			},
 			author = null,
 			isNsfw = true,
@@ -265,7 +262,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			coverUrl = when {
 				cover?.startsWith("http") == true -> cover
 				cover == null -> ""
-				else -> "https://${getCdnUrl()}/$cover"
+				else -> "https://${cdnHost.get()}/$cover"
 			},
 			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.capitalize() },
 			isNsfw = true,
@@ -356,7 +353,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			if (it.startsWith("http")) {
 				"$it/"
 			} else {
-				"https://${getCdnUrl()}/$it/"
+				"https://${cdnHost.get()}/$it/"
 			}
 		}
 
