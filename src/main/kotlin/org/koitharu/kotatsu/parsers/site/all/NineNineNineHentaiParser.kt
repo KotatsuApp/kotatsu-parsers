@@ -235,8 +235,12 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
                 description
                 language
                 pages
-                firstPics
                 tags
+				pictureUrls {
+					picCdn
+					pics
+					picsS
+				}
             }
 		""".trimIndent()
 
@@ -245,11 +249,20 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 
 		val id = entry.getString("_id")
 		val name = entry.getString("name")
-		val cover = runCatching {
-			entry.getJSONArray("firstPics")
-				.getJSONObject(0)
-				.getString("url")
-		}.getOrNull()
+		val cover = entry.getJSONArray("pictureUrls")
+			.getJSONObject(0)
+			.let { pics ->
+				val cdn = pics.getString("picCdn").let {
+					if (it.startsWith("http")) {
+						"$it/"
+					} else {
+						"https://${cdnHost.get()}/$it/"
+					}
+				}
+				val img = pics.getJSONArray("pics").getJSONObject(0).getString("url")
+				val imgS = pics.getJSONArray("picsS").getJSONObject(0).getString("url")
+				Pair(cdn + imgS, cdn + img)
+			}
 		val tags = entry.optJSONArray("tags")?.mapJSON {
 			SiteTag(
 				name = it.getString("tagName"),
@@ -259,11 +272,8 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		return manga.copy(
 			title = name.replace(shortenTitleRegex, "").trim(),
 			altTitle = name,
-			coverUrl = when {
-				cover?.startsWith("http") == true -> cover
-				cover == null -> ""
-				else -> "https://${cdnHost.get()}/$cover"
-			},
+			coverUrl = cover.first,
+			largeCoverUrl = cover.second,
 			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.capitalize() },
 			isNsfw = true,
 			tags = tags?.mapToSet {
@@ -284,12 +294,16 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 					uploadDate = kotlin.runCatching {
 						dateFormat.parse(entry.getString("uploadDate"))!!.time
 					}.getOrDefault(0L),
-					branch = when (entry.getStringOrNull("language")) {
-						"en" -> "English"
-						"jp" -> "Japanese"
-						"cn" -> "Chinese"
-						"es" -> "Spanish"
-						else -> entry.getStringOrNull("language")?.capitalize()
+					branch = entry.getStringOrNull("language")?.let {
+						val locale = when (it) {
+							"en" -> Locale.ENGLISH
+							"jp" -> Locale.JAPANESE
+							"cn" -> Locale.CHINESE
+							"es" -> Locale("es")
+							else -> Locale.ROOT
+						}
+
+						return@let locale.getDisplayLanguage(locale)
 					},
 					scanlator = when(entry.getStringOrNull("format")) {
 						"artistcg" -> "ArtistCG"
