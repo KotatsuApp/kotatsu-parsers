@@ -30,4 +30,8 @@ class SoftSuspendLazy<T : Any>(
 	}
 
 	suspend fun tryGet() = runCatchingCancellable { get() }
+
+	fun peek(): T? {
+		return cachedValue?.get()
+	}
 }

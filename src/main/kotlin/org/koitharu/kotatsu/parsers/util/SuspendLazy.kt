@@ -32,5 +32,10 @@ class SuspendLazy<T>(
 
 	suspend fun tryGet() = runCatchingCancellable { get() }
 
+	@Suppress("UNCHECKED_CAST")
+	fun peek(): T? {
+		return cachedValue?.takeUnless { it === Uninitialized } as T?
+	}
+
 	private object Uninitialized
 }
