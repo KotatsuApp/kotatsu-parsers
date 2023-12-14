@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.ar
+package org.koitharu.kotatsu.parsers.site.en
 
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.ErrorMessages
@@ -13,7 +13,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FLIXSCANSORG", "FlixScans.org", "ar")
+@MangaSourceParser("FLIXSCANSORG", "FlixScans.org", "en")
 internal class FlixScansOrg(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANSORG, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
