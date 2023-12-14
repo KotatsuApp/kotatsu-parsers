@@ -1,25 +1,30 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
+import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.SuspendLazy
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -28,10 +33,10 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import java.util.Locale
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import java.util.UUID
 
-@MangaSourceParser("MANGAPLUSPARSER", "MangaPlus", type = ContentType.HENTAI)
+@MangaSourceParser("MANGAPLUSPARSER", "MANGA Plus by SHUEISHA")
 class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGAPLUSPARSER), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
@@ -42,18 +47,10 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		SortOrder.ALPHABETICAL
 	)
 
-	override suspend fun getAvailableLocales()= setOf(
-		Locale.ENGLISH,
-		Locale("es"),
-		Locale.FRENCH,
-		Locale("id"),
-		Locale("pt_br"),
-		Locale("ru"),
-		Locale("th"),
-		Locale("vi")
-	)
-
 	private val extraHeaders = Headers.headersOf("Session-Token", UUID.randomUUID().toString())
+
+	// no tags or tag search available
+	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
@@ -63,55 +60,57 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		return when (filter) {
 			is MangaListFilter.Advanced -> {
 				when (filter.sortOrder) {
-					SortOrder.POPULARITY -> getPopularList(filter.locale)
-					SortOrder.UPDATED -> getLatestList(filter.locale)
-					else -> getAllTitleList(filter.locale)
+					SortOrder.POPULARITY -> getPopularList()
+					SortOrder.UPDATED -> getLatestList()
+					else -> getAllTitleList()
 				}
 			}
-			is MangaListFilter.Search -> getAllTitleList(query = filter.query)
+			is MangaListFilter.Search -> getAllTitleList(filter.query)
 			else -> getAllTitleList()
 		}
 	}
 
-	private suspend fun getPopularList(locale: Locale?): List<Manga> {
+	private suspend fun getPopularList(): List<Manga> {
 		val json = apiCall("/title_list/ranking")
 
 		return json.getJSONObject("titleRankingView")
 			.getJSONArray("titles")
 			.toJSONList()
-			.toMangaList(locale.toSiteLocale())
+			.toMangaList()
 	}
 
-	private suspend fun getLatestList(locale: Locale?): List<Manga> {
+	private suspend fun getLatestList(): List<Manga> {
 		val json = apiCall("/title_list/updated")
 
 		return json.getJSONObject("titleUpdatedView")
 			.getJSONArray("latestTitle")
 			.mapJSON { it.getJSONObject("title") }
-			.toMangaList(locale.toSiteLocale())
+			.toMangaList()
 	}
 
-	private suspend fun getAllTitleList(locale: Locale? = null, query: String? = null): List<Manga> {
-		val json = apiCall("/title_list/allV2")
-
-		return json.getJSONObject("allTitlesViewV2")
+	// since search is local, save network calls on related manga call
+	private val allTitleCache = SuspendLazy {
+		apiCall("/title_list/allV2")
+			.getJSONObject("allTitlesViewV2")
 			.getJSONArray("AllTitlesGroup")
 			.mapJSON { it.getJSONArray("titles").toJSONList() }
 			.flatten()
-			.toMangaList(locale.toSiteLocale(), query)
-
 	}
 
-	private fun Collection<JSONObject>.toMangaList(langToFilter: String?, query: String? = null): List<Manga> {
-		return mapNotNull {
-			val language = it.getStringOrNull("language") ?: "ENGLISH"
+	private suspend fun getAllTitleList(query: String? = null): List<Manga> {
+		return allTitleCache.get().toMangaList(query)
+	}
 
-			// filter out any other language other than langToFilter
-			if (langToFilter != null && language != langToFilter)
+	private fun List<JSONObject>.toMangaList(query: String? = null): List<Manga> {
+		return mapNotNull {
+			val language = it.getStringOrNull("language")
+
+			if (language != null)
 				return@mapNotNull null
 
 			val name = it.getString("name")
-			val author = it.getString("author").replace(" / ", ", ")
+			val author = it.getString("author")
+				.split("/").joinToString(transform = String::trim)
 
 			// filter out any other title or author which doesn't match search input
 			if (query != null && !(name.contains(query, true) || author.contains(query, true)))
@@ -140,38 +139,91 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		val json = apiCall("/title_detailV3?title_id=${manga.url}")
 			.getJSONObject("titleDetailView")
 		val title = json.getJSONObject("title")
-		val chapterList = json.getJSONArray("chapterListGroup")
-			.toJSONList()
-			.flatMap {
-				it.optJSONArray("firstChapterList")?.toJSONList().orEmpty() +
-						it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
+
+		val completed = json.getJSONObject("titleLabels")
+			.getString("releaseSchedule").let {
+				it == "DISABLED" || it == "COMPLETED"
 			}
-		val language = title.getStringOrNull("language") ?: "ENGLISH"
+
+		val hiatus = json.getStringOrNull("nonAppearanceInfo")?.contains("on a hiatus") == true
 
 		return manga.copy(
 			title = title.getString("name"),
 			publicUrl = "/titles/${title.getInt("titleId")}".toAbsoluteUrl(domain),
 			coverUrl = title.getString("portraitImageUrl"),
-			author = title.getString("author").replace(" / ", ", "),
-			description = json.getString("overview"),
-			chapters = chapterList.mapNotNull { chapter ->
-				val chapterId = chapter.getInt("chapterId").toString()
-				val name = chapter.getString("name")
-				val subtitle = chapter.getStringOrNull("subTitle")
-					?: return@mapNotNull null
-
-				MangaChapter(
-					id = generateUid(chapterId),
-					url = chapterId,
-					name = "$name - $subtitle",
-					number = name.substringAfter("#").toIntOrNull() ?: -1,
-					uploadDate = chapter.getInt("startTimeStamp") * 1000L,
-					branch = language,
-					scanlator = null,
-					source = source
-				)
+			author = title.getString("author")
+				.split("/").joinToString(transform = String::trim),
+			description = buildString {
+				json.getString("overview").let(::append)
+				json.getStringOrNull("viewingPeriodDescription")
+					?.takeIf { !completed }
+					?.let { append("<br><br>", it) }
+			},
+			chapters = getChapters(json),
+			state = if (completed) {
+				MangaState.FINISHED
+			} else if (hiatus) {
+				MangaState.PAUSED
+			} else {
+				MangaState.ONGOING
 			}
 		)
+	}
+
+	private suspend fun getChapters(titleDetailView: JSONObject): List<MangaChapter> {
+		val currentLang = titleDetailView.getJSONObject("title").getStringOrNull("language") ?: "ENGLISH"
+		val chapters = parseChapters(
+			titleDetailView.getJSONArray("chapterListGroup"),
+			currentLang
+		)
+
+		return chapters + coroutineScope {
+			titleDetailView.getJSONArray("titleLanguages")
+				.toJSONList()
+				.filterNot { (it.getStringOrNull("language") ?: "ENGLISH") == currentLang }
+				.map {
+					async {
+						val titleId = it.getInt("titleId").toString()
+						val language = it.getStringOrNull("language") ?: "ENGLISH"
+						val chapGroup = apiCall("/title_detailV3?title_id=$titleId")
+							.getJSONObject("titleDetailView")
+							.getJSONArray("chapterListGroup")
+
+						parseChapters(chapGroup, language)
+					}
+				}
+		}.awaitAll().flatten()
+	}
+
+	private fun parseChapters(chapterListGroup: JSONArray, language: String): List<MangaChapter> {
+		val chapterList = chapterListGroup
+			.toJSONList()
+			.flatMap {
+				it.optJSONArray("firstChapterList")?.toJSONList().orEmpty() +
+						it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
+			}
+
+		return chapterList.mapNotNull { chapter ->
+			val chapterId = chapter.getInt("chapterId").toString()
+			val subtitle = chapter.getStringOrNull("subTitle")
+				?: return@mapNotNull null
+
+			MangaChapter(
+				id = generateUid(chapterId),
+				url = chapterId,
+				name = subtitle,
+				number = chapter.getString("name")
+					.substringAfter("#")
+					.toIntOrNull() ?: -1,
+				uploadDate = chapter.getInt("startTimeStamp") * 1000L,
+				branch = when (language) {
+					"PORTUGUESE_BR" -> "Portuguese (Brazil)"
+					else -> language.lowercase().toTitleCase()
+				},
+				scanlator = null,
+				source = source
+			)
+		}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
@@ -193,6 +245,7 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		}
 	}
 
+	// image descrambling
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		val response = chain.proceed(request)
@@ -234,34 +287,13 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 			val reason = error.getJSONArray("popups")
 				.toJSONList()
 				.firstOrNull { it.getStringOrNull("language") == null }
-				?.getStringOrNull("body")
 
-			reason ?: "Unknown Error"
+			if (reason?.getStringOrNull("subject") == "Not Found" && url.contains("manga_viewer")) {
+				"This chapter has expired"
+			} else {
+				reason?.getStringOrNull("body") ?: "Unknown Error"
+			}
 		}
-	}
-
-	private fun Locale?.toSiteLocale(): String? {
-		if (this == null) return null
-
-		return when {
-			equals(Locale.ENGLISH) -> "ENGLISH"
-			equals(Locale("es")) -> "SPANISH"
-			equals(Locale.FRENCH) -> "FRENCH"
-			equals(Locale("id")) -> "INDONESIAN"
-			equals(Locale("pt-BR")) -> "PORTUGUESE_BR"
-			equals(Locale("ru")) -> "RUSSIAN"
-			equals(Locale("th")) -> "THAI"
-			equals(Locale("vi")) -> "VIETNAMESE"
-			else -> null
-		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return emptySet()
-	}
-
-	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
-		return emptyList()
 	}
 
 	companion object {
