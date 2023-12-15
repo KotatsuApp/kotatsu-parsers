@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("VFSCAN", "VfScan", "fr")
 internal class VfScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.VFSCAN, "www.vfscan.com", pageSize = 18, searchPageSize = 18)
+	MangaReaderParser(context, MangaSource.VFSCAN, "www.vfscan.cc", pageSize = 18, searchPageSize = 18)

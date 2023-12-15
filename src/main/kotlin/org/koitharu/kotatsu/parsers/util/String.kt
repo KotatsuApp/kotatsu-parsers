@@ -5,6 +5,7 @@ package org.koitharu.kotatsu.parsers.util
 import androidx.annotation.FloatRange
 import androidx.collection.arraySetOf
 import java.math.BigInteger
+import java.net.URLDecoder
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.*
@@ -97,6 +98,8 @@ fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
 }
 
 fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.name())
+
+fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
 
 fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
