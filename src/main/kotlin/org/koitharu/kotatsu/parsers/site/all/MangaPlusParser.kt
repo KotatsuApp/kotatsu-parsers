@@ -1,8 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
@@ -36,8 +33,11 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import java.util.UUID
 
-@MangaSourceParser("MANGAPLUSPARSER", "MANGA Plus by SHUEISHA")
-class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGAPLUSPARSER), Interceptor {
+internal abstract class MangaPlusParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	private val sourceLang: String
+) : MangaParser(context, source), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
 
@@ -103,9 +103,9 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 
 	private fun List<JSONObject>.toMangaList(query: String? = null): List<Manga> {
 		return mapNotNull {
-			val language = it.getStringOrNull("language")
+			val language = it.getStringOrNull("language") ?: "ENGLISH"
 
-			if (language != null)
+			if (language != sourceLang)
 				return@mapNotNull null
 
 			val name = it.getString("name")
@@ -159,7 +159,10 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 					?.takeIf { !completed }
 					?.let { append("<br><br>", it) }
 			},
-			chapters = getChapters(json),
+			chapters = parseChapters(
+				json.getJSONArray("chapterListGroup"),
+				title.getStringOrNull("language") ?: "ENGLISH"
+			),
 			state = if (completed) {
 				MangaState.FINISHED
 			} else if (hiatus) {
@@ -168,31 +171,6 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 				MangaState.ONGOING
 			}
 		)
-	}
-
-	private suspend fun getChapters(titleDetailView: JSONObject): List<MangaChapter> {
-		val currentLang = titleDetailView.getJSONObject("title").getStringOrNull("language") ?: "ENGLISH"
-		val chapters = parseChapters(
-			titleDetailView.getJSONArray("chapterListGroup"),
-			currentLang
-		)
-
-		return chapters + coroutineScope {
-			titleDetailView.getJSONArray("titleLanguages")
-				.toJSONList()
-				.filterNot { (it.getStringOrNull("language") ?: "ENGLISH") == currentLang }
-				.map {
-					async {
-						val titleId = it.getInt("titleId").toString()
-						val language = it.getStringOrNull("language") ?: "ENGLISH"
-						val chapGroup = apiCall("/title_detailV3?title_id=$titleId")
-							.getJSONObject("titleDetailView")
-							.getJSONArray("chapterListGroup")
-
-						parseChapters(chapGroup, language)
-					}
-				}
-		}.awaitAll().flatten()
 	}
 
 	private fun parseChapters(chapterListGroup: JSONArray, language: String): List<MangaChapter> {
@@ -299,5 +277,60 @@ class MangaPlusParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 	companion object {
 		private const val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	}
-}
 
+	@MangaSourceParser("MANGAPLUSPARSER_EN", "MANGA Plus English", "en")
+	class English(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_EN,
+		"ENGLISH"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_ES", "MANGA Plus Spanish", "es")
+	class Spanish(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_ES,
+		"SPANISH"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_FR", "MANGA Plus French", "fr")
+	class French(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_FR,
+		"FRENCH"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_ID", "MANGA Plus Indonesian", "id")
+	class Indonesian(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_ID,
+		"INDONESIAN"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_PTBR", "MANGA Plus Portuguese (Brazil)", "pt")
+	class Portuguese(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_PTBR,
+		"PORTUGUESE_BR"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_RU", "MANGA Plus Russian", "ru")
+	class Russian(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_RU,
+		"RUSSIAN"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_TH", "MANGA Plus Thai", "th")
+	class Thai(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_TH,
+		"THAI"
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_VI", "MANGA Plus Vietnamese", "vi")
+	class Vietnamese(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_VI,
+		"VIETNAMESE"
+	)
+}
