@@ -35,13 +35,14 @@ import java.util.EnumSet
 import java.util.Locale
 
 @MangaSourceParser("NINENINENINEHENTAI", "999Hentai", type = ContentType.HENTAI)
-internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.NINENINENINEHENTAI, size), Interceptor {
+internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaSource.NINENINENINEHENTAI, size), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("999hentai.net")
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
-		SortOrder.NEWEST
+		SortOrder.NEWEST,
 	)
 
 	override val isMultipleTagsSupported = false
@@ -50,7 +51,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		Locale.ENGLISH,
 		Locale.CHINESE,
 		Locale.JAPANESE,
-		Locale("es")
+		Locale("es"),
 	)
 
 	private fun Locale?.getSiteLang(): String {
@@ -107,7 +108,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 			MangaTag(
 				title = name.toCamelCase(),
 				key = name,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -121,9 +122,11 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 					getSearchList(page, null, filter.locale, filter.tags, filter.sortOrder)
 				}
 			}
+
 			is MangaListFilter.Search -> {
 				getSearchList(page, filter.query, null, null, filter.sortOrder)
 			}
+
 			else -> {
 				getPopularList(page, null)
 			}
@@ -132,7 +135,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 
 	private suspend fun getPopularList(
 		page: Int,
-		locale: Locale?
+		locale: Locale?,
 	): List<Manga> {
 		val query = """
 			queryPopularChapters(
@@ -268,7 +271,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 		val tags = entry.optJSONArray("tags")?.mapJSON {
 			SiteTag(
 				name = it.getString("tagName"),
-				type = it.getStringOrNull("tagType")
+				type = it.getStringOrNull("tagType"),
 			)
 		}
 		return manga.copy(
@@ -282,7 +285,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 				MangaTag(
 					title = it.name.toCamelCase(),
 					key = it.name,
-					source = source
+					source = source,
 				)
 			}.orEmpty(),
 			state = null,
@@ -307,15 +310,15 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 
 						return@let locale.getDisplayLanguage(locale)
 					},
-					scanlator = when(entry.getStringOrNull("format")) {
+					scanlator = when (entry.getStringOrNull("format")) {
 						"artistcg" -> "ArtistCG"
 						"gamecg" -> "GameCG"
 						"imageset" -> "ImageSet"
 						else -> entry.getStringOrNull("format")?.toCamelCase()
 					},
-					source = source
-				)
-			)
+					source = source,
+				),
+			),
 		)
 	}
 
@@ -383,7 +386,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) : PagedMang
 				id = generateUid(img),
 				url = cdn + img,
 				preview = cdn + imgS,
-				source = source
+				source = source,
 			)
 		}
 	}
