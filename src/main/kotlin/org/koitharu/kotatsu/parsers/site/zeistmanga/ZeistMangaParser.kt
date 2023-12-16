@@ -43,6 +43,7 @@ internal abstract class ZeistMangaParser(
 		"مستمر",
 		"devam ediyor",
 		"güncel",
+		"en emisión",
 	)
 
 	@JvmField
@@ -50,6 +51,7 @@ internal abstract class ZeistMangaParser(
 		"completed",
 		"completo",
 		"tamamlandı",
+		"finalizado",
 	)
 
 	@JvmField
@@ -59,6 +61,7 @@ internal abstract class ZeistMangaParser(
 		"dropado",
 		"abandonado",
 		"cancelado",
+		"suspendido",
 	)
 
 	@JvmField

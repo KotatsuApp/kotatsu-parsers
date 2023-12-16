@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -98,10 +100,10 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
-	override suspend fun getDetails(manga: Manga): Manga {
+	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val dateFormat = SimpleDateFormat("MMM dd, yyyy", sourceLocale)
-		return manga.copy(
+		val chaptersDeferred = async { loadChapters(manga.url) }
+		manga.copy(
 			altTitle = doc.selectFirstOrThrow(".alternative-title").text(),
 			state = when (doc.selectFirstOrThrow(".header-stats span:contains(Status) strong").text()) {
 				"Ongoing" -> MangaState.ONGOING
@@ -117,25 +119,32 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 			},
 			author = doc.selectFirstOrThrow(".author").text(),
 			description = doc.selectFirstOrThrow(".description").html(),
-			chapters = doc.requireElementById("chapters").select("ul.chapter-list li")
-				.mapChapters(reversed = true) { i, li ->
-					val a = li.selectFirstOrThrow("a")
-					val url = a.attrAsRelativeUrl("href")
-					val name = li.selectFirstOrThrow(".chapter-title").text()
-					val dateText = li.select(".chapter-update").attr("datetime").substringBeforeLast(',')
-						.replace(".", "").replace("Sept", "Sep")
-					MangaChapter(
-						id = generateUid(url),
-						name = name,
-						number = i + 1,
-						url = url,
-						scanlator = null,
-						uploadDate = dateFormat.tryParse(dateText),
-						branch = null,
-						source = source,
-					)
-				},
+			chapters = chaptersDeferred.await(),
 		)
+	}
+
+	private suspend fun loadChapters(mangaUrl: String): List<MangaChapter> {
+		val urlChapter = mangaUrl + "all-chapters/"
+		val doc = webClient.httpGet(urlChapter.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat("MMM dd, yyyy", sourceLocale)
+		return doc.requireElementById("chapters").select("ul.chapter-list li")
+			.mapChapters(reversed = true) { i, li ->
+				val a = li.selectFirstOrThrow("a")
+				val url = a.attrAsRelativeUrl("href")
+				val name = li.selectFirstOrThrow(".chapter-title").text()
+				val dateText = li.select(".chapter-update").attr("datetime").substringBeforeLast(',')
+					.replace(".", "").replace("Sept", "Sep")
+				MangaChapter(
+					id = generateUid(url),
+					name = name,
+					number = i + 1,
+					url = url,
+					scanlator = null,
+					uploadDate = dateFormat.tryParse(dateText),
+					branch = null,
+					source = source,
+				)
+			}
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
