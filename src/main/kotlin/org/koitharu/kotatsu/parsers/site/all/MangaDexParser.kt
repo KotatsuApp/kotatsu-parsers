@@ -110,7 +110,10 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				url = id,
 				publicUrl = "https://$domain/title/$id",
 				rating = RATING_UNKNOWN,
-				isNsfw = attrs.getStringOrNull("contentRating") == "erotica",
+				isNsfw = when (attrs.getStringOrNull("contentRating")) {
+					"erotica", "pornographic" -> true
+					else -> false
+				},
 				coverUrl = cover?.plus(".256.jpg").orEmpty(),
 				largeCoverUrl = cover,
 				description = attrs.optJSONObject("description")?.selectByLocale(),
