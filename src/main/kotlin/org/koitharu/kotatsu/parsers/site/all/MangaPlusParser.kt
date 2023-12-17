@@ -36,7 +36,7 @@ import java.util.UUID
 internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
-	private val sourceLang: String
+	private val sourceLang: String,
 ) : MangaParser(context, source), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
@@ -44,7 +44,7 @@ internal abstract class MangaPlusParser(
 	override val availableSortOrders = setOf(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
-		SortOrder.ALPHABETICAL
+		SortOrder.ALPHABETICAL,
 	)
 
 	private val extraHeaders = Headers.headersOf("Session-Token", UUID.randomUUID().toString())
@@ -65,6 +65,7 @@ internal abstract class MangaPlusParser(
 					else -> getAllTitleList()
 				}
 			}
+
 			is MangaListFilter.Search -> getAllTitleList(filter.query)
 			else -> getAllTitleList()
 		}
@@ -130,7 +131,7 @@ internal abstract class MangaPlusParser(
 				rating = RATING_UNKNOWN,
 				state = null,
 				source = source,
-				tags = emptySet()
+				tags = emptySet(),
 			)
 		}
 	}
@@ -161,7 +162,7 @@ internal abstract class MangaPlusParser(
 			},
 			chapters = parseChapters(
 				json.getJSONArray("chapterListGroup"),
-				title.getStringOrNull("language") ?: "ENGLISH"
+				title.getStringOrNull("language") ?: "ENGLISH",
 			),
 			state = if (completed) {
 				MangaState.FINISHED
@@ -169,7 +170,7 @@ internal abstract class MangaPlusParser(
 				MangaState.PAUSED
 			} else {
 				MangaState.ONGOING
-			}
+			},
 		)
 	}
 
@@ -178,7 +179,7 @@ internal abstract class MangaPlusParser(
 			.toJSONList()
 			.flatMap {
 				it.optJSONArray("firstChapterList")?.toJSONList().orEmpty() +
-						it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
+					it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
 			}
 
 		return chapterList.mapNotNull { chapter ->
@@ -199,7 +200,7 @@ internal abstract class MangaPlusParser(
 					else -> language.lowercase().toTitleCase()
 				},
 				scanlator = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -216,9 +217,9 @@ internal abstract class MangaPlusParser(
 			val encryptionKey = mangaPage.getStringOrNull("encryptionKey")
 			MangaPage(
 				id = generateUid(url),
-				url = url + if (encryptionKey == null ) "" else "#$encryptionKey",
+				url = url + if (encryptionKey == null) "" else "#$encryptionKey",
 				preview = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -282,55 +283,55 @@ internal abstract class MangaPlusParser(
 	class English(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_EN,
-		"ENGLISH"
+		"ENGLISH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_ES", "MANGA Plus Spanish", "es")
 	class Spanish(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_ES,
-		"SPANISH"
+		"SPANISH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_FR", "MANGA Plus French", "fr")
 	class French(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_FR,
-		"FRENCH"
+		"FRENCH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_ID", "MANGA Plus Indonesian", "id")
 	class Indonesian(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_ID,
-		"INDONESIAN"
+		"INDONESIAN",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_PTBR", "MANGA Plus Portuguese (Brazil)", "pt")
 	class Portuguese(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_PTBR,
-		"PORTUGUESE_BR"
+		"PORTUGUESE_BR",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_RU", "MANGA Plus Russian", "ru")
 	class Russian(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_RU,
-		"RUSSIAN"
+		"RUSSIAN",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_TH", "MANGA Plus Thai", "th")
 	class Thai(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_TH,
-		"THAI"
+		"THAI",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_VI", "MANGA Plus Vietnamese", "vi")
 	class Vietnamese(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_VI,
-		"VIETNAMESE"
+		"VIETNAMESE",
 	)
 }
