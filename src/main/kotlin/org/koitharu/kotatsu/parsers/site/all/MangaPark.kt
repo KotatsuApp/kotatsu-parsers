@@ -2,8 +2,6 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -16,13 +14,15 @@ import java.util.*
 
 @MangaSourceParser("MANGAPARK", "MangaPark")
 internal class MangaPark(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANGAPARK, pageSize = 15) {
+	PagedMangaParser(context, MangaSource.MANGAPARK, pageSize = 36) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
 	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
+
+	private val tagsMap = SuspendLazy(::parseTags)
 
 	init {
 		context.cookieJar.insertCookies(domain, "nsfw", "2")
@@ -101,18 +101,14 @@ internal class MangaPark(context: MangaLoaderContext) :
 		}
 	}
 
-	private var tagCache: ArrayMap<String, MangaTag>? = null
-	private val mutex = Mutex()
-
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
+		return tagsMap.get().values.toSet()
 	}
 
-	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
-		tagCache?.let { return@withLock it }
-		val tagMap = ArrayMap<String, MangaTag>()
+	private suspend fun parseTags(): Map<String, MangaTag> {
 		val tagElements = webClient.httpGet("https://$domain/search").parseHtml()
 			.select("div.flex-col:contains(Genres) div.whitespace-nowrap")
+		val tagMap = ArrayMap<String, MangaTag>(tagElements.size)
 		for (el in tagElements) {
 			val name = el.selectFirstOrThrow("span.whitespace-nowrap").text()
 			if (name.isEmpty()) continue
@@ -122,8 +118,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-		tagCache = tagMap
-		return@withLock tagMap
+		return tagMap
 	}
 
 	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
@@ -151,11 +146,10 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val tagMap = getOrCreateTagMap()
+		val tagMap = tagsMap.get()
 		val selectTag = doc.select("div[q:key=30_2] span.whitespace-nowrap")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
-		val nsfw =
-			tags.contains(MangaTag("Hentai", "hentai", source)) || tags.contains(MangaTag("Adult", "adult", source))
+		val nsfw = tags.any { t -> t.key == "hentai" || t.key == "adult" }
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		manga.copy(
 			altTitle = doc.selectFirst("div[q:key=tz_2]")?.text().orEmpty(),

@@ -12,26 +12,13 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.SuspendLazy
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import java.util.UUID
+import java.util.*
 
 internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
@@ -39,9 +26,10 @@ internal abstract class MangaPlusParser(
 	private val sourceLang: String,
 ) : MangaParser(context, source), Interceptor {
 
+	private val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
 
-	override val availableSortOrders = setOf(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 		SortOrder.ALPHABETICAL,
@@ -106,16 +94,19 @@ internal abstract class MangaPlusParser(
 		return mapNotNull {
 			val language = it.getStringOrNull("language") ?: "ENGLISH"
 
-			if (language != sourceLang)
+			if (language != sourceLang) {
 				return@mapNotNull null
+			}
 
 			val name = it.getString("name")
 			val author = it.getString("author")
-				.split("/").joinToString(transform = String::trim)
+				.split('/')
+				.joinToString(transform = String::trim)
 
 			// filter out any other title or author which doesn't match search input
-			if (query != null && !(name.contains(query, true) || author.contains(query, true)))
+			if (query != null && !(name.contains(query, true) || author.contains(query, true))) {
 				return@mapNotNull null
+			}
 
 			val titleId = it.getInt("titleId").toString()
 
@@ -164,12 +155,10 @@ internal abstract class MangaPlusParser(
 				json.getJSONArray("chapterListGroup"),
 				title.getStringOrNull("language") ?: "ENGLISH",
 			),
-			state = if (completed) {
-				MangaState.FINISHED
-			} else if (hiatus) {
-				MangaState.PAUSED
-			} else {
-				MangaState.ONGOING
+			state = when {
+				completed -> MangaState.FINISHED
+				hiatus -> MangaState.PAUSED
+				else -> MangaState.ONGOING
 			},
 		)
 	}
@@ -182,10 +171,9 @@ internal abstract class MangaPlusParser(
 					it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
 			}
 
-		return chapterList.mapNotNull { chapter ->
+		return chapterList.mapChapters { _, chapter ->
 			val chapterId = chapter.getInt("chapterId").toString()
-			val subtitle = chapter.getStringOrNull("subTitle")
-				?: return@mapNotNull null
+			val subtitle = chapter.getStringOrNull("subTitle") ?: return@mapChapters null
 
 			MangaChapter(
 				id = generateUid(chapterId),
@@ -273,10 +261,6 @@ internal abstract class MangaPlusParser(
 				reason?.getStringOrNull("body") ?: "Unknown Error"
 			}
 		}
-	}
-
-	companion object {
-		private const val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	}
 
 	@MangaSourceParser("MANGAPLUSPARSER_EN", "MANGA Plus English", "en")
