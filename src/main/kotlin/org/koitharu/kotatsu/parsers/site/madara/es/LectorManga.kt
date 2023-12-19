@@ -5,8 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("INFRAFANDUB", "InfraFandub", "es")
-internal class Infrafandub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.INFRAFANDUB, "infrafandub.com", 10) {
-	override val datePattern = "dd/MM/yyyy"
+@MangaSourceParser("LECTORMANGA", "LectorManga", "es")
+internal class LectorManga(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.LECTORMANGA, "www.lectormanga.lat") {
+	override val listUrl = "biblioteca/"
+	override val tagPrefix = "comics-genero/"
 }

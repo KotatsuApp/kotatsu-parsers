@@ -40,17 +40,15 @@ internal class Komikcast(context: MangaLoaderContext) :
 					append(listUrl)
 					append("/page/")
 					append(page.toString())
-
-					append("/?orderby=")
+					append("/?type=")
 					append(
 						when (filter.sortOrder) {
-							SortOrder.ALPHABETICAL -> append("titleasc")
-							SortOrder.POPULARITY -> append("popular")
-							SortOrder.UPDATED -> append("update")
-							else -> append("update")
+							SortOrder.ALPHABETICAL -> "&orderby=titleasc"
+							SortOrder.POPULARITY -> "&orderby=popular"
+							SortOrder.UPDATED -> "" // To get the Updated list, you don't need "orderby" in the url.
+							else -> ""
 						},
 					)
-
 					val tagKey = "genre[]".urlEncoded()
 					val tagQuery =
 						if (filter.tags.isEmpty()) ""
@@ -70,9 +68,10 @@ internal class Komikcast(context: MangaLoaderContext) :
 				}
 
 				null -> {
-					append(listUrl)
-					append("/?orderby=update&page=")
+					append("/page/")
 					append(page.toString())
+					append(listUrl)
+					append("/?order=update")
 				}
 			}
 		}

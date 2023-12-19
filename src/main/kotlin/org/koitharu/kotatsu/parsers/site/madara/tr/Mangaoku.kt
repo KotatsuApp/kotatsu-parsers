@@ -5,8 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGASEHRI", "MangaSehri.com", "tr")
-internal class Mangasehri(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGASEHRI, "manga-sehri.com", 18) {
-	override val datePattern = "dd/MM/yyyy"
+@MangaSourceParser("MANGAOKU", "Mangaoku", "tr")
+internal class Mangaoku(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MANGAOKU, "mangaoku.info", 24) {
+	override val datePattern = "dd MMMM yyyy"
+	override val listUrl = "seri/"
+	override val tagPrefix = "tur/"
 }
