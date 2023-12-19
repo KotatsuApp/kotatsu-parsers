@@ -141,52 +141,31 @@ internal class Mangaowl(context: MangaLoaderContext) :
 	private fun getChapters(mangaUrl: String, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", sourceLocale)
 		val script = doc.selectFirstOrThrow("script:containsData(chapters:)")
-		val json =
-			script.data().substringAfter("chapters:[").substringBeforeLast(')').substringBefore("],latest_chapter:")
-				.split("},")
+		val json = script.data().substringAfter("chapters:[")
+			.substringBeforeLast(')')
+			.substringBefore("],latest_chapter:")
+			.split("},")
 		val slug = mangaUrl.substringAfterLast("/")
-		val chapter = ArrayList<MangaChapter>()
-		var lastIndexed = 0
-		json.mapIndexed { i, t ->
+		return json.mapChapters { i, t ->
 			if (t.contains("Chapter")) {
 				val id = t.substringAfter("id:").substringBefore(",created_at")
 				val url = "/reading/$slug/$id"
-				val date = t.substringAfter("created_at:\"").substringBefore("\"")
-				val name = t.substringAfter("name:\"").substringBefore("\"")
-				chapter.add(
-					MangaChapter(
-						id = generateUid(url),
-						name = name,
-						number = i + 1,
-						url = url,
-						uploadDate = dateFormat.tryParse(date),
-						source = source,
-						scanlator = null,
-						branch = null,
-					),
+				val date = t.substringAfter("created_at:\"").substringBefore('"')
+				val name = t.substringAfter("name:\"").substringBefore('"')
+				MangaChapter(
+					id = generateUid(url),
+					name = name,
+					number = i + 1,
+					url = url,
+					uploadDate = dateFormat.tryParse(date),
+					source = source,
+					scanlator = null,
+					branch = null,
 				)
-				lastIndexed = i
+			} else {
+				null
 			}
 		}
-
-		// last chapter
-		val id = script.data().substringAfter("Sign in\",").substringBefore(",\"").split(",").last()
-		val url = "/reading/$slug/$id"
-		val date = script.data().substringAfter("$id,\"").substringBefore("\",")
-		val name = script.data().substringAfter("$date\",\"").substringBefore("\",")
-		chapter.add(
-			MangaChapter(
-				id = generateUid(url),
-				name = name,
-				number = lastIndexed + 1,
-				url = url,
-				uploadDate = dateFormat.tryParse(date),
-				source = source,
-				scanlator = null,
-				branch = null,
-			),
-		)
-		return chapter
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
