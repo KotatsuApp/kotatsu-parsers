@@ -122,17 +122,12 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					}
 				} else {
 					if (offset == 0) {
-						val query =
-							filter.tags.joinToString(" ") { it.key }.let {
-								val lang = filter.locale.getSiteLang()
-								if (lang != "all") {
-									"$it language:$lang"
-								} else {
-									it
-								}
-							}
-
-						cachedSearchIds = hitomiSearch(query, filter.sortOrder == SortOrder.POPULARITY).toList()
+						cachedSearchIds =
+							hitomiSearch(
+								filter.tags.joinToString(" ") { it.key },
+								filter.sortOrder == SortOrder.POPULARITY,
+								filter.locale.getSiteLang(),
+							).toList()
 					}
 					cachedSearchIds.subList(offset, min(offset + 25, cachedSearchIds.size))
 				}
@@ -157,6 +152,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private suspend fun hitomiSearch(
 		query: String,
 		sortByPopularity: Boolean = false,
+		language: String = "all",
 	): Set<Int> =
 		coroutineScope {
 			val terms =
@@ -184,7 +180,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 				positiveTerms.map {
 					async {
 						runCatching {
-							getGalleryIDsForQuery(it)
+							getGalleryIDsForQuery(it, language)
 						}.getOrDefault(emptySet())
 					}
 				}
@@ -193,15 +189,15 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 				negativeTerms.map {
 					async {
 						runCatching {
-							getGalleryIDsForQuery(it)
+							getGalleryIDsForQuery(it, language)
 						}.getOrDefault(emptySet())
 					}
 				}
 
 			val results =
 				when {
-					sortByPopularity -> getGalleryIDsFromNozomi(null, "popular", "all")
-					positiveTerms.isEmpty() -> getGalleryIDsFromNozomi(null, "index", "all")
+					sortByPopularity -> getGalleryIDsFromNozomi(null, "popular", language)
+					positiveTerms.isEmpty() -> getGalleryIDsFromNozomi(null, "index", language)
 					else -> emptySet()
 				}.toMutableSet()
 
@@ -230,7 +226,10 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		}
 
 	// search.js
-	private suspend fun getGalleryIDsForQuery(query: String): Set<Int> {
+	private suspend fun getGalleryIDsForQuery(
+		query: String,
+		language: String = "all",
+	): Set<Int> {
 		query.replace("_", " ").let {
 			if (it.indexOf(':') > -1) {
 				val sides = it.split(":")
@@ -238,7 +237,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 				var tag = sides[1]
 
 				var area: String? = ns
-				var language = "all"
+				var lang = language
 				when (ns) {
 					"female", "male" -> {
 						area = "tag"
@@ -246,12 +245,12 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 					}
 					"language" -> {
 						area = null
-						language = tag
+						lang = tag
 						tag = "index"
 					}
 				}
 
-				return getGalleryIDsFromNozomi(area, tag, language)
+				return getGalleryIDsFromNozomi(area, tag, lang)
 			}
 
 			val key = hashTerm(it)
