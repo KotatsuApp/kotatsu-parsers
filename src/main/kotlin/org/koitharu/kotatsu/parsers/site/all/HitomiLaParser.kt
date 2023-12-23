@@ -30,6 +30,45 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		SortOrder.POPULARITY,
 	)
 
+	private val localeMap: Map<Locale, String> = mapOf(
+		Locale("id") to "indonesian",
+		Locale("jv") to "javanese",
+		Locale("ca") to "catalan",
+		Locale("ceb") to "cebuano",
+		Locale("cs") to "czech",
+		Locale("da") to "danish",
+		Locale("de") to "german",
+		Locale("et") to "estonian",
+		Locale.ENGLISH to "english",
+		Locale("es") to "spanish",
+		Locale("eo") to "esperanto",
+		Locale("fr") to "french",
+		Locale("it") to "italian",
+		Locale("hi") to "hindi",
+		Locale("hu") to "hungarian",
+		Locale("pl") to "polish",
+		Locale("pt") to "portuguese",
+		Locale("vi") to "vietnamese",
+		Locale("tr") to "turkish",
+		Locale("ru") to "russian",
+		Locale("uk") to "ukrainian",
+		Locale("ar") to "arabic",
+		Locale.KOREAN to "korean",
+		Locale.CHINESE to "chinese",
+		Locale.JAPANESE to "japanese",
+	)
+
+	private fun Locale?.getSiteLang(): String {
+		return when (this) {
+			null -> "all"
+			else -> localeMap[this] ?: "all"
+		}
+	}
+
+	override suspend fun getAvailableLocales(): Set<Locale> {
+		return localeMap.keys
+	}
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			('a'..'z').map { alphabet ->
@@ -68,19 +107,25 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 				if (filter.tags.isEmpty()) {
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> {
-							getGalleryIDsFromNozomi("popular", "today", "all", offset.nextOffsetRange())
+							getGalleryIDsFromNozomi("popular", "today", filter.locale.getSiteLang(), offset.nextOffsetRange())
 						}
 
 						else -> {
-							getGalleryIDsFromNozomi(null, "index", "all", offset.nextOffsetRange())
+							getGalleryIDsFromNozomi(null, "index", filter.locale.getSiteLang(), offset.nextOffsetRange())
 						}
 					}
 				} else {
 					if (offset == 0) {
-						cachedSearchIds = hitomiSearch(
-							filter.tags.joinToString(" ") { it.key },
-							filter.sortOrder == SortOrder.POPULARITY
-						).toList()
+						val query = filter.tags.joinToString(" ") { it.key }.let {
+							val lang = filter.locale.getSiteLang()
+							if (lang != "all") {
+								"$it language:$lang"
+							} else {
+								it
+							}
+						}
+
+						cachedSearchIds = hitomiSearch(query,filter.sortOrder == SortOrder.POPULARITY).toList()
 					}
 					cachedSearchIds.subList(offset, min(offset+25, cachedSearchIds.size))
 				}
@@ -88,10 +133,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 			is MangaListFilter.Search -> {
 				if (offset == 0) {
-					cachedSearchIds = hitomiSearch(
-						filter.query,
-						filter.sortOrder == SortOrder.POPULARITY
-					).toList()
+					cachedSearchIds = hitomiSearch(filter.query, filter.sortOrder == SortOrder.POPULARITY).toList()
 				}
 				cachedSearchIds.subList(offset, min(offset+25, cachedSearchIds.size))
 			}
