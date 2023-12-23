@@ -197,16 +197,11 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			}
 
 			val key = hashTerm(it)
-			val field = "galleries"
+			val node = getGalleryNodeAtAddress(0)
+			val data = bSearch(key, node)
+				?: return emptySet()
 
-			val node = getNodeAtAddress(field, 0)
-
-			val data = bSearch(field, key, node)
-
-			if (data != null)
-				return getGalleryIDsFromData(data)
-
-			return emptySet()
+			return getGalleryIDsFromData(data)
 		}
 	}
 
@@ -216,7 +211,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		if (length > 100000000 || length <= 0)
 			throw Exception("length $length is too long")
 
-		val inbuf = getURLAtRange(url, offset.until(offset+length))
+		val inbuf = getRangedResponse(url, offset.until(offset+length))
 
 		val galleryIDs = mutableSetOf<Int>()
 
@@ -239,7 +234,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		return galleryIDs
 	}
 
-	private suspend fun bSearch(field: String, key: UByteArray, node: Node) : Pair<Long, Int>? {
+	private suspend fun bSearch(key: UByteArray, node: Node) : Pair<Long, Int>? {
 		fun compareArrayBuffers(dv1: UByteArray, dv2: UByteArray) : Int {
 			val top = min(dv1.size, dv2.size)
 
@@ -281,9 +276,8 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		else if (isLeaf(node))
 			return null
 
-		val nextNode = getNodeAtAddress(field, node.subNodeAddresses[where])
-
-		return bSearch(field, key, nextNode)
+		val nextNode = getGalleryNodeAtAddress(node.subNodeAddresses[where])
+		return bSearch(key, nextNode)
 	}
 
 	private suspend fun getGalleryIDsFromNozomi(area: String?, tag: String, language: String, range: LongRange? = null) : Set<Int> {
@@ -292,7 +286,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			else -> "$ltnBaseUrl/$area/$tag-$language.nozomi"
 		}
 
-		val bytes = getURLAtRange(nozomiAddress, range)
+		val bytes = getRangedResponse(nozomiAddress, range)
 		val nozomi = mutableSetOf<Int>()
 
 		val arrayBuffer = ByteBuffer
@@ -305,11 +299,9 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		return nozomi
 	}
 
-	private val tagIndexVersion = SuspendLazy { getIndexVersion("tagindex") }
-	private val galleriesIndexVersion = SuspendLazy { getIndexVersion("galleriesindex") }
-
-	private suspend fun getIndexVersion(name: String) =
-		webClient.httpGet("$ltnBaseUrl/$name/version?_=${System.currentTimeMillis()}").parseRaw()
+	private val galleriesIndexVersion = SuspendLazy {
+		webClient.httpGet("$ltnBaseUrl/galleriesindex/version?_=${System.currentTimeMillis()}").parseRaw()
+	}
 
 	private data class Node(
 		val keys: List<UByteArray>,
@@ -358,21 +350,15 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		return Node(keys, datas, subNodeAddresses)
 	}
 
-	private suspend fun getNodeAtAddress(field: String, address: Long) : Node {
-		val url =
-			when(field) {
-				"galleries" -> "$ltnBaseUrl/galleriesindex/galleries.${galleriesIndexVersion.get()}.index"
-				"languages" -> "$ltnBaseUrl/galleriesindex/languages.${galleriesIndexVersion.get()}.index"
-				"nozomiurl" -> "$ltnBaseUrl/galleriesindex/nozomiurl.${galleriesIndexVersion.get()}.index"
-				else -> "$ltnBaseUrl/tagindex/$field.${tagIndexVersion.get()}.index"
-			}
+	private suspend fun getGalleryNodeAtAddress(address: Long) : Node {
+		val url = "$ltnBaseUrl/galleriesindex/galleries.${galleriesIndexVersion.get()}.index"
 
-		val nodedata = getURLAtRange(url, address.until(address + 464))
+		val nodedata = getRangedResponse(url, address.until(address + 464))
 
 		return decodeNode(nodedata)
 	}
 
-	private suspend fun getURLAtRange(url: String, range: LongRange? = null) : ByteArray {
+	private suspend fun getRangedResponse(url: String, range: LongRange? = null) : ByteArray {
 		val rangeHeaders = when (range) {
 			null -> Headers.headersOf()
 			else -> Headers.headersOf("Range", "bytes=${range.first}-${range.last}")
