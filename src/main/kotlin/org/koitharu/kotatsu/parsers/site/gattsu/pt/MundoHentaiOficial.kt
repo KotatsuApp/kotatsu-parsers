@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.selectLastOrThrow
 import org.koitharu.kotatsu.parsers.util.src
 
-@MangaSourceParser("MUNDOHENTAIOFICIAL", "MundoHentaiOficial", type = ContentType.HENTAI)
+@MangaSourceParser("MUNDOHENTAIOFICIAL", "MundoHentaiOficial", "pt", ContentType.HENTAI)
 internal class MundoHentaiOficial(context: MangaLoaderContext) :
 	GattsuParser(context, MangaSource.MUNDOHENTAIOFICIAL, "mundohentaioficial.com") {
 

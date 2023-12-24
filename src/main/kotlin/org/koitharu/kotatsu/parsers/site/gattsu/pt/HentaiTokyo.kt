@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
 
-@MangaSourceParser("HENTAITOKYO", "HentaiTokyo", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAITOKYO", "HentaiTokyo", "pt", ContentType.HENTAI)
 internal class HentaiTokyo(context: MangaLoaderContext) :
 	GattsuParser(context, MangaSource.HENTAITOKYO, "hentaitokyo.net") {
 	override val tagUrl = "tags"

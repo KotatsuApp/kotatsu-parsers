@@ -6,6 +6,6 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
 
-@MangaSourceParser("HENTAISEASON", "HentaiSeason", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAISEASON", "HentaiSeason", "pt", ContentType.HENTAI)
 internal class HentaiSeason(context: MangaLoaderContext) :
 	GattsuParser(context, MangaSource.HENTAISEASON, "hentaiseason.com")

@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("UNIVERSOHENTAI", "UniversoHentai", type = ContentType.HENTAI)
+@MangaSourceParser("UNIVERSOHENTAI", "UniversoHentai", "pt", ContentType.HENTAI)
 internal class UniversoHentai(context: MangaLoaderContext) :
 	GattsuParser(context, MangaSource.UNIVERSOHENTAI, "universohentai.com") {
 
