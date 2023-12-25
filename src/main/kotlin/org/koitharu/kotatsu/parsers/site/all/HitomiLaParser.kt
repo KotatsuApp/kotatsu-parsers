@@ -9,6 +9,7 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
+import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -465,7 +466,9 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		map { id ->
 			async {
 				runCatching {
-					val doc = webClient.httpGet("$ltnBaseUrl/galleryblock/$id.html").parseHtml()
+					val doc = webClient.httpGet("$ltnBaseUrl/galleryblock/$id.html")
+						.parseRaw().let { rewriteTnPaths(it) }
+						.let(Jsoup::parse)
 
 					Manga(
 						id = generateUid(id.toString()),
@@ -473,9 +476,9 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 						url = id.toString(),
 						coverUrl =
 						"https:" +
-							doc.selectFirstOrThrow("picture > source")
-								.attr("data-srcset")
-								.substringBefore(" "),
+								doc.selectFirstOrThrow("picture > source")
+									.attr("data-srcset")
+									.substringBefore(" "),
 						publicUrl =
 						doc.selectFirstOrThrow("h1 > a")
 							.attrAsRelativeUrl("href")
@@ -668,5 +671,32 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	// real_full_path_from_hash <-- common.js
 	private fun thumbPathFromHash(hash: String): String {
 		return hash.replace(Regex("""^.*(..)(.)$"""), "$2/$1")
+	}
+
+	private suspend fun subdomainFromURL(url: String, base: String? = null) : String {
+		var retval = "b"
+
+		if (!base.isNullOrBlank())
+			retval = base
+
+		val regex = Regex("""/[0-9a-f]{61}([0-9a-f]{2})([0-9a-f])""")
+		val hashMatch = regex.find(url) ?: return "a"
+		val imageId = hashMatch.groupValues.let { it[2]+it[1] }.toIntOrNull(16)
+
+		if (imageId != null) {
+			retval = ('a'+ subdomainOffset(imageId)).toString() + retval
+		}
+
+		return retval
+	}
+
+	// rewrite_tn_paths <-- common.js
+	private suspend fun rewriteTnPaths(html: String): String {
+		val tnRegex = Regex("""//tn\.hitomi\.la/[^/]+/[0-9a-f]/[0-9a-f]{2}/[0-9a-f]{64}""")
+		val url = tnRegex.find(html)?.value ?: return html
+		val newSubdomain = subdomainFromURL(url, "tn")
+		val newUrl = url.replace(Regex("""//..?\.hitomi\.la/"""), "//${getDomain(newSubdomain)}/")
+
+		return html.replace(tnRegex, newUrl)
 	}
 }
