@@ -266,8 +266,8 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private suspend fun getGalleryIDsFromData(data: Pair<Long, Int>): Set<Int> {
 		val url = "$ltnBaseUrl/galleriesindex/galleries.${galleriesIndexVersion.get()}.data"
 		val (offset, length) = data
-		if (length > 100000000 || length <= 0) {
-			throw Exception("length $length is too long")
+		require(length in 0..100000000) { 
+			"Length $length is too long"
 		}
 
 		val inbuf = getRangedResponse(url, offset.until(offset + length))
@@ -284,9 +284,9 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val expectedLength = numberOfGalleryIDs * 4 + 4
 
 		if (numberOfGalleryIDs > 10000000 || numberOfGalleryIDs <= 0) {
-			throw Exception("number_of_galleryids $numberOfGalleryIDs is too long")
+			throw IllegalArgumentException("number_of_galleryids $numberOfGalleryIDs is too long")
 		} else if (inbuf.size != expectedLength) {
-			throw Exception("inbuf.byteLength ${inbuf.size} != expected_length $expectedLength")
+			throw IllegalArgumentException("inbuf.byteLength ${inbuf.size} != expected_length $expectedLength")
 		}
 
 		for (i in 0.until(numberOfGalleryIDs))
@@ -316,7 +316,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			return 0
 		}
 
-		fun locateKey(
+		private fun locateKey(
 			key: UByteArray,
 			node: Node,
 		): Pair<Boolean, Int> {
@@ -331,7 +331,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			return Pair(false, node.keys.size)
 		}
 
-		fun isLeaf(node: Node): Boolean {
+		private fun isLeaf(node: Node): Boolean {
 			for (subnode in node.subNodeAddresses)
 				if (subnode != 0L) {
 					return false
@@ -555,12 +555,10 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		)
 	}
 
-	companion object {
-		private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
-	}
+    private val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH)
 
 	private fun JSONArray.mapToTags(key: String): Set<MangaTag> {
-		val tags = mutableSetOf<MangaTag>()
+		val tags = ArraySet<MangaTag>(length())
 		mapJSON {
 			MangaTag(
 				title =
