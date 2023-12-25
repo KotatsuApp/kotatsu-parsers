@@ -90,7 +90,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 								?: return@mapNotNull null
 
 						MangaTag(
-							title = url.ownText().toCamelCase(),
+							title = url.ownText().toTagTitle(),
 							key = href.tagUrlToTag(),
 							source = source,
 						)
@@ -158,15 +158,14 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		language: String = "all",
 	): Set<Int> =
 		coroutineScope {
-			val terms =
-				query
-					.trim()
-					.replace(Regex("""^\?"""), "")
-					.lowercase()
-					.split(Regex("\\s+"))
-					.map {
-						it.replace('_', ' ')
-					}
+			val terms = query
+				.trim()
+				.replace(Regex("""^\?"""), "")
+				.lowercase()
+				.split(Regex("\\s+"))
+				.map {
+					it.replace('_', ' ')
+				}
 
 			val positiveTerms = LinkedList<String>()
 			val negativeTerms = LinkedList<String>()
@@ -179,30 +178,27 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 				}
 			}
 
-			val positiveResults =
-				positiveTerms.map {
-					async {
-						runCatching {
-							getGalleryIDsForQuery(it, language)
-						}.getOrDefault(emptySet())
-					}
+			val positiveResults = positiveTerms.map {
+				async {
+					runCatchingCancellable {
+						getGalleryIDsForQuery(it, language)
+					}.getOrDefault(emptySet())
 				}
+			}
 
-			val negativeResults =
-				negativeTerms.map {
-					async {
-						runCatching {
-							getGalleryIDsForQuery(it, language)
-						}.getOrDefault(emptySet())
-					}
+			val negativeResults = negativeTerms.map {
+				async {
+					runCatchingCancellable {
+						getGalleryIDsForQuery(it, language)
+					}.getOrDefault(emptySet())
 				}
+			}
 
-			val results =
-				when {
-					sortByPopularity -> getGalleryIDsFromNozomi(null, "popular", language)
-					positiveTerms.isEmpty() -> getGalleryIDsFromNozomi(null, "index", language)
-					else -> emptySet()
-				}.toMutableSet()
+			val results = when {
+				sortByPopularity -> getGalleryIDsFromNozomi(null, "popular", language)
+				positiveTerms.isEmpty() -> getGalleryIDsFromNozomi(null, "index", language)
+				else -> emptySet()
+			}.toMutableSet()
 
 			fun filterPositive(newResults: Set<Int>) {
 				when {
@@ -465,10 +461,12 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	private suspend fun Collection<Int>.toMangaList(): List<Manga> = coroutineScope {
 		map { id ->
 			async {
-				runCatching {
-					val doc = webClient.httpGet("$ltnBaseUrl/galleryblock/$id.html")
-						.parseRaw().let { rewriteTnPaths(it) }
-						.let(Jsoup::parse)
+				runCatchingCancellable {
+					val doc = webClient.httpGet("$ltnBaseUrl/galleryblock/$id.html").let {
+						val baseUri = it.request.url.toString()
+						val html = it.parseRaw()
+						Jsoup.parse(rewriteTnPaths(html), baseUri)
+					}
 
 					Manga(
 						id = generateUid(id.toString()),
@@ -476,9 +474,9 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 						url = id.toString(),
 						coverUrl =
 						"https:" +
-								doc.selectFirstOrThrow("picture > source")
-									.attr("data-srcset")
-									.substringBefore(" "),
+							doc.selectFirstOrThrow("picture > source")
+								.attr("data-srcset")
+								.substringBefore(" "),
 						publicUrl =
 						doc.selectFirstOrThrow("h1 > a")
 							.attrAsRelativeUrl("href")
@@ -673,7 +671,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		return hash.replace(Regex("""^.*(..)(.)$"""), "$2/$1")
 	}
 
-	private suspend fun subdomainFromURL(url: String, base: String? = null) : String {
+	private suspend fun subdomainFromURL(url: String, base: String? = null): String {
 		var retval = "b"
 
 		if (!base.isNullOrBlank())
@@ -681,10 +679,10 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 
 		val regex = Regex("""/[0-9a-f]{61}([0-9a-f]{2})([0-9a-f])""")
 		val hashMatch = regex.find(url) ?: return "a"
-		val imageId = hashMatch.groupValues.let { it[2]+it[1] }.toIntOrNull(16)
+		val imageId = hashMatch.groupValues.let { it[2] + it[1] }.toIntOrNull(16)
 
 		if (imageId != null) {
-			retval = ('a'+ subdomainOffset(imageId)).toString() + retval
+			retval = ('a' + subdomainOffset(imageId)).toString() + retval
 		}
 
 		return retval
@@ -698,5 +696,11 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 		val newUrl = url.replace(Regex("""//..?\.hitomi\.la/"""), "//${getDomain(newSubdomain)}/")
 
 		return html.replace(tnRegex, newUrl)
+	}
+
+	private fun String.toTagTitle(): String {
+		return toCamelCase()
+			.replace("♂", "(male)")
+			.replace("♀", "(female)")
 	}
 }
