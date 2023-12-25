@@ -52,6 +52,12 @@ fun Response.parseRaw(): String = try {
 	closeQuietly()
 }
 
+fun Response.parseBytes(): ByteArray = try {
+	requireBody().bytes()
+} finally {
+	closeQuietly()
+}
+
 /**
  * Convert url to relative if it is on [domain]
  * @return an url relative to the [domain] or absolute, if domain is mismatching
