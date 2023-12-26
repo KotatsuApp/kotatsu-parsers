@@ -24,11 +24,13 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.RATING,
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 	)
 
 	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 	init {
 		paginator.firstPage = 0
@@ -54,7 +56,8 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 						SortOrder.POPULARITY -> "views"
 						SortOrder.RATING -> "top"
 						SortOrder.NEWEST -> "create"
-						SortOrder.ALPHABETICAL -> "name"
+						SortOrder.ALPHABETICAL -> "name&order=asc"
+						SortOrder.ALPHABETICAL_DESC -> "name&order=desc"
 					},
 				)
 
@@ -70,6 +73,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 							MangaState.FINISHED -> "2"
 							MangaState.PAUSED -> "3"
 							MangaState.ABANDONED -> "5"
+							else -> "1"
 						},
 					)
 				}

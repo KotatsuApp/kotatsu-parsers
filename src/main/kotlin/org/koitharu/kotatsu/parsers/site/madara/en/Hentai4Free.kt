@@ -68,6 +68,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 						SortOrder.NEWEST -> append("new-manga")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
+						else -> append("latest")
 					}
 				}
 

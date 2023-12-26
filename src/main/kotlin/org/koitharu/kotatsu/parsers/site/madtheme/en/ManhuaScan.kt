@@ -35,6 +35,7 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 						SortOrder.ALPHABETICAL -> append("name")
 						SortOrder.NEWEST -> append("created_at")
 						SortOrder.RATING -> append("rating")
+						else -> append("updated_at")
 					}
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.forEach {

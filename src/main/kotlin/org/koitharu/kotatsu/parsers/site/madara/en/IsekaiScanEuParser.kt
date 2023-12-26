@@ -61,6 +61,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 								MangaState.FINISHED -> append("end")
 								MangaState.ABANDONED -> append("canceled")
 								MangaState.PAUSED -> append("on-hold")
+								MangaState.UPCOMING -> append("upcoming")
 							}
 						}
 						append("&")
@@ -73,6 +74,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 						SortOrder.NEWEST -> append("new-manga")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
+						else -> append("latest")
 					}
 				}
 

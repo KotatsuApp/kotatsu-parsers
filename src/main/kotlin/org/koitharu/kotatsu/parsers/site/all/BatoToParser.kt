@@ -93,6 +93,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 								MangaState.FINISHED -> "completed"
 								MangaState.ABANDONED -> "cancelled"
 								MangaState.PAUSED -> "hiatus"
+								MangaState.UPCOMING -> "pending"
 							},
 						)
 					}

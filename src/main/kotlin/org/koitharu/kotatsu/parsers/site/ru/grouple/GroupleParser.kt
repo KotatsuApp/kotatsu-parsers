@@ -276,6 +276,7 @@ internal abstract class GroupleParser(
 		SortOrder.UPDATED -> "updated"
 		SortOrder.NEWEST -> "created"
 		SortOrder.RATING -> "votes"
+		else -> null
 	}
 
 	private suspend fun advancedSearch(domain: String, tags: Set<MangaTag>): Response {

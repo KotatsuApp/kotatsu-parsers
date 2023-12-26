@@ -48,6 +48,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 					append(
 						when (filter.sortOrder) {
 							SortOrder.ALPHABETICAL -> "az"
+							SortOrder.ALPHABETICAL_DESC -> "za"
 							SortOrder.POPULARITY -> "top"
 							SortOrder.UPDATED -> "update"
 							SortOrder.NEWEST -> "new"

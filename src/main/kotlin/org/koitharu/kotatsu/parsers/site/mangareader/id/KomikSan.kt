@@ -41,6 +41,7 @@ internal class KomikSan(context: MangaLoaderContext) :
 					append(
 						when (filter.sortOrder) {
 							SortOrder.ALPHABETICAL -> "title"
+							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
 							SortOrder.POPULARITY -> "popular"
 							SortOrder.UPDATED -> "update"

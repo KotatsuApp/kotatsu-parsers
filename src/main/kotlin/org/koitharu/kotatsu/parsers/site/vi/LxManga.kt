@@ -16,6 +16,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
@@ -76,6 +77,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 						SortOrder.UPDATED -> append("-updated_at")
 						SortOrder.NEWEST -> append("-created_at")
 						SortOrder.ALPHABETICAL -> append("name")
+						SortOrder.ALPHABETICAL_DESC -> append("-name")
 						else -> append("-updated_at")
 					}
 				}

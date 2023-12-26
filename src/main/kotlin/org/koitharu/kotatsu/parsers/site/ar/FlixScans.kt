@@ -59,6 +59,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 										MangaState.FINISHED -> "completed"
 										MangaState.ABANDONED -> "droped"
 										MangaState.PAUSED -> "onhold"
+										MangaState.UPCOMING -> "soon"
 									},
 								)
 							}
