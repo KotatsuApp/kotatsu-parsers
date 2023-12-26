@@ -87,16 +87,17 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 			userHashRegex.find(script.html())?.groupValues?.getOrNull(1)
 		}
 		val dateFormat = SimpleDateFormat("dd.MM.yyyy", Locale.US)
-		val chapterNodes = webClient.httpPost(
+		val chaptersDoc = webClient.httpPost(
 			"https://$domain/engine/ajax/controller.php?mod=load_chapters",
 			mapOf(
 				"action" to "show",
 				"news_id" to linkToComics.attrOrThrow("data-news_id"),
 				"news_category" to linkToComics.attrOrThrow("data-news_category"),
 				"this_link" to "",
-				"user_hash" to userHash,
+				"user_hashs" to userHash,
 			),
-		).parseHtml().select(".ltcitems")
+		).parseHtml()
+		val chapterNodes = chaptersDoc.select(".ltcitems")
 		var prevChapterName: String? = null
 		var i = 0
 		return manga.copy(

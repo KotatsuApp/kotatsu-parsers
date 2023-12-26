@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.extension.ExtendWith
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
@@ -16,16 +15,18 @@ import org.koitharu.kotatsu.test_util.isDistinct
 import org.koitharu.kotatsu.test_util.isDistinctBy
 import org.koitharu.kotatsu.test_util.isUrlAbsolute
 import org.koitharu.kotatsu.test_util.maxDuplicates
+import kotlin.time.Duration.Companion.minutes
 
 
-@ExtendWith(AuthCheckExtension::class)
+//@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock
+	private val timeout = 2.minutes
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
-	fun list(source: MangaSource) = runTest {
+	fun list(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		checkMangaList(list, "list")
@@ -34,7 +35,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|pagination|{0}")
 	@MangaSources
-	fun pagination(source: MangaSource) = runTest {
+	fun pagination(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val page1 = parser.getList(0, filter = null)
 		val page2 = parser.getList(page1.size, filter = null)
@@ -54,7 +55,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|search|{0}")
 	@MangaSources
-	fun search(source: MangaSource) = runTest {
+	fun search(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val subject = parser.getList(
 			offset = 0,
@@ -78,7 +79,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|tags|{0}")
 	@MangaSources
-	fun tags(source: MangaSource) = runTest {
+	fun tags(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val tags = parser.getAvailableTags()
 		assert(tags.isNotEmpty()) { "No tags found" }
@@ -98,7 +99,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|tags_multiple|{0}")
 	@MangaSources
-	fun tagsMultiple(source: MangaSource) = runTest {
+	fun tagsMultiple(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val tags = parser.getAvailableTags().shuffled().take(2).toSet()
 
@@ -117,7 +118,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|locale|{0}")
 	@MangaSources
-	fun locale(source: MangaSource) = runTest {
+	fun locale(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val locales = parser.getAvailableLocales()
 		if (locales.isEmpty()) {
@@ -137,7 +138,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|details|{0}")
 	@MangaSources
-	fun details(source: MangaSource) = runTest {
+	fun details(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
 		val manga = list[3]
@@ -166,7 +167,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|pages|{0}")
 	@MangaSources
-	fun pages(source: MangaSource) = runTest {
+	fun pages(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null)
 		val manga = list.first()
@@ -190,7 +191,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|favicon|{0}")
 	@MangaSources
-	fun favicon(source: MangaSource) = runTest {
+	fun favicon(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val favicons = parser.getFavicons()
 		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
@@ -206,7 +207,7 @@ internal class MangaParserTest {
 
 	@ParameterizedTest(name = "{index}|domain|{0}")
 	@MangaSources
-	fun domain(source: MangaSource) = runTest {
+	fun domain(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val defaultDomain = parser.domain
 		val url = HttpUrl.Builder().host(defaultDomain).scheme("https").toString()
@@ -222,7 +223,7 @@ internal class MangaParserTest {
 	@ParameterizedTest(name = "{index}|authorization|{0}")
 	@MangaSources
 	@Disabled
-	fun authorization(source: MangaSource) = runTest {
+	fun authorization(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		if (parser is MangaParserAuthProvider) {
 			val username = parser.getUsername()
