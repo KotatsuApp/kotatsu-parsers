@@ -6,6 +6,8 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TONIZUTOON", "TonizuToon", "tr", ContentType.HENTAI)
+@MangaSourceParser("TONIZUTOON", "ToniZu.com", "tr", ContentType.HENTAI)
 internal class Tonizutoon(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TONIZUTOON, "tonizutoon.com")
+	MadaraParser(context, MangaSource.TONIZUTOON, "tonizu.com") {
+	override val datePattern = "dd/mm/yyyy"
+}

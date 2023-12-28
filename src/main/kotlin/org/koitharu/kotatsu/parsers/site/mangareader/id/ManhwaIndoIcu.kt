@@ -7,8 +7,8 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("MANHWAINDOICU", "ManhwaIndo.icu", "id", ContentType.HENTAI)
+@MangaSourceParser("MANHWAINDOICU", "ManhwaIndo.sbs", "id", ContentType.HENTAI)
 internal class ManhwaIndoIcu(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANHWAINDOICU, "manhwaindo.icu", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.MANHWAINDOICU, "manhwaindo.sbs", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

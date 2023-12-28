@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 
-@MangaSourceParser("NHATTRUYENMIN", "NhattruyenMin", "vi")
+@MangaSourceParser("NHATTRUYENMIN", "NhattruyenPlus", "vi")
 internal class Nhattruyenmin(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.NHATTRUYENMIN, "nhattruyenmin.com")
+	WpComicsParser(context, MangaSource.NHATTRUYENMIN, "nhattruyenplus.com")

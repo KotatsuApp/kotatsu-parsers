@@ -1,11 +1,10 @@
-package org.koitharu.kotatsu.parsers.site.fr
+package org.koitharu.kotatsu.parsers.site.scan
 
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -13,14 +12,17 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("SCANVFORG", "ScanVfOrg", "fr")
-internal class ScanVfOrg(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.SCANVFORG, 0) {
+internal abstract class ScanParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+	pageSize: Int = 0,
+) : PagedMangaParser(context, source, pageSize) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
 
-	override val configKeyDomain = ConfigKey.Domain("scanvf.org")
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
@@ -69,7 +71,7 @@ internal class ScanVfOrg(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
 				title = div.selectFirstOrThrow(".link-series h3").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
@@ -111,16 +113,16 @@ internal class ScanVfOrg(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("MM-dd-yyyy", sourceLocale)
 		val tagMap = getOrCreateTagMap()
-		val selectTag = doc.select(".card-series-detail .col-6:contains(Categories) div")
+		val selectTag = doc.select(".card-series-detail .col-6:contains(Categorie) div")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 		return manga.copy(
 			rating = doc.selectFirst(".card-series-detail .rate-value span")?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = tags,
-			author = doc.selectFirst(".card-series-detail .col-6:contains(Auteur) div")?.text(),
+			author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div")?.text(),
 			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2")?.text().orEmpty(),
 			description = doc.selectFirst(".card div.col-12.mb-4 p")?.html().orEmpty(),
-			chapters = doc.select(".list-books .col-chapter").mapChapters(reversed = true) { i, div ->
+			chapters = doc.select(".chapters-list .col-chapter").mapChapters(reversed = true) { i, div ->
 				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),

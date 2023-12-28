@@ -7,5 +7,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("GHOSTFANSUB", "GhostFansub", "tr")
 internal class GhostFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.GHOSTFANSUB, "ghostfansub.online", 18)
+	MadaraParser(context, MangaSource.GHOSTFANSUB, "ghostfansub.co", 18)
 // you now need to log in to access content

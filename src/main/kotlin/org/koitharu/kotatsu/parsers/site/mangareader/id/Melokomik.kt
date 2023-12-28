@@ -6,8 +6,6 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.Locale
 
-@MangaSourceParser("MELOKOMIK", "Warpasar", "id")
+@MangaSourceParser("MELOKOMIK", "Wowomik", "id")
 internal class Melokomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MELOKOMIK, "warpasar.com", pageSize = 20, searchPageSize = 10) {
-	override val sourceLocale: Locale = Locale.ENGLISH
-}
+	MangaReaderParser(context, MangaSource.MELOKOMIK, "wowomik.com", pageSize = 20, searchPageSize = 10)

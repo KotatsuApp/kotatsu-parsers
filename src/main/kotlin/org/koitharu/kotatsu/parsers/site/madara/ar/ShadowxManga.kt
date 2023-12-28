@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SHADOWXMANGA", "Shadow X Manga", "ar")
+@MangaSourceParser("SHADOWXMANGA", "ShadowXManga", "ar")
 internal class ShadowxManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHADOWXMANGA, "shadowxmanga.com") {
+	MadaraParser(context, MangaSource.SHADOWXMANGA, "www.shadowxmanga.com") {
 	override val datePattern = "yyyy/MM/dd"
 }
