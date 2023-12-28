@@ -36,6 +36,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 					append(
 						when (filter.sortOrder) {
 							SortOrder.ALPHABETICAL -> "a-z"
+							SortOrder.ALPHABETICAL_DESC -> "z-a"
 							SortOrder.NEWEST -> "added"
 							SortOrder.POPULARITY -> "popular"
 							SortOrder.UPDATED -> "update"

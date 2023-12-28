@@ -55,6 +55,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 								MangaState.FINISHED -> "completed"
 								MangaState.PAUSED -> "hiatus"
 								MangaState.ABANDONED -> "cancelled"
+								MangaState.UPCOMING -> "pending"
 							},
 						)
 					}
@@ -67,6 +68,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 							SortOrder.NEWEST -> "field_create"
 							SortOrder.ALPHABETICAL -> "field_name"
 							SortOrder.RATING -> "field_score"
+							else -> ""
 
 						},
 					)

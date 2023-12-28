@@ -76,6 +76,7 @@ internal abstract class MadthemeParser(
 						SortOrder.ALPHABETICAL -> append("name") // On some sites without tags or searches, the alphabetical option is empty.
 						SortOrder.NEWEST -> append("created_at")
 						SortOrder.RATING -> append("rating")
+						else -> append("updated_at")
 					}
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.forEach {

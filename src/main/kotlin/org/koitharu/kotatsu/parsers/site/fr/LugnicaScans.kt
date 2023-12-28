@@ -22,7 +22,8 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 		SortOrder.UPDATED,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 	override val configKeyDomain = ConfigKey.Domain("lugnica-scans.com")
 
@@ -68,6 +69,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 								MangaState.FINISHED -> append("1")
 								MangaState.PAUSED -> append("4")
 								MangaState.ABANDONED -> append("3")
+								else -> append("")
 							}
 						}
 

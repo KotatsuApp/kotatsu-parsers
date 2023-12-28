@@ -97,14 +97,15 @@ internal abstract class MmrcmsParser(
 						append(listUrl)
 						append("/?page=")
 						append(page.toString())
-						append("&asc=true&author=&tag=&alpha=&cat=")
+						append("&author=&tag=&alpha=&cat=")
 						filter.tags.oneOrThrowIfMany()?.let {
 							append(it.key)
 						}
 						append("&sortBy=")
 						when (filter.sortOrder) {
-							SortOrder.POPULARITY -> append("views")
-							SortOrder.ALPHABETICAL -> append("name")
+							SortOrder.POPULARITY -> append("views&asc=true")
+							SortOrder.ALPHABETICAL -> append("name&asc=true")
+							SortOrder.ALPHABETICAL_DESC -> append("name&asc=false")
 							else -> append("name")
 						}
 					}

@@ -32,7 +32,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
@@ -66,6 +67,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
 							SortOrder.RATING -> "[rating]=desc"
 							SortOrder.ALPHABETICAL -> "[title]=asc"
+							SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
 							SortOrder.NEWEST -> "[createdAt]=desc"
 							SortOrder.POPULARITY -> "[followedCount]=desc"
 						},
@@ -77,6 +79,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							MangaState.FINISHED -> append("completed")
 							MangaState.ABANDONED -> append("cancelled")
 							MangaState.PAUSED -> append("hiatus")
+							else -> append("")
 						}
 					}
 					filter.locale?.let {

@@ -30,7 +30,13 @@ internal abstract class MangaReaderParser(
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST)
+		get() = EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.POPULARITY,
+			SortOrder.ALPHABETICAL,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.NEWEST,
+		)
 
 	override val availableStates: Set<MangaState>
 		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
@@ -63,6 +69,7 @@ internal abstract class MangaReaderParser(
 					append(
 						when (filter.sortOrder) {
 							SortOrder.ALPHABETICAL -> "title"
+							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
 							SortOrder.POPULARITY -> "popular"
 							SortOrder.UPDATED -> "update"

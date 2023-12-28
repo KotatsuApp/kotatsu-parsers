@@ -31,7 +31,8 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 		SortOrder.RATING,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 	@Volatile
 	private var cachedTags: SparseArrayCompat<MangaTag>? = null
@@ -75,6 +76,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 							MangaState.FINISHED -> "2"
 							MangaState.ABANDONED -> "3"
 							MangaState.PAUSED -> "4"
+							else -> ""
 						},
 					)
 				}

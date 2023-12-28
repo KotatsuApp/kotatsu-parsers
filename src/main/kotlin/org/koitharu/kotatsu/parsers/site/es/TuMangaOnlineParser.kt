@@ -26,6 +26,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
@@ -48,15 +49,14 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 					append("?order_item=")
 					append(
 						when (filter.sortOrder) {
-							SortOrder.POPULARITY -> "likes_count"
-							SortOrder.UPDATED -> "release_date"
-							SortOrder.NEWEST -> "creation"
-							SortOrder.ALPHABETICAL -> "alphabetically"
-							SortOrder.RATING -> "score"
-
+							SortOrder.POPULARITY -> "likes_count&order_dir=desc"
+							SortOrder.UPDATED -> "release_date&order_dir=desc"
+							SortOrder.NEWEST -> "creation&order_dir=desc"
+							SortOrder.ALPHABETICAL -> "alphabetically&order_dir=asc"
+							SortOrder.ALPHABETICAL_DESC -> "alphabetically&order_dir=desc"
+							SortOrder.RATING -> "score&order_dir=desc"
 						},
 					)
-					append("&order_dir=desc")
 					append("&filter_by=title")
 					if (filter.tags.isNotEmpty()) {
 						for (tag in filter.tags) {

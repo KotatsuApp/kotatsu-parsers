@@ -25,6 +25,7 @@ internal class PapScan(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -50,7 +51,8 @@ internal class PapScan(context: MangaLoaderContext) :
 					append("&sortBy=")
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("views")
-						SortOrder.ALPHABETICAL -> append("name")
+						SortOrder.ALPHABETICAL_DESC -> append("name&asc=false")
+						SortOrder.ALPHABETICAL -> append("name&asc=true")
 						else -> append("updated")
 					}
 

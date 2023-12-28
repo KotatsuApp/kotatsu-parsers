@@ -14,7 +14,13 @@ import java.util.*
 class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LERMANGA, 24) {
 
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.RATING)
+		EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.POPULARITY,
+			SortOrder.ALPHABETICAL,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.RATING,
+		)
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
 
@@ -52,6 +58,7 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 							SortOrder.UPDATED -> "modified&order=desc"
 							SortOrder.POPULARITY -> "views&order=desc"
 							SortOrder.ALPHABETICAL -> "title&order=asc"
+							SortOrder.ALPHABETICAL_DESC -> "title&order=desc"
 							SortOrder.RATING -> "rating&order=desc"
 							else -> "modified&order=desc"
 						},
