@@ -61,7 +61,7 @@ internal class MangaParserTest {
 			offset = 0,
 			filter = MangaListFilter.Advanced(
 				sortOrder = SortOrder.POPULARITY,
-				tags = emptySet(), locale = null, states = emptySet(), tagsExclude = emptySet(),
+				tags = emptySet(), locale = null, states = emptySet(), tagsExclude = emptySet(), contentRating = emptySet()
 			),
 		).minByOrNull {
 			it.title.length
@@ -130,6 +130,7 @@ internal class MangaParserTest {
 			tagsExclude = setOf(),
 			locale = locales.random(),
 			states = setOf(),
+			contentRating = setOf(),
 		)
 		val list = parser.getList(offset = 0, filter)
 		checkMangaList(list, filter.locale.toString())

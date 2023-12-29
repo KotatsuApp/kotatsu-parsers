@@ -33,6 +33,10 @@ abstract class MangaParser @InternalParsersApi constructor(
 	open val availableStates: Set<MangaState>
 		get() = emptySet()
 
+
+	open val availableContentRating: Set<ContentRating>
+		get() = emptySet()
+
 	/**
 	 * Whether parser supports filtering by more than one tag
 	 */
@@ -144,6 +148,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 				tags.orEmpty(),
 				tagsExclude.orEmpty(),
 				null,
+				emptySet(),
 				emptySet(),
 			),
 		)
