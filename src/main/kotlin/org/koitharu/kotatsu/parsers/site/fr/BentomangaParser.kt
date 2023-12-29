@@ -49,17 +49,15 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 			is MangaListFilter.Advanced -> {
 
-				url.addQueryParameter(
-					"order_by",
-					when (filter.sortOrder) {
-						SortOrder.UPDATED -> "update"
-						SortOrder.POPULARITY -> "views"
-						SortOrder.RATING -> "top"
-						SortOrder.NEWEST -> "create"
-						SortOrder.ALPHABETICAL -> "name&order=asc"
-						SortOrder.ALPHABETICAL_DESC -> "name&order=desc"
-					},
-				)
+				when (filter.sortOrder) {
+					SortOrder.UPDATED -> url.addQueryParameter("order_by", "update")
+					SortOrder.POPULARITY -> url.addQueryParameter("order_by", "views")
+					SortOrder.RATING -> url.addQueryParameter("order_by", "top")
+					SortOrder.NEWEST -> url.addQueryParameter("order_by", "create")
+					SortOrder.ALPHABETICAL -> url.addQueryParameter("order_by", "name")
+					SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
+						.addQueryParameter("order", "desc")
+				}
 
 				if (filter.tags.isNotEmpty()) {
 					url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
