@@ -95,6 +95,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> = throw NotImplementedError("Please implement getList(offset, filter) instead")
 
@@ -130,18 +131,29 @@ abstract class MangaParser @InternalParsersApi constructor(
 			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
 		),
 	)
-	open suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
+	open suspend fun getList(
+		offset: Int,
+		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
+		sortOrder: SortOrder?,
+	): List<Manga> {
 		return getList(
 			offset,
-			MangaListFilter.Advanced(sortOrder ?: defaultSortOrder, tags.orEmpty(), null, emptySet()),
+			MangaListFilter.Advanced(
+				sortOrder ?: defaultSortOrder,
+				tags.orEmpty(),
+				tagsExclude.orEmpty(),
+				null,
+				emptySet(),
+			),
 		)
 	}
 
 	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
-			is MangaListFilter.Advanced -> getList(offset, null, filter.tags, filter.sortOrder)
-			is MangaListFilter.Search -> getList(offset, filter.query, null, defaultSortOrder)
-			null -> getList(offset, null, null, defaultSortOrder)
+			is MangaListFilter.Advanced -> getList(offset, null, filter.tags, filter.tagsExclude, filter.sortOrder)
+			is MangaListFilter.Search -> getList(offset, filter.query, null, null, defaultSortOrder)
+			null -> getList(offset, null, null, null, defaultSortOrder)
 		}
 	}
 

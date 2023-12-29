@@ -80,6 +80,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val body = JSONObject()
