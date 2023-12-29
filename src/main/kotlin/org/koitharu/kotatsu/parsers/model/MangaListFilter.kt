@@ -20,10 +20,11 @@ sealed interface MangaListFilter {
 	data class Advanced(
 		override val sortOrder: SortOrder,
 		@JvmField val tags: Set<MangaTag>,
+		@JvmField val tagsExclude: Set<MangaTag>,
 		@JvmField val locale: Locale?,
 		@JvmField val states: Set<MangaState>,
 	) : MangaListFilter {
 
-		override fun isEmpty(): Boolean = tags.isEmpty() && locale == null && states.isEmpty()
+		override fun isEmpty(): Boolean = tags.isEmpty() && tagsExclude.isEmpty() && locale == null && states.isEmpty()
 	}
 }

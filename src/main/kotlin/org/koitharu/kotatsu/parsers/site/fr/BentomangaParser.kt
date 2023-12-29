@@ -63,6 +63,10 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 					url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
 				}
 
+				if (filter.tagsExclude.isNotEmpty()) {
+					url.addQueryParameter("withoutCategories", filter.tagsExclude.joinToString(",") { it.key })
+				}
+
 				filter.states.oneOrThrowIfMany()?.let {
 					url.addQueryParameter(
 						"state",
