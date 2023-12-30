@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("MONZEEKOMIK", "MonzeeKomik", "id")
 internal class MonzeeKomik(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.MONZEEKOMIK, "www.monzeekomik.my.id"){
+	ZeistMangaParser(context, MangaSource.MONZEEKOMIK, "www.monzeekomik.my.id") {
 	override val selectPage = "article#reader img"
 
 	override suspend fun loadChapters(mangaUrl: String, doc: Document): List<MangaChapter> {
@@ -32,13 +32,12 @@ internal class MonzeeKomik(context: MangaLoaderContext) :
 
 		val feedClean = feedFind.removeSuffix(")") // clean
 
-		val feed = if(feedClean == "Reincarnation Colosseum") // hot fix
-			{
-				"I Have 90 Billion Licking Gold"
-			}else
-			{
-				feedClean
-			}
+		val feed = if (feedClean == "Reincarnation Colosseum") // hot fix
+		{
+			"I Have 90 Billion Licking Gold"
+		} else {
+			feedClean
+		}
 
 		val url = buildString {
 			append("https://")
