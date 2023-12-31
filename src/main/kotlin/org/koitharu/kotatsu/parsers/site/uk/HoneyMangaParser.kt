@@ -157,9 +157,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val body = JSONObject()
-		body.put("chapterId", chapter.url)
-		val content = webClient.httpPost(framesApi, body).parseJson().getJSONObject("resourceIds")
+		val content = webClient.httpGet("$framesApi/${chapter.url}").parseJson().getJSONObject("resourceIds")
 		val baseUrl = imageStorageUrl.tryGet().getOrDefault(IMAGE_BASEURL_FALLBACK)
 		return List(content.length()) { i ->
 			val item = content.getString(i.toString())

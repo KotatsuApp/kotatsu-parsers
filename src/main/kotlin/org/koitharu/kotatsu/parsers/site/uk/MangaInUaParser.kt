@@ -94,7 +94,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 				"news_id" to linkToComics.attrOrThrow("data-news_id"),
 				"news_category" to linkToComics.attrOrThrow("data-news_category"),
 				"this_link" to "",
-				"user_hashs" to userHash,
+				"user_hash" to userHash,
 			),
 		).parseHtml()
 		val chapterNodes = chaptersDoc.select(".ltcitems")
