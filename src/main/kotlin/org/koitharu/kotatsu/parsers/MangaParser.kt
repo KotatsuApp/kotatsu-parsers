@@ -42,6 +42,11 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 */
 	open val isMultipleTagsSupported: Boolean = true
 
+	/**
+	 * Whether parser supports tagsExclude field in filter
+	 */
+	open val isTagsExclusionSupported: Boolean = false
+
 	@Deprecated(
 		message = "Use availableSortOrders instead",
 		replaceWith = ReplaceWith("availableSortOrders"),
