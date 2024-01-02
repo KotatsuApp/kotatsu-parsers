@@ -34,6 +34,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val url = when {

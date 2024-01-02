@@ -28,7 +28,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun list(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -61,7 +61,7 @@ internal class MangaParserTest {
 			offset = 0,
 			filter = MangaListFilter.Advanced(
 				sortOrder = SortOrder.POPULARITY,
-				tags = emptySet(), locale = null, states = emptySet(),
+				tags = emptySet(), locale = null, states = emptySet(), tagsExclude = emptySet(), contentRating = emptySet()
 			),
 		).minByOrNull {
 			it.title.length
@@ -92,7 +92,7 @@ internal class MangaParserTest {
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.getList(offset = 0, tags = setOf(tag), sortOrder = null)
+		val list = parser.getList(offset = 0, tags = setOf(tag), tagsExclude = setOf(tag), sortOrder = null)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
@@ -104,7 +104,7 @@ internal class MangaParserTest {
 		val tags = parser.getAvailableTags().shuffled().take(2).toSet()
 
 		val list = try {
-			parser.getList(offset = 0, tags = tags, sortOrder = null)
+			parser.getList(offset = 0, tags = tags, tagsExclude = tags, sortOrder = null)
 		} catch (e: IllegalArgumentException) {
 			if (e.message == "Multiple genres are not supported by this source") {
 				return@runTest
@@ -127,8 +127,10 @@ internal class MangaParserTest {
 		val filter = MangaListFilter.Advanced(
 			sortOrder = parser.availableSortOrders.first(),
 			tags = setOf(),
+			tagsExclude = setOf(),
 			locale = locales.random(),
 			states = setOf(),
+			contentRating = setOf(),
 		)
 		val list = parser.getList(offset = 0, filter)
 		checkMangaList(list, filter.locale.toString())
@@ -140,7 +142,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
@@ -169,7 +171,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null)
+		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null, tagsExclude = null)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)

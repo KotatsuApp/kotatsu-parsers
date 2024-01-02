@@ -21,8 +21,6 @@ private const val CHAPTERS_FIRST_PAGE_SIZE = 120
 private const val CHAPTERS_MAX_PAGE_SIZE = 500
 private const val CHAPTERS_PARALLELISM = 3
 private const val CHAPTERS_MAX_COUNT = 10_000 // strange api behavior, looks like a bug
-private const val CONTENT_RATING =
-	"contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic"
 private const val LOCALE_FALLBACK = "en"
 
 @MangaSourceParser("MANGADEX", "MangaDex")
@@ -31,6 +29,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+
+	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
 
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
@@ -45,22 +45,30 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			append(PAGE_SIZE)
 			append("&offset=")
 			append(offset)
-			append("&includes[]=cover_art&includes[]=author&includes[]=artist&")
+			append("&includes[]=cover_art&includes[]=author&includes[]=artist")
 			when (filter) {
 				is MangaListFilter.Search -> {
-					append("title=")
+					append("&title=")
 					append(filter.query)
-					append('&')
 				}
 
 				is MangaListFilter.Advanced -> {
 					filter.tags.forEach { tag ->
-						append("includedTags[]=")
+						append("&includedTags[]=")
 						append(tag.key)
-						append('&')
 					}
 
-					append(CONTENT_RATING)
+
+					if (filter.contentRating.isNotEmpty()) {
+						filter.contentRating.forEach {
+							when (it) {
+								ContentRating.SAFE -> append("&contentRating[]=safe")
+								ContentRating.SUGGESTIVE -> append("&contentRating[]=suggestive&contentRating[]=erotica")
+								ContentRating.ADULT -> append("&contentRating[]=pornographic")
+							}
+						}
+					}
+
 					append("&order")
 					append(
 						when (filter.sortOrder) {
@@ -251,8 +259,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			append(limitedLimit)
 			append("&includes[]=scanlation_group&order[volume]=asc&order[chapter]=asc&offset=")
 			append(offset)
-			append('&')
-			append(CONTENT_RATING)
+			append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
 		}
 		val json = webClient.httpGet(url).parseJson()
 		if (json.getString("result") == "ok") {

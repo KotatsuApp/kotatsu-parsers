@@ -32,6 +32,8 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
+	override val isTagsExclusionSupported = true
+
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
@@ -61,6 +63,10 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 				if (filter.tags.isNotEmpty()) {
 					url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
+				}
+
+				if (filter.tagsExclude.isNotEmpty()) {
+					url.addQueryParameter("withoutCategories", filter.tagsExclude.joinToString(",") { it.key })
 				}
 
 				filter.states.oneOrThrowIfMany()?.let {

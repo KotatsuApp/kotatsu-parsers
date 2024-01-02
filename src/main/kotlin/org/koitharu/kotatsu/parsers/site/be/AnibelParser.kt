@@ -31,6 +31,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (!query.isNullOrEmpty()) {
