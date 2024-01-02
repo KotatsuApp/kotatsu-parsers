@@ -51,11 +51,9 @@ internal class KomikGes(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-
-		return doc.selectFirstOrThrow("script:containsData(let data_content =)").data().split("src\\x3d\\x22").drop(1)
-
+		return doc.selectFirstOrThrow("script:containsData(let data_content =)").data()
+			.split("src\\x3d\\x22").drop(1)
 			.map { img ->
 				val url = img.substringBefore("\\x22")
 				MangaPage(
@@ -65,6 +63,5 @@ internal class KomikGes(context: MangaLoaderContext) :
 					source = source,
 				)
 			}
-
 	}
 }

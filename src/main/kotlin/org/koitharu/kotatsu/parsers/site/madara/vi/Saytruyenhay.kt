@@ -11,7 +11,7 @@ import java.util.EnumSet
 
 @MangaSourceParser("SAYTRUYENHAY", "PheTruyen", "vi")
 internal class Saytruyenhay(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SAYTRUYENHAY, "phetruyen.net", 40) {
+	MadaraParser(context, MangaSource.SAYTRUYENHAY, "phetruyen.pro", 40) {
 
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
