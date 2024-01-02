@@ -23,6 +23,8 @@ internal abstract class HeanCmsAlt(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
+	override val isSearchSupported = false
+
 	protected open val listUrl = "/comics"
 	protected open val datePattern = "MMMM d, yyyy"
 

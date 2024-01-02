@@ -47,6 +47,11 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 */
 	open val isTagsExclusionSupported: Boolean = false
 
+	/**
+	 * Whether parser supports searching by string query using [MangaListFilter.Search]
+	 */
+	open val isSearchSupported: Boolean = true
+
 	@Deprecated(
 		message = "Use availableSortOrders instead",
 		replaceWith = ReplaceWith("availableSortOrders"),
@@ -149,21 +154,42 @@ abstract class MangaParser @InternalParsersApi constructor(
 		return getList(
 			offset,
 			MangaListFilter.Advanced(
-				sortOrder ?: defaultSortOrder,
-				tags.orEmpty(),
-				tagsExclude.orEmpty(),
-				null,
-				emptySet(),
-				emptySet(),
+				sortOrder = sortOrder ?: defaultSortOrder,
+				tags = tags.orEmpty(),
+				tagsExclude = tagsExclude.orEmpty(),
+				locale = null,
+				states = emptySet(),
+				contentRating = emptySet(),
 			),
 		)
 	}
 
+	@Suppress("DEPRECATION")
 	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
-			is MangaListFilter.Advanced -> getList(offset, null, filter.tags, filter.tagsExclude, filter.sortOrder)
-			is MangaListFilter.Search -> getList(offset, filter.query, null, null, defaultSortOrder)
-			null -> getList(offset, null, null, null, defaultSortOrder)
+			is MangaListFilter.Advanced -> getList(
+				offset = offset,
+				query = null,
+				tags = filter.tags,
+				tagsExclude = filter.tagsExclude,
+				sortOrder = filter.sortOrder,
+			)
+
+			is MangaListFilter.Search -> getList(
+				offset = offset,
+				query = filter.query,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
+
+			null -> getList(
+				offset = offset,
+				query = null,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
 		}
 	}
 

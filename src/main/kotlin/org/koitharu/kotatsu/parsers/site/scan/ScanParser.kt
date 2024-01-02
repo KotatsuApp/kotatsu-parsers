@@ -21,7 +21,7 @@ internal abstract class ScanParser(
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
-
+	override val isSearchSupported = false
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

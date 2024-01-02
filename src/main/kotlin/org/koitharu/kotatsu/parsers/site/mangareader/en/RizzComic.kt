@@ -19,6 +19,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val availableStates: Set<MangaState> = emptySet()
 	override val isMultipleTagsSupported = false
+	override val isSearchSupported = false
 
 	// TODO Query created in json
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

@@ -25,6 +25,7 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
 
 	override val isMultipleTagsSupported = false
+	override val isSearchSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

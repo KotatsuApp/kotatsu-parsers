@@ -23,6 +23,8 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("furyosociety.com")
 
+	override val isSearchSupported = false
+
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()

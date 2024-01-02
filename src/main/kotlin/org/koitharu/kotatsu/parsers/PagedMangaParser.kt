@@ -50,9 +50,29 @@ abstract class PagedMangaParser(
 
 	open suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
-			is MangaListFilter.Advanced -> getListPage(page, null, filter.tags, filter.tagsExclude, filter.sortOrder)
-			is MangaListFilter.Search -> getListPage(page, filter.query, null, null, defaultSortOrder)
-			null -> getListPage(page, null, null, null, defaultSortOrder)
+			is MangaListFilter.Advanced -> getListPage(
+				page = page,
+				query = null,
+				tags = filter.tags,
+				tagsExclude = filter.tagsExclude,
+				sortOrder = filter.sortOrder,
+			)
+
+			is MangaListFilter.Search -> getListPage(
+				page = page,
+				query = filter.query,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
+
+			null -> getListPage(
+				page = page,
+				query = null,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
 		}
 	}
 

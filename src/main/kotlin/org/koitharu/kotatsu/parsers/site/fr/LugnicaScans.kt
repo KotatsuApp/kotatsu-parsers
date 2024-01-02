@@ -25,6 +25,8 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
+	override val isSearchSupported = false
+
 	override val configKeyDomain = ConfigKey.Domain("lugnica-scans.com")
 
 	override val headers: Headers = Headers.Builder()
