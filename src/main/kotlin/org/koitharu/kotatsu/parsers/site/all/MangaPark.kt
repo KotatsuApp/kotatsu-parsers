@@ -20,6 +20,10 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE)
+
+	override val isTagsExclusionSupported = true
+
 	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
 
 	private val tagsMap = SuspendLazy(::parseTags)
@@ -42,9 +46,25 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 				is MangaListFilter.Advanced -> {
 
+					append("&genres=")
 					if (filter.tags.isNotEmpty()) {
-						append("&genres=")
-						append(filter.tags.joinToString(",") { it.key })
+						appendAll(filter.tags, ",") { it.key }
+					}
+
+					append("|")
+					if (filter.tagsExclude.isNotEmpty()) {
+						appendAll(filter.tagsExclude, ",") { it.key }
+					}
+
+					if (filter.contentRating.isNotEmpty()) {
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									ContentRating.SAFE -> append(",gore,bloody,violence,ecchi,adult,mature,smut,hentai")
+									else -> append("")
+								},
+							)
+						}
 					}
 
 					filter.states.oneOrThrowIfMany()?.let {

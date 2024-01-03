@@ -35,6 +35,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
+	override val isTagsExclusionSupported = true
+
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
@@ -53,11 +55,15 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				}
 
 				is MangaListFilter.Advanced -> {
-					filter.tags.forEach { tag ->
+					filter.tags.forEach {
 						append("&includedTags[]=")
-						append(tag.key)
+						append(it.key)
 					}
 
+					filter.tagsExclude.forEach {
+						append("&excludedTags[]=")
+						append(it.key)
+					}
 
 					if (filter.contentRating.isNotEmpty()) {
 						filter.contentRating.forEach {

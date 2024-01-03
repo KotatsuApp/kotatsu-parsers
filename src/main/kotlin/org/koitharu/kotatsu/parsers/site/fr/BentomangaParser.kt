@@ -53,10 +53,20 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 				when (filter.sortOrder) {
 					SortOrder.UPDATED -> url.addQueryParameter("order_by", "update")
+						.addQueryParameter("order", "desc")
+
 					SortOrder.POPULARITY -> url.addQueryParameter("order_by", "views")
+						.addQueryParameter("order", "desc")
+
 					SortOrder.RATING -> url.addQueryParameter("order_by", "top")
+						.addQueryParameter("order", "desc")
+
 					SortOrder.NEWEST -> url.addQueryParameter("order_by", "create")
+						.addQueryParameter("order", "desc")
+
 					SortOrder.ALPHABETICAL -> url.addQueryParameter("order_by", "name")
+						.addQueryParameter("order", "asc")
+
 					SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
 						.addQueryParameter("order", "desc")
 				}
