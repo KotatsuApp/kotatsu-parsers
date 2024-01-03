@@ -1,11 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArrayMap
+import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -26,9 +26,8 @@ internal class ExHentaiParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
-	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
-		SortOrder.NEWEST,
-	)
+	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
+	override val isTagsExclusionSupported: Boolean = true
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain(
@@ -44,6 +43,7 @@ internal class ExHentaiParser(
 	private var updateDm = false
 	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
+	private val tagsMap = SuspendLazy(::fetchTags)
 
 	override val isAuthorized: Boolean
 		get() {
@@ -93,25 +93,16 @@ internal class ExHentaiParser(
 
 				is MangaListFilter.Advanced -> {
 
-					append("&f_search=")
-
-					var fCats = 0
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.forEach {
-							if (it.title.startsWith("- ")) {
-								it.key.toIntOrNull()?.let { fCats = fCats or it } ?: run {
-									search += it.key + " "
-								}
-							} else {
-								append(" tag:".urlEncoded())
-								append(it.key)
-							}
-						}
+					filter.toSearchQuery()?.let { sq ->
+						append("&f_search=")
+						append(sq.urlEncoded())
 					}
 
-					if (filter.locale != null) {
-						append(" language:".urlEncoded())
-						append(filter.locale.toLanguagePath())
+					var fCats = 0
+					filter.tags.forEach { tag ->
+						tag.key.toIntOrNull()?.let {
+							fCats = fCats or it
+						}
 					}
 
 					if (fCats != 0) {
@@ -182,15 +173,14 @@ internal class ExHentaiParser(
 		val title = root.getElementById("gd2")
 		val tagList = root.getElementById("taglist")
 		val tabs = doc.body().selectFirst("table.ptt")?.selectFirst("tr")
-		val lang =
-			root.getElementById("gd3")?.selectFirst("tr:contains(Language)")?.selectFirst(".gdt2")?.text() ?: "Unknown"
+		val lang = root.getElementById("gd3")
+			?.selectFirst("tr:contains(Language)")
+			?.selectFirst(".gdt2")?.text()
 
-		val tagMap = getOrCreateTagMap()
-		val tagF =
-			tagList?.selectFirst("tr:contains(female:)")?.select("a")?.mapNotNullToSet { tagMap[it.text()] }.orEmpty()
-		val tagM =
-			tagList?.selectFirst("tr:contains(male:)")?.select("a")?.mapNotNullToSet { tagMap[it.text()] }.orEmpty()
-		val tags = tagF + tagM
+		val tagMap = tagsMap.get()
+		val tags = ArraySet<MangaTag>()
+		tagList?.selectFirst("tr:contains(female:)")?.select("a")?.mapNotNullTo(tags) { tagMap[it.text()] }
+		tagList?.selectFirst("tr:contains(male:)")?.select("a")?.mapNotNullTo(tags) { tagMap[it.text()] }
 
 		return manga.copy(
 			title = title?.getElementById("gn")?.text()?.cleanupTitle() ?: manga.title,
@@ -265,21 +255,17 @@ internal class ExHentaiParser(
 			"unusual pupils,urination,vore,vtuber,widow,wings,witch,wolf girl,x-ray,yuri,zombie,sole male,males only,yaoi," +
 			"tomgirl,tall man,oni,shotacon,prostate massage,policeman,males only,huge penis,fox boy,feminization,dog boy,dickgirl on male,big penis"
 
-	private var tagCache: ArrayMap<String, MangaTag>? = null
-	private val mutex = Mutex()
-
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
+		return tagsMap.get().values.toSet()
 	}
 
-	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
-		tagCache?.let { return@withLock it }
+	private suspend fun fetchTags(): Map<String, MangaTag> {
 		val tagMap = ArrayMap<String, MangaTag>()
 		val tagElements = tags.split(",")
 		for (el in tagElements) {
 			if (el.isEmpty()) continue
 			tagMap[el] = MangaTag(
-				title = el,
+				title = el.toTitleCase(Locale.ENGLISH),
 				key = el,
 				source = source,
 			)
@@ -289,16 +275,14 @@ internal class ExHentaiParser(
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
 		root.select("div.cs").mapNotNullToSet { div ->
 			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@mapNotNullToSet null
-			val name = "- " + div.text().toTitleCase()
+			val name = div.text().toTitleCase(Locale.ENGLISH)
 			tagMap[name] = MangaTag(
 				title = name,
 				key = id.toString(),
 				source = source,
 			)
 		}
-
-		tagCache = tagMap
-		return@withLock tagMap
+		return tagMap
 	}
 
 	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
@@ -403,4 +387,32 @@ internal class ExHentaiParser(
 			?.queryParameter("next")
 			?.toLongOrNull() ?: 1
 	}
+
+	private fun MangaListFilter.Advanced.toSearchQuery(): String? {
+		val joiner = StringUtil.StringJoiner(" ")
+		for (tag in tags) {
+			if (tag.key.isNumeric()) {
+				continue
+			}
+			joiner.add("tag:\"")
+			joiner.append(tag.key)
+			joiner.append("\"$")
+		}
+		for (tag in tagsExclude) {
+			if (tag.key.isNumeric()) {
+				continue
+			}
+			joiner.add("-tag:\"")
+			joiner.append(tag.key)
+			joiner.append("\"$")
+		}
+		locale?.let { lc ->
+			joiner.add("language:\"")
+			joiner.append(lc.toLanguagePath())
+			joiner.append("\"$")
+		}
+		return joiner.complete().takeUnless { it.isEmpty() }
+	}
+
+	private fun String.isNumeric() = all { c -> c.isDigit() }
 }

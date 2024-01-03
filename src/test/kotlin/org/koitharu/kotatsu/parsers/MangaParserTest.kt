@@ -61,7 +61,11 @@ internal class MangaParserTest {
 			offset = 0,
 			filter = MangaListFilter.Advanced(
 				sortOrder = SortOrder.POPULARITY,
-				tags = emptySet(), locale = null, states = emptySet(), tagsExclude = emptySet(), contentRating = emptySet()
+				tags = emptySet(),
+				locale = null,
+				states = emptySet(),
+				tagsExclude = emptySet(),
+				contentRating = emptySet(),
 			),
 		).minByOrNull {
 			it.title.length
@@ -92,7 +96,7 @@ internal class MangaParserTest {
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.getList(offset = 0, tags = setOf(tag), tagsExclude = setOf(tag), sortOrder = null)
+		val list = parser.getList(offset = 0, tags = setOf(tag), null, sortOrder = null)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
@@ -101,17 +105,13 @@ internal class MangaParserTest {
 	@MangaSources
 	fun tagsMultiple(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
+		if (!parser.isMultipleTagsSupported) return@runTest
 		val tags = parser.getAvailableTags().shuffled().take(2).toSet()
 
-		val list = try {
-			parser.getList(offset = 0, tags = tags, tagsExclude = tags, sortOrder = null)
-		} catch (e: IllegalArgumentException) {
-			if (e.message == "Multiple genres are not supported by this source") {
-				return@runTest
-			} else {
-				throw e
-			}
-		}
+		val filter = MangaListFilter.Advanced.Builder(parser.availableSortOrders.first())
+			.tags(tags)
+			.build()
+		val list = parser.getList(0, filter)
 		checkMangaList(list, "${tags.joinToString { it.title }} (${tags.joinToString { it.key }})")
 		assert(list.all { it.source == source })
 	}
