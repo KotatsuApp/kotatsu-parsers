@@ -98,16 +98,20 @@ internal class ExHentaiParser(
 						append(sq.urlEncoded())
 					}
 
-					var fCats = 0
-					filter.tags.forEach { tag ->
-						tag.key.toIntOrNull()?.let {
-							fCats = fCats or it
-						}
+					val catsOn = filter.tags.mapNotNullToSet { it.key.toIntOrNull() }
+					val catsOff = filter.tagsExclude.mapNotNullToSet { it.key.toIntOrNull() }
+					if (catsOff.size >= 10) {
+						return emptyList()
 					}
+					var fCats = catsOn.fold(0, Int::or)
+					if (fCats != 0) {
+						fCats = 1023 - fCats
+					}
+					fCats = catsOff.fold(fCats, Int::or)
 
 					if (fCats != 0) {
 						append("&f_cats=")
-						append(1023 - fCats)
+						append(fCats)
 					}
 				}
 
@@ -175,7 +179,7 @@ internal class ExHentaiParser(
 		val tabs = doc.body().selectFirst("table.ptt")?.selectFirst("tr")
 		val lang = root.getElementById("gd3")
 			?.selectFirst("tr:contains(Language)")
-			?.selectFirst(".gdt2")?.text()
+			?.selectFirst(".gdt2")?.ownTextOrNull()
 
 		val tagMap = tagsMap.get()
 		val tags = ArraySet<MangaTag>()
@@ -277,7 +281,7 @@ internal class ExHentaiParser(
 			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@mapNotNullToSet null
 			val name = div.text().toTitleCase(Locale.ENGLISH)
 			tagMap[name] = MangaTag(
-				title = name,
+				title = "Kind: $name",
 				key = id.toString(),
 				source = source,
 			)
