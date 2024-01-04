@@ -64,6 +64,18 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 								MangaState.UPCOMING -> append("upcoming")
 							}
 						}
+
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							append("&adult=")
+							append(
+								when (it) {
+									ContentRating.SAFE -> "0"
+									ContentRating.ADULT -> "1"
+									else -> ""
+								},
+							)
+						}
+
 						append("&")
 					}
 

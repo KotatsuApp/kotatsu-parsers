@@ -22,7 +22,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE)
 
-	override val isTagsExclusionSupported = true
+	override val isTagsExclusionSupported: Boolean = true
 
 	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
 

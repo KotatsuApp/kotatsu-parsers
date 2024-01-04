@@ -16,7 +16,8 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
 	override val listUrl = "public/genre/manga/"
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.RATING, SortOrder.NEWEST)
 

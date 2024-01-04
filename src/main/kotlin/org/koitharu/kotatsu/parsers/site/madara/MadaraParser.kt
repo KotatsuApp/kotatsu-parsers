@@ -35,6 +35,8 @@ internal abstract class MadaraParser(
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
+
 	protected open val tagPrefix = "manga-genre/"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val stylePage = "?style=list"
@@ -215,6 +217,18 @@ internal abstract class MadaraParser(
 									MangaState.UPCOMING -> append("upcoming")
 								}
 							}
+
+							filter.contentRating.oneOrThrowIfMany()?.let {
+								append("&adult=")
+								append(
+									when (it) {
+										ContentRating.SAFE -> "0"
+										ContentRating.ADULT -> "1"
+										else -> ""
+									},
+								)
+							}
+
 							append("&")
 						}
 
@@ -277,6 +291,16 @@ internal abstract class MadaraParser(
 								MangaState.ABANDONED -> "canceled"
 								MangaState.PAUSED -> "on-hold"
 								MangaState.UPCOMING -> "upcoming"
+							}
+					}
+
+					filter.contentRating.oneOrThrowIfMany()?.let {
+						payload["vars[meta_query][0][1][key]"] = "manga_adult_content"
+						payload["vars[meta_query][0][1][value]"] =
+							when (it) {
+								ContentRating.SAFE -> ""
+								ContentRating.ADULT -> "a%3A1%3A%7Bi%3A0%3Bs%3A3%3A%22yes%22%3B%7D"
+								else -> ""
 							}
 					}
 				}

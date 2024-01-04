@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaSource
@@ -16,7 +17,8 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
 	override val selectPage = "div#chapter_imgs img"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1

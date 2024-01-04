@@ -18,7 +18,8 @@ internal class MangaDna(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val selectDesc = "div.dsct"
 	override val selectChapter = "li.a-h"
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

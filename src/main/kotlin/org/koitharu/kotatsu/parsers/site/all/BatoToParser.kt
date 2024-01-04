@@ -35,7 +35,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
-	override val isTagsExclusionSupported = true
+	override val isTagsExclusionSupported: Boolean = true
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE)
 

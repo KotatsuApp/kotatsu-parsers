@@ -20,6 +20,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.com")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -40,7 +41,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 					append("https://api.")
 					append(domain)
 					append("/api/v1/")
-					if (filter.tags.isNotEmpty() || filter.states.isNotEmpty()) {
+					if (filter.tags.isNotEmpty() || filter.states.isNotEmpty() || filter.contentRating.isNotEmpty()) {
 						if (page > 1) {
 							return emptyList()
 						}
@@ -63,6 +64,16 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 									},
 								)
 							}
+						}
+
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							append("&adult=")
+							append(
+								when (it) {
+									ContentRating.ADULT -> "true"
+									else -> ""
+								},
+							)
 						}
 						append("&serie_type=webtoon")
 
