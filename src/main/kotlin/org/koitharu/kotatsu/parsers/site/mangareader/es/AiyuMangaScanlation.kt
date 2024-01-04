@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("AIYUMANGASCANLATION", "AiyuManhua", "es")
 internal class AiyuMangaScanlation(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.AIYUMANGASCANLATION, "aiyumanhua.com", 20, 10)
+	MangaReaderParser(context, MangaSource.AIYUMANGASCANLATION, "www.aiyumanhua.com", 20, 10)

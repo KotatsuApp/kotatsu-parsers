@@ -37,6 +37,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		if (query != null && page != searchPaginator.firstPage) {

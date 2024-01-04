@@ -27,7 +27,8 @@ internal abstract class HeanCms(
 		SortOrder.POPULARITY,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -56,18 +57,19 @@ internal abstract class HeanCms(
 								MangaState.FINISHED -> "Completed"
 								MangaState.ABANDONED -> "Dropped"
 								MangaState.PAUSED -> "Hiatus"
+								else -> ""
 							},
 						)
 
 					}
-					append("&order=desc")
 					append("&orderBy=")
 					when (filter.sortOrder) {
-						SortOrder.POPULARITY -> append("total_views")
-						SortOrder.UPDATED -> append("latest")
-						SortOrder.NEWEST -> append("created_at")
-						SortOrder.ALPHABETICAL -> append("title")
-						else -> append("latest")
+						SortOrder.POPULARITY -> append("total_views&order=desc")
+						SortOrder.UPDATED -> append("latest&order=desc")
+						SortOrder.NEWEST -> append("created_at&order=desc")
+						SortOrder.ALPHABETICAL -> append("title&order=desc")
+						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
+						else -> append("latest&order=desc")
 					}
 					append("&series_type=Comic&perPage=12")
 					append("&tags_ids=")

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("JIMANGA", "JiManga", "en")
+@MangaSourceParser("JIMANGA", "S2Manga.io", "en")
 internal class JiManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.JIMANGA, "jimanga.com")
+	MadaraParser(context, MangaSource.JIMANGA, "s2manga.io")

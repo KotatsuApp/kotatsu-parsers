@@ -33,10 +33,24 @@ abstract class MangaParser @InternalParsersApi constructor(
 	open val availableStates: Set<MangaState>
 		get() = emptySet()
 
+
+	open val availableContentRating: Set<ContentRating>
+		get() = emptySet()
+
 	/**
 	 * Whether parser supports filtering by more than one tag
 	 */
 	open val isMultipleTagsSupported: Boolean = true
+
+	/**
+	 * Whether parser supports tagsExclude field in filter
+	 */
+	open val isTagsExclusionSupported: Boolean = false
+
+	/**
+	 * Whether parser supports searching by string query using [MangaListFilter.Search]
+	 */
+	open val isSearchSupported: Boolean = true
 
 	@Deprecated(
 		message = "Use availableSortOrders instead",
@@ -95,6 +109,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> = throw NotImplementedError("Please implement getList(offset, filter) instead")
 
@@ -130,18 +145,51 @@ abstract class MangaParser @InternalParsersApi constructor(
 			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
 		),
 	)
-	open suspend fun getList(offset: Int, tags: Set<MangaTag>?, sortOrder: SortOrder?): List<Manga> {
+	open suspend fun getList(
+		offset: Int,
+		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
+		sortOrder: SortOrder?,
+	): List<Manga> {
 		return getList(
 			offset,
-			MangaListFilter.Advanced(sortOrder ?: defaultSortOrder, tags.orEmpty(), null, emptySet()),
+			MangaListFilter.Advanced(
+				sortOrder = sortOrder ?: defaultSortOrder,
+				tags = tags.orEmpty(),
+				tagsExclude = tagsExclude.orEmpty(),
+				locale = null,
+				states = emptySet(),
+				contentRating = emptySet(),
+			),
 		)
 	}
 
+	@Suppress("DEPRECATION")
 	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
-			is MangaListFilter.Advanced -> getList(offset, null, filter.tags, filter.sortOrder)
-			is MangaListFilter.Search -> getList(offset, filter.query, null, defaultSortOrder)
-			null -> getList(offset, null, null, defaultSortOrder)
+			is MangaListFilter.Advanced -> getList(
+				offset = offset,
+				query = null,
+				tags = filter.tags,
+				tagsExclude = filter.tagsExclude,
+				sortOrder = filter.sortOrder,
+			)
+
+			is MangaListFilter.Search -> getList(
+				offset = offset,
+				query = filter.query,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
+
+			null -> getList(
+				offset = offset,
+				query = null,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
 		}
 	}
 

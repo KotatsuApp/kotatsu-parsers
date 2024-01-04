@@ -213,6 +213,7 @@ internal abstract class ZeistMangaParser(
 			?: doc.selectFirst("div.y6x11p:contains(Yazar) .dt")
 
 		val desc = doc.getElementById("synopsis") ?: doc.getElementById("Sinopse") ?: doc.getElementById("sinopas")
+		?: doc.selectFirst(".sinopsis")
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
 		manga.copy(
 			author = author?.text(),

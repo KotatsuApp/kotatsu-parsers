@@ -68,6 +68,15 @@ fun Set<MangaState>?.oneOrThrowIfMany(): MangaState? {
 	}
 }
 
+@InternalParsersApi
+fun Set<ContentRating>?.oneOrThrowIfMany(): ContentRating? {
+	return when {
+		isNullOrEmpty() -> null
+		size == 1 -> first()
+		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_CONTENT_RATING_NOT_SUPPORTED)
+	}
+}
+
 val MangaParser.domain: String
 	get() {
 		return config[configKeyDomain]

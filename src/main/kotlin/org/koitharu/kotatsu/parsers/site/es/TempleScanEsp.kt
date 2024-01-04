@@ -21,6 +21,8 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("templescanesp.net")
 
+	override val isSearchSupported = false
+
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()

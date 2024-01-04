@@ -24,11 +24,15 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.RATING,
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 	)
 
 	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
+
+	override val isTagsExclusionSupported = true
 
 	init {
 		paginator.firstPage = 0
@@ -47,19 +51,32 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 			is MangaListFilter.Advanced -> {
 
-				url.addQueryParameter(
-					"order_by",
-					when (filter.sortOrder) {
-						SortOrder.UPDATED -> "update"
-						SortOrder.POPULARITY -> "views"
-						SortOrder.RATING -> "top"
-						SortOrder.NEWEST -> "create"
-						SortOrder.ALPHABETICAL -> "name"
-					},
-				)
+				when (filter.sortOrder) {
+					SortOrder.UPDATED -> url.addQueryParameter("order_by", "update")
+						.addQueryParameter("order", "desc")
+
+					SortOrder.POPULARITY -> url.addQueryParameter("order_by", "views")
+						.addQueryParameter("order", "desc")
+
+					SortOrder.RATING -> url.addQueryParameter("order_by", "top")
+						.addQueryParameter("order", "desc")
+
+					SortOrder.NEWEST -> url.addQueryParameter("order_by", "create")
+						.addQueryParameter("order", "desc")
+
+					SortOrder.ALPHABETICAL -> url.addQueryParameter("order_by", "name")
+						.addQueryParameter("order", "asc")
+
+					SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
+						.addQueryParameter("order", "desc")
+				}
 
 				if (filter.tags.isNotEmpty()) {
 					url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
+				}
+
+				if (filter.tagsExclude.isNotEmpty()) {
+					url.addQueryParameter("withoutCategories", filter.tagsExclude.joinToString(",") { it.key })
 				}
 
 				filter.states.oneOrThrowIfMany()?.let {
@@ -70,6 +87,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 							MangaState.FINISHED -> "2"
 							MangaState.PAUSED -> "3"
 							MangaState.ABANDONED -> "5"
+							else -> "1"
 						},
 					)
 				}

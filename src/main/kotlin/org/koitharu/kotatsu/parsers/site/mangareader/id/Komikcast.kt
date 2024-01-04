@@ -44,6 +44,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 					append(
 						when (filter.sortOrder) {
 							SortOrder.ALPHABETICAL -> "&orderby=titleasc"
+							SortOrder.ALPHABETICAL_DESC -> "&orderby=titledesc"
 							SortOrder.POPULARITY -> "&orderby=popular"
 							SortOrder.UPDATED -> "" // To get the Updated list, you don't need "orderby" in the url.
 							else -> ""

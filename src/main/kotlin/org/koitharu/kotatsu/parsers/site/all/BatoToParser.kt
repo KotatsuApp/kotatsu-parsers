@@ -35,6 +35,10 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
+	override val isTagsExclusionSupported = true
+
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE)
+
 	override val configKeyDomain = ConfigKey.Domain(
 		"bato.to",
 		"batocomic.com",
@@ -93,6 +97,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 								MangaState.FINISHED -> "completed"
 								MangaState.ABANDONED -> "cancelled"
 								MangaState.PAUSED -> "hiatus"
+								MangaState.UPCOMING -> "pending"
 							},
 						)
 					}
@@ -102,13 +107,29 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 						append(it.language)
 					}
 
+					append("&genres=")
 					if (filter.tags.isNotEmpty()) {
-						append("&genres=")
 						appendAll(filter.tags, ",") { it.key }
 					}
 
+					append("|")
+					if (filter.tagsExclude.isNotEmpty()) {
+						appendAll(filter.tagsExclude, ",") { it.key }
+					}
+
+					if (filter.contentRating.isNotEmpty()) {
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									ContentRating.SAFE -> append(",gore,bloody,violence,ecchi,adult,mature,smut,hentai")
+									else -> append("")
+								},
+							)
+						}
+					}
+
 					append("&page=")
-					append(page)
+					append(page.toString())
 				}
 
 				return parseList(url, page)
@@ -120,7 +141,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 					append(domain)
 					append("/browse?sort=update.za")
 					append("&page=")
-					append(page)
+					append(page.toString())
 				}
 				return parseList(url, page)
 			}

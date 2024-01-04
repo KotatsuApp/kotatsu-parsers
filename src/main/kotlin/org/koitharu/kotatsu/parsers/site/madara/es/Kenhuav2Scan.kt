@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("CONSEJODEMATONES", "ConsejoDeMatones", "es")
-internal class ConsejoDeMatones(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.CONSEJODEMATONES, "www.consejodematones.xyz")
+@MangaSourceParser("KENHUAV2SCANK", "Kenhuav2Scan", "es")
+internal class Kenhuav2Scan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.KENHUAV2SCANK, "kenhuav2scan.com")

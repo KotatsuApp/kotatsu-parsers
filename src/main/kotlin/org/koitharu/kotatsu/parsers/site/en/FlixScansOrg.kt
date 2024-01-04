@@ -19,6 +19,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) : PagedMangaParser(cont
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.org")
+	override val isSearchSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

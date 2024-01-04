@@ -32,6 +32,7 @@ internal abstract class ChanParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val domain = domain
@@ -80,7 +81,7 @@ internal abstract class ChanParser(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			chapters = root.select("table.table_cha tr:gt(1)").mapChapters(reversed = true) { i, tr ->
-				val href = tr?.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
+				val href = tr.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
 					?: return@mapChapters null
 				MangaChapter(
 					id = generateUid(href),

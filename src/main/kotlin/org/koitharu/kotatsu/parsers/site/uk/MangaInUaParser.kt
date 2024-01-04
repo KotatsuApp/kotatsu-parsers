@@ -34,6 +34,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> {
 		val url = when {
@@ -94,7 +95,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 				"news_id" to linkToComics.attrOrThrow("data-news_id"),
 				"news_category" to linkToComics.attrOrThrow("data-news_category"),
 				"this_link" to "",
-				"user_hashs" to userHash,
+				"user_hash" to userHash,
 			),
 		).parseHtml()
 		val chapterNodes = chaptersDoc.select(".ltcitems")
@@ -105,7 +106,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 			largeCoverUrl = root.selectFirst("div.item__full-sidebar--poster")?.selectFirst("img")
 				?.attrAsAbsoluteUrlOrNull("src"),
 			chapters = chapterNodes.mapChapters { _, item ->
-				val href = item?.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
+				val href = item.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 				val isAlternative = item.styleValueOrNull("background") != null
 				val name = item.selectFirst("a")?.text().orEmpty()
 				if (!isAlternative) i++

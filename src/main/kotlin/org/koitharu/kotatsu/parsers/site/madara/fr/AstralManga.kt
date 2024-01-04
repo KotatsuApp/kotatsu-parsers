@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ASTRALMANGA", "AstralManga", "fr")
 internal class AstralManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ASTRALMANGA, "astral-manga.fr", pageSize = 12) {
+	MadaraParser(context, MangaSource.ASTRALMANGA, "astral-manga.fr") {
 	override val datePattern = "dd/MM/yyyy"
 }

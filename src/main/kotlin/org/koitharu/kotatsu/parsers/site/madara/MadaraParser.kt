@@ -151,6 +151,15 @@ internal abstract class MadaraParser(
 		"En attente",
 	)
 
+	@JvmField
+	protected val upcoming: Set<String> = hashSetOf(
+		"Upcoming",
+		"upcoming",
+		"لم تُنشَر بعد",
+		"Prochainement",
+		"À venir",
+	)
+
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
 
@@ -203,6 +212,7 @@ internal abstract class MadaraParser(
 									MangaState.FINISHED -> append("end")
 									MangaState.ABANDONED -> append("canceled")
 									MangaState.PAUSED -> append("on-hold")
+									MangaState.UPCOMING -> append("upcoming")
 								}
 							}
 							append("&")
@@ -215,6 +225,7 @@ internal abstract class MadaraParser(
 							SortOrder.NEWEST -> append("new-manga")
 							SortOrder.ALPHABETICAL -> append("alphabet")
 							SortOrder.RATING -> append("rating")
+							else -> append("latest")
 						}
 					}
 
@@ -255,6 +266,7 @@ internal abstract class MadaraParser(
 						}
 
 						SortOrder.RATING -> {}
+						else -> payload["vars[meta_key]"] = "_latest_update"
 					}
 
 					filter.states.forEach {
@@ -264,6 +276,7 @@ internal abstract class MadaraParser(
 								MangaState.FINISHED -> "end"
 								MangaState.ABANDONED -> "canceled"
 								MangaState.PAUSED -> "on-hold"
+								MangaState.UPCOMING -> "upcoming"
 							}
 					}
 				}
@@ -310,6 +323,7 @@ internal abstract class MadaraParser(
 					in finished -> MangaState.FINISHED
 					in abandoned -> MangaState.ABANDONED
 					in paused -> MangaState.PAUSED
+					in upcoming -> MangaState.UPCOMING
 					else -> null
 				},
 				source = source,

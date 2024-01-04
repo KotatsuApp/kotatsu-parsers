@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.animebootstrap.AnimeBootstrapParser
 
 @MangaSourceParser("KOMIKZOID", "KomikzoId", "id")
 internal class KomikzoId(context: MangaLoaderContext) :
-	AnimeBootstrapParser(context, MangaSource.KOMIKZOID, "komikzoid.xyz")
+	AnimeBootstrapParser(context, MangaSource.KOMIKZOID, "komikzoid.id")

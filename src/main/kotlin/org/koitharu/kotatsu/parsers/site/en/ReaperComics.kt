@@ -20,7 +20,9 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 
-	override val configKeyDomain = ConfigKey.Domain("reapercomics.com")
+	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
+
+	override val isSearchSupported = false
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)

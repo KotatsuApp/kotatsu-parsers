@@ -67,7 +67,13 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaS
 		)
 	}
 
-	override suspend fun getList(offset: Int, query: String?, tags: Set<MangaTag>?, sortOrder: SortOrder): List<Manga> {
+	override suspend fun getList(
+		offset: Int,
+		query: String?,
+		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
+		sortOrder: SortOrder,
+	): List<Manga> {
 		// Get all manga
 		val json = allManga.get().toMutableList()
 

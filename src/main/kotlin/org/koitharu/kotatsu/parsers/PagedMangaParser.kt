@@ -36,6 +36,7 @@ abstract class PagedMangaParser(
 		offset: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> = throw UnsupportedOperationException("You should use getListPage for PagedMangaParser")
 
@@ -43,14 +44,35 @@ abstract class PagedMangaParser(
 		page: Int,
 		query: String?,
 		tags: Set<MangaTag>?,
+		tagsExclude: Set<MangaTag>?,
 		sortOrder: SortOrder,
 	): List<Manga> = throw NotImplementedError("Please implement getListPage(page, filter) instead")
 
 	open suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
-			is MangaListFilter.Advanced -> getListPage(page, null, filter.tags, filter.sortOrder)
-			is MangaListFilter.Search -> getListPage(page, filter.query, null, defaultSortOrder)
-			null -> getListPage(page, null, null, defaultSortOrder)
+			is MangaListFilter.Advanced -> getListPage(
+				page = page,
+				query = null,
+				tags = filter.tags,
+				tagsExclude = filter.tagsExclude,
+				sortOrder = filter.sortOrder,
+			)
+
+			is MangaListFilter.Search -> getListPage(
+				page = page,
+				query = filter.query,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
+
+			null -> getListPage(
+				page = page,
+				query = null,
+				tags = null,
+				tagsExclude = null,
+				sortOrder = defaultSortOrder,
+			)
 		}
 	}
 
