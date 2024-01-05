@@ -187,7 +187,14 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			val chap = jo.getStringOrNull("chap")
 			val locale = Locale.forLanguageTag(jo.getString("lang"))
 			val group = jo.optJSONArray("group_name")?.joinToString(", ")
-			val branch = locale.getDisplayName(locale).toTitleCase(locale) + " (" + group + ")"
+			val branch = buildString {
+				append(locale.getDisplayName(locale).toTitleCase(locale))
+				if (!group.isNullOrEmpty()) {
+					append(" (")
+					append(group)
+					append(')')
+				}
+			}
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
 				name = buildString {
