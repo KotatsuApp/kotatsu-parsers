@@ -185,7 +185,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		val scripts = webClient.httpGet(fullUrl).parseHtml().select("script")
 		for (script in scripts) {
 			val scriptSrc = script.html()
-			val p = scriptSrc.indexOf("const imgHttpLis =")
+			val p = scriptSrc.indexOf("const imgHttps =")
 			if (p == -1) continue
 			val start = scriptSrc.indexOf('[', p)
 			val end = scriptSrc.indexOf(';', start)
