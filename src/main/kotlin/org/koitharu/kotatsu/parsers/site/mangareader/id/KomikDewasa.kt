@@ -17,4 +17,5 @@ internal class KomikDewasa(context: MangaLoaderContext) :
 		searchPageSize = 10,
 	) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

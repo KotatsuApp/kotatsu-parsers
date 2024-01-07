@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("KIRYUU", "Kiryuu", "id")
 internal class KiryuuParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KIRYUU, "kiryuu.id", pageSize = 30, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.KIRYUU, "kiryuu.id", pageSize = 30, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

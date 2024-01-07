@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("WITCOMICS", "WitComics", "it")
 internal class WitComics(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.WITCOMICS, "www.witcomics.net", pageSize = 5, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.WITCOMICS, "www.witcomics.net", pageSize = 5, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

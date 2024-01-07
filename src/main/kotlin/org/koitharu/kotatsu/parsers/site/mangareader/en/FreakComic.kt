@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("FREAKCOMIC", "FreakComic", "en")
 internal class FreakComic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.FREAKCOMIC, "freakcomic.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.FREAKCOMIC, "freakcomic.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

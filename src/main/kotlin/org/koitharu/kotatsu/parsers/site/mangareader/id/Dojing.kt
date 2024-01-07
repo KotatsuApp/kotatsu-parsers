@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Dojing(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DOJING, "dojing.net", pageSize = 12, searchPageSize = 12) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

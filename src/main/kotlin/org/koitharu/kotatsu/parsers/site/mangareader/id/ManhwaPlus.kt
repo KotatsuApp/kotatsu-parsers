@@ -11,4 +11,5 @@ internal class ManhwaPlus(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWAPLUS, "manhwablue.com", 20, 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "/komik"
+	override val isTagsExclusionSupported = false
 }

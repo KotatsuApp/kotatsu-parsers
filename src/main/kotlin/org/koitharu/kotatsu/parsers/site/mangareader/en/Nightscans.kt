@@ -10,4 +10,5 @@ internal class Nightscans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.NIGHTSCANS, "nightscans.net", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
 	override val selectMangaListImg = "img.ts-post-image, picture img"
+	override val isTagsExclusionSupported = false
 }

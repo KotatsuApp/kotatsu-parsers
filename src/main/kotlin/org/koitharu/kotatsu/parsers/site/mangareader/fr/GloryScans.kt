@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("GLORYSCANS", "GloryScans", "fr")
 internal class GloryScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.GLORYSCANS, "gloryscans.fr", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.GLORYSCANS, "gloryscans.fr", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

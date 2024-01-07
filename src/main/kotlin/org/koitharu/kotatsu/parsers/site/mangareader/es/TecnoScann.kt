@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("TECNOSCANN", "TecnoScann", "es")
 internal class TecnoScann(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.TECNOSCANN, "tecnoscann.com", 20, 10)
+	MangaReaderParser(context, MangaSource.TECNOSCANN, "tecnoscann.com", 20, 10) {
+	override val isTagsExclusionSupported = false
+}

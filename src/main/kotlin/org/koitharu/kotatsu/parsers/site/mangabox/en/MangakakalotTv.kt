@@ -23,6 +23,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 	override val isMultipleTagsSupported = false
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

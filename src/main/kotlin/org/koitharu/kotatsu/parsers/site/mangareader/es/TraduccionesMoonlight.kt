@@ -9,6 +9,4 @@ import java.util.Locale
 
 @MangaSourceParser("TRADUCCIONESMOONLIGHT", "TraduccionesMoonlight", "es", ContentType.HENTAI)
 internal class TraduccionesMoonlight(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.TRADUCCIONESMOONLIGHT, "tenkaiscan.net", 20, 10) {
-	override val sourceLocale: Locale = Locale.ENGLISH
-}
+	MangaReaderParser(context, MangaSource.TRADUCCIONESMOONLIGHT, "traduccionesmoonlight.com", 20, 10)

@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SEKAIKOMIK", "SekaiKomik", "id")
 internal class SekaikomikParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SEKAIKOMIK, "sekaikomik.bio", pageSize = 20, searchPageSize = 100)
+	MangaReaderParser(context, MangaSource.SEKAIKOMIK, "sekaikomik.bio", pageSize = 20, searchPageSize = 100) {
+	override val isTagsExclusionSupported = false
+}

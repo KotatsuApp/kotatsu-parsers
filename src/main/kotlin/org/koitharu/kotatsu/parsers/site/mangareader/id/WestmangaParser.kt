@@ -10,4 +10,5 @@ import java.util.*
 internal class WestmangaParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.WESTMANGA, "westmanga.org", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

@@ -8,4 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MANHWALAND", "ManhwaLand", "id", ContentType.HENTAI)
 internal class ManhwaLand(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANHWALAND, "62.182.80.253", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.MANHWALAND, "62.182.80.253", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("POPSMANGA", "PopsManga", "th")
 internal class PopsManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.POPSMANGA, "popsmanga.com", pageSize = 20, searchPageSize = 14)
+	MangaReaderParser(context, MangaSource.POPSMANGA, "popsmanga.com", pageSize = 20, searchPageSize = 14) {
+	override val isTagsExclusionSupported = false
+}

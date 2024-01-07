@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class ReadersPoint(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.READERSPOINT, "readers-point.space", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
+	override val isTagsExclusionSupported = false
 }

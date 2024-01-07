@@ -26,6 +26,8 @@ internal abstract class MangaboxParser(
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
+	override val isTagsExclusionSupported = true
+
 	protected open val listUrl = "/advanced_search"
 	protected open val searchUrl = "/search/story/"
 	protected open val datePattern = "MMM dd,yy"
@@ -65,6 +67,15 @@ internal abstract class MangaboxParser(
 					if (filter.tags.isNotEmpty()) {
 						append("&g_i=")
 						filter.tags.forEach {
+							append("_")
+							append(it.key)
+							append("_")
+						}
+					}
+
+					if (filter.tagsExclude.isNotEmpty()) {
+						append("&g_e=")
+						filter.tagsExclude.forEach {
 							append("_")
 							append(it.key)
 							append("_")

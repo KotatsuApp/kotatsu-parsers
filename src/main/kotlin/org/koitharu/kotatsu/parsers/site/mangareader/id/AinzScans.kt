@@ -12,4 +12,5 @@ internal class AinzScans(context: MangaLoaderContext) :
 	override val listUrl = "/series"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

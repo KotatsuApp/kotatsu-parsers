@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("LIGHTSCANS", "LightScans", "en")
 internal class LightScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LIGHTSCANS, "lightscans.fun", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.LIGHTSCANS, "lightscans.fun", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

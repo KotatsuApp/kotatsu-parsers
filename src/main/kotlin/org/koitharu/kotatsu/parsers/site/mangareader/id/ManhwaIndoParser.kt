@@ -11,5 +11,5 @@ internal class ManhwaIndoParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWAINDO, "manhwaindo.id", pageSize = 30, searchPageSize = 10) {
 	override val datePattern = "MMMM dd, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val listUrl: String get() = "/series"
+	override val listUrl = "/series"
 }

@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class KomikIndoParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKINDO, "komikindo.co", pageSize = 20, searchPageSize = 10) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

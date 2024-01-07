@@ -7,5 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("PATIMANGA", "PatiManga", "tr")
 internal class PatiManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.PATIMANGA, "www.patimanga.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.PATIMANGA, "www.patimanga.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}
 

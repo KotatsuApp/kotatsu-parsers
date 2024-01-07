@@ -15,4 +15,5 @@ internal class SkanlacjeFeniksy(context: MangaLoaderContext) :
 		searchPageSize = 10,
 	) {
 	override val datePattern = "d MMMM, yyyy"
+	override val isTagsExclusionSupported = false
 }

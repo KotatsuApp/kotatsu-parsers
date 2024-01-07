@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Sheakomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SHEAKOMIK, "sheakomik.com", pageSize = 40, searchPageSize = 40) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

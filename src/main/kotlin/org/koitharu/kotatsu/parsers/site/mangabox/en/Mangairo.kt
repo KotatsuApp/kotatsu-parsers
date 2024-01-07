@@ -37,6 +37,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
+	override val isTagsExclusionSupported = false
 	override val isMultipleTagsSupported = false
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

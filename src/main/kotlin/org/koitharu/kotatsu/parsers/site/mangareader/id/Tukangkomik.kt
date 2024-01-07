@@ -11,4 +11,5 @@ internal class Tukangkomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TUKANGKOMIK, "tukangkomik.id", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

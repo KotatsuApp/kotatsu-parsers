@@ -30,6 +30,8 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 		MangaState.PAUSED,
 	)
 
+	override val isTagsExclusionSupported = true
+
 	private val tagsMap = SuspendLazy(::parseTags)
 
 	override suspend fun getFavicons(): Favicons {
@@ -61,6 +63,13 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 					if (filter.tags.isNotEmpty()) {
 						append(
 							filter.tags.joinToString(",") { it.key },
+						)
+					}
+
+					append("&reject_genres=")
+					if (filter.tagsExclude.isNotEmpty()) {
+						append(
+							filter.tagsExclude.joinToString(",") { it.key },
 						)
 					}
 

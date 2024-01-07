@@ -11,4 +11,5 @@ import java.util.Locale
 internal class TenkaiScan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TENKAISCAN, "tenkaiscan.net", 20, 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

@@ -14,6 +14,7 @@ internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.VEXMANGA, "vexmanga.com", pageSize = 10, searchPageSize = 10) {
 	override val selectMangaList = ".listarchives .latest-recom"
 	override val selectChapter = ".ulChapterList > a"
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

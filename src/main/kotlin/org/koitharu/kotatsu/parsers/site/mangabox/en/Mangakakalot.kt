@@ -19,6 +19,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
+	override val isTagsExclusionSupported = false
 	override val isMultipleTagsSupported = false
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"

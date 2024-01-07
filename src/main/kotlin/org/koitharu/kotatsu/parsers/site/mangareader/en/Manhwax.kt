@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Manhwax(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANHWAX, "manhwax.org", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

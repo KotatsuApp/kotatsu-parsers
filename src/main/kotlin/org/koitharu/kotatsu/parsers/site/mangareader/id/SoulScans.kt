@@ -11,4 +11,5 @@ internal class SoulScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SOULSCANS, "soulscans.my.id", pageSize = 30, searchPageSize = 30) {
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

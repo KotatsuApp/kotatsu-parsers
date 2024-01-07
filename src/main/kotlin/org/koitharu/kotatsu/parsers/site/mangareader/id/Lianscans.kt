@@ -9,6 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("LIANSCANS", "LianScans", "id", ContentType.HENTAI)
 internal class Lianscans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.LIANSCANS, "www.lianscans.my.id", pageSize = 10, searchPageSize = 10) {
-
 	override val datePattern = "MMM d, yyyy"
 }

@@ -11,4 +11,5 @@ import java.util.Locale
 internal class YuriLab(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.YURILAB, "yurilab.my.id", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }
