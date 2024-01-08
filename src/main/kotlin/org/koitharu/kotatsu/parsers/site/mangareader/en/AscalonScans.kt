@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ASCALONSCANS", "AscalonScans", "en")
 internal class AscalonScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ASCALONSCANS, "ascalonscans.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.ASCALONSCANS, "ascalonscans.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

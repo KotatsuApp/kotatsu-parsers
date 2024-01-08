@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("GOLGEBAHCESI", "GolgeBahcesi", "tr")
 internal class Golgebahcesi(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.GOLGEBAHCESI, "golgebahcesi.com", pageSize = 14, searchPageSize = 9)
+	MangaReaderParser(context, MangaSource.GOLGEBAHCESI, "golgebahcesi.com", pageSize = 14, searchPageSize = 9) {
+	override val isTagsExclusionSupported = false
+}

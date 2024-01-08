@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SSSSCANLATOR", "SssScanlator", "pt")
 internal class SssScanlator(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SSSSCANLATOR, "sssscanlator.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.SSSSCANLATOR, "sssscanlator.com.br", pageSize = 20, searchPageSize = 10){
+	override val isTagsExclusionSupported = false
+}

@@ -21,6 +21,8 @@ internal class MangaDass(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> get() = emptySet()
 
+	override val availableContentRating: Set<ContentRating> = emptySet()
+
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1

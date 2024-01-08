@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class PhenixscansParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.PHENIXSCANS, "phenixscans.fr", pageSize = 20, searchPageSize = 10) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

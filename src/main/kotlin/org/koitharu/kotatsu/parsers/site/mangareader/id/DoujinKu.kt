@@ -11,4 +11,5 @@ import java.util.Locale
 internal class DoujinKu(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DOUJINKU, "doujinku.xyz", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

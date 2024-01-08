@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Doujin69(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.DOUJIN69, "doujin69.com", pageSize = 40, searchPageSize = 21) {
 	override val listUrl = "/doujin"
+	override val isTagsExclusionSupported = false
 }

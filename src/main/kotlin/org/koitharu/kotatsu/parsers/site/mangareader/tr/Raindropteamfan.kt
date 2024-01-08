@@ -13,5 +13,7 @@ internal class Raindropteamfan(context: MangaLoaderContext) :
 		"www.raindropteamfan.com",
 		pageSize = 25,
 		searchPageSize = 10,
-	)
+	) {
+	override val isTagsExclusionSupported = false
+}
 

@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("LAMIMANGA", "LamiManga", "th")
 internal class LamiManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LAMIMANGA, "www.lami-manga.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.LAMIMANGA, "www.lami-manga.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

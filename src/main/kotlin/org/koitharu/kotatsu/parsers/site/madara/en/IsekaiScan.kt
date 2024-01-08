@@ -16,13 +16,12 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 	override val tagPrefix = "mangas/"
 	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 	)
-
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
 
 	init {
 		paginator.firstPage = 1

@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class AnigliScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ANIGLISCANS, "anigliscans.xyz", pageSize = 47, searchPageSize = 47) {
 	override val listUrl = "/series"
+	override val isTagsExclusionSupported = false
 }

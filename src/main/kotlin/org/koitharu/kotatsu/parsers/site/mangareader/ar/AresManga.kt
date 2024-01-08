@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class AresManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ARESMANGA, "aresnov.org", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
+	override val isTagsExclusionSupported = false
 }

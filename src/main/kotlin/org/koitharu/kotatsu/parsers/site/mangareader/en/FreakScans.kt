@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class FreakScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.FREAKSCANS, "freakscans.com", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

@@ -1,10 +1,9 @@
-package org.koitharu.kotatsu.parsers.site.fr
+package org.koitharu.kotatsu.parsers.site.pizzareader
 
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -13,20 +12,66 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FMTEAM", "FmTeam", "fr")
-internal class FmTeam(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.FMTEAM, 0) {
+internal abstract class PizzaReaderParser(
+	context: MangaLoaderContext,
+	source: MangaSource,
+	domain: String,
+	pageSize: Int = 20,
+) : PagedMangaParser(context, source, pageSize) {
+
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-	override val configKeyDomain = ConfigKey.Domain("fmteam.fr")
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
+	override val isTagsExclusionSupported = true
+
+	@JvmField
+	protected val ongoing: Set<String> = hashSetOf(
+		"en cours",
+		"in corso",
+		"in corso (cadenza irregolare)",
+		"in corso (irregolare)",
+		"in corso (mensile)",
+		"in corso (quindicinale)",
+		"in corso (settimanale)",
+		"In corso (bisettimanale)",
+	)
+
+
+	@JvmField
+	protected val finished: Set<String> = hashSetOf(
+		"terminé",
+		"concluso",
+		"completato",
+	)
+
+	@JvmField
+	protected val paused: Set<String> = hashSetOf(
+		"in pausa",
+		"in corso (in pausa)",
+	)
+
+	@JvmField
+	protected val abandoned: Set<String> = hashSetOf(
+		"droppato",
+	)
+
+
+	protected open val ongoingFilter = "in corso"
+	protected open val completedFilter = "concluso"
+	protected open val hiatusFilter = "in pausa"
+	protected open val abandonedFilter = "droppato"
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}
 		var foundTag = true
+		var foundTagExclude = true
 		var foundState = true
+		var foundContentRating = true
 
 		val manga = ArrayList<Manga>()
 
@@ -48,7 +93,7 @@ internal class FmTeam(context: MangaLoaderContext) :
 					val j = jsonManga.getJSONObject(i)
 					val href = "/api" + j.getString("url")
 
-					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
+					if (filter.tags.isNotEmpty()) {
 						val a = j.getJSONArray("genres").toString()
 						foundTag = false
 						filter.tags.forEach {
@@ -58,14 +103,26 @@ internal class FmTeam(context: MangaLoaderContext) :
 						}
 					}
 
+					if (filter.tagsExclude.isNotEmpty()) {
+						val a = j.getJSONArray("genres").toString()
+						foundTagExclude = false
+						filter.tagsExclude.forEach {
+							if (!a.contains(it.key, ignoreCase = true)) {
+								foundTagExclude = true
+							}
+						}
+					}
+
 					if (filter.states.isNotEmpty()) {
 						val a = j.getString("status")
 						foundState = false
 						filter.states.oneOrThrowIfMany()?.let {
-							if (a.contains(
+							if (a.lowercase().contains(
 									when (it) {
-										MangaState.ONGOING -> "En cours"
-										MangaState.FINISHED -> "Terminé"
+										MangaState.PAUSED -> hiatusFilter
+										MangaState.ONGOING -> ongoingFilter
+										MangaState.FINISHED -> completedFilter
+										MangaState.ABANDONED -> abandonedFilter
 										else -> ""
 									},
 									ignoreCase = true,
@@ -77,7 +134,25 @@ internal class FmTeam(context: MangaLoaderContext) :
 
 					}
 
-					if (foundState && foundTag) {
+					if (filter.contentRating.isNotEmpty()) {
+						val a = j.getInt("adult")
+						foundContentRating = false
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							if (a == (
+									when (it) {
+										ContentRating.SAFE -> 0
+										ContentRating.ADULT -> 1
+										else -> 0
+									}
+									)
+							) {
+								foundContentRating = true
+							}
+						}
+
+					}
+
+					if (foundState && foundTag && foundTagExclude && foundContentRating) {
 						manga.add(addManga(href, j))
 					}
 				}
@@ -115,8 +190,10 @@ internal class FmTeam(context: MangaLoaderContext) :
 			tags = emptySet(),
 			author = j.getString("author"),
 			state = when (j.getString("status").lowercase()) {
-				"en cours" -> MangaState.ONGOING
-				"terminé" -> MangaState.FINISHED
+				in ongoing -> MangaState.ONGOING
+				in finished -> MangaState.FINISHED
+				in paused -> MangaState.PAUSED
+				in abandoned -> MangaState.ABANDONED
 				else -> null
 			},
 			source = source,

@@ -24,6 +24,7 @@ internal class Zahard(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
 	override val availableStates: Set<MangaState> = emptySet()
 	override val isMultipleTagsSupported = false
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

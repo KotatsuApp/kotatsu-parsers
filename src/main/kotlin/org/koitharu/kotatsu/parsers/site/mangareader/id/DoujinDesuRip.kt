@@ -8,4 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DOUJINDESURIP", "DoujinDesu.cfd", "id", ContentType.HENTAI)
 internal class DoujinDesuRip(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.DOUJINDESURIP, "doujindesu.cfd", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.DOUJINDESURIP, "doujindesu.cfd", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

@@ -8,4 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("EPSILONSCAN", "EpsilonScan", "fr", ContentType.HENTAI)
 internal class EpsilonscanParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.EPSILONSCAN, "epsilonscan.fr", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.EPSILONSCAN, "epsilonscan.fr", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

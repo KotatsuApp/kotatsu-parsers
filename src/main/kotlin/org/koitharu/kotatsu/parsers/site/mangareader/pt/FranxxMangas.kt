@@ -10,4 +10,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class FranxxMangas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.FRANXXMANGAS, "franxxmangas.net", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

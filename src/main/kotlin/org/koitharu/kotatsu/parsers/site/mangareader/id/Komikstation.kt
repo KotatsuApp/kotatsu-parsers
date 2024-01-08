@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Komikstation(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKSTATION, "komikstation.co", pageSize = 30, searchPageSize = 30) {
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

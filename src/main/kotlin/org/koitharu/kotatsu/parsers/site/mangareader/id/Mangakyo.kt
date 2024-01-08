@@ -10,4 +10,5 @@ internal class Mangakyo(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGAKYO, "mangakyo.vip", pageSize = 40, searchPageSize = 20) {
 	override val listUrl = "/komik"
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

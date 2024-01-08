@@ -10,4 +10,5 @@ import java.util.*
 internal class KomikSay(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKSAY, "komiksay.info", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

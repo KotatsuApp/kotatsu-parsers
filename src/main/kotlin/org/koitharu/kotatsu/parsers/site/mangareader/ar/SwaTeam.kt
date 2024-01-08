@@ -16,6 +16,7 @@ internal class SwaTeam(context: MangaLoaderContext) :
 	override val selectMangaList = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
 	override val isNetShieldProtected = true
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

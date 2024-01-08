@@ -7,5 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("TAROTSCANS", "TarotScans", "tr")
 internal class TarotScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.TAROTSCANS, "www.tarotscans.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.TAROTSCANS, "www.tarotscans.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}
 

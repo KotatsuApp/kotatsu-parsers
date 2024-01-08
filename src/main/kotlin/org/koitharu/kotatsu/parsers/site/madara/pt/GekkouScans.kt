@@ -9,6 +9,6 @@ import java.util.Locale
 
 @MangaSourceParser("GEKKOUSCANS", "GekkouScans", "pt", ContentType.HENTAI)
 internal class GekkouScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.GEKKOUSCANS, "gekkouscans.top") {
+	MadaraParser(context, MangaSource.GEKKOUSCANS, "gekkou.site") {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

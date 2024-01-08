@@ -19,6 +19,9 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
+
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 
 	override val headers: Headers = Headers.Builder()
@@ -45,7 +48,19 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				val url = buildString {
 					append("https://api.")
 					append(domain)
-					append("/misc/comic/search/query?status=&order=&genreNames=")
+					append("/misc/comic/search/query?status=")
+					filter.states.oneOrThrowIfMany()?.let {
+						append(
+							when (it) {
+								MangaState.ONGOING -> "En cours"
+								MangaState.FINISHED -> "Terminé"
+								MangaState.ABANDONED -> "Abandonné"
+								MangaState.PAUSED -> "En pause"
+								else -> ""
+							},
+						)
+					}
+					append("&order=&genreNames=")
 					append(filter.tags.joinToString(",") { it.key })
 					append("&type=&start=")
 					append(start)

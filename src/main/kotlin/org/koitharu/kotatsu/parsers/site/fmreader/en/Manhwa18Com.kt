@@ -38,11 +38,10 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 				is MangaListFilter.Advanced -> {
 
 					append("&accept_genres=")
-					if (filter.tags.isNotEmpty()) {
-						append(
-							filter.tags.joinToString(",") { it.key },
-						)
-					}
+					append(filter.tags.joinToString(",") { it.key })
+
+					append("&reject_genres=")
+					append(filter.tagsExclude.joinToString(",") { it.key })
 
 					append("&sort=")
 					append(

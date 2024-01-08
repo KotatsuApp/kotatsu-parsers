@@ -7,5 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("NYXMANGA", "NyxManga", "tr")
 internal class NyxManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.NYXMANGA, "nyxmanga.com", pageSize = 14, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.NYXMANGA, "nyxmanga.com", pageSize = 14, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}
 

@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("RAGNASCAN", "RagnaScan", "es")
 internal class RagnaScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.RAGNASCAN, "ragnascan.com", pageSize = 5, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.RAGNASCAN, "ragnascan.com", pageSize = 5, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

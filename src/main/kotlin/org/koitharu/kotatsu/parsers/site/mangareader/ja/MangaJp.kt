@@ -10,4 +10,5 @@ import java.util.Locale
 internal class MangaJp(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGAJP, "mangajp.top", pageSize = 54, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

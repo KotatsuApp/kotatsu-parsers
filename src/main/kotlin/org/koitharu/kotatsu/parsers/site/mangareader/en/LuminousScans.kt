@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class LuminousScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.LUMINOUSSCANS, "luminousscans.net", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
+	override val isTagsExclusionSupported = false
 }

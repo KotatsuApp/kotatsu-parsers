@@ -10,4 +10,5 @@ internal class NekoScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.NEKOSCANS, "nekoscans.com", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/proyecto"
 	override val encodedSrc = true
+	override val isTagsExclusionSupported = false
 }

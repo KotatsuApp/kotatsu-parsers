@@ -40,6 +40,8 @@ internal abstract class NineMangaParser(
 		MangaState.FINISHED,
 	)
 
+	override val isTagsExclusionSupported: Boolean = true
+
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		val newRequest = if (request.url.host == domain) {
@@ -64,12 +66,13 @@ internal abstract class NineMangaParser(
 				}
 
 				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
+
+					if (filter.tags.isNotEmpty() || filter.tagsExclude.isNotEmpty() || filter.states.isNotEmpty()) {
 						append("/search/?category_id=")
-						for (tag in filter.tags) {
-							append(tag.key)
-							append(',')
-						}
+						append(filter.tags.joinToString(separator = ",") { it.key })
+
+						append("&out_category_id=")
+						append(filter.tagsExclude.joinToString(separator = ",") { it.key })
 
 						filter.states.oneOrThrowIfMany()?.let {
 							append("&completed_series=")
@@ -81,20 +84,9 @@ internal abstract class NineMangaParser(
 						}
 						append("&page=")
 					} else {
-						append("/category/")
-						if (filter.states.isNotEmpty()) {
-							filter.states.oneOrThrowIfMany()?.let {
-								when (it) {
-									MangaState.ONGOING -> append("updated_")
-									MangaState.FINISHED -> append("completed_")
-									else -> append("either")
-								}
-							}
-						} else {
-							append("index_")
-						}
+						append("/category/index_")
 					}
-					append(page)
+					append(page.toString())
 					append(".html")
 				}
 

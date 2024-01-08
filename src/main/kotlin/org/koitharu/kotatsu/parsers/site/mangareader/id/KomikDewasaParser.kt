@@ -12,4 +12,5 @@ internal class KomikDewasaParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKDEWASA, "komikremaja.cfd", pageSize = 20, searchPageSize = 10) {
 	override val listUrl: String = "/komik"
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

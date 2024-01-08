@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MERLINSCANS", "MerlinScans", "tr")
 internal class MerlinScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MERLINSCANS, "merlinscans.com", pageSize = 25, searchPageSize = 20)
+	MangaReaderParser(context, MangaSource.MERLINSCANS, "merlinscans.com", pageSize = 25, searchPageSize = 20) {
+	override val isTagsExclusionSupported = false
+}

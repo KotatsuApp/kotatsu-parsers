@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("XCALIBRSCANS", "XCalibrScans", "en")
 internal class XCalibrScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.XCALIBRSCANS, "xcalibrscans.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.XCALIBRSCANS, "xcalibrscans.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

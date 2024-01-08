@@ -24,6 +24,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
@@ -63,6 +65,17 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 							append("&genders[]=")
 							append(tag.key)
 						}
+					}
+
+					filter.contentRating.oneOrThrowIfMany()?.let {
+						append("&erotic=")
+						append(
+							when (it) {
+								ContentRating.SAFE -> "false"
+								ContentRating.ADULT -> "true"
+								else -> ""
+							},
+						)
 					}
 				}
 

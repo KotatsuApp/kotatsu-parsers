@@ -10,4 +10,5 @@ import java.util.Locale
 internal class KomikTapParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KOMIKTAP, "komiktap.me", pageSize = 25, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

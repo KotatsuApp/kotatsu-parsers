@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MILASUB", "MilaSub", "tr")
 internal class MilaSub(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MILASUB, "www.milasub.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.MILASUB, "www.milasub.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

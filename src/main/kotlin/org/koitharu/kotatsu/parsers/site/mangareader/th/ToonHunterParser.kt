@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("TOONHUNTER", "ToonHunter", "th")
 internal class ToonHunterParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.TOONHUNTER, "toonhunter.com", pageSize = 30, searchPageSize = 10) {
-
 	override val datePattern = "MMM d, yyyy"
+	override val isTagsExclusionSupported = false
 }

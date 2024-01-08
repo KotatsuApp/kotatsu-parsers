@@ -21,7 +21,9 @@ internal class MangaPure(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 	)
 
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1

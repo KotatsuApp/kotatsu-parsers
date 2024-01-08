@@ -16,14 +16,13 @@ internal class InstaManhwa(context: MangaLoaderContext) :
 	override val listUrl = "latest/"
 	override val postReq = true
 	override val datePattern = "d MMMM, yyyy"
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 	)
-
 	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1

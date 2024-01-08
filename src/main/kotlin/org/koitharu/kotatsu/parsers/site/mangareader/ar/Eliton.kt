@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ELITON", "Eliton", "ar")
 internal class Eliton(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ELITON, "eliton.lol", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.ELITON, "eliton.lol", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

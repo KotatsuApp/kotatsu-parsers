@@ -10,5 +10,6 @@ import java.util.Locale
 internal class Shirakami(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.SHIRAKAMI, "shirakami.xyz", pageSize = 10, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }
 

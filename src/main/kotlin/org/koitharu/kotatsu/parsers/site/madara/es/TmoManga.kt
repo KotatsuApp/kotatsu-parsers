@@ -17,7 +17,8 @@ internal class TmoManga(context: MangaLoaderContext) :
 	override val selectGenre = "div.summary-content a.tags_manga"
 	override val withoutAjax = true
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1

@@ -16,7 +16,9 @@ internal class Manhwaz(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val selectTestAsync = "div.list-chapter"
 
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override val availableStates: Set<MangaState> = emptySet()
+
+	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -9,7 +11,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import java.text.DateFormat
+import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,6 +20,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.org")
 	override val isSearchSupported = false
 
@@ -29,17 +32,45 @@ internal class FlixScansOrg(context: MangaLoaderContext) : PagedMangaParser(cont
 			}
 
 			is MangaListFilter.Advanced -> {
+
 				val url = buildString {
 					append("https://api.")
 					append(domain)
-					append("/api/v1/webtoon/homepage/latest/home?page=")
+					append("/api/v1/search/advance?=&serie_type=webtoon&page=")
 					append(page.toString())
+
+					append("&genres=")
+					append(filter.tags.joinToString(separator = ",") { it.key })
+
+					filter.states.oneOrThrowIfMany()?.let {
+						append("&status=")
+						append(
+							when (it) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								MangaState.ABANDONED -> "droped"
+								MangaState.PAUSED -> "onhold"
+								MangaState.UPCOMING -> "soon"
+							},
+						)
+					}
+
+					filter.contentRating.oneOrThrowIfMany()?.let {
+						append("&adult=")
+						append(
+							when (it) {
+								ContentRating.ADULT -> "true"
+								else -> ""
+							},
+						)
+					}
+					append("&serie_type=webtoon")
 				}
 				webClient.httpGet(url).parseJson().getJSONArray("data")
 			}
 
 			null -> {
-				val url = "https://api.$domain/api/v1/webtoon/homepage/latest/home?page=$page"
+				val url = "https://api.$domain/api/v1/search/advance?=&serie_type=webtoon&page=$page"
 				webClient.httpGet(url).parseJson().getJSONArray("data")
 			}
 		}
@@ -69,80 +100,100 @@ internal class FlixScansOrg(context: MangaLoaderContext) : PagedMangaParser(cont
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+	override suspend fun getAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/search/advance").parseHtml()
+		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
+		val tagsList = json.getJSONArray(3).toString().replace("[", "").replace("]", "").split(",")
+		return tagsList.mapNotNullToSet { idTag ->
+			val id = idTag.toInt()
+			val idKey = json.getJSONObject(id).getInt("id")
+			val key = json.getInt(idKey).toString()
+			val idName = json.getJSONObject(id).getInt("name")
+			val name = json.getString(idName)
+			MangaTag(
+				key = key,
+				title = name,
+				source = source,
+			)
+		}
+	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
+		val chaptersDeferred = async { loadChapters(manga.url) }
+		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
+		val descId = json.getJSONObject(6).getInt("story")
+		val desc = json.getString(descId)
+		val tagsId = json.getJSONObject(6).getInt("genres")
+		val tagsList = json.getJSONArray(tagsId).toString().replace("[", "").replace("]", "").split(",")
+		val ratingId = json.getJSONObject(6).getInt("rating")
+		val rating = json.getString(ratingId)
+		val nsfwId = json.getJSONObject(6).getInt("nsfw")
+		val nsfw = json.getBoolean(nsfwId)
 		manga.copy(
-			description = doc.selectFirst("div.text-base")?.text(),
-			author = doc.selectFirst("div.gap-1:contains(Authors) span.MuiChip-label")?.text(),
-			altTitle = doc.select("div.gap-1:contains(Other names) span.MuiChip-label")
-				.joinToString(" / ") { it.text() },
-			chapters = doc.select("div.nox-scrollbar a").mapChapters(reversed = true) { i, a ->
-				val url = a.attrAsRelativeUrl("href")
-				val name = a.selectFirstOrThrow("div.font-medium").text()
-				val dateText = a.selectLastOrThrow("div").text()
-				MangaChapter(
-					id = generateUid(url),
-					url = url,
-					name = name,
-					number = i + 1,
-					branch = null,
-					uploadDate = parseChapterDate(
-						dateFormat,
-						dateText,
-					),
-					scanlator = null,
+			description = desc,
+			tags = tagsList.mapToSet { idTag ->
+				val id = idTag.toInt()
+				val idKey = json.getJSONObject(id).getInt("id")
+				val key = json.get(idKey).toString()
+				val idName = json.getJSONObject(id).getInt("name")
+				val name = json.get(idName).toString()
+				MangaTag(
+					key = key,
+					title = name,
 					source = source,
 				)
 			},
+			rating = rating?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+			isNsfw = nsfw,
+			chapters = chaptersDeferred.await(),
 		)
 	}
 
-	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		val d = date?.lowercase() ?: return 0
-		return when {
-			d.endsWith(" ago") -> parseRelativeDate(date)
-			else -> dateFormat.tryParse(date)
+	private val dateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
+
+	private suspend fun loadChapters(baseUrl: String): List<MangaChapter> {
+		val key = baseUrl.substringAfter("-").substringBefore("-")
+		val seriesKey = baseUrl.substringAfterLast("/").substringBefore("-")
+		val json = JSONArray(
+			webClient.httpGet("https://api.$domain/api/v1/webtoon/chapters/$key-desc").parseRaw(),
+		).toJSONList().reversed()
+		return json.mapChapters { i, j ->
+			val url = "https://$domain/read/webtoon/$seriesKey-${j.getString("id")}-${j.getString("slug")}"
+			val date = j.getString("createdAt").substringBeforeLast("T")
+			MangaChapter(
+				id = generateUid(url),
+				url = url,
+				name = j.getString("slug").replace('-', ' '),
+				number = i + 1,
+				branch = null,
+				uploadDate = dateFormat.tryParse(date),
+				scanlator = null,
+				source = source,
+			)
 		}
 	}
-
-	private fun parseRelativeDate(date: String): Long {
-		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
-		val cal = Calendar.getInstance()
-		return when {
-			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-			WordSet("minute", "minutes", "mins", "min").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MINUTE,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("hour", "hours").anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
-			WordSet("day", "days").anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-			WordSet("week", "weeks").anyWordIn(date) -> cal.apply { add(Calendar.WEEK_OF_YEAR, -number) }.timeInMillis
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
-			else -> 0
-		}
-	}
-
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val urls = doc.selectFirstOrThrow("script:containsData(chapterData)").data().replace("\\", "")
-			.substringAfterLast("\"webtoon\":[\"").substringBeforeLast("\"]").split("\",\"")
-		return urls.map { url ->
-			val urlImg = "https://media.$domain/$url"
-			MangaPage(
-				id = generateUid(urlImg),
-				url = urlImg,
-				preview = null,
-				source = source,
+		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
+		val chapterData = json.getJSONObject(6).getInt("chapterData")
+		val pageLocate = json.getJSONObject(chapterData).getInt("webtoon")
+		val jsonPages = json.getJSONArray(pageLocate)
+		val pages = ArrayList<MangaPage>(jsonPages.length())
+		for (i in 0 until jsonPages.length()) {
+			val id = jsonPages.getInt(i)
+			val url = "https://media.$domain/" + json.getString(id)
+			pages.add(
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				),
 			)
 		}
+		return pages
 	}
 }

@@ -14,6 +14,7 @@ import java.util.ArrayList
 internal class PotatoManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.POTATOMANGA, "potatomanga.xyz", pageSize = 30, searchPageSize = 10) {
 	override val listUrl = "/series"
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)

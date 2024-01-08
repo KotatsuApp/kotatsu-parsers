@@ -25,6 +25,7 @@ internal abstract class NepnepParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val isTagsExclusionSupported = true
 
 	override val headers: Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
@@ -36,6 +37,7 @@ internal abstract class NepnepParser(
 		}
 
 		var foundTag = true
+		var foundTagExclude = true
 		var foundState = true
 
 		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
@@ -77,6 +79,16 @@ internal abstract class NepnepParser(
 						}
 					}
 
+					if (filter.tagsExclude.isNotEmpty()) {
+						val tagsJon = m.getJSONArray("g").toString()
+						filter.tagsExclude.forEach {
+							foundTagExclude = false
+							if (!tagsJon.contains(it.key, ignoreCase = true)) {
+								foundTagExclude = true
+							}
+						}
+					}
+
 					if (filter.states.isNotEmpty()) {
 						val stateJson = m.getString("ps")
 						filter.states.oneOrThrowIfMany().let {
@@ -97,7 +109,7 @@ internal abstract class NepnepParser(
 						}
 					}
 
-					if (foundTag && foundState) {
+					if (foundTag && foundState && foundTagExclude) {
 						manga.add(addManga(href, imgUrl, m))
 					}
 				}

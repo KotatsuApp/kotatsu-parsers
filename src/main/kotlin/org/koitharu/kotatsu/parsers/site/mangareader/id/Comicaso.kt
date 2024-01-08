@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class Comicaso(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.COMICASO, "comicaso.com", pageSize = 20, searchPageSize = 10) {
 	override val encodedSrc = true
+	override val isTagsExclusionSupported = false
 }

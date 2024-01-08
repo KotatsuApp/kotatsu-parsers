@@ -32,7 +32,7 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
-	override val isTagsExclusionSupported = true
+	override val isTagsExclusionSupported: Boolean = true
 
 	init {
 		paginator.firstPage = 0

@@ -34,6 +34,8 @@ internal abstract class FmreaderParser(
 		MangaState.ABANDONED,
 	)
 
+	override val isTagsExclusionSupported = true
+
 	protected open val listUrl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val tagPrefix = "manga-list-genre-"
@@ -80,6 +82,9 @@ internal abstract class FmreaderParser(
 
 					append("&genre=")
 					append(filter.tags.joinToString(",") { it.key })
+
+					append("&ungenre=")
+					append(filter.tagsExclude.joinToString(",") { it.key })
 
 
 					append("&sort=")

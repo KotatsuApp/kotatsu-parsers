@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ASURATR", "ArmoniScans", "tr")
 internal class AsuraTRParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ASURATR, "armoniscans.com", pageSize = 30, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.ASURATR, "armoniscans.com", pageSize = 30, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

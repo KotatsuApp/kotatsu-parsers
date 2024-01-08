@@ -41,6 +41,8 @@ internal abstract class MangaReaderParser(
 	override val availableStates: Set<MangaState>
 		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 
+	override val isTagsExclusionSupported = true
+
 	protected open val listUrl = "/manga"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val isNetShieldProtected = false
@@ -77,11 +79,19 @@ internal abstract class MangaReaderParser(
 						},
 					)
 
-					val tagKey = "genre[]".urlEncoded()
-					val tagQuery =
-						if (filter.tags.isEmpty()) ""
-						else filter.tags.joinToString(separator = "&", prefix = "&") { "$tagKey=${it.key}" }
-					append(tagQuery)
+					filter.tags.forEach {
+						append("&")
+						append("genre[]".urlEncoded())
+						append("=")
+						append(it.key)
+					}
+
+					filter.tagsExclude.forEach {
+						append("&")
+						append("genre[]".urlEncoded())
+						append("=-")
+						append(it.key)
+					}
 
 					if (filter.states.isNotEmpty()) {
 						filter.states.oneOrThrowIfMany()?.let {

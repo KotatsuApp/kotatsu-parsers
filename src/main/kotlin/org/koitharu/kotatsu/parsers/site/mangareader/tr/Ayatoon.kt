@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("AYATOON", "AyaToon", "tr")
 internal class Ayatoon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.AYATOON, "ayatoon.com", pageSize = 20, searchPageSize = 20)
+	MangaReaderParser(context, MangaSource.AYATOON, "ayatoon.com", pageSize = 20, searchPageSize = 20) {
+	override val isTagsExclusionSupported = false
+}

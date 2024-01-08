@@ -20,6 +20,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 	override val availableStates: Set<MangaState> = emptySet()
 	override val isMultipleTagsSupported = false
 	override val isSearchSupported = false
+	override val isTagsExclusionSupported = false
 
 	// TODO Query created in json
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

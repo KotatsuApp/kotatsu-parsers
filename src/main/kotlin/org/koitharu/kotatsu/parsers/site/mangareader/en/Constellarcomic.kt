@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class Constellarcomic(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.CONSTELLARCOMIC, "constellarcomic.com", pageSize = 30, searchPageSize = 18) {
 	override val selectTestScript = "script:containsData(ts_rea_der_._run)"
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

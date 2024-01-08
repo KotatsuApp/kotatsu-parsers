@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
@@ -22,8 +23,6 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectGenre = "div.tags-content a"
-
-	override val availableStates: Set<MangaState> get() = emptySet()
 
 	init {
 		paginator.firstPage = 1
@@ -54,14 +53,41 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 							append("page/")
 							append(page.toString())
 						}
+						append("/?")
 					} else {
 						if (page > 1) {
 							append("/page/")
 							append(page.toString())
 						}
+
+						append("/?s&post_type=wp-manga")
+
+						filter.contentRating.oneOrThrowIfMany()?.let {
+							append("&adult=")
+							append(
+								when (it) {
+									ContentRating.SAFE -> "0"
+									ContentRating.ADULT -> "1"
+									else -> ""
+								},
+							)
+						}
+
+						filter.states.forEach {
+							append("&status[]=")
+							when (it) {
+								MangaState.ONGOING -> append("on-going")
+								MangaState.FINISHED -> append("end")
+								MangaState.ABANDONED -> append("canceled")
+								MangaState.PAUSED -> append("on-hold")
+								MangaState.UPCOMING -> append("upcoming")
+							}
+						}
+
+						append("&")
 					}
 
-					append("/?m_orderby=")
+					append("m_orderby=")
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
@@ -70,6 +96,8 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
+
+
 				}
 
 				null -> {

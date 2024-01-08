@@ -10,4 +10,5 @@ import java.util.*
 internal class KataKomik(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.KATAKOMIK, "katakomik.my.id", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

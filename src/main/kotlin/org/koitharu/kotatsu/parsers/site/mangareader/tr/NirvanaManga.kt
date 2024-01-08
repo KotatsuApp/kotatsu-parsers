@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("NIRVANAMANGA", "NirvanaManga", "tr")
 internal class NirvanaManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.NIRVANAMANGA, "nirvanamanga.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.NIRVANAMANGA, "nirvanamanga.com", pageSize = 20, searchPageSize = 10) {
+	override val isTagsExclusionSupported = false
+}

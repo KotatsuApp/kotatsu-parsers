@@ -20,6 +20,7 @@ internal class TuManhwas(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
 	override val availableStates: Set<MangaState> = emptySet()
 	override val isMultipleTagsSupported = false
+	override val isTagsExclusionSupported = false
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
