@@ -44,8 +44,9 @@ internal class RemangaParser(
 		get() = getApiHeaders()
 
 	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг")
+
 	override val authUrl: String
-		get() = "https://${domain}/user/login"
+		get() = "https://${domain}"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
