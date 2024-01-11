@@ -417,6 +417,4 @@ internal class ExHentaiParser(
 		}
 		return joiner.complete().takeUnless { it.isEmpty() }
 	}
-
-	private fun String.isNumeric() = all { c -> c.isDigit() }
 }

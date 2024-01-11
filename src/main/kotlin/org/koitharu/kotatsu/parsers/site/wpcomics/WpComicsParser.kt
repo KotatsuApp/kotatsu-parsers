@@ -178,9 +178,11 @@ internal abstract class WpComicsParser(
 		val tagItems = doc.select("div.genre-item")
 		val result = ArrayMap<String, MangaTag>(tagItems.size)
 		for (item in tagItems) {
-			val title = item.text().trim()
+			val title = item.text()
 			val key = item.select("span[data-id]").attr("data-id")
-			result[title] = MangaTag(title = title, key = key, source = source)
+			if (key.isNotEmpty() && title.isNotEmpty()) {
+				result[title] = MangaTag(title = title, key = key, source = source)
+			}
 		}
 		tagCache = result
 		result
@@ -216,7 +218,7 @@ internal abstract class WpComicsParser(
 
 
 	protected open val selectDate = "div.col-xs-4"
-	protected open val selectChapter = "div#nt_listchapter li:not(.heading)"
+	protected open val selectChapter = "div#nt_listchapter li .chapter"
 
 	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->

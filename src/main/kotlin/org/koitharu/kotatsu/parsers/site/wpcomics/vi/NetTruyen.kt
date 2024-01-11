@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 internal class NetTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaSource.NETTRUYEN, "www.nettruyenlive.com", 36) {
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"www.nettruyenaz.com",
 		"www.nettruyenlive.com",
 		"www.nettruyenio.com",
 		"www.nettruyento.com",

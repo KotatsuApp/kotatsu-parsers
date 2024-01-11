@@ -71,4 +71,15 @@ class MangaChapter(
 	override fun toString(): String {
 		return "MangaChapter($id - #$number [$url] - $source)"
 	}
+
+	internal fun copy(number: Int) = MangaChapter(
+		id = id,
+		name = name,
+		number = number,
+		url = url,
+		scanlator = scanlator,
+		uploadDate = uploadDate,
+		branch = branch,
+		source = source,
+	)
 }

@@ -11,9 +11,8 @@ internal class MintMangaParser(
 ) : GroupleParser(context, MangaSource.MINTMANGA, 2) {
 
 	override val configKeyDomain = ConfigKey.Domain(
-		"23.mintmanga.live",
+		"24.mintmanga.one",
 		"mintmanga.live",
 		"mintmanga.com",
-		"m.mintmanga.live",
 	)
 }

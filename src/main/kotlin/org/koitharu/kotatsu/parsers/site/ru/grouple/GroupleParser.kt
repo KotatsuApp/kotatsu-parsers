@@ -155,28 +155,13 @@ internal abstract class GroupleParser(
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
-			val pos = data.indexOf("rm_h.readerInit( 0,")
-			if (pos == -1) {
-				continue
+			var pos = data.indexOf("rm_h.readerDoInit(")
+			if (pos != -1) {
+				parsePagesNew(data, pos)?.let { return it } ?: continue
 			}
-			val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
-			if (json.isEmpty()) {
-				continue
-			}
-			val ja = JSONArray("[$json]")
-			val pages = ja.getJSONArray(1)
-			val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
-			val serversStr = servers.joinToString("|")
-			return (0 until pages.length()).map { i ->
-				val page = pages.getJSONArray(i)
-				val primaryServer = page.getString(0)
-				val url = page.getString(2)
-				MangaPage(
-					id = generateUid(url),
-					url = "$primaryServer|$serversStr|$url",
-					preview = null,
-					source = source,
-				)
+			pos = data.indexOf("rm_h.readerInit( 0,")
+			if (pos != -1) {
+				parsePagesOld(data, pos)?.let { return it } ?: continue
 			}
 		}
 		doc.parseFailed("Pages list not found at ${chapter.url}")
@@ -372,5 +357,49 @@ internal abstract class GroupleParser(
 			},
 			source = source,
 		)
+	}
+
+	private fun parsePagesNew(data: String, pos: Int): List<MangaPage>? {
+		val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
+		if (json.isEmpty()) {
+			return null
+		}
+		val ja = JSONArray("[$json]")
+		val pages = ja.getJSONArray(0)
+		val servers = ja.getJSONArray(2).mapJSON { it.getString("path") }
+		val serversStr = servers.joinToString("|")
+		return (0 until pages.length()).map { i ->
+			val page = pages.getJSONArray(i)
+			val primaryServer = page.getString(2)
+			val url = page.getString(1)
+			MangaPage(
+				id = generateUid(url),
+				url = "$primaryServer|$serversStr|$url",
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
+	private fun parsePagesOld(data: String, pos: Int): List<MangaPage>? {
+		val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
+		if (json.isEmpty()) {
+			return null
+		}
+		val ja = JSONArray("[$json]")
+		val pages = ja.getJSONArray(1)
+		val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
+		val serversStr = servers.joinToString("|")
+		return (0 until pages.length()).map { i ->
+			val page = pages.getJSONArray(i)
+			val primaryServer = page.getString(0)
+			val url = page.getString(2)
+			MangaPage(
+				id = generateUid(url),
+				url = "$primaryServer|$serversStr|$url",
+				preview = null,
+				source = source,
+			)
+		}
 	}
 }
