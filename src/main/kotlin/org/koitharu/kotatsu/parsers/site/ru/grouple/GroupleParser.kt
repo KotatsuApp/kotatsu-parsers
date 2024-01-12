@@ -157,11 +157,11 @@ internal abstract class GroupleParser(
 			val data = script.html()
 			var pos = data.indexOf("rm_h.readerDoInit(")
 			if (pos != -1) {
-				parsePagesNew(data, pos)?.let { return it } ?: continue
+				parsePagesNew(data, pos)?.let { return it }
 			}
 			pos = data.indexOf("rm_h.readerInit( 0,")
 			if (pos != -1) {
-				parsePagesOld(data, pos)?.let { return it } ?: continue
+				parsePagesOld(data, pos)?.let { return it }
 			}
 		}
 		doc.parseFailed("Pages list not found at ${chapter.url}")
@@ -370,8 +370,8 @@ internal abstract class GroupleParser(
 		val serversStr = servers.joinToString("|")
 		return (0 until pages.length()).map { i ->
 			val page = pages.getJSONArray(i)
-			val primaryServer = page.getString(2)
-			val url = page.getString(1)
+			val primaryServer = page.getString(0)
+			val url = page.getString(2)
 			MangaPage(
 				id = generateUid(url),
 				url = "$primaryServer|$serversStr|$url",
