@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
 import okhttp3.HttpUrl
+import org.jsoup.internal.StringUtil
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -22,21 +23,17 @@ internal abstract class ChanParser(
 		SortOrder.RATING,
 	)
 
+	override val isTagsExclusionSupported: Boolean = true
+
 	override val authUrl: String
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
 
-	override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
-		val doc = webClient.httpGet(buildUrl(offset, query, tags, sortOrder)).parseHtml()
+		val doc = webClient.httpGet(buildUrl(offset, filter)).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
 			?: doc.parseFailed("Cannot find root")
 		return root.select("div.content_row").mapNotNull { row ->
@@ -180,48 +177,56 @@ internal abstract class ChanParser(
 
 	protected open fun buildUrl(
 		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		sortOrder: SortOrder,
+		filter: MangaListFilter?,
 	): HttpUrl {
 		val builder = urlBuilder()
 		builder.addQueryParameter("offset", offset.toString())
-		when {
-			!query.isNullOrEmpty() -> {
+		when (filter) {
+			is MangaListFilter.Search -> {
 				builder.addQueryParameter("do", "search")
 				builder.addQueryParameter("subaction", "search")
 				builder.addQueryParameter("search_start", ((offset / 40) + 1).toString())
 				builder.addQueryParameter("full_search", "0")
 				builder.addQueryParameter("result_from", (offset + 1).toString())
 				builder.addQueryParameter("result_num", "40")
-				builder.addQueryParameter("story", query)
+				builder.addQueryParameter("story", filter.query)
 				builder.addQueryParameter("need_sort_date", "false")
 			}
 
-			!tags.isNullOrEmpty() -> {
-				builder.addPathSegment("tags")
-				builder.addPathSegment(tags.joinToString("+") { it.key })
-				builder.addQueryParameter(
-					"n",
-					when (sortOrder) {
-						SortOrder.RATING,
-						SortOrder.POPULARITY,
-						-> "favdesc"
+			is MangaListFilter.Advanced -> {
+				if (filter.tags.isNotEmpty() || filter.tagsExclude.isNotEmpty()) {
+					builder.addPathSegment("tags")
+					val joiner = StringUtil.StringJoiner("+")
+					filter.tags.forEach { joiner.add(it.key) }
+					filter.tagsExclude.forEach { joiner.add("-"); joiner.append(it.key) }
+					builder.addPathSegment(joiner.complete())
+					builder.addQueryParameter(
+						"n",
+						when (filter.sortOrder) {
+							SortOrder.RATING,
+							SortOrder.POPULARITY,
+							-> "favdesc"
 
-						SortOrder.ALPHABETICAL -> "abcasc"
-						else -> "" // SortOrder.NEWEST
-					},
-				)
+							SortOrder.ALPHABETICAL -> "abcasc"
+							else -> "" // SortOrder.NEWEST
+						},
+					)
+				} else {
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> builder.addPathSegment("mostviews")
+						SortOrder.ALPHABETICAL -> builder.addPathSegment("catalog")
+						SortOrder.RATING -> builder.addPathSegment("mostfavorites")
+						else -> { // SortOrder.NEWEST
+							builder.addPathSegment("manga")
+							builder.addPathSegment("new")
+						}
+					}
+				}
 			}
 
-			else -> when (sortOrder) {
-				SortOrder.POPULARITY -> builder.addPathSegment("mostviews")
-				SortOrder.ALPHABETICAL -> builder.addPathSegment("catalog")
-				SortOrder.RATING -> builder.addPathSegment("mostfavorites")
-				else -> { // SortOrder.NEWEST
-					builder.addPathSegment("manga")
-					builder.addPathSegment("new")
-				}
+			null -> {
+				builder.addPathSegment("manga")
+				builder.addPathSegment("new")
 			}
 		}
 		return builder.build()

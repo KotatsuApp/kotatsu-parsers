@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("SHINIGAMI", "Shinigami", "id")
 internal class Shinigami(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHINIGAMI, "shinigami.moe", 10) {
+	MadaraParser(context, MangaSource.SHINIGAMI, "shinigamitoon.com", 10) {
 
 	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 	override val tagPrefix = "genre/"

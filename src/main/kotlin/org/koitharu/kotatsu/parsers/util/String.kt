@@ -240,3 +240,5 @@ inline fun <T> Appendable.appendAll(
 		append(transform(item))
 	}
 }
+
+fun String.isNumeric() = all { c -> c.isDigit() }

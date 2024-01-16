@@ -1,13 +1,15 @@
 package org.koitharu.kotatsu.parsers.site.wpcomics.en
 
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("XOXOCOMICS", "XoxoComics", "en", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
@@ -146,6 +148,29 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		)
 	}
 
+	override suspend fun getChapters(doc: Document): List<MangaChapter> {
+		val pages = doc.select("ul.pagination > li:not(.active)")
+		return if (pages.size <= 1) {
+			super.getChapters(doc)
+		} else {
+			val list = coroutineScope {
+				pages.mapNotNull { page ->
+					val a = page.selectFirst("a") ?: return@mapNotNull null
+					if (a.text().isNumeric()) {
+						val href = a.attrAsAbsoluteUrl("href")
+						async {
+							super.getChapters(webClient.httpGet(href).parseHtml()).asReversed()
+						}
+					} else {
+						null // TODO support pagination with overflow
+					}
+				}.awaitAll().flattenTo(ArrayList())
+			}
+			list.addAll(super.getChapters(doc).asReversed())
+			list.reverse()
+			list.mapIndexed { i, x -> x.copy(number = i + 1) }
+		}
+	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain) + "/all"

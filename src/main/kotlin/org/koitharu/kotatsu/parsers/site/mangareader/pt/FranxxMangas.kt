@@ -2,13 +2,9 @@ package org.koitharu.kotatsu.parsers.site.mangareader.pt
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("FRANXXMANGAS", "FranxxMangas", "pt", type = ContentType.HENTAI)
+@MangaSourceParser("FRANXXMANGAS", "FranxxMangas", "pt")
 internal class FranxxMangas(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.FRANXXMANGAS, "franxxmangas.net", pageSize = 20, searchPageSize = 20) {
-	override val datePattern = "MMM d, yyyy"
-	override val isTagsExclusionSupported = false
-}
+	MangaReaderParser(context, MangaSource.FRANXXMANGAS, "franxxmangas.net", pageSize = 10, searchPageSize = 10)
