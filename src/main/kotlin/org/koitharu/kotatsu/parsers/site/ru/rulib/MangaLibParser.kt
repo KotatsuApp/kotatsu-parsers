@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.ru.rulib
 
-import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.Response
@@ -108,31 +107,24 @@ internal open class MangaLibParser(
 					val id = json.optJSONObject("user")?.getLong("id")?.toString() ?: "not"
 					val total = list.length()
 					chapters = ChaptersListBuilder(total)
-					val counters = ArrayMap<Int, Int>(branches.size)
 					for (i in (0 until total).reversed()) {
 						val item = list.getJSONObject(i)
 						val chapterId = item.getLong("chapter_id")
 						val scanlator = item.getStringOrNull("username")
+						val volume = item.getInt("chapter_volume")
+						val number = item.getString("chapter_number")
 						val url = buildString {
+							append(manga.url)
+							append("/v")
+							append(volume)
+							append("/c")
+							append(number)
 							if (isAuthorized) {
-								append(manga.url)
-								append("/v")
-								append(item.getInt("chapter_volume"))
-								append("/c")
-								append(item.getString("chapter_number"))
 								append("?ui=")
 								append(id)
-							} else {
-								append(manga.url)
-								append("/v")
-								append(item.getInt("chapter_volume"))
-								append("/c")
-								append(item.getString("chapter_number"))
 							}
 						}
 						val nameChapter = item.getStringOrNull("chapter_name")
-						val volume = item.getInt("chapter_volume")
-						val number = item.getString("chapter_number")
 						val fullNameChapter = "Том $volume. Глава $number"
 						val branchId = item.getIntOrDefault("branch_id", 0)
 						chapters.add(
@@ -140,7 +132,8 @@ internal open class MangaLibParser(
 								id = generateUid(chapterId),
 								url = url,
 								source = source,
-								number = counters.incrementAndGet(branchId),
+								number = number.toIntOrNull() ?: 0,
+								volume = volume,
 								uploadDate = dateFormat.tryParse(
 									item.getString("chapter_created_at").substringBefore(" "),
 								),
@@ -345,13 +338,6 @@ internal open class MangaLibParser(
 
 	private fun Response.isValidImage(): Boolean {
 		return isSuccessful && mimeType?.startsWith("image/") == true && headersContentLength() >= 1024L
-	}
-
-	private fun MutableMap<Int, Int>.incrementAndGet(key: Int): Int {
-		var v = getOrDefault(key, 0)
-		v++
-		put(key, v)
-		return v
 	}
 
 	@MangaSourceParser("MANGALIB", "MangaLib", "ru")

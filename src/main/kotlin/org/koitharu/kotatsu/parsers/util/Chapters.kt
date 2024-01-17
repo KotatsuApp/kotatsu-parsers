@@ -34,6 +34,13 @@ internal class ChaptersListBuilder(initialSize: Int) {
 		return chapter != null && ids.add(chapter.id) && list.add(chapter)
 	}
 
+	fun addAll(chapters: Iterable<MangaChapter?>) {
+		if (chapters is Collection<*>) {
+			list.ensureCapacity(list.size + chapters.size)
+		}
+		chapters.forEach { add(it) }
+	}
+
 	operator fun plusAssign(chapter: MangaChapter?) {
 		add(chapter)
 	}
