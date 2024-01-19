@@ -168,7 +168,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 			}
 			list.addAll(super.getChapters(doc).asReversed())
 			list.reverse()
-			list.mapIndexed { i, x -> x.copy(number = i + 1) }
+			list.mapIndexed { i, x -> x.copy(volume = x.volume, number = i + 1) }
 		}
 	}
 
