@@ -271,7 +271,8 @@ internal class RemangaParser(
 	}
 
 	private fun parsePage(jo: JSONObject) = MangaPage(
-		id = generateUid(jo.getLong("id")),
+		// id = generateUid(jo.getLong("id")), 19.01.2024 page id is gone
+		id = generateUid(jo.getString("link")),
 		url = jo.getString("link"),
 		preview = null,
 		source = source,
