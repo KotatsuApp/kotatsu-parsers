@@ -29,7 +29,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 	private val tagsMap = SuspendLazy(::parseTags)
 
 	init {
-		context.cookieJar.insertCookies(domain, "nsfw", "2")
+		context.cookieJar.insertCookies(domain, "nsfw=2")
 	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
