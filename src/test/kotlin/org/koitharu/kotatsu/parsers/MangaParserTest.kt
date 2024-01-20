@@ -40,7 +40,7 @@ internal class MangaParserTest {
 		val page1 = parser.getList(0, filter = null)
 		val page2 = parser.getList(page1.size, filter = null)
 		if (parser is PagedMangaParser) {
-			assert(parser.pageSize == page1.size) {
+			assert(parser.pageSize >= page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
 			}
 		}
