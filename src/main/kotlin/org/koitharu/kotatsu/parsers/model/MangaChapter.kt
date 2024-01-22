@@ -12,7 +12,7 @@ class MangaChapter(
 	/**
 	 * Chapter number starting from 1, 0 if unknown
 	 */
-	@JvmField val number: Int,
+	@JvmField val number: Float,
 	/**
 	 * Volume number starting from 1, 0 if unknown
 	 */
@@ -51,7 +51,7 @@ class MangaChapter(
 	) : this(
 		id = id,
 		name = name,
-		number = number,
+		number = number.toFloat(),
 		volume = 0,
 		url = url,
 		scanlator = scanlator,
@@ -82,7 +82,7 @@ class MangaChapter(
 	override fun hashCode(): Int {
 		var result = id.hashCode()
 		result = 31 * result + name.hashCode()
-		result = 31 * result + number
+		result = 31 * result + number.hashCode()
 		result = 31 * result + volume
 		result = 31 * result + url.hashCode()
 		result = 31 * result + (scanlator?.hashCode() ?: 0)
@@ -96,7 +96,7 @@ class MangaChapter(
 		return "MangaChapter($id - #$number [$url] - $source)"
 	}
 
-	internal fun copy(volume: Int, number: Int) = MangaChapter(
+	internal fun copy(volume: Int, number: Float) = MangaChapter(
 		id = id,
 		name = name,
 		number = number,

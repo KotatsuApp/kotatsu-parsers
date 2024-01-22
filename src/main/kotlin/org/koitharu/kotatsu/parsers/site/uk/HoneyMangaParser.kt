@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -52,7 +53,7 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		val chapterRequest = webClient.httpPost(chapterApi, body).parseJson()
 		return manga.copy(
 			chapters = chapterRequest.getJSONArray("data").mapJSON { jo ->
-				val number = jo.getIntOrDefault("chapterNum", 0)
+				val number = jo.getFloatOrDefault("chapterNum", 0f)
 				val volume = jo.getIntOrDefault("volume", 0)
 				MangaChapter(
 					id = generateUid(jo.getString("id")),

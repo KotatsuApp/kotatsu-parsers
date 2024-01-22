@@ -132,7 +132,7 @@ internal open class MangaLibParser(
 								id = generateUid(chapterId),
 								url = url,
 								source = source,
-								number = number.toIntOrNull() ?: 0,
+								number = number.toFloatOrNull() ?: 0f,
 								volume = volume,
 								uploadDate = dateFormat.tryParse(
 									item.getString("chapter_created_at").substringBefore(" "),

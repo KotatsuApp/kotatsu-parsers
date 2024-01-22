@@ -11,13 +11,13 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.util.EnumSet
+import java.util.*
 
 internal abstract class MangAdventureParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
 	domain: String,
-	pageSize: Int = 25
+	pageSize: Int = 25,
 ) : PagedMangaParser(context, source, pageSize) {
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -28,7 +28,7 @@ internal abstract class MangAdventureParser(
 		MangaState.ONGOING,
 		MangaState.FINISHED,
 		MangaState.ABANDONED,
-		MangaState.PAUSED
+		MangaState.PAUSED,
 	)
 
 	override val availableContentRating: Set<ContentRating> =
@@ -38,7 +38,7 @@ internal abstract class MangAdventureParser(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
-		SortOrder.POPULARITY
+		SortOrder.POPULARITY,
 	)
 
 	override val defaultSortOrder = SortOrder.ALPHABETICAL
@@ -53,6 +53,7 @@ internal abstract class MangAdventureParser(
 			is MangaListFilter.Search -> {
 				url.addQueryParameter("title", filter.query)
 			}
+
 			is MangaListFilter.Advanced -> {
 				url.addQueryParameter(
 					"categories",
@@ -65,7 +66,7 @@ internal abstract class MangAdventureParser(
 						} else if (filter.tagsExclude.isNotEmpty()) {
 							filter.tagsExclude.joinTo(this, ",") { "-" + it.key }
 						}
-					}
+					},
 				)
 				when (filter.states.oneOrThrowIfMany()) {
 					null -> url.addEncodedQueryParameter("status", "any")
@@ -83,6 +84,7 @@ internal abstract class MangAdventureParser(
 					else -> throw IllegalArgumentException(ERROR_UNSUPPORTED_SORT_ORDER)
 				}
 			}
+
 			else -> {}
 		}
 		return runCatchingCancellable { getManga(url.get()) }.getOrElse {
@@ -121,20 +123,19 @@ internal abstract class MangAdventureParser(
 				"hiatus" -> MangaState.PAUSED
 				else -> null
 			},
-			chapters = chapters?.optJSONArray("results")?.mapJSON {
-				val number = it.getFloat("number")
+			chapters = chapters?.optJSONArray("results")?.toJSONList()?.mapChapters { _, it ->
 				MangaChapter(
-					id = it.getLong("id"),
+					id = generateUid(it.getLong("id")),
 					name = it.getString("full_title"),
-					number = number.toInt(),
+					number = it.getFloatOrDefault("number", 0f),
 					volume = it.getIntOrDefault("volume", 0),
 					url = it.getString("url"),
 					scanlator = it.getJSONArray("groups").joinToString(),
 					uploadDate = it.getString("published").toLong(),
 					branch = null,
-					source = source
+					source = source,
 				)
-			} ?: emptyList()
+			}.orEmpty(),
 		)
 	}
 
@@ -144,7 +145,12 @@ internal abstract class MangAdventureParser(
 			.addEncodedPathSegment("pages")
 			.addEncodedQueryParameter("track", "true")
 		return url.get()?.optJSONArray("results")?.mapJSON {
-			MangaPage(it.getLong("id"), it.getString("image"), null, source)
+			MangaPage(
+				id = generateUid(it.getLong("id")),
+				url = it.getString("image"),
+				preview = null,
+				source = source,
+			)
 		} ?: emptyList()
 	}
 
@@ -182,7 +188,7 @@ internal abstract class MangAdventureParser(
 				tags = emptySet(),
 				state = null,
 				author = null,
-				source = source
+				source = source,
 			)
 		} ?: emptyList()
 	}
@@ -191,10 +197,10 @@ internal abstract class MangAdventureParser(
 		get() = urlBuilder().addEncodedPathSegments("api/v2")
 
 	// /reader/{slug}/
-	private inline val Manga.slug: String
+	private val Manga.slug: String
 		get() = url.substring(8, url.length - 1)
 
-	protected suspend inline fun HttpUrl.Builder.get() =
+	protected suspend fun HttpUrl.Builder.get() =
 		webClient.httpGet(build()).body?.string()?.let(::JSONObject)
 
 	private companion object {
