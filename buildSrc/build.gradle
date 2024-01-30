@@ -1,8 +1,13 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '1.9.20'
+	id 'org.jetbrains.kotlin.jvm' version '1.9.22'
 }
+
 repositories {
 	mavenCentral()
+}
+
+kotlin {
+	jvmToolchain(8)
 }
 
 dependencies {
