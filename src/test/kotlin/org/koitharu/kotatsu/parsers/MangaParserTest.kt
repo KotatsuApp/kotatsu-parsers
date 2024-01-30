@@ -11,10 +11,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.isDistinct
-import org.koitharu.kotatsu.test_util.isDistinctBy
-import org.koitharu.kotatsu.test_util.isUrlAbsolute
-import org.koitharu.kotatsu.test_util.maxDuplicates
+import org.koitharu.kotatsu.test_util.*
 import kotlin.time.Duration.Companion.minutes
 
 
@@ -28,7 +25,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun list(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -93,10 +90,16 @@ internal class MangaParserTest {
 		val titles = tags.map { it.title }
 		assert(titles.isDistinct())
 		assert("" !in titles)
+		assert(titles.all { it.first().isUpperCase() }) { "Not all tags are capitalized" }
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.getList(offset = 0, tags = setOf(tag), null, sortOrder = null)
+		val list = parser.getList(
+			offset = 0,
+			MangaListFilter.Advanced.Builder(parser.defaultSortOrder)
+				.tags(setOf(tag))
+				.build(),
+		)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
@@ -142,7 +145,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
@@ -156,7 +159,7 @@ internal class MangaParserTest {
 			assert(c.isDistinctBy { it.id }) {
 				"Chapters are not distinct by id: ${c.maxDuplicates { it.id }} for $publicUrl"
 			}
-			assert(c.isDistinctBy { it.number to it.branch }) {
+			assert(c.isDistinctByNotNull { if (it.number > 0f) it.number to it.branch else null }) {
 				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
 			}
 			assert(c.all { it.source == source })
@@ -171,7 +174,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
