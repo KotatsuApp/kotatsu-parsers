@@ -226,7 +226,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			jo.keys().forEach { key ->
 				val item = jo.getJSONObject(key)
 				result += MangaTag(
-					title = item.getString("text").toTitleCase(),
+					title = item.getString("text").toTitleCase(Locale.ENGLISH),
 					key = item.getString("file"),
 					source = source,
 				)

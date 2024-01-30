@@ -99,7 +99,7 @@ internal abstract class AnimeBootstrapParser(
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("div.product__page__filter div:contains(Genre:) option ").mapNotNullToSet { option ->
 			val key = option.attr("value") ?: return@mapNotNullToSet null
-			val name = option.text()
+			val name = option.text().toTitleCase(sourceLocale)
 			MangaTag(
 				key = key,
 				title = name,

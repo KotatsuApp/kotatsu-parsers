@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.likemanga
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -189,7 +190,8 @@ internal abstract class LikeMangaParser(
 			MangaChapter(
 				id = generateUid(url),
 				name = name,
-				number = chapNum.toInt(),
+				number = chapNum.toFloatOrNull() ?: 0f,
+				volume = 0,
 				url = url,
 				scanlator = null,
 				uploadDate = parseChapterDate(
@@ -239,9 +241,12 @@ internal abstract class LikeMangaParser(
 			val jsonData = JSONObject(context.decodeBase64(jsonRaw).toString(Charsets.UTF_8))
 			val jsonImg = context.decodeBase64(jsonData.getString("data")).toString(Charsets.UTF_8)
 			val images = jsonImg.replace("\\", "").replace("[", "").replace("]", "").replace("\"", "").split(",")
-			val cdn = doc.selectFirstOrThrow(".reading-detail  img").src()?.substringBefore("manga/")
+			val baseUrl = doc.selectFirstOrThrow(".reading-detail  img").src()
+			val cdn = baseUrl?.substringBefore("manga/", "")?.ifEmpty {
+				baseUrl.toHttpUrl().resolve("/").toString()
+			}
 			return images.map { img ->
-				val url = cdn + img
+				val url = concatUrl(cdn.orEmpty(), img)
 				MangaPage(
 					id = generateUid(url),
 					url = url,

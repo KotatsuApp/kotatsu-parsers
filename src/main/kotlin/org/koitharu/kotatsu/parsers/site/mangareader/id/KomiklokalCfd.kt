@@ -9,6 +9,6 @@ import java.util.*
 
 @MangaSourceParser("KOMIKLOKALCFD", "KomikLokal.sbs", "id", ContentType.HENTAI)
 internal class KomiklokalCfd(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KOMIKLOKALCFD, "komiklokal.sbs", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.KOMIKLOKALCFD, "komiklokal.mom", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

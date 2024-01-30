@@ -98,7 +98,7 @@ internal abstract class HeanCms(
 				id = generateUid(urlManga),
 				title = j.getString("title"),
 				altTitle = null,
-				url = urlManga,
+				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga,
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
@@ -182,7 +182,7 @@ internal abstract class HeanCms(
 		return tags.mapNotNullToSet {
 			MangaTag(
 				key = it.substringAfter("id\":").substringBefore(",\""),
-				title = it.substringAfter("name\":\"").substringBefore("\"}]"),
+				title = it.substringAfter("name\":\"").substringBefore("\"}]").toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

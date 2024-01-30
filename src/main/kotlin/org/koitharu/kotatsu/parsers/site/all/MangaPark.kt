@@ -132,7 +132,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 			.select("div.flex-col:contains(Genres) div.whitespace-nowrap")
 		val tagMap = ArrayMap<String, MangaTag>(tagElements.size)
 		for (el in tagElements) {
-			val name = el.selectFirstOrThrow("span.whitespace-nowrap").text()
+			val name = el.selectFirstOrThrow("span.whitespace-nowrap").text().toTitleCase(sourceLocale)
 			if (name.isEmpty()) continue
 			tagMap[name] = MangaTag(
 				title = name,

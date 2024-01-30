@@ -34,8 +34,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
-	@Volatile
-	private var cachedTags: SparseArrayCompat<MangaTag>? = null
+	private val tagsArray = SuspendLazy(::loadTags)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
@@ -83,7 +82,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			}
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
-		val tagsMap = cachedTags ?: loadTags()
+		val tagsMap = tagsArray.get()
 		return ja.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			Manga(
@@ -151,7 +150,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val sparseArray = cachedTags ?: loadTags()
+		val sparseArray = tagsArray.get()
 		val set = ArraySet<MangaTag>(sparseArray.size())
 		for (i in 0 until sparseArray.size()) {
 			set.add(sparseArray.valueAt(i))
@@ -166,13 +165,12 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			tags.append(
 				jo.getInt("id"),
 				MangaTag(
-					title = jo.getString("name"),
+					title = jo.getString("name").toTitleCase(Locale.ENGLISH),
 					key = jo.getString("slug"),
 					source = source,
 				),
 			)
 		}
-		cachedTags = tags
 		return tags
 	}
 

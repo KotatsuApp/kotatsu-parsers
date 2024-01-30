@@ -143,7 +143,7 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSour
 			if (option.text().isEmpty()) continue
 			tagMap[option.text()] = MangaTag(
 				key = option.attr("value"),
-				title = option.text(),
+				title = option.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

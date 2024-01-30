@@ -200,7 +200,9 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			.getJSONArray("data")
 		return tags.mapJSONToSet { jo ->
 			MangaTag(
-				title = jo.getJSONObject("attributes").getJSONObject("name").firstStringValue().toTitleCase(),
+				title = jo.getJSONObject("attributes").getJSONObject("name")
+					.firstStringValue()
+					.toTitleCase(Locale.ENGLISH),
 				key = jo.getString("id"),
 				source = source,
 			)

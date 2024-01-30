@@ -147,7 +147,7 @@ internal abstract class FmreaderParser(
 			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")
 			MangaTag(
 				key = href,
-				title = a.text(),
+				title = a.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
