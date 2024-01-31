@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.isNullOrEmpty
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.*
@@ -205,7 +206,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				val url = images.getString(i)
 				result += MangaPage(
 					id = generateUid(url),
-					url = if (args.isEmpty) url else url + "?" + args.getString(i),
+					url = if (args.length() == 0) url else url + "?" + args.getString(i),
 					preview = null,
 					source = source,
 				)
