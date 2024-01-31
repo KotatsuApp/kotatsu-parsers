@@ -3,6 +3,7 @@
 package org.koitharu.kotatsu.parsers.util
 
 import androidx.annotation.FloatRange
+import androidx.collection.MutableIntList
 import androidx.collection.arraySetOf
 import java.math.BigInteger
 import java.net.URLDecoder
@@ -84,7 +85,7 @@ fun String.ellipsize(maxLength: Int) = if (this.length > maxLength) {
 } else this
 
 fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
-	val indices = ArrayList<Int>(4)
+	val indices = MutableIntList(4)
 	for ((i, c) in this.withIndex()) {
 		if (c == delimiter) {
 			indices += i
