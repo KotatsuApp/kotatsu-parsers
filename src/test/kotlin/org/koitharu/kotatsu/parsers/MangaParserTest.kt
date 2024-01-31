@@ -90,7 +90,10 @@ internal class MangaParserTest {
 		val titles = tags.map { it.title }
 		assert(titles.isDistinct())
 		assert("" !in titles)
-		assert(titles.all { it.first().isUpperCase() }) { "Not all tags are capitalized" }
+		assert(titles.all { it.isCapitalized() }) {
+			val badTags = titles.filterNot { it.isCapitalized() }.joinToString()
+			"Not all tags are capitalized: $badTags"
+		}
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
@@ -258,5 +261,9 @@ internal class MangaParserTest {
 				"Wrong response mime type: ${it.mimeType}"
 			}
 		}
+	}
+
+	private fun String.isCapitalized(): Boolean {
+		return !first().isLowerCase()
 	}
 }

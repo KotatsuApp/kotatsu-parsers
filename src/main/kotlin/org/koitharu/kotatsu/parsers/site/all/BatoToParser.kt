@@ -205,7 +205,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				val url = images.getString(i)
 				result += MangaPage(
 					id = generateUid(url),
-					url = url + "?" + args.getString(i),
+					url = if (args.isEmpty) url else url + "?" + args.getString(i),
 					preview = null,
 					source = source,
 				)
