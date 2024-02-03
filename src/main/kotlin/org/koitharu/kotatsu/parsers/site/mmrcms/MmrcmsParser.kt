@@ -190,7 +190,7 @@ internal abstract class MmrcmsParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("dl.dl-horizontal")
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirstOrThrow(selectDesc).text()
+		val desc = doc.selectFirst(selectDesc)?.text().orEmpty()
 		val stateDiv = body.selectFirst(selectState)?.nextElementSibling()
 		val state = stateDiv?.let {
 			when (it.text()) {

@@ -14,7 +14,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.live")
+	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.co")
 
 	override val isMultipleTagsSupported = false
 

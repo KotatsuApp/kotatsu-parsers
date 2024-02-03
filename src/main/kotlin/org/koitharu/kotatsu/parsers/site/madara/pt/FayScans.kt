@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FAYSCANS", "FayScans", "pt")
 internal class FayScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FAYSCANS, "fayscans.com.br") {
+	MadaraParser(context, MangaSource.FAYSCANS, "fayscans.net") {
 	override val datePattern: String = "dd/MM/yyyy"
 }
