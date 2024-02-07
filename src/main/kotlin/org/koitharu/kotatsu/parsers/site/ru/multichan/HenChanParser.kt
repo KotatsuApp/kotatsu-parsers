@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.net.URLDecoder
 import java.util.*
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru", type = ContentType.HENTAI)
@@ -39,7 +40,7 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 				val a = it.children().last() ?: doc.parseFailed("Invalid tag")
 				MangaTag(
 					title = a.text().toTitleCase(),
-					key = a.attr("href").substringAfterLast('/'),
+					key = URLDecoder.decode(a.attr("href").substringAfterLast('/'), "UTF-8"),
 					source = source,
 				)
 			} ?: manga.tags,
