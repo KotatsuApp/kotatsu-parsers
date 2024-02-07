@@ -18,7 +18,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.net.URLDecoder
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -252,7 +251,7 @@ internal class RemangaParser(
 		val userCookie = context.cookieJar.getCookies(domain).find {
 			it.name == "user"
 		} ?: return baseHeaders
-		val jo = JSONObject(URLDecoder.decode(userCookie.value, Charsets.UTF_8.name()))
+		val jo = JSONObject(userCookie.value.urlDecode())
 		val accessToken = jo.getStringOrNull("access_token") ?: return baseHeaders
 		return baseHeaders.newBuilder().add("authorization", "bearer $accessToken").build()
 	}
