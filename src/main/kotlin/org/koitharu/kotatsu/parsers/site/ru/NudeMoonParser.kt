@@ -54,7 +54,13 @@ internal class NudeMoonParser(
 	): List<Manga> {
 		val domain = domain
 		val url = when {
-			!query.isNullOrEmpty() -> "https://$domain/search?stext=${query.urlEncoded()}&rowstart=$offset"
+			!query.isNullOrEmpty() -> {
+				if (!isAuthorized) {
+					throw AuthRequiredException(source)
+				}
+				"https://$domain/search?stext=${query.urlEncoded()}&rowstart=$offset"
+			}
+
 			!tags.isNullOrEmpty() -> tags.joinToString(
 				separator = "_",
 				prefix = "https://$domain/tags/",
@@ -96,7 +102,7 @@ internal class NudeMoonParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val body = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().body()
 		val root = body.selectFirstOrThrow("table.news_pic2")
-		val dateFormat = SimpleDateFormat("dd/MM/yyyy")
+		val dateFormat = SimpleDateFormat("dd MMMM yyyy", sourceLocale)
 		return manga.copy(
 			largeCoverUrl = body.selectFirstOrThrow("img[data-src]").attrAsAbsoluteUrl("data-src"),
 			description = root.selectFirst(".description")?.html() ?: manga.description,
@@ -114,12 +120,14 @@ internal class NudeMoonParser(
 					id = manga.id,
 					url = manga.url,
 					source = source,
-					number = 1,
+					number = 0f,
+					volume = 0,
 					name = manga.title,
 					scanlator = root.getElementsByAttributeValueContaining("href", "/perevod/").firstOrNull()
 						?.textOrNull(),
 					uploadDate = dateFormat.tryParse(
-						root.getElementsMatchingOwnText("\\d{1,2}/\\d{2}/\\d{4}").firstOrNull()?.text(),
+						root.getElementsByAttributeValueEnding("src", "ico/time.png").firstOrNull()
+							?.nextElementSibling()?.text(),
 					),
 					branch = null,
 				),
@@ -140,10 +148,6 @@ internal class NudeMoonParser(
 				source = source,
 			)
 		}.toList()
-	}
-
-	override suspend fun getPageUrl(page: MangaPage): String {
-		return page.url.toAbsoluteUrl("img.$domain")
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {

@@ -91,13 +91,15 @@ fun concatUrl(host: String, path: String): String {
 }
 
 fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
-	assert(false) { "Date string is null or empty" }
+//	assert(false) { "Date string is null or empty" }
 	0L
 } else {
 	runCatching {
 		parse(str)?.time ?: 0L
 	}.onFailure {
-		assert(false) { "Cannot parse date $str: ${it.message}" }
+		if (javaClass.desiredAssertionStatus()) {
+			throw AssertionError("Cannot parse date $str", it)
+		}
 	}.getOrDefault(0L)
 }
 
