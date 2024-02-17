@@ -163,8 +163,9 @@ internal class Baozimh(context: MangaLoaderContext) :
 				else -> null
 			},
 			tags = tags,
-			chapters = doc.requireElementById("chapter-items").select("div.comics-chapters a")
-				.mapChapters(reversed = true) { i, a ->
+			chapters = (doc.requireElementById("chapter-items").select("div.comics-chapters a")
+				+ doc.requireElementById("chapters_other_list").select("div.comics-chapters a"))
+				.mapChapters { i, a ->
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
