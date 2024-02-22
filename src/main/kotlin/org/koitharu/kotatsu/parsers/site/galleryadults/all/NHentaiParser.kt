@@ -40,6 +40,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		".tag-container:contains(Languages:) span.tags a:not(.tag-17249) span.name" // tag-17249 = translated
 	override val idImg = "image-container"
 
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_TODAY)
 

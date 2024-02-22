@@ -84,6 +84,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
 							SortOrder.NEWEST -> "[createdAt]=desc"
 							SortOrder.POPULARITY -> "[followedCount]=desc"
+							else -> {}
 						},
 					)
 					filter.states.forEach {

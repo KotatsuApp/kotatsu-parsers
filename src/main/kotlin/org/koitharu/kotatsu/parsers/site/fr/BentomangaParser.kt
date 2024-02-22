@@ -69,6 +69,8 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 					SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
 						.addQueryParameter("order", "desc")
+
+					else -> {}
 				}
 
 				if (filter.tags.isNotEmpty()) {

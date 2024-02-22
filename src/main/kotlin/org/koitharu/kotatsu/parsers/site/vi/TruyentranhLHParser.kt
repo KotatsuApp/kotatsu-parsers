@@ -47,6 +47,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 							SortOrder.POPULARITY -> "top"
 							SortOrder.ALPHABETICAL -> "az"
 							SortOrder.ALPHABETICAL_DESC -> "za"
+							else -> ""
 						},
 					)
 

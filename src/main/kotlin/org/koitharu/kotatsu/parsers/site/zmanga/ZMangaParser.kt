@@ -75,6 +75,7 @@ internal abstract class ZMangaParser(
 						SortOrder.ALPHABETICAL_DESC -> append("titlereverse")
 						SortOrder.NEWEST -> append("latest")
 						SortOrder.RATING -> append("rating")
+						else -> {}
 					}
 
 					filter.tags.forEach {
