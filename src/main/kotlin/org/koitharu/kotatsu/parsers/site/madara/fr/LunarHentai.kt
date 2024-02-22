@@ -6,8 +6,8 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("GLORYSCANSX", "GloryScansX", "fr", ContentType.HENTAI)
-internal class GloryScansX(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.GLORYSCANSX, "x.gloryscans.fr") {
+@MangaSourceParser("LUNARHENTAI", "LunarHentai", "fr", ContentType.HENTAI)
+internal class LunarHentai(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.LUNARHENTAI, "hentai.lunarscans.fr") {
 	override val datePattern = "dd MMMM yyyy"
 }
