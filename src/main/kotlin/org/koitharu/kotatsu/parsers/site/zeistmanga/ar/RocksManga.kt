@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
 @MangaSourceParser("ROCKSMANGA_COM", "RocksManga.com", "ar")
 internal class RocksManga(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.ROCKSMANGA_COM, "www.rocks-manga.com")
+	ZeistMangaParser(context, MangaSource.ROCKSMANGA_COM, "rocks-manga.com")
