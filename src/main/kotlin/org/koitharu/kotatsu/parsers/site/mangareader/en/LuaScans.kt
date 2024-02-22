@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("LIGHTSCANS", "LightScans", "en")
-internal class LightScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LIGHTSCANS, "lightscans.fun", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("LUASCANS", "LuaScans", "en")
+internal class LuaScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.LUASCANS, "luascans.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }
