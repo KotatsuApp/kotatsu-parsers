@@ -21,7 +21,7 @@ internal abstract class ZMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val availableSortOrders: Set<SortOrder> = setOf(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,

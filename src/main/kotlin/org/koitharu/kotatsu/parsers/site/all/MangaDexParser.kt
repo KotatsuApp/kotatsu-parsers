@@ -28,7 +28,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
-	override val availableSortOrders: Set<SortOrder> = setOf(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,

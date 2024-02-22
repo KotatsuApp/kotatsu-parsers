@@ -16,7 +16,7 @@ import java.util.*
 internal class MangaPark(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaSource.MANGAPARK, pageSize = 36) {
 
-	override val availableSortOrders: Set<SortOrder> = setOf(
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
