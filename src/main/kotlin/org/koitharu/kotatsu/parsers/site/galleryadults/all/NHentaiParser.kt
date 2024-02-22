@@ -4,10 +4,27 @@ import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
-import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
+import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.koitharu.kotatsu.parsers.util.requireElementById
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.src
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.urlEncoded
+import java.util.EnumSet
+import java.util.Locale
 
 @MangaSourceParser("NHENTAI", "NHentai.net", type = ContentType.HENTAI)
 internal class NHentaiParser(context: MangaLoaderContext) :
@@ -23,7 +40,8 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		".tag-container:contains(Languages:) span.tags a:not(.tag-17249) span.name" // tag-17249 = translated
 	override val idImg = "image-container"
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_TODAY)
 
 	override val isMultipleTagsSupported = true
 
@@ -44,8 +62,20 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search/?q=")
 						append(buildQuery(filter.tags, filter.locale).urlEncoded())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("&sort=popular")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> {
+								append("&sort=popular")
+							}
+
+							SortOrder.POPULARITY_WEEK -> {
+								append("&sort=popular-week")
+							}
+
+							SortOrder.POPULARITY_TODAY -> {
+								append("&sort=popular-today")
+							}
+
+							else -> {}
 						}
 						append("&")
 					} else if (filter.tags.isNotEmpty()) {
@@ -54,34 +84,69 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 							append(it.key)
 						}
 						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
+
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> {
+								append("popular")
+							}
+
+							SortOrder.POPULARITY_WEEK -> {
+								append("popular-week")
+							}
+
+							SortOrder.POPULARITY_TODAY -> {
+								append("popular-today")
+							}
+
+							else -> {}
 						}
-						if(page > 1){
+						if (page > 1) {
 							append("?")
 						}
 					} else if (filter.locale != null) {
 						append("/language/")
 						append(filter.locale.toLanguagePath())
 						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> {
+								append("popular")
+							}
+
+							SortOrder.POPULARITY_WEEK -> {
+								append("popular-week")
+							}
+
+							SortOrder.POPULARITY_TODAY -> {
+								append("popular-today")
+							}
+
+							else -> {}
 						}
-						if(page > 1){
+						if (page > 1) {
 							append("?")
 						}
 					} else {
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("/?sort=popular&")
-						} else {
-							append("/?")
+						when (filter.sortOrder) {
+							SortOrder.POPULARITY -> {
+								append("/search/?q=pages:>0&sort=popular")
+							}
+
+							SortOrder.POPULARITY_WEEK -> {
+								append("/search/?q=pages:>0&sort=popular-week")
+							}
+
+							SortOrder.POPULARITY_TODAY -> {
+								append("/search/?q=pages:>0&sort=popular-today")
+							}
+
+							else -> append("/?")
 						}
 					}
 				}
 
-				null -> append("/?")
+				else -> append("/?")
 			}
-			if(page > 1){
+			if (page > 1) {
 				append("page=")
 				append(page.toString())
 			}
