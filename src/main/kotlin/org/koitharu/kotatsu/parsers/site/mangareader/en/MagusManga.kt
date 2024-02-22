@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MAGUSMANGA", "MagusManga", "en")
 internal class MagusManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MAGUSMANGA, "magusmanga.com", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaSource.MAGUSMANGA, "vofeg.com", pageSize = 20, searchPageSize = 10){
+	override val listUrl = "/series"
+}
