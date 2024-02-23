@@ -110,9 +110,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 					}
 				}
 
-				null -> {
-					append("&order[latestUploadedChapter]=desc")
-				}
+				else -> { append("&order[latestUploadedChapter]=desc") }
 			}
 		}
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
