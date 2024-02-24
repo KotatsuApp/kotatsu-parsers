@@ -55,19 +55,21 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 						}
 						append("/")
 						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular/")
+							append("popular")
 						}
-
-						append("?")
+						if(page > 1){
+							append("?")
+						}
 					} else if (filter.locale != null) {
 						append("/language/")
 						append(filter.locale.toLanguagePath())
 						append("/")
 						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular/")
+							append("popular")
 						}
-
-						append("?")
+						if(page > 1){
+							append("?")
+						}
 					} else {
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("/?sort=popular&")
@@ -79,8 +81,10 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 				null -> append("/?")
 			}
-			append("page=")
-			append(page.toString())
+			if(page > 1){
+				append("page=")
+				append(page.toString())
+			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
