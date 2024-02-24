@@ -198,8 +198,8 @@ internal abstract class WebtoonsParser(
 
 					val sortedResult = when (filter.sortOrder) {
 						SortOrder.UPDATED -> result.sortedBy { it.date }
-						SortOrder.POPULARITY -> result.sortedBy { it.readCount }
-						SortOrder.RATING -> result.sortedBy { it.rating }
+						SortOrder.POPULARITY -> result.sortedByDescending { it.readCount }
+						SortOrder.RATING -> result.sortedByDescending { it.rating }
 						//SortOrder.LIKE -> result.sortedBy { it.likeCount }
 						else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
 					}
