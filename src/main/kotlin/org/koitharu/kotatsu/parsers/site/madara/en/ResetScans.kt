@@ -9,10 +9,11 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import java.util.Collections.emptyMap
 
 @MangaSourceParser("RESETSCANS", "ResetScans", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RESETSCANS, "reset-scans.us", 18) {
+	MadaraParser(context, MangaSource.RESETSCANS, "reset-scans.xyz", 18) {
 	override val datePattern = "MMM dd"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
