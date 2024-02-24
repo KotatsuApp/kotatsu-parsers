@@ -16,7 +16,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.util.*
-import java.util.logging.Logger.global
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
