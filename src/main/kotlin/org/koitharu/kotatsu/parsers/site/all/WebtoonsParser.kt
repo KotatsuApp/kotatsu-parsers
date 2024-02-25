@@ -210,7 +210,7 @@ internal abstract class WebtoonsParser(
 					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
 					val genres = getAllGenreList()
-					val result = getAllTitleList().subList(offset, offset + 20)
+					val result = getAllTitleList()
 
 					val sortedResult = when (filter.sortOrder) {
 						SortOrder.UPDATED -> result.sortedBy { it.date }
@@ -221,9 +221,9 @@ internal abstract class WebtoonsParser(
 					}
 
 					if (genre != "ALL") {
-						sortedResult.filter { it.tags.contains(genres[genre]) }
+						sortedResult.filter { it.tags.contains(genres[genre]) }.subList(offset, offset + 20)
 					} else {
-						sortedResult
+						sortedResult.subList(offset, offset + 20)
 					}
 				}
 
