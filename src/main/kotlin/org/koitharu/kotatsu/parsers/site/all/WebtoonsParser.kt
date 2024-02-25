@@ -178,9 +178,6 @@ internal abstract class WebtoonsParser(
 	}
 */
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
 
 		val manga =
 			when (filter) {
