@@ -102,18 +102,18 @@ internal abstract class WebtoonsParser(
 
 			episodes.addAll(page)
 		}
-
 		return episodes.mapChapters { i, jo ->
 			MangaChapter(
 				id = generateUid("$titleNo-$i"),
 				name = jo.getString("episodeTitle"),
 				number = jo.getInt("episodeSeq"),
 				url = "$titleNo-${jo.get("episodeNo")}",
-				uploadDate = jo.getLong("modifyYmdt"),
+				uploadDate = jo.getLong("registerYmdt"),
 				branch = null,
 				scanlator = null,
 				source = source,
 			)
+
 		}.sortedBy { it.number }
 	}
 
@@ -136,8 +136,9 @@ internal abstract class WebtoonsParser(
 					tags = setOf(parseTag(jo.getJSONObject("genreInfo"))),
 					author = jo.getStringOrNull("writingAuthorName"),
 					description = jo.getString("synopsis"),
-					// I don't think the API provides this info
+					// I don't think the API provides this info,
 					state = null,
+					date = jo.getLong("lastEpisodeRegisterYmdt"),
 					chapters = chaptersDeferred.await(),
 					source = source,
 				)
@@ -185,7 +186,7 @@ internal abstract class WebtoonsParser(
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 
-		val manga = when (filter) {
+		val webtoons = when (filter) {
 			is MangaListFilter.Search -> {
 				makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}").getJSONObject("webtoonSearch")
 					.getJSONArray("titleList").mapJSON { jo ->
@@ -204,6 +205,7 @@ internal abstract class WebtoonsParser(
 							author = jo.getStringOrNull("writingAuthorName"),
 							description = null,
 							state = null,
+							date = jo.getLong("lastEpisodeRegisterYmdt"),
 							source = source,
 						)
 					}
@@ -230,11 +232,10 @@ internal abstract class WebtoonsParser(
 				}
 			}
 
-			null -> {
-				getAllTitleList()
-			}
+			else -> getAllTitleList()
+
 		}
-		return manga.subList(offset, (offset + 20).coerceAtMost(manga.size))
+		return webtoons.subList(offset, (offset + 20).coerceAtMost(webtoons.size))
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
