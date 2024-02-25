@@ -131,12 +131,60 @@ internal abstract class WebtoonsParser(
 			}
 	}
 
+	private val allTitleCache = SuspendLazy {
+		makeRequest("/lineWebtoon/webtoon/titleList.json?")
+			.getJSONObject("titleList")
+			.getJSONArray("titles")
+			.toJSONList()
+	}
+
+	private val allGenreCache = SuspendLazy {
+		makeRequest("/lineWebtoon/webtoon/genreList.json")
+			.getJSONObject("genreList")
+			.getJSONArray("genres")
+			.mapJSON { jo -> parseTag(jo) }
+			.associateBy { tag -> tag.key }
+	}
+
+	private suspend fun getAllGenreList(): Map<String, MangaTag>{
+		return allGenreCache.get()
+	}
+
+	private suspend fun getAllTitleList(): List<Manga> {
+		val genres = getAllGenreList()
+
+		return allTitleCache.get().map { jo ->
+			val titleNo = jo.getLong("titleNo")
+			Manga(
+				id = generateUid(titleNo),
+				url = titleNo.toString(),
+				publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
+				title = jo.getString("title"),
+				coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+				altTitle = null,
+				author = jo.getStringOrNull("writingAuthorName"),
+				isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+				rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
+				tags = setOfNotNull(genres[jo.getString("representGenre")]),
+				description = jo.getString("synopsis"),
+				state = null,
+				source = source,
+				date = jo.getLong("lastEpisodeRegisterYmdt"),
+				readCount = jo.getLong("readCount"),
+				likeCount = jo.getLong("likeitCount")
+			)
+		}
+	}
+
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+		if (offset > 0) {
+			return emptyList()
+		}
 
 		val manga =
 			when (filter) {
 				is MangaListFilter.Search -> {
-					 makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}&startIndex=${offset + 1}&pageSize=20")
+					 makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}")
 						.getJSONObject("webtoonSearch")
 						.getJSONArray("titleList")
 						.mapJSON { jo ->
@@ -163,38 +211,8 @@ internal abstract class WebtoonsParser(
 				is MangaListFilter.Advanced -> {
 					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
-					val genres = makeRequest("/lineWebtoon/webtoon/genreList.json")
-						.getJSONObject("genreList")
-						.getJSONArray("genres")
-						.mapJSON { jo -> parseTag(jo) }
-						.associateBy { tag -> tag.key }
-
-					val result = makeRequest("/lineWebtoon/webtoon/titleList.json")
-						.getJSONObject("titleList")
-						.getJSONArray("titles")
-						.mapJSON { jo ->
-							val titleNo = jo.getLong("titleNo")
-							Manga(
-								id = generateUid(titleNo),
-								title = jo.getString("title"),
-								altTitle = null,
-								url = titleNo.toString(),
-								publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
-								rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-								isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
-								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-								largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
-								tags = setOfNotNull(genres[jo.getString("representGenre")]),
-								author = jo.getStringOrNull("writingAuthorName"),
-								description = jo.getString("synopsis"),
-								// I don't think the API provides this info
-								state = null,
-								source = source,
-								date = jo.getLong("lastEpisodeRegisterYmdt"),
-								readCount = jo.getLong("readCount"),
-								likeCount = jo.getLong("likeitCount")
-							)
-						}
+					val genres = getAllGenreList()
+					val result = getAllTitleList()
 
 					val sortedResult = when (filter.sortOrder) {
 						SortOrder.UPDATED -> result.sortedBy { it.date }
@@ -212,32 +230,7 @@ internal abstract class WebtoonsParser(
 				}
 
 				null -> {
-					makeRequest("/lineWebtoon/webtoon/titleList.json")
-						.getJSONObject("titleList")
-						.getJSONArray("titles")
-						.mapJSON { jo ->
-							val titleNo = jo.getLong("titleNo")
-							Manga(
-								id = generateUid(titleNo),
-								title = jo.getString("title"),
-								altTitle = null,
-								url = titleNo.toString(),
-								publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
-								rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-								isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
-								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-								largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
-								tags = emptySet(),
-								author = jo.getStringOrNull("writingAuthorName"),
-								description = jo.getString("synopsis"),
-								// I don't think the API provides this info
-								state = null,
-								source = source,
-								date = jo.getLong("lastEpisodeRegisterYmdt"),
-								readCount = jo.getLong("readCount"),
-								likeCount = jo.getLong("likeitCount")
-							)
-						}
+					getAllTitleList()
 				}
 			}
 
