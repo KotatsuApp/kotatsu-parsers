@@ -224,14 +224,14 @@ internal abstract class WebtoonsParser(
 					}
 
 					if (genre != "ALL") {
-						sortedResult.filter { it.tags.contains(genres[genre]) }
+						sortedResult.filter { it.tags.contains(genres[genre]) }.subList(offset*30, (offset*30) + 30)
 					} else {
-						sortedResult
+						sortedResult.subList(offset*30, (offset*30) + 30)
 					}
 				}
 
 				null -> {
-					allTitleCache.get()
+					allTitleCache.get().subList(offset*30, (offset*30) + 30)
 				}
 			}
 
