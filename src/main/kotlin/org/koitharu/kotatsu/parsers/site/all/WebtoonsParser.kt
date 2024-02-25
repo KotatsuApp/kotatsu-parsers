@@ -171,12 +171,12 @@ internal abstract class WebtoonsParser(
 	private suspend fun getAllGenreList(): Map<String, MangaTag>{
 		return allGenreCache.get()
 	}
-/*
+
 	private suspend fun getAllTitleList(): List<Manga> {
-		val genres = getAllGenreList()
+		return allTitleCache.get()
 
 	}
-*/
+
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 
 		val manga =
@@ -210,7 +210,7 @@ internal abstract class WebtoonsParser(
 					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
 					val genres = getAllGenreList()
-					val result = allTitleCache.get()
+					val result = getAllTitleList().subList(offset, offset + 20)
 
 					val sortedResult = when (filter.sortOrder) {
 						SortOrder.UPDATED -> result.sortedBy { it.date }
@@ -221,14 +221,14 @@ internal abstract class WebtoonsParser(
 					}
 
 					if (genre != "ALL") {
-						sortedResult.filter { it.tags.contains(genres[genre]) }.subList(offset*30, (offset*30) + 30)
+						sortedResult.filter { it.tags.contains(genres[genre]) }
 					} else {
-						sortedResult.subList(offset*30, (offset*30) + 30)
+						sortedResult
 					}
 				}
 
 				null -> {
-					allTitleCache.get().subList(offset*30, (offset*30) + 30)
+					getAllTitleList().subList(offset, offset + 20)
 				}
 			}
 
