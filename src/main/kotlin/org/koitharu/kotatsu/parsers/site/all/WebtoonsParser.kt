@@ -131,13 +131,6 @@ internal abstract class WebtoonsParser(
 			}
 	}
 
-	private val allTitleCache = SuspendLazy {
-		makeRequest("/lineWebtoon/webtoon/titleList.json?")
-			.getJSONObject("titleList")
-			.getJSONArray("titles")
-			.toJSONList()
-	}
-
 	private val allGenreCache = SuspendLazy {
 		makeRequest("/lineWebtoon/webtoon/genreList.json")
 			.getJSONObject("genreList")
@@ -146,14 +139,11 @@ internal abstract class WebtoonsParser(
 			.associateBy { tag -> tag.key }
 	}
 
-	private suspend fun getAllGenreList(): Map<String, MangaTag>{
-		return allGenreCache.get()
-	}
-
-	private suspend fun getAllTitleList(): List<Manga> {
-		val genres = getAllGenreList()
-
-		return allTitleCache.get().map { jo ->
+	private val allTitleCache = SuspendLazy {
+		makeRequest("/lineWebtoon/webtoon/titleList.json?")
+			.getJSONObject("titleList")
+			.getJSONArray("titles")
+			.mapJSON { jo ->
 			val titleNo = jo.getLong("titleNo")
 			Manga(
 				id = generateUid(titleNo),
@@ -165,7 +155,7 @@ internal abstract class WebtoonsParser(
 				author = jo.getStringOrNull("writingAuthorName"),
 				isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
 				rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-				tags = setOfNotNull(genres[jo.getString("representGenre")]),
+				tags = setOfNotNull(allGenreCache.get()[jo.getString("representGenre")]),
 				description = jo.getString("synopsis"),
 				state = null,
 				source = source,
@@ -176,6 +166,17 @@ internal abstract class WebtoonsParser(
 		}
 	}
 
+
+
+	private suspend fun getAllGenreList(): Map<String, MangaTag>{
+		return allGenreCache.get()
+	}
+/*
+	private suspend fun getAllTitleList(): List<Manga> {
+		val genres = getAllGenreList()
+
+	}
+*/
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
 			return emptyList()
@@ -212,7 +213,7 @@ internal abstract class WebtoonsParser(
 					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
 					val genres = getAllGenreList()
-					val result = getAllTitleList()
+					val result = allTitleCache.get()
 
 					val sortedResult = when (filter.sortOrder) {
 						SortOrder.UPDATED -> result.sortedBy { it.date }
@@ -230,7 +231,7 @@ internal abstract class WebtoonsParser(
 				}
 
 				null -> {
-					getAllTitleList()
+					allTitleCache.get()
 				}
 			}
 
