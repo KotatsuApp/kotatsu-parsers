@@ -1,10 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
@@ -30,8 +34,6 @@ import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseJson
@@ -117,9 +119,47 @@ internal abstract class WebtoonsParser(
 		}.sortedBy { it.number }
 	}
 
+	private suspend fun fetchEpisodes(titleNo: Long): List<MangaChapter> = runBlocking {
+		val firstResult = makeRequest("/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=0&pageSize=30")
+
+		val totalEpisodeCount = firstResult.getJSONObject("episodeList").getInt("totalServiceEpisodeCount")
+		val episodes = firstResult.getJSONObject("episodeList").getJSONArray("episode").toJSONList().toMutableList()
+
+		val deferredPages = (episodes.count() until totalEpisodeCount step 30).map { startIndex ->
+			async(Dispatchers.IO) {
+				val page = makeRequest("/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=$startIndex&pageSize=30")
+				page.getJSONObject("episodeList").getJSONArray("episode").toJSONList()
+			}
+		}
+
+		val additionalEpisodes = deferredPages.awaitAll().flatten()
+		episodes.addAll(additionalEpisodes)
+
+		episodes.mapChapters { i, jo ->
+			MangaChapter(
+				id = generateUid("$titleNo-$i"),
+				name = jo.getString("episodeTitle"),
+				number = jo.getInt("episodeSeq"),
+				url = "$titleNo-${jo.get("episodeNo")}",
+				uploadDate = jo.getLong("registerYmdt"),
+				branch = null,
+				scanlator = null,
+				source = source,
+			)
+		}.sortedBy { it.number }
+	}
+
+	private fun JSONArray.toJSONList(): List<JSONObject> {
+		val list = mutableListOf<JSONObject>()
+		for (i in 0 until length()) {
+			list.add(getJSONObject(i))
+		}
+		return list
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val titleNo = manga.url.toLong()
-		val chaptersDeferred = async { getChapters(titleNo) }
+		val chaptersDeferred = fetchEpisodes(titleNo)
 
 		makeRequest("/lineWebtoon/webtoon/titleInfo.json?titleNo=${titleNo}&anyServiceStatus=false").getJSONObject("titleInfo")
 			.let { jo ->
@@ -139,7 +179,7 @@ internal abstract class WebtoonsParser(
 					// I don't think the API provides this info,
 					state = null,
 					date = jo.getLong("lastEpisodeRegisterYmdt"),
-					chapters = chaptersDeferred.await(),
+					chapters = chaptersDeferred,
 					source = source,
 				)
 			}
@@ -260,8 +300,7 @@ internal abstract class WebtoonsParser(
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return makeRequest("/lineWebtoon/webtoon/genreList.json").getJSONObject("genreList").getJSONArray("genres")
-			.mapJSONToSet { jo -> parseTag(jo) }
+		return getAllGenreList().values.toSet()
 	}
 
 	private suspend fun makeRequest(url: String): JSONObject {
