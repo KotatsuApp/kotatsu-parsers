@@ -205,7 +205,6 @@ internal abstract class WebtoonsParser(
 							author = jo.getStringOrNull("writingAuthorName"),
 							description = null,
 							state = null,
-							date = jo.getLong("lastEpisodeRegisterYmdt"),
 							source = source,
 						)
 					}
