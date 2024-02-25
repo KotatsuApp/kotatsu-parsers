@@ -294,6 +294,26 @@ internal abstract class WebtoonsParser(
 	@MangaSourceParser("WEBTOONS_EN", "Webtoons English", "en", type = ContentType.MANGA)
 	class English(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_EN)
 
+	@MangaSourceParser("WEBTOONS_ID", "Webtoons Indonesia", "id", type = ContentType.MANGA)
+	class Indonesian(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_ID)
+
+	@MangaSourceParser("WEBTOONS_ES", "Webtoons Spanish", "es", type = ContentType.MANGA)
+	class Spanish(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_ES)
+
+	@MangaSourceParser("WEBTOONS_FR", "Webtoons French", "fr", type = ContentType.MANGA)
+	class French(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_FR)
+
+	@MangaSourceParser("WEBTOONS_TH", "Webtoons Thai", "th", type = ContentType.MANGA)
+	class Thai(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_TH)
+
+	@MangaSourceParser("WEBTOONS_ZH", "Webtoons Chinese", "zh", type = ContentType.MANGA)
+	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.WEBTOONS_ZH)
+
+	@MangaSourceParser("WEBTOONS_DE", "Webtoons German", "de", type = ContentType.MANGA)
+	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.WEBTOONS_DE)
+
+
+
 	private inner class WebtoonsUrlSigner(private val secret: String) {
 
 		private val mac = Mac.getInstance("HmacSHA1").apply {
