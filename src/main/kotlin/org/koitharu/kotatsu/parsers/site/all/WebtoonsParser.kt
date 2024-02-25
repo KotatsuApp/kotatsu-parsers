@@ -12,10 +12,34 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.*
-import java.util.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.SuspendLazy
+import org.koitharu.kotatsu.parsers.util.domain
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
+import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.splitTwoParts
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.urlEncoded
+import java.util.Calendar
+import java.util.EnumSet
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
@@ -45,12 +69,10 @@ internal abstract class WebtoonsParser(
 		SortOrder.POPULARITY, // views
 		SortOrder.RATING, // star rating
 		//SortOrder.LIKE, // likes
-		SortOrder.UPDATED
+		SortOrder.UPDATED,
 	)
 	override val headers: Headers
-		get() = Headers.Builder()
-			.add("User-Agent", "nApps (Android 12;; linewebtoon; 3.1.0)")
-			.build()
+		get() = Headers.Builder().add("User-Agent", "nApps (Android 12;; linewebtoon; 3.1.0)").build()
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		return page.url.toAbsoluteUrl(staticDomain)
@@ -69,22 +91,14 @@ internal abstract class WebtoonsParser(
 			url = "/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=0&pageSize=30",
 		)
 
-		val totalEpisodeCount = firstResult
-			.getJSONObject("episodeList")
-			.getInt("totalServiceEpisodeCount")
+		val totalEpisodeCount = firstResult.getJSONObject("episodeList").getInt("totalServiceEpisodeCount")
 
-		val episodes = firstResult
-			.getJSONObject("episodeList")
-			.getJSONArray("episode")
-			.toJSONList()
-			.toMutableList()
+		val episodes = firstResult.getJSONObject("episodeList").getJSONArray("episode").toJSONList().toMutableList()
 
 		while (episodes.count() < totalEpisodeCount) {
 			val page = makeRequest(
 				url = "/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=${episodes.count()}&pageSize=30",
-			).getJSONObject("episodeList")
-				.getJSONArray("episode")
-				.toJSONList()
+			).getJSONObject("episodeList").getJSONArray("episode").toJSONList()
 
 			episodes.addAll(page)
 		}
@@ -107,8 +121,7 @@ internal abstract class WebtoonsParser(
 		val titleNo = manga.url.toLong()
 		val chaptersDeferred = async { getChapters(titleNo) }
 
-		makeRequest("/lineWebtoon/webtoon/titleInfo.json?titleNo=${titleNo}&anyServiceStatus=false")
-			.getJSONObject("titleInfo")
+		makeRequest("/lineWebtoon/webtoon/titleInfo.json?titleNo=${titleNo}&anyServiceStatus=false").getJSONObject("titleInfo")
 			.let { jo ->
 				Manga(
 					id = generateUid(titleNo),
@@ -132,43 +145,36 @@ internal abstract class WebtoonsParser(
 	}
 
 	private val allGenreCache = SuspendLazy {
-		makeRequest("/lineWebtoon/webtoon/genreList.json")
-			.getJSONObject("genreList")
-			.getJSONArray("genres")
-			.mapJSON { jo -> parseTag(jo) }
-			.associateBy { tag -> tag.key }
+		makeRequest("/lineWebtoon/webtoon/genreList.json").getJSONObject("genreList").getJSONArray("genres")
+			.mapJSON { jo -> parseTag(jo) }.associateBy { tag -> tag.key }
 	}
 
 	private val allTitleCache = SuspendLazy {
-		makeRequest("/lineWebtoon/webtoon/titleList.json?")
-			.getJSONObject("titleList")
-			.getJSONArray("titles")
+		makeRequest("/lineWebtoon/webtoon/titleList.json?").getJSONObject("titleList").getJSONArray("titles")
 			.mapJSON { jo ->
-			val titleNo = jo.getLong("titleNo")
-			Manga(
-				id = generateUid(titleNo),
-				url = titleNo.toString(),
-				publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
-				title = jo.getString("title"),
-				coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-				altTitle = null,
-				author = jo.getStringOrNull("writingAuthorName"),
-				isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
-				rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-				tags = setOfNotNull(allGenreCache.get()[jo.getString("representGenre")]),
-				description = jo.getString("synopsis"),
-				state = null,
-				source = source,
-				date = jo.getLong("lastEpisodeRegisterYmdt"),
-				readCount = jo.getLong("readCount"),
-				likeCount = jo.getLong("likeitCount")
-			)
-		}
+				val titleNo = jo.getLong("titleNo")
+				Manga(
+					id = generateUid(titleNo),
+					url = titleNo.toString(),
+					publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
+					title = jo.getString("title"),
+					coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+					altTitle = null,
+					author = jo.getStringOrNull("writingAuthorName"),
+					isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+					rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
+					tags = setOfNotNull(allGenreCache.get()[jo.getString("representGenre")]),
+					description = jo.getString("synopsis"),
+					state = null,
+					source = source,
+					date = jo.getLong("lastEpisodeRegisterYmdt"),
+					readCount = jo.getLong("readCount"),
+					likeCount = jo.getLong("likeitCount"),
+				)
+			}
 	}
 
-
-
-	private suspend fun getAllGenreList(): Map<String, MangaTag>{
+	private suspend fun getAllGenreList(): Map<String, MangaTag> {
 		return allGenreCache.get()
 	}
 
@@ -179,68 +185,63 @@ internal abstract class WebtoonsParser(
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 
-		val manga =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					 makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}")
-						.getJSONObject("webtoonSearch")
-						.getJSONArray("titleList")
-						.mapJSON { jo ->
-							val titleNo = jo.getLong("titleNo")
-							Manga(
-								id = generateUid(titleNo),
-								title = jo.getString("title"),
-								altTitle = null,
-								url = titleNo.toString(),
-								publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
-								rating = RATING_UNKNOWN,
-								isNsfw = isNsfwSource,
-								coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-								largeCoverUrl = null,
-								tags = emptySet(),
-								author = jo.getStringOrNull("writingAuthorName"),
-								description = null,
-								state = null,
-								source = source,
-							)
-						}
+		val manga = when (filter) {
+			is MangaListFilter.Search -> {
+				makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}").getJSONObject("webtoonSearch")
+					.getJSONArray("titleList").mapJSON { jo ->
+						val titleNo = jo.getLong("titleNo")
+						Manga(
+							id = generateUid(titleNo),
+							title = jo.getString("title"),
+							altTitle = null,
+							url = titleNo.toString(),
+							publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
+							rating = RATING_UNKNOWN,
+							isNsfw = isNsfwSource,
+							coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
+							largeCoverUrl = null,
+							tags = emptySet(),
+							author = jo.getStringOrNull("writingAuthorName"),
+							description = null,
+							state = null,
+							source = source,
+						)
+					}
+			}
+
+			is MangaListFilter.Advanced -> {
+				val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
+
+				val genres = getAllGenreList()
+				val result = getAllTitleList()
+
+				val sortedResult = when (filter.sortOrder) {
+					SortOrder.UPDATED -> result.sortedBy { it.date }
+					SortOrder.POPULARITY -> result.sortedByDescending { it.readCount }
+					SortOrder.RATING -> result.sortedByDescending { it.rating }
+					//SortOrder.LIKE -> result.sortedBy { it.likeCount }
+					else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
 				}
 
-				is MangaListFilter.Advanced -> {
-					val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
-
-					val genres = getAllGenreList()
-					val result = getAllTitleList()
-
-					val sortedResult = when (filter.sortOrder) {
-						SortOrder.UPDATED -> result.sortedBy { it.date }
-						SortOrder.POPULARITY -> result.sortedByDescending { it.readCount }
-						SortOrder.RATING -> result.sortedByDescending { it.rating }
-						//SortOrder.LIKE -> result.sortedBy { it.likeCount }
-						else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
-					}
-
-					if (genre != "ALL") {
-						sortedResult.filter { it.tags.contains(genres[genre]) }.subList(offset, offset + 20)
-					} else {
-						sortedResult.subList(offset, offset + 20)
-					}
-				}
-
-				null -> {
-					getAllTitleList().subList(offset, offset + 20)
+				if (genre != "ALL") {
+					sortedResult.filter { it.tags.contains(genres[genre]) }
+				} else {
+					sortedResult
 				}
 			}
 
-		return manga
+			null -> {
+				getAllTitleList()
+			}
+		}
+		return manga.subList(offset, (offset + 20).coerceAtMost(manga.size))
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val (titleNo, episodeNo) = requireNotNull(chapter.url.splitTwoParts('-'))
-		return makeRequest("/lineWebtoon/webtoon/episodeInfo.json?v=4&titleNo=$titleNo&episodeNo=$episodeNo")
-			.getJSONObject("episodeInfo")
-			.getJSONArray("imageInfo")
-			.mapJSONIndexed { i, jo ->
+		return makeRequest("/lineWebtoon/webtoon/episodeInfo.json?v=4&titleNo=$titleNo&episodeNo=$episodeNo").getJSONObject(
+			"episodeInfo",
+		).getJSONArray("imageInfo").mapJSONIndexed { i, jo ->
 				MangaPage(
 					id = generateUid("$titleNo-$episodeNo-$i"),
 					url = jo.getString("url"),
@@ -259,9 +260,7 @@ internal abstract class WebtoonsParser(
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return makeRequest("/lineWebtoon/webtoon/genreList.json")
-			.getJSONObject("genreList")
-			.getJSONArray("genres")
+		return makeRequest("/lineWebtoon/webtoon/genreList.json").getJSONObject("genreList").getJSONArray("genres")
 			.mapJSONToSet { jo -> parseTag(jo) }
 	}
 
@@ -281,13 +280,11 @@ internal abstract class WebtoonsParser(
 
 	private fun finalizeUrl(url: String): HttpUrl {
 		val httpUrl = url.toAbsoluteUrl(apiDomain).toHttpUrl()
-		val builder = httpUrl.newBuilder()
-			.addQueryParameter("serviceZone", "GLOBAL")
+		val builder = httpUrl.newBuilder().addQueryParameter("serviceZone", "GLOBAL")
 		if (httpUrl.queryParameter("v") == null) {
 			builder.addQueryParameter("v", "1")
 		}
-		builder.addQueryParameter("language", languageCode)
-			.addQueryParameter("locale", "languageCode")
+		builder.addQueryParameter("language", languageCode).addQueryParameter("locale", "languageCode")
 			.addQueryParameter("platform", "APP_ANDROID")
 		signer.makeEncryptUrl(builder)
 		return builder.build()
@@ -295,7 +292,6 @@ internal abstract class WebtoonsParser(
 
 	@MangaSourceParser("WEBTOONS_EN", "Webtoons English", "en", type = ContentType.MANGA)
 	class English(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_EN)
-
 
 	private inner class WebtoonsUrlSigner(private val secret: String) {
 
@@ -315,9 +311,7 @@ internal abstract class WebtoonsParser(
 		fun makeEncryptUrl(urlBuilder: HttpUrl.Builder) {
 			val msgPad = Calendar.getInstance().timeInMillis.toString()
 			val digest = getMessageDigest(getMessage(urlBuilder.build().toString(), msgPad))
-			urlBuilder
-				.addQueryParameter("msgpad", msgPad)
-				.addQueryParameter("md", digest)
+			urlBuilder.addQueryParameter("msgpad", msgPad).addQueryParameter("md", digest)
 //				.addEncodedQueryParameter("md", digest.urlEncoded())
 		}
 	}
