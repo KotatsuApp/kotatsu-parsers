@@ -4,7 +4,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
@@ -87,7 +86,7 @@ internal abstract class WebtoonsParser(
 			"zh" -> "zh-hant"
 			else -> tag
 		}
-
+/*
 	private suspend fun getChapters(titleNo: Long): List<MangaChapter> {
 		val firstResult = makeRequest(
 			url = "/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=0&pageSize=30",
@@ -118,23 +117,25 @@ internal abstract class WebtoonsParser(
 
 		}.sortedBy { it.number }
 	}
-
-	private suspend fun fetchEpisodes(titleNo: Long): List<MangaChapter> = runBlocking {
+*/
+	private suspend fun fetchEpisodes(titleNo: Long): List<MangaChapter> = coroutineScope {
 		val firstResult = makeRequest("/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=0&pageSize=30")
 
 		val totalEpisodeCount = firstResult.getJSONObject("episodeList").getInt("totalServiceEpisodeCount")
 		val episodes = firstResult.getJSONObject("episodeList").getJSONArray("episode").toJSONList().toMutableList()
 
-		val deferredPages = (episodes.count() until totalEpisodeCount step 30).map { startIndex ->
+		val additionalEpisodes = (episodes.size until totalEpisodeCount step 30).map { startIndex ->
 			async(Dispatchers.IO) {
-				val page = makeRequest("/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=$startIndex&pageSize=30")
-				page.getJSONObject("episodeList").getJSONArray("episode").toJSONList()
+				makeRequest("/lineWebtoon/webtoon/episodeList.json?v=5&titleNo=$titleNo&startIndex=$startIndex&pageSize=30")
+					.getJSONObject("episodeList")
+					.getJSONArray("episode")
+					.toJSONList()
 			}
-		}
+		}.awaitAll().flatten()
 
-		val additionalEpisodes = deferredPages.awaitAll().flatten()
 		episodes.addAll(additionalEpisodes)
 
+		// Optimize object creation and sorting
 		episodes.mapChapters { i, jo ->
 			MangaChapter(
 				id = generateUid("$titleNo-$i"),
@@ -144,11 +145,10 @@ internal abstract class WebtoonsParser(
 				uploadDate = jo.getLong("registerYmdt"),
 				branch = null,
 				scanlator = null,
-				source = source,
+				source = source
 			)
-		}.sortedBy { it.number }
+		}.sortedBy(MangaChapter::number)
 	}
-
 	private fun JSONArray.toJSONList(): List<JSONObject> {
 		val list = mutableListOf<JSONObject>()
 		for (i in 0 until length()) {
@@ -156,11 +156,10 @@ internal abstract class WebtoonsParser(
 		}
 		return list
 	}
-
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val titleNo = manga.url.toLong()
-		val chaptersDeferred = fetchEpisodes(titleNo)
-
+		val chaptersDeferred = async { fetchEpisodes(titleNo) }
+		val chapters = chaptersDeferred.await()
 		makeRequest("/lineWebtoon/webtoon/titleInfo.json?titleNo=${titleNo}&anyServiceStatus=false").getJSONObject("titleInfo")
 			.let { jo ->
 				Manga(
@@ -179,7 +178,7 @@ internal abstract class WebtoonsParser(
 					// I don't think the API provides this info,
 					state = null,
 					date = jo.getLong("lastEpisodeRegisterYmdt"),
-					chapters = chaptersDeferred,
+					chapters = chapters,
 					source = source,
 				)
 			}
