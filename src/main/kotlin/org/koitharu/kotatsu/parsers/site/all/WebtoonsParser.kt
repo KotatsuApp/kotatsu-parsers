@@ -189,7 +189,7 @@ internal abstract class WebtoonsParser(
 			.mapJSON { jo -> parseTag(jo) }.associateBy { tag -> tag.key }
 	}
 
-	private val allTitleCache = SuspendLazy {
+	private val allTitleCache = SoftSuspendLazy {
 		makeRequest("/lineWebtoon/webtoon/titleList.json?").getJSONObject("titleList").getJSONArray("titles")
 			.mapJSON { jo ->
 				val titleNo = jo.getLong("titleNo")
