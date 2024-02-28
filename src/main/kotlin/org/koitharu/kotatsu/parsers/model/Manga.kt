@@ -67,14 +67,7 @@ class Manga(
 	 * Manga source
 	 */
 	@JvmField val source: MangaSource,
-
-	@JvmField val date: Long?  = null,
-
-	@JvmField val readCount: Long?  = null,
-
-	@JvmField val likeCount: Long?  = null,
-
-	) {
+) {
 
 	/**
 	 * Return if manga has a specified rating
@@ -116,10 +109,7 @@ class Manga(
 		largeCoverUrl = largeCoverUrl,
 		description = description,
 		chapters = chapters,
-		source = source,
-		date = date,
-		readCount = readCount,
-		likeCount = likeCount,
+		source = source
 	)
 
 	override fun equals(other: Any?): Boolean {
@@ -143,9 +133,7 @@ class Manga(
 		if (description != other.description) return false
 		if (chapters != other.chapters) return false
 		if (source != other.source) return false
-		if (date != other.date) return false
-		if (readCount != other.readCount) return false
-		if (likeCount != other.likeCount) return false
+
 		return true
 	}
 
@@ -165,9 +153,6 @@ class Manga(
 		result = 31 * result + (description?.hashCode() ?: 0)
 		result = 31 * result + (chapters?.hashCode() ?: 0)
 		result = 31 * result + source.hashCode()
-		result = 31 * result + (date?.hashCode() ?: 0)
-		result = 31 * result + (readCount?.hashCode() ?: 0)
-		result = 31 * result + (likeCount?.hashCode() ?: 0)
 		return result
 	}
 
