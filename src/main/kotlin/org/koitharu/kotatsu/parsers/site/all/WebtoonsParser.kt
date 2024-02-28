@@ -154,7 +154,7 @@ internal abstract class WebtoonsParser(
 					),
 					date = jo.getLong("lastEpisodeRegisterYmdt"),
 					readCount = jo.getLong("readCount"),
-					//likeCount = jo.getLong("likeitCount")
+					//likeCount = jo.getLong("likeitCount"),
 				).manga
 			}
 	}
@@ -223,11 +223,7 @@ internal abstract class WebtoonsParser(
 								description = null,
 								state = null,
 								source = source,
-							),
-							date = jo.getLong("lastEpisodeRegisterYmdt"),
-							readCount = jo.getLong("readCount"),
-							//likeCount = jo.getLong("likeitCount"),
-						)
+							))
 					}
 			}
 
