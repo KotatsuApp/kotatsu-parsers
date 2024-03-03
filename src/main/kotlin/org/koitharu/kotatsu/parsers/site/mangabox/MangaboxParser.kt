@@ -59,7 +59,7 @@ internal abstract class MangaboxParser(
 
 				is MangaListFilter.Search -> {
 					append("&keyw=")
-					append(filter.query.urlEncoded())
+					append(filter.query.replace(" ", "_").urlEncoded())
 				}
 
 				is MangaListFilter.Advanced -> {
