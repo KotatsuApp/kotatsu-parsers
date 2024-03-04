@@ -109,7 +109,7 @@ class Manga(
 		largeCoverUrl = largeCoverUrl,
 		description = description,
 		chapters = chapters,
-		source = source,
+		source = source
 	)
 
 	override fun equals(other: Any?): Boolean {
