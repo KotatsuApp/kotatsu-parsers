@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
 import org.jsoup.internal.StringUtil
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -101,6 +102,26 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	private suspend fun fetchMangaTitle(url: String): String {
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.selectFirstOrThrow("h1.title").text().trim()
+	}
+
+	override fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select(selectGallery).map { div ->
+			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				title = div.select(selectGalleryTitle).text().trim(),
+				altTitle = null,
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				rating = RATING_UNKNOWN,
+				isNsfw = isNsfwSource,
+				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
+				tags = emptySet(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
