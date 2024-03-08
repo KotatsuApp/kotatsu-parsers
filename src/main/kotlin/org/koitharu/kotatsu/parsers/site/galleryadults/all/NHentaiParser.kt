@@ -35,9 +35,18 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					append("/search/?q=pages:>0 ")
-					append(filter.query.urlEncoded())
-					append("&")
+					// Check if the query is all numbers
+					val numericQuery = filter.query.trim()
+					if (numericQuery.matches("\\d+".toRegex())) {
+						val title = fetchMangaTitle("$this/g/$numericQuery/")
+						append("/search/?q=pages:>0 ")
+						append(title)
+						append("&")
+					} else {
+						append("/search/?q=pages:>0 ")
+						append(filter.query.urlEncoded())
+						append("&")
+					}
 				}
 
 				is MangaListFilter.Advanced -> {
@@ -87,6 +96,11 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
+	private suspend fun fetchMangaTitle(url: String): String {
+		val doc = webClient.httpGet(url).parseHtml()
+		return doc.selectFirstOrThrow("h1.title").text().trim()
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
