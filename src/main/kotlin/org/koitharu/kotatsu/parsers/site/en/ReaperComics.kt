@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import okhttp3.Headers
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -12,30 +11,36 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.EnumSet
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.REAPERCOMICS, pageSize = 30) {
+	PagedMangaParser(context, MangaSource.REAPERCOMICS, pageSize = 32) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	override val isSearchSupported = false
+	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.CHROME_DESKTOP).build()
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	private val searchCache = mutableSetOf<Manga>() // Cache search results
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
 		val url = buildString {
 			append("https://")
 			append(domain)
 			when (filter) {
 				is MangaListFilter.Search -> {
-					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED) // TODO
+					val searchTitle = filter.query.trim()
+					if (searchCache.isNotEmpty()) {
+						if (page > 1) {
+							return emptyList()
+						}
+						return searchCache.filter { it.title.contains(searchTitle, ignoreCase = true) }
+					} else {
+						return searchAllPage(page, searchTitle)
+					}
 				}
 
 				is MangaListFilter.Advanced -> {
@@ -53,13 +58,47 @@ internal class ReaperComics(context: MangaLoaderContext) :
 				}
 			}
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
+	/**
+	 * Search once all pages and stores them in cache
+	 *
+	 * @param page the page to start from
+	 * @param searchTitle the title to search for
+	 * @return the list of manga
+	 */
+	private suspend fun searchAllPage(page: Int, searchTitle: String): List<Manga> {
+		var currentPage = page
+		val url = buildString {
+			append("https://")
+			append(domain)
+			append("/comics?page=")
+		}
+		while (true) {
+			try {
+				val allEntries = parseMangaList(webClient.httpGet(url + currentPage).parseHtml())
+				if (allEntries.isEmpty()) {
+					break
+				}
+				searchCache.addAll(allEntries)
+				currentPage++
+			} catch (e: Exception) {
+				println("Error parsing page $currentPage: ${e.message}")
+				break
+			}
+		}
+		return searchCache.filter { it.title.contains(searchTitle, ignoreCase = true) }.toList()
+	}
+
+	/**
+	 * Parse the list of manga from the given document
+	 *
+	 * @param docs the document to parse
+	 * @param title the title to search for
+	 * @return the list of manga
+	 */
 	private fun parseMangaList(docs: Document): List<Manga> {
-
-
 		return docs.select("main div.relative, main li.col-span-1").map {
 			val a = it.selectFirstOrThrow("a")
 			val url = a.attrAsAbsoluteUrl("href")
