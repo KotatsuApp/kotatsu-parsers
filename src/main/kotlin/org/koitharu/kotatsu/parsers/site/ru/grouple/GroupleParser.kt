@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -18,6 +19,7 @@ import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
@@ -113,6 +115,11 @@ internal abstract class GroupleParser(
 		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
+		val translations = root.selectFirst("div.translator-selection")
+			?.select(".translator-selection-item")
+			?.associate {
+				it.id().removePrefix("tr-").toLong() to it.selectFirst(".translator-selection-name")?.textOrNull()
+			}
 		return manga.copy(
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
@@ -128,24 +135,48 @@ internal abstract class GroupleParser(
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
 			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.requireElementById("chapters-list").select("a.chapter-link")
-				.mapChapters(reversed = true) { i, a ->
-					val tr = a.selectFirstParent("tr") ?: return@mapChapters null
+				.flatMapChapters(reversed = true) { a ->
+					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()
 					val href = a.attrAsRelativeUrl("href")
-					var translators = ""
-					val translatorElement = a.attr("title")
-					if (!translatorElement.isNullOrBlank()) {
-						translators = translatorElement.replace("(Переводчик),", "&").removeSuffix(" (Переводчик)")
+					val number = tr.attr("data-num").toFloatOrNull()?.div(10f) ?: 0f
+					val volume = tr.attr("data-vol").toIntOrNull() ?: 0
+					if (translations.isNullOrEmpty() || a.attr("data-translations").isEmpty()) {
+						var translators = ""
+						val translatorElement = a.attr("title")
+						if (!translatorElement.isNullOrBlank()) {
+							translators = translatorElement.replace("(Переводчик),", "&").removeSuffix(" (Переводчик)")
+						}
+						listOf(
+							MangaChapter(
+								id = generateUid(href),
+								name = a.text().removePrefix(manga.title).trim(),
+								number = number,
+								volume = volume,
+								url = href,
+								uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
+								scanlator = translators,
+								source = source,
+								branch = null,
+							),
+						)
+					} else {
+						val translationData = JSONArray(a.attr("data-translations"))
+						translationData.mapJSON { jo ->
+							val personId = jo.getLong("personId")
+							val link = href.setQueryParam("tran", personId.toString())
+							MangaChapter(
+								id = generateUid(link),
+								name = a.text().removePrefix(manga.title).trim(),
+								number = number,
+								volume = volume,
+								url = link,
+								uploadDate = dateFormat.tryParse(jo.getStringOrNull("dateCreated")),
+								scanlator = null,
+								source = source,
+								branch = translations[personId],
+							)
+						}
 					}
-					MangaChapter(
-						id = generateUid(href),
-						name = a.text().removePrefix(manga.title).trim(),
-						number = i + 1,
-						url = href,
-						uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
-						scanlator = translators,
-						source = source,
-						branch = null,
-					)
 				},
 		)
 	}
@@ -401,5 +432,15 @@ internal abstract class GroupleParser(
 				source = source,
 			)
 		}
+	}
+
+	private fun String.setQueryParam(name: String, value: String): String {
+		return toAbsoluteUrl(domain)
+			.toHttpUrl()
+			.newBuilder()
+			.setQueryParameter(name, value)
+			.build()
+			.toString()
+			.toRelativeUrl(domain)
 	}
 }

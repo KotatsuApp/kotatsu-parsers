@@ -19,6 +19,19 @@ inline fun <T> List<T>.mapChapters(
 	return builder.toList()
 }
 
+@InternalParsersApi
+inline fun <T> List<T>.flatMapChapters(
+	reversed: Boolean = false,
+	transform: (T) -> Iterable<MangaChapter?>,
+): List<MangaChapter> {
+	val builder = ChaptersListBuilder(collectionSize())
+	val elements = if (reversed) this.asReversed() else this
+	for (item in elements) {
+		builder.addAll(transform(item))
+	}
+	return builder.toList()
+}
+
 @PublishedApi
 internal fun <T> Iterable<T>.collectionSize(): Int {
 	return if (this is Collection<*>) this.size else 10

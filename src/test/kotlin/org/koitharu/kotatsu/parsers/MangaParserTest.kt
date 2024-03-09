@@ -3,11 +3,9 @@ package org.koitharu.kotatsu.parsers
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
@@ -20,6 +18,14 @@ internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock
 	private val timeout = 2.minutes
+
+	@Test
+	fun singleTest() = runTest {
+		val manga = mangaOf(MangaSource.READMANGA_RU, "https://readmanga.live/podniatie_urovnia_v_odinochku__A5e4e")
+		val parser = context.newParserInstance(manga.source)
+		val details = parser.getDetails(manga)
+		assert(!details.chapters.isNullOrEmpty())
+	}
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
@@ -162,8 +168,9 @@ internal class MangaParserTest {
 			assert(c.isDistinctBy { it.id }) {
 				"Chapters are not distinct by id: ${c.maxDuplicates { it.id }} for $publicUrl"
 			}
-			assert(c.isDistinctByNotNull { if (it.number > 0f) it.number to it.branch else null }) {
-				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
+			assert(c.isDistinctByNotNull { it.key() }) {
+				val dup = c.mapNotNull { it.key() }.maxDuplicates { it }
+				"Chapters are not distinct by branch/volume/number: $dup for $publicUrl"
 			}
 			assert(c.all { it.source == source })
 			checkImageRequest(coverUrl, source)
@@ -265,5 +272,11 @@ internal class MangaParserTest {
 
 	private fun String.isCapitalized(): Boolean {
 		return !first().isLowerCase()
+	}
+
+	private fun MangaChapter.key(): Any? = when {
+		number > 0f && volume > 0 -> Triple(branch, volume, number)
+		number > 0f -> Pair(branch, number)
+		else -> null
 	}
 }
