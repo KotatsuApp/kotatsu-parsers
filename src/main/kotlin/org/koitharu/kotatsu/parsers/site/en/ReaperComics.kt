@@ -1,18 +1,31 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import okhttp3.Headers
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
+import okhttp3.*
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
+import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.EnumSet
+import kotlin.random.Random
+
+private const val TOO_MANY_REQUESTS = 429
+private const val MAX_RETRY_COUNT = 3
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
@@ -22,9 +35,30 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.CHROME_DESKTOP).build()
+	private val userAgentKey =
+		ConfigKey.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+
+	private val baseHeaders: Headers
+		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+
+	override val headers
+		get() = getApiHeaders()
+
+	private val selectTotalChapter = "dl.mt-2 div:nth-child(5) > dd"
+	private val selectState = "dl.mt-2 div:nth-child(4) > dd"
 
 	private val searchCache = mutableSetOf<Manga>() // Cache search results
+
+	private val baseUrl = "https://reaperscans.com"
+
+	private fun getApiHeaders(): Headers {
+		val userCookie = context.cookieJar.getCookies(domain).find {
+			it.name == "user"
+		} ?: return baseHeaders
+		val jo = JSONObject(userCookie.value.urlDecode())
+		val accessToken = jo.getStringOrNull("access_token") ?: return baseHeaders
+		return baseHeaders.newBuilder().add("authorization", "bearer $accessToken").build()
+	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
@@ -95,7 +129,6 @@ internal class ReaperComics(context: MangaLoaderContext) :
 	 * Parse the list of manga from the given document
 	 *
 	 * @param docs the document to parse
-	 * @param title the title to search for
 	 * @return the list of manga
 	 */
 	private fun parseMangaList(docs: Document): List<Manga> {
@@ -121,23 +154,38 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
+	private inline fun <reified T> Response.parseJson(): T = use {
+		it.body!!.string().parseJson()
+	}
+
+	private inline fun <reified T> String.parseJson(): T = json.decodeFromString(this)
+
+	companion object {
+		private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+	}
+
+	private fun chapterListNextPageSelector(): String = "button[wire:click*=nextPage]"
+
+	private val json = Json {
+		ignoreUnknownKeys = true
+	}
+
+	private fun chapterListSelector() = "div[wire:id] > div > ul[role=list] > li"
+
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val doc = Jsoup.parse(webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseRaw())
 		val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
-		return manga.copy(
-			description = doc.selectFirst("div.p-4 p.prose")?.html(),
-			state = when (doc.selectFirst("dl.mt-2 div:contains(Status) dd")?.text()?.lowercase()) {
-				"ongoing" -> MangaState.ONGOING
-				"complete" -> MangaState.FINISHED
-				else -> null
-			},
-			chapters = doc.select("div.p-2 div.pb-4 ul li").mapChapters(reversed = true) { i, li ->
+		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toIntOrNull() ?: 0) - 1
+		val chapters = mutableSetOf<MangaChapter>()
+		var hasNextPage = doc.selectFirst(chapterListNextPageSelector()) != null
+		chapters.addAll(
+			doc.select(chapterListSelector()).mapChapters { _, li ->
 				val a = li.selectFirstOrThrow("a")
-				val chapterUrl = a.attrAsAbsoluteUrl("href").toRelativeUrl(domain)
+				val chapterUrl = a.attr("href").toRelativeUrl(domain)
 				MangaChapter(
 					id = generateUid(chapterUrl),
 					name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
-					number = i + 1,
+					number = totalChapters--,
 					url = chapterUrl,
 					scanlator = null,
 					uploadDate = parseChapterDate(
@@ -149,6 +197,135 @@ internal class ReaperComics(context: MangaLoaderContext) :
 				)
 			},
 		)
+
+		if (!hasNextPage) {
+			return manga.copy(
+				description = doc.selectFirst("div.p-4 p.prose")?.html(),
+				state = when (doc.selectFirst(selectState)?.text()?.lowercase()) {
+					"ongoing" -> MangaState.ONGOING
+					"complete" -> MangaState.FINISHED
+					else -> null
+				},
+				chapters = chapters.reversed(),
+			)
+		}
+
+		val csrfToken = doc.selectFirst("meta[name=csrf-token]")?.attr("content") ?: error("Couldn't find csrf-token")
+		val livewareData = doc.selectFirst("div[wire:initial-data*=Models\\\\Comic]")?.attr("wire:initial-data")
+			?.parseJson<LiveWireDataDto>() ?: error("Couldn't find LiveWireData")
+
+		val routeName =
+			livewareData.fingerprint["name"]?.jsonPrimitive?.contentOrNull ?: error("Couldn't find routeName")
+
+		val fingerprint = livewareData.fingerprint
+		var serverMemo = livewareData.serverMemo
+
+		var pageToQuery = 2
+
+		//  Javascript: (Math.random() + 1).toString(36).substring(8)
+		val generateId = { ->
+			"1.${
+				Random.nextLong().toString(36)
+			}".substring(10)
+		} // Not exactly the same, but results in a 3-5 character string
+
+		while (hasNextPage) {
+			val payload = buildJsonObject {
+				put("fingerprint", fingerprint)
+				put("serverMemo", serverMemo)
+				putJsonArray("updates") {
+					addJsonObject {
+						put("type", "callMethod")
+						putJsonObject("payload") {
+							put("id", generateId())
+							put("method", "gotoPage")
+							putJsonArray("params") {
+								add(pageToQuery)
+								add("page")
+							}
+						}
+					}
+				}
+			}.toString().toRequestBody(JSON_MEDIA_TYPE)
+
+			val headers = Headers.Builder().add("x-csrf-token", csrfToken).add("x-livewire", "true").build()
+
+			val responseData = makeRequest("$baseUrl/livewire/message/$routeName", payload, headers)
+
+			// response contains state that we need to preserve
+			serverMemo = serverMemo.mergeLeft(responseData.serverMemo)
+			val chaptersHtml = Jsoup.parse(responseData.effects.html, baseUrl)
+			chapters.addAll(
+				chaptersHtml.select(chapterListSelector()).mapChapters { _, li ->
+					val a = li.selectFirstOrThrow("a")
+					val chapterUrl = a.attr("href").toRelativeUrl(domain)
+					MangaChapter(
+						id = generateUid(chapterUrl),
+						name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
+						number = totalChapters--,
+						url = chapterUrl,
+						scanlator = null,
+						uploadDate = parseChapterDate(
+							simpleDateFormat,
+							li.selectFirst("div.truncate div.items-center")?.text(),
+						),
+						branch = null,
+						source = source,
+					)
+				},
+			)
+			hasNextPage = chaptersHtml.selectFirst(chapterListNextPageSelector()) != null
+			pageToQuery++
+		}
+
+		return manga.copy(
+			description = doc.selectFirst("div.p-4 p.prose")?.html(),
+			state = when (doc.selectFirst(selectState)?.text()?.lowercase()) {
+				"ongoing" -> MangaState.ONGOING
+				"complete" -> MangaState.FINISHED
+				else -> null
+			},
+			chapters = chapters.reversed(),
+		)
+	}
+
+	private suspend fun makeRequest(url: String, payload: RequestBody, headers: Headers): LiveWireResponseDto {
+		var retryCount = 0
+		var backoffDelay = 2000L // Initial delay (milliseconds)
+		val request = Request.Builder().url(url).post(payload).headers(headers).build()
+		while (true) {
+			try {
+				println(backoffDelay)
+				return context.httpClient.newCall(request).execute().parseJson<LiveWireResponseDto>()
+			} catch (e: Exception) {
+				// Log or handle the exception as needed
+				if (++retryCount <= MAX_RETRY_COUNT) {
+					withContext(Dispatchers.Default) {
+						delay(backoffDelay)
+						backoffDelay += 500L
+					}
+				} else {
+					throw e
+				}
+			}
+		}
+	}
+
+	/**
+	 * Recursively merges j2 onto j1 in place
+	 * If j1 and j2 both contain keys whose values aren't both jsonObjects, j2's value overwrites j1's
+	 *
+	 */
+	private fun JsonObject.mergeLeft(j2: JsonObject): JsonObject = buildJsonObject {
+		val j1 = this@mergeLeft
+		j1.entries.forEach { (key, value) -> put(key, value) }
+		j2.entries.forEach { (key, value) ->
+			val j1Value = j1[key]
+			when {
+				j1Value !is JsonObject -> put(key, value)
+				value is JsonObject -> put(key, j1Value.mergeLeft(value))
+			}
+		}
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
@@ -187,3 +364,20 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		}
 	}
 }
+
+@Serializable
+data class LiveWireResponseDto(
+	val effects: LiveWireEffectsDto,
+	val serverMemo: JsonObject,
+)
+
+@Serializable
+data class LiveWireEffectsDto(
+	val html: String,
+)
+
+@Serializable
+data class LiveWireDataDto(
+	val fingerprint: JsonObject,
+	val serverMemo: JsonObject,
+)

@@ -5,6 +5,7 @@ plugins {
 	id 'org.jetbrains.kotlin.jvm' version '1.9.22'
 	id 'com.google.devtools.ksp' version '1.9.22-1.0.17'
 	id 'maven-publish'
+	id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.22'
 }
 
 group = 'org.koitharu'
@@ -59,6 +60,7 @@ dependencies {
 	api 'org.jsoup:jsoup:1.17.2'
 	implementation 'org.json:json:20231013'
 	implementation 'androidx.collection:collection:1.4.0'
+	implementation "org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3"
 
 	ksp project(':kotatsu-parsers-ksp')
 
