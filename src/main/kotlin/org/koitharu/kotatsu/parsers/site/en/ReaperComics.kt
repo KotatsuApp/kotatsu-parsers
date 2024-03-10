@@ -295,7 +295,6 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		val request = Request.Builder().url(url).post(payload).headers(headers).build()
 		while (true) {
 			try {
-				println(backoffDelay)
 				return context.httpClient.newCall(request).execute().parseJson<LiveWireResponseDto>()
 			} catch (e: Exception) {
 				// Log or handle the exception as needed
