@@ -3,10 +3,10 @@ package org.koitharu.kotatsu.parsers.site.en
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
-import okhttp3.*
+import okhttp3.Headers
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.Request
+import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -25,7 +25,7 @@ import java.util.EnumSet
 import kotlin.random.Random
 
 private const val TOO_MANY_REQUESTS = 429
-private const val MAX_RETRY_COUNT = 3
+private const val MAX_RETRY_COUNT = 5
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
@@ -48,6 +48,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 	private val selectState = "dl.mt-2 div:nth-child(4) > dd"
 
 	private val searchCache = mutableSetOf<Manga>() // Cache search results
+	private val chapterCache = mutableMapOf<String, Manga>() // Cache chapter lists
 
 	private val baseUrl = "https://reaperscans.com"
 
@@ -154,26 +155,21 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
-	private inline fun <reified T> Response.parseJson(): T = use {
-		it.body!!.string().parseJson()
-	}
-
-	private inline fun <reified T> String.parseJson(): T = json.decodeFromString(this)
-
 	companion object {
 		private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
 	}
 
 	private fun chapterListNextPageSelector(): String = "button[wire:click*=nextPage]"
 
-	private val json = Json {
-		ignoreUnknownKeys = true
-	}
-
 	private fun chapterListSelector() = "div[wire:id] > div > ul[role=list] > li"
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = Jsoup.parse(webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseRaw())
+		val cachedChapters = chapterCache[manga.url]
+		if (cachedChapters != null) {
+			return cachedChapters
+		}
+
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toIntOrNull() ?: 0) - 1
 		val chapters = mutableSetOf<MangaChapter>()
@@ -212,13 +208,13 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 		val csrfToken = doc.selectFirst("meta[name=csrf-token]")?.attr("content") ?: error("Couldn't find csrf-token")
 		val livewareData = doc.selectFirst("div[wire:initial-data*=Models\\\\Comic]")?.attr("wire:initial-data")
-			?.parseJson<LiveWireDataDto>() ?: error("Couldn't find LiveWireData")
+			?.let { JSONObject(it) } ?: error("Couldn't find LiveWireData")
 
 		val routeName =
-			livewareData.fingerprint["name"]?.jsonPrimitive?.contentOrNull ?: error("Couldn't find routeName")
+			livewareData.getJSONObject("fingerprint").getStringOrNull("name") ?: error("Couldn't find routeName")
 
-		val fingerprint = livewareData.fingerprint
-		var serverMemo = livewareData.serverMemo
+		val fingerprint = livewareData.getJSONObject("fingerprint")
+		var serverMemo = livewareData.getJSONObject("serverMemo")
 
 		var pageToQuery = 2
 
@@ -230,30 +226,27 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		} // Not exactly the same, but results in a 3-5 character string
 
 		while (hasNextPage) {
-			val payload = buildJsonObject {
-				put("fingerprint", fingerprint)
-				put("serverMemo", serverMemo)
-				putJsonArray("updates") {
-					addJsonObject {
-						put("type", "callMethod")
-						putJsonObject("payload") {
-							put("id", generateId())
-							put("method", "gotoPage")
-							putJsonArray("params") {
-								add(pageToQuery)
-								add("page")
-							}
-						}
-					}
-				}
-			}.toString().toRequestBody(JSON_MEDIA_TYPE)
+			//need to format the payload to the expected response format since org.json.JSONObject are not ordered, and the server seems to care about the order of the keys
+			val payload = String.format(
+				responseTemplate,
+				fingerprint.getString("id"),
+				fingerprint.getString("path"),
+				serverMemo.getString("htmlHash"),
+				pageToQuery - 1,
+				pageToQuery - 1,
+				serverMemo.getJSONObject("dataMeta").getJSONObject("models").getJSONObject("comic").getString("id"),
+				serverMemo.getString("checksum"),
+				generateId(),
+				pageToQuery,
+			).toRequestBody(JSON_MEDIA_TYPE)
 
 			val headers = Headers.Builder().add("x-csrf-token", csrfToken).add("x-livewire", "true").build()
 
-			val responseData = makeRequest("$baseUrl/livewire/message/$routeName", payload, headers)
+			val responseData =
+				makeRequest("$baseUrl/livewire/message/$routeName", payload, headers)
 
 			// response contains state that we need to preserve
-			serverMemo = serverMemo.mergeLeft(responseData.serverMemo)
+			serverMemo = mergeLeft(serverMemo, responseData.serverMemo)
 			val chaptersHtml = Jsoup.parse(responseData.effects.html, baseUrl)
 			chapters.addAll(
 				chaptersHtml.select(chapterListSelector()).mapChapters { _, li ->
@@ -278,7 +271,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 			pageToQuery++
 		}
 
-		return manga.copy(
+		val copy = manga.copy(
 			description = doc.selectFirst("div.p-4 p.prose")?.html(),
 			state = when (doc.selectFirst(selectState)?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING
@@ -287,21 +280,30 @@ internal class ReaperComics(context: MangaLoaderContext) :
 			},
 			chapters = chapters.reversed(),
 		)
+
+		chapterCache[manga.url] = copy
+		return copy
+
 	}
 
 	private suspend fun makeRequest(url: String, payload: RequestBody, headers: Headers): LiveWireResponseDto {
 		var retryCount = 0
-		var backoffDelay = 2000L // Initial delay (milliseconds)
+		val backoffDelay = 2000L // Initial delay (milliseconds)
 		val request = Request.Builder().url(url).post(payload).headers(headers).build()
+
 		while (true) {
 			try {
-				return context.httpClient.newCall(request).execute().parseJson<LiveWireResponseDto>()
+				val response = context.httpClient.newCall(request).execute().parseJson()
+				val effectsJson = response.getJSONObject("effects")
+				val serverMemoJson = response.getJSONObject("serverMemo")
+				val effects = LiveWireEffectsDto(effectsJson.getString("html"))
+				return LiveWireResponseDto(effects, serverMemoJson)
+
 			} catch (e: Exception) {
 				// Log or handle the exception as needed
 				if (++retryCount <= MAX_RETRY_COUNT) {
 					withContext(Dispatchers.Default) {
 						delay(backoffDelay)
-						backoffDelay += 500L
 					}
 				} else {
 					throw e
@@ -315,16 +317,17 @@ internal class ReaperComics(context: MangaLoaderContext) :
 	 * If j1 and j2 both contain keys whose values aren't both jsonObjects, j2's value overwrites j1's
 	 *
 	 */
-	private fun JsonObject.mergeLeft(j2: JsonObject): JsonObject = buildJsonObject {
-		val j1 = this@mergeLeft
-		j1.entries.forEach { (key, value) -> put(key, value) }
-		j2.entries.forEach { (key, value) ->
-			val j1Value = j1[key]
-			when {
-				j1Value !is JsonObject -> put(key, value)
-				value is JsonObject -> put(key, j1Value.mergeLeft(value))
+	private fun mergeLeft(j1: JSONObject, j2: JSONObject): JSONObject {
+		for (key in j2.keys()) {
+			val j1Value = j1.opt(key)
+
+			if (j1Value !is JSONObject) {
+				j1.put(key, j2[key])
+			} else if (j2[key] is JSONObject) {
+				j1.put(key, mergeLeft(j1Value, j2.getJSONObject(key)))
 			}
 		}
+		return j1
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
@@ -364,19 +367,14 @@ internal class ReaperComics(context: MangaLoaderContext) :
 	}
 }
 
-@Serializable
 data class LiveWireResponseDto(
 	val effects: LiveWireEffectsDto,
-	val serverMemo: JsonObject,
+	val serverMemo: JSONObject,
 )
 
-@Serializable
 data class LiveWireEffectsDto(
 	val html: String,
 )
 
-@Serializable
-data class LiveWireDataDto(
-	val fingerprint: JsonObject,
-	val serverMemo: JsonObject,
-)
+//!IMPORTANT
+private val responseTemplate =	"""{"fingerprint":{"id":"%s","name":"frontend.comic-chapter-list","locale":"en","path":"%s","method":"GET","v":"acj"},"serverMemo":{"children":[],"errors":[],"htmlHash":"%s","data":{"comic":[],"page":%d,"paginators":{"page":%d}},"dataMeta":{"models":{"comic":{"class":"App\\Models\\Comic","id":"%s","relations":[],"connection":"pgsql","collectionClass":null}}},"checksum":"%s"},"updates":[{"type":"callMethod","payload":{"id":"%s","method":"gotoPage","params":[%d,"page"]}}]}"""
