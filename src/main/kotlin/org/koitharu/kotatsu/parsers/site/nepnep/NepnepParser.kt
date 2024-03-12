@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.nepnep
 import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -12,8 +13,11 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.SoftSuspendLazy
+import org.koitharu.kotatsu.parsers.util.SuspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
+
 
 internal abstract class NepnepParser(
 	context: MangaLoaderContext,
@@ -31,19 +35,22 @@ internal abstract class NepnepParser(
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	private lateinit var docCache: Document
+	private var mangaListCache: List<Manga> = emptyList()
+
 	data class MangaWithLastUpdate(
 		val manga: Manga,
 		val lastUpdate: Long,
 		val views: String
 	)
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
+		val doc = if (::docCache.isInitialized) {
+			docCache
+		}else{
+			webClient.httpGet("https://$domain/search/").parseHtml()
 		}
 
-		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
-		val json = JSONArray(
-			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
+		val json = JSONArray(doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
 				.substringAfter("vm.Directory = ")
 				.substringBefore("vm.GetIntValue")
 				.trim()
@@ -116,7 +123,7 @@ internal abstract class NepnepParser(
 				}
 			}
 		}
-		return mangaWithLastUpdateList.map { it.manga }
+		return mangaWithLastUpdateList.map { it.manga }.subList(offset, (offset + 30).coerceAtMost(mangaWithLastUpdateList.size))
 	}
 
 	private fun addManga(href: String, imgUrl: String, m: JSONObject): Manga {
@@ -136,8 +143,13 @@ internal abstract class NepnepParser(
 		)
 	}
 
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
+		val doc = if (::docCache.isInitialized) {
+			docCache
+		}else{
+			webClient.httpGet("https://$domain/search/").parseHtml()
+		}
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
 			.substringAfter("\"Genre\"")
 			.substringAfter('[')
