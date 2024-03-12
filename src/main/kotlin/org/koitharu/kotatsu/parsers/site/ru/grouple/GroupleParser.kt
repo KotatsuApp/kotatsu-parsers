@@ -45,6 +45,7 @@ internal abstract class GroupleParser(
 	private val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
+	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 
 	override val headers: Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
@@ -115,11 +116,15 @@ internal abstract class GroupleParser(
 		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
-		val translations = root.selectFirst("div.translator-selection")
-			?.select(".translator-selection-item")
-			?.associate {
-				it.id().removePrefix("tr-").toLong() to it.selectFirst(".translator-selection-name")?.textOrNull()
-			}
+		val translations = if (config[splitTranslationsKey]) {
+			root.selectFirst("div.translator-selection")
+				?.select(".translator-selection-item")
+				?.associate {
+					it.id().removePrefix("tr-").toLong() to it.selectFirst(".translator-selection-name")?.textOrNull()
+				}
+		} else {
+			null
+		}
 		return manga.copy(
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
@@ -277,6 +282,7 @@ internal abstract class GroupleParser(
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
+		keys.add(splitTranslationsKey)
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
