@@ -231,20 +231,18 @@ internal abstract class WebtoonsParser(
 				val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
 				val genres = getAllGenreList()
-				val result = getAllTitleList()
+				var result = getAllTitleList()
 
-				val sortedResult = when (filter.sortOrder) {
-					SortOrder.UPDATED -> result.sortedBy { it.date }
+				if (genre != "ALL") {
+					result = result.filter { it.manga.tags.contains(genres[genre]) }
+				}
+
+				when (filter.sortOrder) {
+					SortOrder.UPDATED -> result.sortedByDescending { it.date }
 					SortOrder.POPULARITY -> result.sortedByDescending { it.readCount }
 					SortOrder.RATING -> result.sortedByDescending { it.manga.rating }
 					//SortOrder.LIKE -> result.sortedBy { it.likeitCount }
 					else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
-				}
-
-				if (genre != "ALL") {
-					sortedResult.filter { it.manga.tags.contains(genres[genre]) }
-				} else {
-					sortedResult
 				}
 			}
 
