@@ -4,6 +4,7 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.Headers
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
@@ -112,7 +113,8 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired().parseHtml()
+		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired()
+		val doc = response.parseHtml()
 		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
@@ -125,7 +127,9 @@ internal abstract class GroupleParser(
 		} else {
 			null
 		}
+		val newSource = getSource(response.request.url)
 		return manga.copy(
+			source = newSource,
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
 			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
@@ -160,7 +164,7 @@ internal abstract class GroupleParser(
 								url = href,
 								uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
 								scanlator = translators,
-								source = source,
+								source = newSource,
 								branch = null,
 							),
 						)
@@ -177,7 +181,7 @@ internal abstract class GroupleParser(
 								url = link,
 								uploadDate = dateFormat.tryParse(jo.getStringOrNull("dateCreated")),
 								scanlator = null,
-								source = source,
+								source = newSource,
 								branch = translations[personId],
 							)
 						}
@@ -187,7 +191,11 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain) + "?mtr=1").checkAuthRequired().parseHtml()
+		if (chapter.source != source) { // handle redirects between websites
+			return context.newParserInstance(chapter.source).getPages(chapter)
+		}
+		val url = chapter.url.toAbsoluteUrl(domain).toHttpUrl().newBuilder().setQueryParameter("mtr", "1").build()
+		val doc = webClient.httpGet(url).checkAuthRequired().parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
@@ -290,6 +298,14 @@ internal abstract class GroupleParser(
 		val root = doc.body().requireElementById("mangaBox").select("h4").first { it.ownText() == RELATED_TITLE }
 			.nextElementSibling() ?: doc.parseFailed("Cannot find root")
 		return root.select("div.tile").mapNotNull(::parseManga)
+	}
+
+	protected open fun getSource(url: HttpUrl): MangaSource = when (url.host) {
+		in SeiMangaParser.domains -> MangaSource.SEIMANGA
+		in MintMangaParser.domains -> MangaSource.MINTMANGA
+		in ReadmangaParser.domains -> MangaSource.READMANGA_RU
+		in SelfMangaParser.domains -> MangaSource.SELFMANGA
+		else -> source
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) = when (sortOrder) {

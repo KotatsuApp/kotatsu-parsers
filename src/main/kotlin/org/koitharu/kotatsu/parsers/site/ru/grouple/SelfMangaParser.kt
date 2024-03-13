@@ -11,6 +11,12 @@ internal class SelfMangaParser(
 	context: MangaLoaderContext,
 ) : GroupleParser(context, MangaSource.SELFMANGA, 3) {
 
-	override val configKeyDomain = ConfigKey.Domain("selfmanga.live")
+	override val configKeyDomain = ConfigKey.Domain(*domains)
 
+	companion object {
+
+		val domains = arrayOf(
+			"selfmanga.live",
+		)
+	}
 }
