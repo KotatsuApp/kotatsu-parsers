@@ -20,8 +20,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.EnumSet
+import java.util.*
 import kotlin.random.Random
 
 private const val TOO_MANY_REQUESTS = 429
@@ -35,8 +34,9 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	private val userAgentKey =
-		ConfigKey.UserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
+	private val userAgentKey = ConfigKey.UserAgent(
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
+	)
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
@@ -49,8 +49,6 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	private val searchCache = mutableSetOf<Manga>() // Cache search results
 	private val chapterCache = mutableMapOf<String, Manga>() // Cache chapter lists
-
-	private val baseUrl = "https://reaperscans.com"
 
 	private fun getApiHeaders(): Headers {
 		val userCookie = context.cookieJar.getCookies(domain).find {
@@ -243,11 +241,11 @@ internal class ReaperComics(context: MangaLoaderContext) :
 			val headers = Headers.Builder().add("x-csrf-token", csrfToken).add("x-livewire", "true").build()
 
 			val responseData =
-				makeRequest("$baseUrl/livewire/message/$routeName", payload, headers)
+				makeRequest("https://$domain/livewire/message/$routeName", payload, headers)
 
 			// response contains state that we need to preserve
 			serverMemo = mergeLeft(serverMemo, responseData.serverMemo)
-			val chaptersHtml = Jsoup.parse(responseData.effects.html, baseUrl)
+			val chaptersHtml = Jsoup.parse(responseData.effects.html, "https://$domain")
 			chapters.addAll(
 				chaptersHtml.select(chapterListSelector()).mapChapters { _, li ->
 					val a = li.selectFirstOrThrow("a")
@@ -365,16 +363,18 @@ internal class ReaperComics(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+	private class LiveWireResponseDto(
+		val effects: LiveWireEffectsDto,
+		val serverMemo: JSONObject,
+	)
+
+	private class LiveWireEffectsDto(
+		val html: String,
+	)
+
+	//!IMPORTANT
+	private val responseTemplate =
+		"""{"fingerprint":{"id":"%s","name":"frontend.comic-chapter-list","locale":"en","path":"%s","method":"GET","v":"acj"},"serverMemo":{"children":[],"errors":[],"htmlHash":"%s","data":{"comic":[],"page":%d,"paginators":{"page":%d}},"dataMeta":{"models":{"comic":{"class":"App\\Models\\Comic","id":"%s","relations":[],"connection":"pgsql","collectionClass":null}}},"checksum":"%s"},"updates":[{"type":"callMethod","payload":{"id":"%s","method":"gotoPage","params":[%d,"page"]}}]}"""
+
 }
-
-data class LiveWireResponseDto(
-	val effects: LiveWireEffectsDto,
-	val serverMemo: JSONObject,
-)
-
-data class LiveWireEffectsDto(
-	val html: String,
-)
-
-//!IMPORTANT
-private val responseTemplate =	"""{"fingerprint":{"id":"%s","name":"frontend.comic-chapter-list","locale":"en","path":"%s","method":"GET","v":"acj"},"serverMemo":{"children":[],"errors":[],"htmlHash":"%s","data":{"comic":[],"page":%d,"paginators":{"page":%d}},"dataMeta":{"models":{"comic":{"class":"App\\Models\\Comic","id":"%s","relations":[],"connection":"pgsql","collectionClass":null}}},"checksum":"%s"},"updates":[{"type":"callMethod","payload":{"id":"%s","method":"gotoPage","params":[%d,"page"]}}]}"""
