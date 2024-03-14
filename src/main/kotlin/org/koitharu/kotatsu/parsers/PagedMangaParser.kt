@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers
 
-import androidx.annotation.RestrictTo
+import androidx.annotation.VisibleForTesting
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.Paginator
 
@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.Paginator
 abstract class PagedMangaParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
-	@RestrictTo(RestrictTo.Scope.TESTS) @JvmField internal val pageSize: Int,
+	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField internal val pageSize: Int,
 	searchPageSize: Int = pageSize,
 ) : MangaParser(context, source) {
 
@@ -40,6 +40,7 @@ abstract class PagedMangaParser(
 		sortOrder: SortOrder,
 	): List<Manga> = throw UnsupportedOperationException("You should use getListPage for PagedMangaParser")
 
+	@Deprecated("")
 	open suspend fun getListPage(
 		page: Int,
 		query: String?,

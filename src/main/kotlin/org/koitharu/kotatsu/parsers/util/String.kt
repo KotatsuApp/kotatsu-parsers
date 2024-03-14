@@ -102,6 +102,8 @@ fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.name())
 
 fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
 
+fun String.nl2br() = replace("\n", "<br>")
+
 fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
 	for (i in indices) {

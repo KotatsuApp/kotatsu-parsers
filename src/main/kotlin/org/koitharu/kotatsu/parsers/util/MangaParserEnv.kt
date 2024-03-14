@@ -87,8 +87,8 @@ fun MangaParser.getDomain(subdomain: String): String {
 	return subdomain + "." + domain.removePrefix("www.")
 }
 
-fun MangaParser.urlBuilder(): HttpUrl.Builder {
+fun MangaParser.urlBuilder(subdomain: String? = null): HttpUrl.Builder {
 	return HttpUrl.Builder()
 		.scheme("https")
-		.host(domain)
+		.host(if (subdomain == null) domain else "$subdomain.$domain")
 }

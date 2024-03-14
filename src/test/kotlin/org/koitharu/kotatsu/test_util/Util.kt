@@ -37,7 +37,7 @@ internal fun <T, K> Collection<T>.isDistinctByNotNull(selector: (T) -> K?): Bool
 			return false
 		}
 	}
-	return set.size == size
+	return true
 }
 
 internal fun String.isUrlRelative() = matches(PATTERN_URL_RELATIVE)

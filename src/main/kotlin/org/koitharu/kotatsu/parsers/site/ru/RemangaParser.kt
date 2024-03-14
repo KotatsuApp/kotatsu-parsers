@@ -27,7 +27,7 @@ private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
 private const val TOO_MANY_REQUESTS = 429
 
-@MangaSourceParser("REMANGA", "ReManga", "ru")
+@MangaSourceParser("REMANGA", "Реманга", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
