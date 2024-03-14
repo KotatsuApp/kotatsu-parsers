@@ -23,7 +23,7 @@ private const val CHAPTERS_LIMIT = 99999
 @MangaSourceParser("COMICK_FUN", "ComicK")
 internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICK_FUN, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("comick.cc")
+	override val configKeyDomain = ConfigKey.Domain("comick.io", "comick.cc")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
