@@ -94,6 +94,7 @@ class Manga(
 		largeCoverUrl: String? = this.largeCoverUrl,
 		description: String? = this.description,
 		chapters: List<MangaChapter>? = this.chapters,
+		source: MangaSource = this.source,
 	) = Manga(
 		id = id,
 		title = title,
@@ -109,7 +110,7 @@ class Manga(
 		largeCoverUrl = largeCoverUrl,
 		description = description,
 		chapters = chapters,
-		source = source
+		source = source,
 	)
 
 	override fun equals(other: Any?): Boolean {
