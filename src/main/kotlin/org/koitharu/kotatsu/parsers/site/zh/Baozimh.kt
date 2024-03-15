@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.util.*
+import kotlin.collections.HashSet
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
 internal class Baozimh(context: MangaLoaderContext) :
@@ -111,7 +112,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	private fun parseMangaListSearch(doc: Document): List<Manga> {
 		return doc.select("div.comics-card").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val href = "https://$domain" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -182,15 +183,44 @@ internal class Baozimh(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml().requireElementById("__nuxt")
-		return doc.select("button.pure-button").map { btn ->
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val pagesList = doc.requireElementById("__nuxt")
+		val chapterLink = doc.select("link[rel=canonical]").attr("href")
+		val nextChapterLink = doc.select("div.next_chapter a").attr("href")
+		var part = 2
+		val idSet = HashSet<Long>()
+		var pages = pagesList.select("button.pure-button").map { btn ->
 			val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
+			val id = generateUid(urlPage)
+			idSet.add(id)
 			MangaPage(
-				id = generateUid(urlPage),
+				id = id,
 				url = urlPage,
 				preview = null,
 				source = source,
 			)
 		}
+
+		val chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html")
+		val nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
+		while (nextChapterLink != "" && (nexChapterPart == chapterPart + "_" + part.toString())){
+			val doc2 = webClient.httpGet(nextChapterLink).parseHtml().requireElementById("__nuxt")
+			val pages2 = doc2.select("button.pure-button").mapNotNull { btn ->
+				val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
+				val id = generateUid(urlPage)
+				if(!idSet.add(id)){
+					 null
+				}else{
+					MangaPage(
+						id = id,
+						url = urlPage,
+						preview = null,
+						source = source,
+					)}
+			}
+			pages = pages+pages2
+			part++
+		}
+		return pages
 	}
 }

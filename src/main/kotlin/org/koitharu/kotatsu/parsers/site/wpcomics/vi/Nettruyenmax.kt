@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 
 @MangaSourceParser("NETTRUYENMAX", "NettruyenBing", "vi")
 internal class Nettruyenmax(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.NETTRUYENMAX, "www.nettruyenclub.com", 36)
+	WpComicsParser(context, MangaSource.NETTRUYENMAX, "www.nettruyenbb.com", 36)
