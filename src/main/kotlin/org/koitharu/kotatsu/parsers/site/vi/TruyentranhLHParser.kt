@@ -18,7 +18,15 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, source = MangaSource.TRUYENTRANHLH, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("truyenlh.com")
-	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.POPULARITY,
+		SortOrder.RATING,
+		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
+	)
+
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 
@@ -47,6 +55,7 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 							SortOrder.POPULARITY -> "top"
 							SortOrder.ALPHABETICAL -> "az"
 							SortOrder.ALPHABETICAL_DESC -> "za"
+							else -> ""
 						},
 					)
 
