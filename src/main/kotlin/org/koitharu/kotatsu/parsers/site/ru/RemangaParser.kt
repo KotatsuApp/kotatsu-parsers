@@ -32,7 +32,7 @@ internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.DEFAULT_BROWSER)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder()

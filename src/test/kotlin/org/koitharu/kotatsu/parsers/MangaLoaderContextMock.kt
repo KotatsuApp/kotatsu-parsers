@@ -6,6 +6,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.await
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
@@ -41,6 +42,8 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 	override fun getConfig(source: MangaSource): MangaSourceConfig {
 		return SourceConfigMock()
 	}
+
+	override fun getDefaultUserAgent(): String = UserAgents.FIREFOX_MOBILE
 
 	suspend fun doRequest(url: String, source: MangaSource?): Response {
 		val request = Request.Builder()

@@ -20,10 +20,6 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val isMultipleTagsSupported = false
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.DEFAULT_BROWSER)
-		.build()
-
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
 		val doc =

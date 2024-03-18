@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -31,7 +30,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = true
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.DEFAULT_BROWSER)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	override val headers: Headers
 		get() = super.headers.newBuilder()

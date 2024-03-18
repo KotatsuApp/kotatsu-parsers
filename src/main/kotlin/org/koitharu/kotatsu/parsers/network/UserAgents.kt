@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.network
 
 object UserAgents {
 
-	@Deprecated("Issues with CloudFlare", replaceWith = ReplaceWith("UserAgents.DEFAULT_BROWSER"))
 	const val CHROME_MOBILE =
 		"Mozilla/5.0 (Linux; Android 13) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.5735.196 Mobile Safari/537.36"
 
@@ -14,7 +13,4 @@ object UserAgents {
 	const val FIREFOX_DESKTOP = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0"
 
 	const val KOTATSU = "Kotatsu/6.8 (Android 13;;; en)"
-
-
-	const val DEFAULT_BROWSER = FIREFOX_MOBILE
 }

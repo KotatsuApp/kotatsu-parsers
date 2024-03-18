@@ -29,4 +29,6 @@ abstract class MangaLoaderContext {
 	abstract suspend fun evaluateJs(script: String): String?
 
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
+
+	abstract fun getDefaultUserAgent(): String
 }
