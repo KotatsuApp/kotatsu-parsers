@@ -25,6 +25,7 @@ import kotlin.random.Random
 
 private const val TOO_MANY_REQUESTS = 429
 private const val MAX_RETRY_COUNT = 5
+private val JSON_MEDIA_TYPE get() = "application/json; charset=utf-8".toMediaType()
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
@@ -153,8 +154,9 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
-	companion object {
-		private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 	}
 
 	private fun chapterListNextPageSelector(): String = "button[wire:click*=nextPage]"

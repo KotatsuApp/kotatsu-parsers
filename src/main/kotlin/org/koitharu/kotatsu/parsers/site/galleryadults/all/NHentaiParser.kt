@@ -1,11 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import okhttp3.Headers
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -27,6 +30,13 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
 	override val isMultipleTagsSupported = true
+
+	private val userAgentKey = ConfigKey.UserAgent(UserAgents.DEFAULT_BROWSER)
+
+	override val headers: Headers
+		get() = super.headers.newBuilder()
+			.set("User-Agent", config[userAgentKey])
+			.build()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
@@ -67,7 +77,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("popular")
 						}
-						if(page > 1){
+						if (page > 1) {
 							append("?")
 						}
 					} else if (filter.locale != null) {
@@ -77,7 +87,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("popular")
 						}
-						if(page > 1){
+						if (page > 1) {
 							append("?")
 						}
 					} else {
@@ -91,7 +101,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 				null -> append("/?")
 			}
-			if(page > 1){
+			if (page > 1) {
 				append("page=")
 				append(page.toString())
 			}
@@ -145,6 +155,11 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		Locale.JAPANESE,
 		Locale.CHINESE,
 	)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {
 		val joiner = StringUtil.StringJoiner(" ")
