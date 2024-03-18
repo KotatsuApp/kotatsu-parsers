@@ -76,7 +76,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	abstract val configKeyDomain: ConfigKey.Domain
 
 	open val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.add("User-Agent", UserAgents.DEFAULT_BROWSER)
 		.build()
 
 	/**

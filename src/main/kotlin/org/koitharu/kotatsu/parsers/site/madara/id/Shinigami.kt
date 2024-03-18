@@ -12,7 +12,7 @@ import java.util.*
 internal class Shinigami(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.SHINIGAMI, "shinigamitoon.com", 10) {
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+	private val userAgentKey = ConfigKey.UserAgent(UserAgents.DEFAULT_BROWSER)
 	override val tagPrefix = "genre/"
 	override val listUrl = "series/"
 	override val sourceLocale: Locale = Locale.ENGLISH

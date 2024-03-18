@@ -26,7 +26,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.red", "hentaivn.autos", "hentaivn.tv")
 
 	// hentaivn has created 2 different interfaces for mobile and desktop, and Cloudflare detects whether it's mobile or not even with a desktop user agent.
-	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.CHROME_MOBILE).build()
+	override val headers: Headers = Headers.Builder().add("User-Agent", UserAgents.DEFAULT_BROWSER).build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

@@ -25,7 +25,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 
 	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.add("User-Agent", UserAgents.DEFAULT_BROWSER)
 		.build()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
