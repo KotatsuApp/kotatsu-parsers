@@ -75,7 +75,7 @@ internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaS
 				altTitle = null,
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga,
-				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN),
+				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,
 				isNsfw = true,
 				coverUrl = cover,
 				tags = setOf(),
