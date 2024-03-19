@@ -106,22 +106,7 @@ class MangaOvhParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 			null -> Unit
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
-		return ja.mapJSON { jo ->
-			Manga(
-				id = generateUid(jo.getString("id")),
-				title = jo.getJSONObject("name").getString("ru"),
-				altTitle = jo.getJSONObject("name").getStringOrNull("en"),
-				url = jo.getString("id"),
-				publicUrl = "https://$domain/manga/${jo.getString("slug")}",
-				rating = jo.getFloatOrDefault("averageRating", -10f) / 10f,
-				isNsfw = jo.getStringOrNull("contentStatus").isNsfw(),
-				coverUrl = jo.getString("poster"),
-				tags = setOf(),
-				state = jo.getStringOrNull("status")?.toMangaState(),
-				author = null,
-				source = source,
-			)
-		}
+		return ja.mapJSON { jo -> jo.toManga() }
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
@@ -185,6 +170,15 @@ class MangaOvhParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 	}
 
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val url = urlBuilder("api")
+			.addPathSegment("book")
+			.addPathSegment(seed.url)
+			.addPathSegment("related")
+		val ja = webClient.httpGet(url.build()).parseJsonArray()
+		return ja.mapJSON { jo -> jo.toManga() }
+	}
+
 	override suspend fun getPageUrl(page: MangaPage): String = page.url
 
 	private suspend fun getChapters(mangaId: String): List<MangaChapter> {
@@ -240,6 +234,21 @@ class MangaOvhParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	private fun JSONObject.toMangaTag() = MangaTag(
 		title = getString("name").toTitleCase(sourceLocale),
 		key = getString("slug"),
+		source = source,
+	)
+
+	private fun JSONObject.toManga() = Manga(
+		id = generateUid(getString("id")),
+		title = getJSONObject("name").getString("ru"),
+		altTitle = getJSONObject("name").getStringOrNull("en"),
+		url = getString("id"),
+		publicUrl = "https://$domain/manga/${getString("slug")}",
+		rating = getFloatOrDefault("averageRating", -10f) / 10f,
+		isNsfw = getStringOrNull("contentStatus").isNsfw(),
+		coverUrl = getString("poster"),
+		tags = setOf(),
+		state = getStringOrNull("status")?.toMangaState(),
+		author = null,
 		source = source,
 	)
 }

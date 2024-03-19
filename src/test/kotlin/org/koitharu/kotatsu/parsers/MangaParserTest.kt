@@ -11,7 +11,6 @@ import org.koitharu.kotatsu.parsers.util.mimeType
 import org.koitharu.kotatsu.test_util.*
 import kotlin.time.Duration.Companion.minutes
 
-
 //@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
 
