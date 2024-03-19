@@ -216,12 +216,14 @@ class MangaOvhParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}.reversed()
 	}
 
-	private suspend fun getBranchName(id: String): String? {
+	private suspend fun getBranchName(id: String): String? = runCatchingCancellable {
 		val url = urlBuilder("api")
 			.addPathSegment("branch")
 			.addPathSegment(id)
 		val json = webClient.httpGet(url.build()).parseJson()
-		return json.getJSONArray("publishers").mapJSONToSet { it.getStringOrNull("name") }.firstOrNull()
+		json.getJSONArray("publishers").mapJSONToSet { it.getStringOrNull("name") }.firstOrNull()
+	}.getOrElse {
+		id.substringBefore('-')
 	}
 
 	private fun String.toMangaState() = when (this.uppercase(Locale.ROOT)) {

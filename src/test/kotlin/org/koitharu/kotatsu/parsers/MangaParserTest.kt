@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.domain
@@ -18,14 +17,6 @@ internal class MangaParserTest {
 
 	private val context = MangaLoaderContextMock
 	private val timeout = 2.minutes
-
-	@Test
-	fun singleTest() = runTest {
-		val manga = mangaOf(MangaSource.READMANGA_RU, "https://readmanga.live/podniatie_urovnia_v_odinochku__A5e4e")
-		val parser = context.newParserInstance(manga.source)
-		val details = parser.getDetails(manga)
-		assert(!details.chapters.isNullOrEmpty())
-	}
 
 	@ParameterizedTest(name = "{index}|list|{0}")
 	@MangaSources
