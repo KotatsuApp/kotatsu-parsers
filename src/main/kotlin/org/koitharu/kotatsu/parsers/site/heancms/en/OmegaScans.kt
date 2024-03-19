@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.heancms.en
 
+import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -46,7 +47,7 @@ internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaS
 						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
 						else -> append("latest&order=desc")
 					}
-					append("&series_type=Comic&perPage=12")
+					append("&series_type=All&perPage=$pageSize")
 					append("&tags_ids=")
 					append("[".urlEncoded())
 					append(filter.tags.joinToString(",") { it.key })
@@ -128,17 +129,18 @@ internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaS
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 
-		val tags =
-			doc.selectFirstOrThrow("script:containsData(tags)").data().replace("\\", "").substringAfterLast("\"tags\"")
-				.split("\",{\"")
+		val tags = doc.selectFirstOrThrow("script:containsData(tags)").data()
+			.replace("\\", "")
+			.substringAfterLast("\"tags\":")
+			.substringBeforeLast("}],")
 
-		return tags.mapNotNullToSet {
+		return JSONArray(tags).mapJSON {
 			MangaTag(
-				key = it.substringAfter("id\":").substringBefore(",\""),
-				title = it.substringAfter("name\":\"").substringBefore("\"").toTitleCase(sourceLocale),
+				key = it.getInt("id").toString(),
+				title = it.getString("name"),
 				source = source,
 			)
-		}
+		}.toSet()
 	}
 
 }
