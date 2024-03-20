@@ -185,8 +185,8 @@ internal class Baozimh(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val pagesList = doc.requireElementById("__nuxt")
-		val chapterLink = doc.select("link[rel=canonical]").attr("href")
-		val nextChapterLink = doc.select("div.next_chapter a").attr("href")
+		var chapterLink = doc.select("link[rel=canonical]").attr("href")
+		var nextChapterLink = doc.select("a#next-chapter").attr("href")
 		var part = 2
 		val idSet = HashSet<Long>()
 		var pages = pagesList.select("button.pure-button").map { btn ->
@@ -201,11 +201,11 @@ internal class Baozimh(context: MangaLoaderContext) :
 			)
 		}
 
-		val chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html")
-		val nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
+		var chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html")
+		var nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
 		while (nextChapterLink != "" && (nexChapterPart == chapterPart + "_" + part.toString())){
-			val doc2 = webClient.httpGet(nextChapterLink).parseHtml().requireElementById("__nuxt")
-			val pages2 = doc2.select("button.pure-button").mapNotNull { btn ->
+			val doc2 = webClient.httpGet(nextChapterLink).parseHtml()
+			val pages2 = doc2.requireElementById("__nuxt").select("button.pure-button").mapNotNull { btn ->
 				val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
 				val id = generateUid(urlPage)
 				if(!idSet.add(id)){
@@ -220,6 +220,10 @@ internal class Baozimh(context: MangaLoaderContext) :
 			}
 			pages = pages+pages2
 			part++
+			chapterLink = doc2.select("link[rel=canonical]").attr("href")
+			nextChapterLink = doc2.select("a#next-chapter").attr("href")
+			chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html").substringBeforeLast("_")
+			nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
 		}
 		return pages
 	}
