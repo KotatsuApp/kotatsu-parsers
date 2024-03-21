@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
  * Annotate each [MangaParser] implementation with this annotation, used by codegen
  */
 @Target(AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.SOURCE)
 annotation class MangaSourceParser(
 	/**
 	 * Name of manga source. Used as an Enum value, must be UPPER_CASE and unique.
