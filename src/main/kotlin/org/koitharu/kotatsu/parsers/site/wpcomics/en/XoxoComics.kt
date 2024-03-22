@@ -175,8 +175,8 @@ internal class XoxoComics(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain) + "/all"
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(selectPage).map { url ->
-			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
+		return doc.select(selectPage).mapNotNull{ url ->
+			val img = url.src()?.toRelativeUrl(domain) ?: return@mapNotNull null
 			MangaPage(
 				id = generateUid(img),
 				url = img,
