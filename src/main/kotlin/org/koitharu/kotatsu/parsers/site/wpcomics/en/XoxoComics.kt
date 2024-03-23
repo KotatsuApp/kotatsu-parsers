@@ -153,7 +153,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		return if (pages.size <= 1) {
 			super.getChapters(doc)
 		} else {
-			val list = coroutineScope {
+			val subPageChapterList = coroutineScope {
 				pages.mapNotNull { page ->
 					val a = page.selectFirst("a") ?: return@mapNotNull null
 					if (a.text().isNumeric()) {
@@ -164,11 +164,12 @@ internal class XoxoComics(context: MangaLoaderContext) :
 					} else {
 						null // TODO support pagination with overflow
 					}
-				}.awaitAll().flattenTo(ArrayList())
+				}.awaitAll().flatten()
 			}
-			list.addAll(super.getChapters(doc).asReversed())
-			list.reverse()
-			list.mapIndexed { i, x -> x.copy(volume = x.volume, number = (i + 1).toFloat()) }
+			val firstPageChapterList = super.getChapters(doc).asReversed().toMutableList()
+			firstPageChapterList.addAll(subPageChapterList)
+			firstPageChapterList.reverse()
+			firstPageChapterList.mapIndexed { i, x -> x.copy(volume = x.volume, number = (i + 1).toFloat()) }
 		}
 	}
 
