@@ -4,6 +4,11 @@ This library provides manga sources.
 
 [![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![Kotlin](https://img.shields.io/github/languages/top/KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Telegram](https://img.shields.io/badge/chat-telegram-60ACFF)](https://t.me/kotatsuapp) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
 
+## Projects that use the library
+
+- [Kotatsu](https://github.com/KotatsuApp/Kotatsu)
+- [Tokusho (WIP)](https://github.com/ztimms73/Tokusho)
+
 ## Usage
 
 1. Add it to your root build.gradle at the end of repositories:
