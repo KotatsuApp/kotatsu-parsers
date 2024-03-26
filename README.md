@@ -7,6 +7,7 @@ This library provides manga sources.
 ## Projects that use the library
 
 - [Kotatsu](https://github.com/KotatsuApp/Kotatsu)
+- [kotatsu-dl](https://github.com/KotatsuApp/kotatsu-dl)
 - [Tokusho (WIP)](https://github.com/ztimms73/Tokusho)
 
 ## Usage
