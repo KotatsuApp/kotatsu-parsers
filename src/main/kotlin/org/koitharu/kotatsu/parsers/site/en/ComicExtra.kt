@@ -20,7 +20,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("comicextra.me")
+	override val configKeyDomain = ConfigKey.Domain("comicextra.org")
 
 	override val isMultipleTagsSupported = false
 
@@ -35,7 +35,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			append("/")
 			when (filter) {
 				is MangaListFilter.Search -> {
-					append("comic-search?key=")
+					append("search?keyword=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
 						append("&page=")
