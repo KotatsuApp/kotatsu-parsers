@@ -8,7 +8,8 @@ This library provides manga sources.
 
 - [Kotatsu](https://github.com/KotatsuApp/Kotatsu)
 - [kotatsu-dl](https://github.com/KotatsuApp/kotatsu-dl)
-- [Tokusho (WIP)](https://github.com/ztimms73/Tokusho)
+- [Etsudoku (WIP)](https://github.com/ztimms73/Tokusho)
+- [OtakuWorld](https://github.com/jakepurple13/OtakuWorld)
 
 ## Usage
 
