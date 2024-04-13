@@ -181,7 +181,8 @@ internal abstract class MangaPlusParser(
 				name = subtitle,
 				number = chapter.getString("name")
 					.substringAfter("#")
-					.toIntOrNull() ?: -1,
+					.toFloatOrNull() ?: -1f,
+				volume = 0,
 				uploadDate = chapter.getInt("startTimeStamp") * 1000L,
 				branch = when (language) {
 					"PORTUGUESE_BR" -> "Portuguese (Brazil)"
@@ -317,5 +318,12 @@ internal abstract class MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_VI,
 		"VIETNAMESE",
+	)
+
+	@MangaSourceParser("MANGAPLUSPARSER_DE", "MANGA Plus German", "de")
+	class German(context: MangaLoaderContext) : MangaPlusParser(
+		context,
+		MangaSource.MANGAPLUSPARSER_DE,
+		"GERMAN"
 	)
 }
