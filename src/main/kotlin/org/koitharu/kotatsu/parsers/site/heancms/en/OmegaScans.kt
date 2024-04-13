@@ -86,7 +86,7 @@ internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaS
 					"Hiatus" -> MangaState.PAUSED
 					else -> null
 				},
-				author = null,//j.getString("author"),
+				author = j.getStringOrNull("author"),
 				source = source,
 				description = j.getString("description"),
 			)
