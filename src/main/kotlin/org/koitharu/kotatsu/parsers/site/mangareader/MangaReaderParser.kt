@@ -47,8 +47,8 @@ internal abstract class MangaReaderParser(
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val isNetShieldProtected = false
 
-	private var tagCache: ArrayMap<String, MangaTag>? = null
-	private val mutex = Mutex()
+	protected var tagCache: ArrayMap<String, MangaTag>? = null
+	protected val mutex = Mutex()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
@@ -166,6 +166,8 @@ internal abstract class MangaReaderParser(
 		return parseInfo(docs, manga, chapters)
 	}
 
+	protected open val detailsDescriptionSelector = "div.entry-content"
+
 	open suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
 		/// set if is table
 		val tableMode =
@@ -243,7 +245,7 @@ internal abstract class MangaReaderParser(
 			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
-			description = docs.selectFirst("div.entry-content")?.text(),
+			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
 			author = author,
 			isNsfw = manga.isNsfw || nsfw,
@@ -320,7 +322,7 @@ internal abstract class MangaReaderParser(
 		return getOrCreateTagMap().values.toSet()
 	}
 
-	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+	protected open suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
 		val url = listUrl.toAbsoluteUrl(domain)
