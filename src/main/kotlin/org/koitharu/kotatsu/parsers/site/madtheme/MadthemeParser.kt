@@ -226,6 +226,21 @@ internal abstract class MadthemeParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
+		val regexPages = Regex("chapImages\\s*=\\s*'(.*)'")
+		val pages = doc.select("script").firstNotNullOfOrNull { script ->
+			regexPages.find(script.html())?.groupValues?.getOrNull(1)
+		}?.split(',')
+		if (pages != null) {
+			return pages.map { url ->
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+		}
+		// fallback to html parisng
 		return doc.select(selectPage).map { img ->
 			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
