@@ -9,8 +9,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.unescapeJson
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("OMEGASCANS", "OmegaScans", "en", ContentType.HENTAI)
 internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaSource.OMEGASCANS, "omegascans.org") {
@@ -130,15 +131,14 @@ internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaS
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 
-		val tags = doc.selectFirstOrThrow("script:containsData(tags)").data()
-			.replace("\\", "")
-			.substringAfterLast("\"tags\":")
-			.substringBeforeLast("}],")
-
+		val regex = Regex("\"tags\\\\.*?(\\[.+?])")
+		val tags = doc.select("script").firstNotNullOf { script ->
+			regex.find(script.html())?.groupValues?.getOrNull(1)
+		}.unescapeJson()
 		return JSONArray(tags).mapJSON {
 			MangaTag(
 				key = it.getInt("id").toString(),
-				title = it.getString("name"),
+				title = it.getString("name").toTitleCase(sourceLocale),
 				source = source,
 			)
 		}.toSet()

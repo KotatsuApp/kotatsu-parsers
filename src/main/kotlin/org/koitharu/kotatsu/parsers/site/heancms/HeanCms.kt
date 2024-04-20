@@ -35,12 +35,14 @@ internal abstract class HeanCms(
 		.build()
 
 	protected open val pathManga = "series"
+	protected open val apiPath
+		get() = getDomain("api")
 
 	//For some sources, you need to send a json. For the moment, this part only works in Get. ( ex source need json gloriousscan.com , omegascans.org )
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
-			append("https://api.")
-			append(domain)
+			append("https://")
+			append(apiPath)
 			append("/query?query_string=")
 			when (filter) {
 				is MangaListFilter.Search -> {
@@ -159,7 +161,7 @@ internal abstract class HeanCms(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("p.flex img").map { img ->
+		return doc.select(".flex > img:not([alt])").map { img ->
 			val url = img.src() ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
