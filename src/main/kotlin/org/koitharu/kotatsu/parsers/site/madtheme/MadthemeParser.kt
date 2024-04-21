@@ -225,14 +225,13 @@ internal abstract class MadthemeParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
-		val regexPages = Regex("chapImages\\s*=\\s*'(.*)'")
-		val pages = doc.select("script").firstNotNullOfOrNull { script ->
-			regexPages.find(script.html())?.groupValues?.getOrNull(1)
-		}?.split(',')
-		if (pages != null) {
-			return pages.map { url ->
-				MangaPage(
+		val known = HashSet<String>()
+		val result = ArrayList<MangaPage>()
+		// html parisng
+		doc.select(selectPage).forEach { img ->
+			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			if (known.add(url)) {
+				result += MangaPage(
 					id = generateUid(url),
 					url = url,
 					preview = null,
@@ -240,16 +239,22 @@ internal abstract class MadthemeParser(
 				)
 			}
 		}
-		// fallback to html parisng
-		return doc.select(selectPage).map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		// js parsing
+		val regexPages = Regex("chapImages\\s*=\\s*['\"](.*?)['\"]")
+		val pages = doc.select("script").firstNotNullOfOrNull { script ->
+			regexPages.find(script.html())?.groupValues?.getOrNull(1)
+		}?.split(',')
+		pages?.forEach { url ->
+			if (known.add(url)) {
+				result += MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
 		}
+		return result
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
