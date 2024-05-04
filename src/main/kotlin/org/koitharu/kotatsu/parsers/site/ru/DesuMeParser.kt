@@ -15,10 +15,10 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
-@MangaSourceParser("DESUME", "Desu.Me", "ru")
+@MangaSourceParser("DESUME", "Desu", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
+	override val configKeyDomain = ConfigKey.Domain("desu.win", "desu.me")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -79,7 +79,8 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				coverUrl = cover.getString("preview"),
 				largeCoverUrl = cover.getString("original"),
 				state = when {
-					jo.getInt("ongoing") == 1 -> MangaState.ONGOING
+					jo.getString("status") == "ongoing" -> MangaState.ONGOING
+					jo.getString("status") == "released" -> MangaState.FINISHED
 					else -> null
 				},
 				rating = jo.getDouble("score").toFloat().coerceIn(0f, 1f),
