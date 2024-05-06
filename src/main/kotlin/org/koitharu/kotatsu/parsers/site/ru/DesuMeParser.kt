@@ -10,9 +10,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.util.*
 
 @MangaSourceParser("DESUME", "Desu", "ru")
@@ -78,9 +76,9 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				altTitle = jo.getString("name"),
 				coverUrl = cover.getString("preview"),
 				largeCoverUrl = cover.getString("original"),
-				state = when {
-					jo.getString("status") == "ongoing" -> MangaState.ONGOING
-					jo.getString("status") == "released" -> MangaState.FINISHED
+				state = when (jo.getString("status")) {
+					"ongoing" -> MangaState.ONGOING
+					"released" -> MangaState.FINISHED
 					else -> null
 				},
 				rating = jo.getDouble("score").toFloat().coerceIn(0f, 1f),
@@ -117,17 +115,24 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			},
 			publicUrl = json.getString("url"),
 			description = json.getString("description"),
-			chapters = chaptersList.mapJSONIndexed { i, it ->
-				val chid = it.getLong("id")
-				val volChap = "Том " + it.optString("vol", "0") + ". " + "Глава " + it.optString("ch", "0")
-				val title = it.optString("title", "null").takeUnless { it == "null" }
+			chapters = chaptersList.mapJSON { jo ->
+				val chid = jo.getLong("id")
+				val volume = jo.getIntOrDefault("vol", 0)
+				val number = jo.getFloatOrDefault("ch", 0f)
 				MangaChapter(
 					id = generateUid(chid),
 					source = manga.source,
 					url = "$baseChapterUrl$chid",
-					uploadDate = it.getLong("date") * 1000,
-					name = if (title.isNullOrEmpty()) volChap else "$volChap: $title",
-					number = totalChapters - i,
+					uploadDate = jo.getLong("date") * 1000,
+					name = jo.getStringOrNull("title") ?: buildString {
+						append("Том ")
+						append(volume)
+						append(" Глава ")
+						append(number)
+						removeTrailingZero()
+					},
+					volume = volume,
+					number = number,
 					scanlator = null,
 					branch = null,
 				)

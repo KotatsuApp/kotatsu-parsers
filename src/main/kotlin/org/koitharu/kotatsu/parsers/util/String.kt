@@ -245,3 +245,12 @@ inline fun <T> Appendable.appendAll(
 }
 
 fun String.isNumeric() = all { c -> c.isDigit() }
+
+internal fun StringBuilder.removeTrailingZero() {
+	if (length > 2 && get(length - 1) == '0') {
+		val dot = get(length - 2)
+		if (dot == ',' || dot == '.') {
+			delete(length - 2, length)
+		}
+	}
+}
