@@ -130,6 +130,8 @@ internal abstract class GroupleParser(
 		val newSource = getSource(response.request.url)
 		return manga.copy(
 			source = newSource,
+			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
+				?: manga.altTitle,
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
 			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
@@ -387,7 +389,7 @@ internal abstract class GroupleParser(
 			url = relUrl,
 			publicUrl = href,
 			title = title,
-			altTitle = descDiv.selectFirst("h4")?.text(),
+			altTitle = descDiv.selectFirst("h5")?.textOrNull(),
 			coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)
