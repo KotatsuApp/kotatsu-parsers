@@ -66,6 +66,7 @@ internal class ExHentaiParser(
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
 		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
 		paginator.firstPage = 0
+		searchPaginator.firstPage = 0
 	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
