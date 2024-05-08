@@ -12,14 +12,14 @@ import java.util.*
 
 @MangaSourceParser("RIZZCOMIC", "RizzComic", "en")
 internal class RizzComic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.RIZZCOMIC, "rizzcomic.com", pageSize = 50, searchPageSize = 20) {
+	MangaReaderParser(context, MangaSource.RIZZCOMIC, "rizzfables.com", pageSize = 50, searchPageSize = 20) {
 	override val datePattern = "dd MMM yyyy"
 	override val listUrl = "/series"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val availableStates: Set<MangaState> = emptySet()
 	override val isMultipleTagsSupported = false
-	override val isSearchSupported = false
+	override val isSearchSupported = true
 	override val isTagsExclusionSupported = false
 
 	// TODO Query created in json

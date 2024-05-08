@@ -14,5 +14,7 @@ internal class Manganato(context: MangaLoaderContext) :
 		"chapmanganato.to",
 		"chapmanganato.com",
 	)
-	override val otherDomain = configKeyDomain.defaultValue
+	override val otherDomain = "chapmanganato.to"
+
+	override val selectPage = ".container-chapter-reader > img"
 }

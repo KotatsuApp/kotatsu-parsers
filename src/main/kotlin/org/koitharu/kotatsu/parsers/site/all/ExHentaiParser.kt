@@ -147,7 +147,7 @@ internal class ExHentaiParser(
 			val tagsDiv = gLink.nextElementSibling() ?: gLink.parseFailed("tags div not found")
 			val mainTag = td2.selectFirst("div.cn")?.let { div ->
 				MangaTag(
-					title = div.text().toTitleCase(),
+					title = div.text().toTitleCase(Locale.ENGLISH),
 					key = tagIdByClass(div.classNames()) ?: return@let null,
 					source = source,
 				)

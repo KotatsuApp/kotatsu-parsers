@@ -186,7 +186,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 			},
 			tags = tags,
 			isNsfw = nsfw,
-			chapters = doc.body().select("div.group.flex div.px-2").mapChapters { i, div ->
+			chapters = doc.body().select("div.group.flex div.px-2").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
 				val dateText = div.selectFirst("span[q:key=Ee_0]")?.text()
@@ -247,22 +247,25 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val script = if (doc.selectFirst("script:containsData(comic-)") != null) {
 			doc.selectFirstOrThrow("script:containsData(comic-)").data()
-				.substringAfterLast("\"comic-").split("\",\"")
+				.substringAfterLast("\"comic-")
 		} else {
 			doc.selectFirstOrThrow("script:containsData(manga-)").data()
-				.substringAfterLast("\"manga-").split("\",\"")
+				.substringAfterLast("\"manga-")
 		}
-		return script.mapNotNull { url ->
-			if (!url.startsWith("https://")) {
-				return@mapNotNull null
-			} else {
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
+		return Regex("\"(https?:.+?)\"")
+			.findAll(script)
+			.mapNotNullTo(ArrayList()) {
+				val url = it.groupValues.getOrNull(1) ?: return@mapNotNullTo null
+				if (url.contains("/comic/") || url.contains("/manga/")) {
+					MangaPage(
+						id = generateUid(url),
+						url = url,
+						preview = null,
+						source = source,
+					)
+				} else {
+					return@mapNotNullTo null
+				}
 			}
-		}
 	}
 }

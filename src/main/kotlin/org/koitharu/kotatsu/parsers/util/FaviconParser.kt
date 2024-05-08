@@ -55,7 +55,7 @@ class FaviconParser(
 
 	private suspend fun parseManifest(url: String): List<Favicon> {
 		val json = webClient.httpGet(url).parseJson()
-		val icons = json.getJSONArray("icons")
+		val icons = json.optJSONArray("icons") ?: return emptyList()
 		return icons.mapJSON { jo ->
 			Favicon(
 				url = jo.getString("src").resolveLink(),

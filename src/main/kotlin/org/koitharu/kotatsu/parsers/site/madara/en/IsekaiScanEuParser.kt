@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan.to", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "m.isekaiscan.to") {
+	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "paragonscans.com") {
 
 	override val datePattern = "MM/dd/yyyy"
 	override val withoutAjax = true
