@@ -18,7 +18,11 @@ class FaviconParser(
 		val manifestLink = doc.getElementsByAttributeValue("rel", "manifest").firstOrNull()
 			?.attrAsAbsoluteUrlOrNull("href")
 		if (manifestLink != null) {
-			result += parseManifest(manifestLink)
+			runCatchingCancellable {
+				parseManifest(manifestLink)
+			}.onSuccess { manifest ->
+				result += manifest
+			}
 		}
 		val links = doc.getElementsByAttributeValueContaining("rel", "icon")
 		links.mapNotNullTo(result) { link ->
