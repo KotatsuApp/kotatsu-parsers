@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.pt
 
+import okhttp3.Headers
 import okhttp3.Interceptor
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
@@ -22,6 +23,11 @@ internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(co
 	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)
 
 	override val configKeyDomain = ConfigKey.Domain("luratoon.com")
+
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override val headers: Headers
+		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
 	override val isSearchSupported = false
 	override val isTagsExclusionSupported = false
@@ -146,5 +152,10 @@ internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(co
 		} else {
 			return response
 		}
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 	}
 }

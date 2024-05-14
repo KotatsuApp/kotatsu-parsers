@@ -310,7 +310,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			val chapter = MangaChapter(
 				id = generateUid(id),
 				name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
-					?: "Chapter #${number.toString().removeSuffix(".0")}",
+					?: "Chapter #${number.formatSimple()}",
 				number = if (number <= 0f) (branchedChapters[branch]?.size?.plus(1) ?: 0) else number.toInt(),
 				url = id,
 				scanlator = team,
