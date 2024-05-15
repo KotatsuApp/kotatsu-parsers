@@ -290,28 +290,31 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			Locale.ROOT,
 		)
 		val chaptersBuilder = ChaptersListBuilder(list.size)
-		val branchedChapters = HashMap<String?, HashMap<Float, MangaChapter>>()
+		val branchedChapters = HashMap<String?, HashMap<Pair<Int, Float>, MangaChapter>>()
 		for (jo in list) {
 			val id = jo.getString("id")
 			val attrs = jo.getJSONObject("attributes")
 			if (!attrs.isNull("externalUrl")) {
 				continue
 			}
-			val number = jo.getJSONObject("attributes").getFloatOrDefault("chapter", 0f)
+			val number = attrs.getFloatOrDefault("chapter", 0f)
+			val volume = attrs.getIntOrDefault("volume", 0)
 			val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 			val lc = locale?.getDisplayName(locale)?.toTitleCase(locale)
 			val relations = jo.getJSONArray("relationships").associateByKey("type")
-			val team = relations["scanlation_group"]?.getJSONObject("attributes")?.getStringOrNull("name")
-				?.takeUnless { it.isBlank() }
+			val team = relations["scanlation_group"]?.optJSONObject("attributes")?.getStringOrNull("name")
 			val branch = (list.indices).firstNotNullOf { i ->
 				val b = if (i == 0) lc else "$lc ($i)"
-				if (branchedChapters[b]?.get(number) == null) b else null
+				if (branchedChapters[b]?.get(volume to number) == null) b else null
 			}
 			val chapter = MangaChapter(
 				id = generateUid(id),
-				name = attrs.getStringOrNull("title")?.takeUnless(String::isEmpty)
-					?: "Chapter #${number.formatSimple()}",
-				number = if (number <= 0f) (branchedChapters[branch]?.size?.plus(1) ?: 0) else number.toInt(),
+				name = attrs.getStringOrNull("title") ?: buildString {
+					if (volume > 0) append("Vol. ").append(volume).append(' ')
+					append("Chapter ").append(number.formatSimple())
+				},
+				number = number,
+				volume = volume,
 				url = id,
 				scanlator = team,
 				uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
@@ -319,7 +322,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				source = source,
 			)
 			if (chaptersBuilder.add(chapter)) {
-				branchedChapters.getOrPut(branch, ::HashMap)[number] = chapter
+				branchedChapters.getOrPut(branch, ::HashMap)[volume to number] = chapter
 			}
 		}
 		return chaptersBuilder.toList()
