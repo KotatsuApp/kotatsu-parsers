@@ -59,7 +59,6 @@ dependencies {
 	api 'org.jsoup:jsoup:1.17.2'
 	implementation 'org.json:json:20240303'
 	implementation 'androidx.collection:collection:1.4.0'
-	implementation 'org.jetbrains.kotlinx:kotlinx-io-core:0.3.4'
 
 	ksp project(':kotatsu-parsers-ksp')
 
