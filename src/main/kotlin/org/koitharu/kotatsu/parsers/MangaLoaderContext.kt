@@ -44,4 +44,9 @@ abstract class MangaLoaderContext {
 		response: Response,
 		redraw: (image: Bitmap) -> Bitmap
 	): Response
+
+	abstract fun createBitmap(
+		width: Int,
+		height: Int
+	): Bitmap
 }

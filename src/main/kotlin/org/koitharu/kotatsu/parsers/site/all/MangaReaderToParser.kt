@@ -266,7 +266,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		val width = bitmap.width
 		val height = bitmap.height
 
-		val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+		val result = context.createBitmap(width, height)
 
 		val pieces = ArrayList<Piece>()
 		for (y in 0 until height step PIECE_SIZE) {
