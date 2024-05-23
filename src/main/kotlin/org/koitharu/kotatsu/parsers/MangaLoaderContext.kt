@@ -4,6 +4,7 @@ import okhttp3.CookieJar
 import okhttp3.OkHttpClient
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.oauth.OAuthToken
 import java.util.*
 
 abstract class MangaLoaderContext {
@@ -31,4 +32,8 @@ abstract class MangaLoaderContext {
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
 	abstract fun getDefaultUserAgent(): String
+
+	abstract fun setAuthToken(source: MangaSource, token: OAuthToken?)
+
+	abstract fun getAuthToken(source: MangaSource): OAuthToken?
 }

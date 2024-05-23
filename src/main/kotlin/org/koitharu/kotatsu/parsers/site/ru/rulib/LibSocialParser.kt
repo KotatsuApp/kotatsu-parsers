@@ -3,23 +3,30 @@ package org.koitharu.kotatsu.parsers.site.ru.rulib
 import androidx.collection.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.oauth.MangaParserOAuthProvider
+import org.koitharu.kotatsu.parsers.network.oauth.OAuthHelper
+import org.koitharu.kotatsu.parsers.network.oauth.OAuthToken
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
+import java.util.concurrent.TimeUnit
 
 internal abstract class LibSocialParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
 	protected val siteDomain: String,
 	protected val siteId: Int,
-) : PagedMangaParser(context, source, pageSize = 60) {
+) : PagedMangaParser(context, source, pageSize = 60), MangaParserOAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
@@ -185,6 +192,70 @@ internal abstract class LibSocialParser(
 			largeCoverUrl = cover.getString("default"),
 			source = source,
 		)
+	}
+
+	/** Authorization **/
+
+	override fun getAuthUrl(redirectUrl: String): String = urlBuilder("auth")
+		.addPathSegment("auth")
+		.addPathSegment("oauth")
+		.addPathSegment("authorize")
+		.addQueryParameter("scope", "")
+		.addQueryParameter("client_id", "3")
+		.addQueryParameter("response_type", "code")
+		.addQueryParameter("redirect_uri", redirectUrl)
+		.build()
+		.toString()
+
+	override suspend fun authorize(code: String): OAuthToken {
+		val url = urlBuilder("api")
+			.addPathSegment("api")
+			.addPathSegment("auth")
+			.addPathSegment("oauth")
+			.addPathSegment("token")
+			.build()
+		val payload = JSONObject()
+		payload.put("grant_type", "authorization_code")
+		payload.put("client_id", "3")
+		payload.put("redirect_uri", "ru.libapp.oauth://type/callback")
+		payload.put("code", code)
+//		payload.put("code_verifier", TODO())
+		val response = webClient.httpPost(url, payload).parseJson()
+		val token = OAuthToken(
+			tokenType = response.getString("token_type"),
+			expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(response.getLong("expires_in")),
+			accessToken = response.getString("access_token"),
+			refreshToken = response.getString("refresh_token"),
+		)
+		context.setAuthToken(source, token)
+		return token
+	}
+
+	@InternalParsersApi
+	override suspend fun refreshToken(token: OAuthToken): OAuthToken {
+		val url = urlBuilder("api")
+			.addPathSegment("api")
+			.addPathSegment("auth")
+			.addPathSegment("oauth")
+			.addPathSegment("token")
+			.build()
+		val payload = JSONObject()
+		payload.put("grant_type", "refresh_token")
+		payload.put("client_id", "3")
+		payload.put("refresh_token", token.refreshToken)
+		val response = webClient.httpPost(url, payload).parseJson()
+		val newToken = OAuthToken(
+			tokenType = response.getString("token_type"),
+			expiresAt = System.currentTimeMillis() + TimeUnit.SECONDS.toMillis(response.getLong("expires_in")),
+			accessToken = response.getString("access_token"),
+			refreshToken = response.getString("refresh_token"),
+		)
+		context.setAuthToken(source, newToken)
+		return newToken
+	}
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		return OAuthHelper.intercept(chain, this)
 	}
 
 	private suspend fun fetchChapters(manga: Manga): List<MangaChapter> {

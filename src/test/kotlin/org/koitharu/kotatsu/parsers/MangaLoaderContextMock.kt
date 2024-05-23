@@ -7,15 +7,19 @@ import okhttp3.Response
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.network.oauth.OAuthToken
 import org.koitharu.kotatsu.parsers.util.await
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
 
 internal object MangaLoaderContextMock : MangaLoaderContext() {
+
+	private val tokensStorage = EnumMap<MangaSource, OAuthToken>(MangaSource::class.java)
 
 	override val cookieJar = InMemoryCookieJar()
 
@@ -44,6 +48,14 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 	}
 
 	override fun getDefaultUserAgent(): String = UserAgents.FIREFOX_MOBILE
+
+	override fun setAuthToken(source: MangaSource, token: OAuthToken?) {
+		tokensStorage[source] = token
+	}
+
+	override fun getAuthToken(source: MangaSource): OAuthToken? {
+		return tokensStorage[source]
+	}
 
 	suspend fun doRequest(url: String, source: MangaSource?): Response {
 		val request = Request.Builder()
