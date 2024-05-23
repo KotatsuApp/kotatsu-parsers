@@ -271,7 +271,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	private val memo = MutableIntObjectMap<IntArray>()
 
-	private fun descramble(bitmap: Bitmap): Bitmap {
+	private fun descramble(bitmap: Bitmap): Bitmap = synchronized(memo) {
 		val width = bitmap.width
 		val height = bitmap.height
 
