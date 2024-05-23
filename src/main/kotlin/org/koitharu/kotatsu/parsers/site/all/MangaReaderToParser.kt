@@ -1,18 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import android.graphics.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.bitmap.Bitmap
+import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.io.*
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -258,22 +256,17 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		val response = chain.proceed(request)
 
 		if (request.url.fragment != "scrambled") return response
-		val image = response.body!!.byteStream().use(::descramble)
-		val body = image.toResponseBody("image/jpeg".toMediaType())
-		return response.newBuilder()
-			.body(body)
-			.build()
+
+		return context.redrawImageResponse(response, ::descramble)
 	}
 
 	private val memo = hashMapOf<Int, IntArray>()
 
-	private fun descramble(image: InputStream): ByteArray {
-		val bitmap = BitmapFactory.decodeStream(image)
+	private fun descramble(bitmap: Bitmap): Bitmap {
 		val width = bitmap.width
 		val height = bitmap.height
 
 		val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-		val canvas = Canvas(result)
 
 		val pieces = ArrayList<Piece>()
 		for (y in 0 until height step PIECE_SIZE) {
@@ -304,13 +297,11 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 				val srcRect = Rect(src.x, src.y, src.x + src.w, src.y + src.h)
 				val dstRect = Rect(dst.x, dst.y, dst.x + dst.w, dst.y + dst.h)
 
-				canvas.drawBitmap(bitmap, srcRect, dstRect, null)
+				result.drawBitmap(bitmap, srcRect, dstRect)
 			}
 		}
 
-		val output = ByteArrayOutputStream()
-		result.compress(Bitmap.CompressFormat.JPEG, 90, output)
-		return output.toByteArray()
+		return result
 	}
 
 	private class Piece(val x: Int, val y: Int, val w: Int, val h: Int)
