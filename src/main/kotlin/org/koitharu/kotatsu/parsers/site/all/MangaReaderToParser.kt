@@ -1,11 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import androidx.collection.MutableIntObjectMap
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -17,7 +20,8 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.math.min
 
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
-class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAREADERTO, 16), Interceptor {
+class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAREADERTO, 16),
+	Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")
 
@@ -26,7 +30,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		SortOrder.RATING,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
-		SortOrder.ALPHABETICAL
+		SortOrder.ALPHABETICAL,
 	)
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
@@ -38,7 +42,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 			MangaTag(
 				title = it.ownText().trim(),
 				key = it.attr("data-id"),
-				source = source
+				source = source,
 			)
 		}.associateBy { it.title }
 	}
@@ -57,6 +61,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 					addQueryParameter("keyword", filter.query)
 					addQueryParameter("page", page.toString())
 				}
+
 				is MangaListFilter.Advanced -> {
 					addPathSegment("filter")
 					addQueryParameter("page", page.toString())
@@ -69,7 +74,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 							SortOrder.NEWEST -> "release-date"
 							SortOrder.ALPHABETICAL -> "name-az"
 							else -> "default"
-						}
+						},
 					)
 					addQueryParameter("genres", filter.tags.joinToString(",") { it.key })
 					addQueryParameter(
@@ -81,9 +86,10 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 							MangaState.PAUSED -> "3"
 							MangaState.UPCOMING -> "5"
 							null -> ""
-						}
+						},
 					)
 				}
+
 				null -> {
 					addPathSegment("filter")
 					addQueryParameter("page", page.toString())
@@ -108,31 +114,32 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 				isNsfw = false,
 				rating = RATING_UNKNOWN,
 				state = null,
-				tags = emptySet()
+				tags = emptySet(),
 			)
 		}
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
 		val document = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
-		return document.select(".block_area_authors-other .manga_list-sbs .manga-poster, .featured-block-ul .manga-poster").map {
-			val mangaUrl = it.attrAsRelativeUrl("href")
-			val thumb = it.select("img")
-			Manga(
-				id = generateUid(mangaUrl),
-				url = mangaUrl,
-				publicUrl = mangaUrl.toAbsoluteUrl(domain),
-				title = thumb.attr("alt"),
-				coverUrl = thumb.attr("src"),
-				source = source,
-				altTitle = null,
-				author = null,
-				isNsfw = false,
-				rating = RATING_UNKNOWN,
-				state = null,
-				tags = emptySet()
-			)
-		}
+		return document.select(".block_area_authors-other .manga_list-sbs .manga-poster, .featured-block-ul .manga-poster")
+			.map {
+				val mangaUrl = it.attrAsRelativeUrl("href")
+				val thumb = it.select("img")
+				Manga(
+					id = generateUid(mangaUrl),
+					url = mangaUrl,
+					publicUrl = mangaUrl.toAbsoluteUrl(domain),
+					title = thumb.attr("alt"),
+					coverUrl = thumb.attr("src"),
+					source = source,
+					altTitle = null,
+					author = null,
+					isNsfw = false,
+					rating = RATING_UNKNOWN,
+					state = null,
+					tags = emptySet(),
+				)
+			}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -165,16 +172,18 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 						else -> null
 					}
 				},
-			author = document.select("div.anisc-info a[href*=/author/]").joinToString { it.ownText().replace(", ", " ") },
+			author = document.select("div.anisc-info a[href*=/author/]")
+				.joinToString { it.ownText().replace(", ", " ") },
 			description = document.select("div.description").text(),
 			chapters = parseChapters(document),
-			source = source
+			source = source,
 		)
 	}
 
 	private fun parseChapters(document: Document): List<MangaChapter> {
-		val total = document.select(".chapters-list-ul > ul > li.chapter-item, .volume-list-ul div.lang-volumes > div.item").size
-		val chapters = ArrayList<MangaChapter>(total)
+		val total =
+			document.select(".chapters-list-ul > ul > li.chapter-item, .volume-list-ul div.lang-volumes > div.item").size
+		val chapters = ChaptersListBuilder(total)
 
 		document.select(".chapters-list-ul > ul").forEach { ul ->
 			ul.select("li.chapter-item").reversed().forEach { li ->
@@ -190,8 +199,8 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 						scanlator = null,
 						uploadDate = 0L,
 						branch = createBranchName(ul.id().substringBefore("-chapters"), "Chapters"),
-						source = source
-					)
+						source = source,
+					),
 				)
 			}
 		}
@@ -204,19 +213,19 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = numRegex.find(name)!!.groupValues[1].toFloat(),
+						number = numRegex.find(name)?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 0f,
 						volume = 0,
 						url = url,
 						scanlator = null,
 						uploadDate = 0L,
 						branch = createBranchName(div.id().substringBefore("-volumes"), "Volumes"),
-						source = source
-					)
+						source = source,
+					),
 				)
 			}
 		}
 
-		return chapters
+		return chapters.toList()
 	}
 
 	private fun createBranchName(lang: String, type: String): String {
@@ -246,7 +255,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 					url
 				},
 				preview = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -260,7 +269,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		return context.redrawImageResponse(response, ::descramble)
 	}
 
-	private val memo = hashMapOf<Int, IntArray>()
+	private val memo = MutableIntObjectMap<IntArray>()
 
 	private fun descramble(bitmap: Bitmap): Bitmap {
 		val width = bitmap.width

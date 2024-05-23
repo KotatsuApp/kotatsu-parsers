@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.bitmap
 
 interface Bitmap {
+
 	val width: Int
 	val height: Int
 

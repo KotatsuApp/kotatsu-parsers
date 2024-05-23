@@ -6,15 +6,15 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.unescapeJson
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MODESCANLATOR", "ModeScanlator", "pt")
-internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, MangaSource.MODESCANLATOR, "modescanlator.com") {
+internal class ModeScanlator(
+	context: MangaLoaderContext,
+) : HeanCms(context, MangaSource.MODESCANLATOR, "modescanlator.com") {
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://api.")
@@ -49,10 +49,11 @@ internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, Man
 						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
 						else -> append("latest&order=desc")
 					}
-					append("&series_type=All&perPage=$pageSize")
+					append("&series_type=All&perPage=")
+					append(pageSize)
 					append("&tags_ids=")
 					append("[".urlEncoded())
-					append(filter.tags.joinToString(",") { it.key })
+					filter.tags.joinTo(this, ",") { it.key }
 					append("]".urlEncoded())
 
 				}
@@ -60,7 +61,7 @@ internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, Man
 				null -> {}
 			}
 			append("&page=")
-			append(page.toString())
+			append(page)
 		}
 		val json = webClient.httpGet(url).parseJson()
 		return json.getJSONArray("data").mapJSON { j ->
@@ -78,10 +79,10 @@ internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, Man
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga,
 				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,
-				isNsfw = true,
+				isNsfw = isNsfwSource,
 				coverUrl = cover,
 				tags = setOf(),
-				state = when (j.getString("status")) {
+				state = when (j.getStringOrNull("status")) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					"Dropped" -> MangaState.ABANDONED
@@ -100,7 +101,8 @@ internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, Man
 		val url = buildString {
 			append("https://api.")
 			append(domain)
-			append("/chapter/query?perPage=9999&series_id=" + manga.id)
+			append("/chapter/query?perPage=9999&series_id=")
+			append(manga.id)
 		}
 		val json = webClient.httpGet(url).parseJson()
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
@@ -135,14 +137,12 @@ internal class ModeScanlator(context: MangaLoaderContext) : HeanCms(context, Man
 		val tags = doc.select("script").firstNotNullOf { script ->
 			regex.find(script.html())?.groupValues?.getOrNull(1)
 		}.unescapeJson()
-		return JSONArray(tags).mapJSON {
+		return JSONArray(tags).mapJSONToSet {
 			MangaTag(
 				key = it.getInt("id").toString(),
 				title = it.getString("name").toTitleCase(sourceLocale),
 				source = source,
 			)
-		}.toSet()
+		}
 	}
-
 }
-
