@@ -53,6 +53,8 @@ internal abstract class MangaFireParser(
 		return tags.get().values.toSet()
 	}
 
+	override val isTagsExclusionSupported = true
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = "https://$domain/filter".toHttpUrl().newBuilder().apply {
 			addQueryParameter("page", page.toString())
