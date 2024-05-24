@@ -331,7 +331,10 @@ internal abstract class MangaFireParser(
 			// fallback: author's other works
 			document.select("div.meta a[href*=/author/]").map {
 				async {
-					val url = it.attrAsAbsoluteUrl("href")
+					val url = it.attrAsAbsoluteUrl("href").toHttpUrl()
+						.newBuilder()
+						.addQueryParameter("language[]", siteLang)
+						.build()
 
 					webClient.httpGet(url)
 						.parseHtml().parseMangaList()
