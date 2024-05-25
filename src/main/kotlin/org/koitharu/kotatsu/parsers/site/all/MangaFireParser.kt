@@ -160,7 +160,7 @@ internal abstract class MangaFireParser(
 				if (tag == "Hentai" || tag == "Ecchi") {
 					isNsfw = true
 				}
-				availableTags[tag]
+				availableTags[tag.toTitleCase(sourceLocale)]
 			},
 			isNsfw = isNsfw,
 			state = document.selectFirst(".info > p")?.ownText()?.let {
