@@ -42,8 +42,8 @@ internal abstract class MangaFireParser(
 		webClient.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
 				MangaTag(
-					title = it.selectFirst("label")!!.ownText().trim(),
-					key = it.selectFirst("input")!!.attr("value"),
+					title = it.selectFirstOrThrow("label").ownText().toTitleCase(sourceLocale),
+					key = it.selectFirstOrThrow("input").attr("value"),
 					source = source
 				)
 			}.associateBy { it.title }
@@ -123,14 +123,14 @@ internal abstract class MangaFireParser(
 
 	private fun Document.parseMangaList(): List<Manga> {
 		return select(".original.card-lg .unit .inner").map {
-			val a = it.selectFirst(".info > a")!!
+			val a = it.selectFirstOrThrow(".info > a")
 			val mangaUrl = a.attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(mangaUrl),
 				url = mangaUrl,
 				publicUrl = mangaUrl.toAbsoluteUrl(domain),
 				title = a.ownText(),
-				coverUrl = it.selectFirst("img")!!.attrAsAbsoluteUrl("src"),
+				coverUrl = it.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
 				source = source,
 				altTitle = null,
 				largeCoverUrl = null,
@@ -149,11 +149,11 @@ internal abstract class MangaFireParser(
 		var isNsfw = false
 
 		return manga.copy(
-			title = document.selectFirst(".info > h1")!!.ownText(),
-			altTitle = document.selectFirst(".info > h6")!!.ownText(),
+			title = document.selectFirstOrThrow(".info > h1").ownText(),
+			altTitle = document.selectFirst(".info > h6")?.ownText(),
 			rating = document.selectFirst("div.rating-box")?.attr("data-score")
 				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
-			coverUrl = document.selectFirst("div.manga-detail div.poster img")!!
+			coverUrl = document.selectFirstOrThrow("div.manga-detail div.poster img")
 				.attrAsAbsoluteUrl("src"),
 			tags = document.select("div.meta a[href*=/genre/]").mapNotNullToSet {
 				val tag = it.ownText().trim()
@@ -175,7 +175,7 @@ internal abstract class MangaFireParser(
 			},
 			author = document.select("div.meta a[href*=/author/]")
 				.joinToString { it.ownText().trim() },
-			description = document.selectFirst("#synopsis div.modal-content")!!.text(),
+			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document)
 		)
 	}
@@ -289,7 +289,7 @@ internal abstract class MangaFireParser(
 					url = url,
 					publicUrl = url.toAbsoluteUrl(domain),
 					title = it.ownText(),
-					coverUrl = mangaDocument.selectFirst("div.manga-detail div.poster img")!!
+					coverUrl = mangaDocument.selectFirstOrThrow("div.manga-detail div.poster img")
 						.attrAsAbsoluteUrl("src"),
 					source = source,
 					altTitle = null,
@@ -302,8 +302,7 @@ internal abstract class MangaFireParser(
 				)
 			}
 		}.awaitAll()
-			.filterNotNull()
-			.also { mangas.addAll(it) }
+			.filterNotNullTo(mangas)
 
 		// "You may also like"
 		document.select(".side-manga:not(:has(.head:contains(trending))) .unit").forEach {
@@ -313,8 +312,8 @@ internal abstract class MangaFireParser(
 					id = generateUid(url),
 					url = url,
 					publicUrl = url.toAbsoluteUrl(domain),
-					title = it.selectFirst(".info h6")!!.ownText(),
-					coverUrl = it.selectFirst(".poster img")!!.attrAsAbsoluteUrl("src"),
+					title = it.selectFirstOrThrow(".info h6").ownText(),
+					coverUrl = it.selectFirstOrThrow(".poster img").attrAsAbsoluteUrl("src"),
 					source = source,
 					altTitle = null,
 					largeCoverUrl = null,
