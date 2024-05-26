@@ -119,7 +119,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 		comic.getJSONArray("md_titles").mapJSON { alt += it.getString("title") + " - " }
 		return manga.copy(
 			altTitle = alt.ifEmpty { comic.getStringOrNull("title") },
-			isNsfw = jo.getBoolean("matureContent") || comic.getBoolean("hentai"),
+			isNsfw = jo.getBoolean("matureContent"),
 			description = comic.getStringOrNull("parsed") ?: comic.getStringOrNull("desc"),
 			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
 				val g = it.getJSONObject("md_genres")
@@ -200,7 +200,8 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 					chap?.let { append("Chap ").append(it) }
 					jo.getStringOrNull("title")?.let { append(": ").append(it) }
 				},
-				number = counters.incrementAndGet(branch),
+				number = counters.incrementAndGet(branch)*1f,
+				volume = jo.getStringOrNull("vol")?.toIntOrNull() ?: 0,
 				url = jo.getString("hid"),
 				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },
