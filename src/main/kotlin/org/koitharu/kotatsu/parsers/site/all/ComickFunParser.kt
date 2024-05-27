@@ -179,10 +179,9 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-		val counters = HashMap<String?, Int>()
 		return ja.toJSONList().reversed().mapChapters { _, jo ->
-			val vol = jo.getStringOrNull("vol")
-			val chap = jo.getStringOrNull("chap")
+			val vol = jo.getIntOrDefault("vol", 0)
+			val chap = jo.getFloatOrDefault("chap", 0f)
 			val locale = Locale.forLanguageTag(jo.getString("lang"))
 			val group = jo.optJSONArray("group_name")?.joinToString(", ")
 			val branch = buildString {
@@ -196,11 +195,14 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
 				name = buildString {
-					vol?.let { append("Vol ").append(it).append(' ') }
-					chap?.let { append("Chap ").append(it) }
+					if (vol > 0) {
+						append("Vol ").append(vol).append(' ')
+					}
+					append("Chap ").append(chap)
 					jo.getStringOrNull("title")?.let { append(": ").append(it) }
 				},
-				number = counters.incrementAndGet(branch),
+				number = chap,
+				volume = vol,
 				url = jo.getString("hid"),
 				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },
