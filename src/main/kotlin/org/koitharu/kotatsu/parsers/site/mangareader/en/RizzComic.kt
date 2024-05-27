@@ -46,8 +46,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				}
 			}
 			is MangaListFilter.Advanced ->{
-				val state = if (filter.states.isEmpty()) "all"
-				else filter.states.oneOrThrowIfMany()!!.toPayloadValue()
+				val state = filter.states.oneOrThrowIfMany()?.toPayloadValue() ?: "all"
 
 				val genres = filter.tags.map { it.key }
 
@@ -134,7 +133,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 		val genreElements = doc.select("input.genre-item")
 
-		return genreElements.mapNotNullTo(mutableSetOf()) { element ->
+		return genreElements.mapNotNullToSet { element ->
 			val id = element.attr("value")
 			val name = element.nextElementSibling()?.text()
 
