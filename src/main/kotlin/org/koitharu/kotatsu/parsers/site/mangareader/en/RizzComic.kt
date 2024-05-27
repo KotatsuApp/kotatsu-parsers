@@ -25,8 +25,27 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 	private val filterUrl = "/Index/filter_series"
 	private val searchUrl = "/Index/live_search"
-	private val seriesCode = "r2311170"
+	private var randomPartCache = SuspendLazy(::getRandomPart)
+	private val randomPartRegex = Regex("""^(r\d+-)""")
 	private val slugRegex = Regex("""[^a-z0-9]+""")
+	private fun searchMangaSelector() = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"
+	private suspend fun getRandomPart(): String {
+		val request = Request.Builder()
+			.url("https://$domain$listUrl")
+			.get()
+			.build()
+
+		val response = context.httpClient.newCall(request).await()
+		val url = response.parseHtml()
+			.selectFirst(searchMangaSelector())!!
+			.select("a").attr("href")
+
+		val slug = url
+			.removeSuffix("/")
+			.substringAfterLast("/")
+
+		return randomPartRegex.find(slug)?.groupValues?.get(1) ?: ""
+	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		if (page > 1) {
@@ -81,7 +100,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 		val response = context.httpClient.newCall(request).execute().parseJsonArray()
 		return response.mapJSON { j ->
 			val title = j.getString("title")
-			val urlManga =  "https://$domain$listUrl/$seriesCode-" + title.trim().lowercase()
+			val urlManga =  "https://$domain$listUrl/${randomPartCache.get()}-" + title.trim().lowercase()
 				.replace(slugRegex, "-")
 				.replace("-s-", "s-")
 				.replace("-ll-", "ll-")
