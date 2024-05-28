@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("AZORAMoon", "AzoraMoon", "ar")
+@MangaSourceParser("AZORAMOON", "AzoraMoon", "ar")
 internal class AzoraMoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.AZORAMOON, "azoramoon.com", pageSize = 10) {
 	override val tagPrefix = "series-genre/"
