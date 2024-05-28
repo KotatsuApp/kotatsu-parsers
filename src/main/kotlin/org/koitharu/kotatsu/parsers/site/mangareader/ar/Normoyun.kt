@@ -8,9 +8,9 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("SWATEAM", "SwaTeam", "ar")
-internal class SwaTeam(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.SWATEAM, "goldragon.me", pageSize = 42, searchPageSize = 39) {
+@MangaSourceParser("NORMOYUN", "Normoyum", "ar")
+internal class Normoyum(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.NORMOYUN, "normoyun.com", pageSize = 42, searchPageSize = 39) {
 
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectMangaList = ".listupd .bs .bsx"
