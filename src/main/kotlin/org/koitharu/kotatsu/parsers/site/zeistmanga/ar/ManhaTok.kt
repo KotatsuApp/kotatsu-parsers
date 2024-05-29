@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
-@MangaSourceParser("MANGAATREND", "MangaATrend", "ar")
-internal class Mangaatrend(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.MANGAATREND, "www.mangaatrend.net") {
+@MangaSourceParser("MANHATOK", "ManhaTok", "ar")
+internal class ManhaTok(context: MangaLoaderContext) :
+	ZeistMangaParser(context, MangaSource.MANHATOK, "manhatok.blogspot.com") {
 	override val selectPage = "#seoneurons-target img"
 }
