@@ -14,10 +14,10 @@ import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("MANGA_LEK", "Manga-Lek", "ar")
-internal class MangaLekCom(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGA_LEK, "manga-lek.com") {
-	override val listUrl = "mangalek/"
+@MangaSourceParser("LEKMANGACOM", "LekMangaCom", "ar")
+internal class LekMangaCom(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.LEKMANGACOM, "lekmanga.com") {
+	override val listUrl = "lekmanga/"
 	override val postReq = true
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
