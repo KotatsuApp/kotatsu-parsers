@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("KINGOFMANGA", "KingOfManga", "ar")
-internal class KingOfManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.KINGOFMANGA, "kingofmanga.com", pageSize = 30, searchPageSize = 10)
+@MangaSourceParser("MANGAATREND", "MangaAtrend", "ar")
+internal class MangaAtrend(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.MANGAATREND, "mangaatrend.net", pageSize = 30, searchPageSize = 10)
