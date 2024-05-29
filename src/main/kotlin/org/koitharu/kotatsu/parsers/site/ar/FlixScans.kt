@@ -15,13 +15,13 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("FLIXSCANS", "FlixScans.com", "ar")
+@MangaSourceParser("FLIXSCANS", "FlixScans.net", "ar")
 internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
-	override val configKeyDomain = ConfigKey.Domain("flixscans.com")
+	override val configKeyDomain = ConfigKey.Domain("flixscans.net")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
