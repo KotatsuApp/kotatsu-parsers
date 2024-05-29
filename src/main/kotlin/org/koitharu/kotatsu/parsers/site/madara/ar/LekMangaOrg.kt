@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGALINK_AR", "MangaLink.org", "ar")
-internal class MangalinkParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGALINK_AR, "manga-link.org", pageSize = 10) {
+@MangaSourceParser("LEKMANGAORG", "LekManga.org", "ar")
+internal class LekMangaOrg(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.LEKMANGAORG, "lekmanga.org", pageSize = 10) {
 	override val listUrl = "readcomics/"
 }
