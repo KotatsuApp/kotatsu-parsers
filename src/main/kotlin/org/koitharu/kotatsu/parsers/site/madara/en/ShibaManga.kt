@@ -13,7 +13,6 @@ internal class ShibaManga(context: MangaLoaderContext) :
 
 	override val datePattern = "MM/dd/yyyy"
 	override fun parseMangaList(doc: Document): List<Manga> {
-		println(doc)
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
 		}.map { div ->
