@@ -20,7 +20,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
 
-	override val configKeyDomain = ConfigKey.Domain("team11x11.com")
+	override val configKeyDomain = ConfigKey.Domain("teamxnovel.com")
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
