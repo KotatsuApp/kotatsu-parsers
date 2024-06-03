@@ -5,9 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("ARESMANGA", "AresManga", "ar")
-internal class AresManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ARESMANGA, "aresnov.org", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("SCARMANGA", "ScarManga", "ar")
+internal class ScarManga(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.SCARMANGA, "scarmanga.com", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
 	override val isTagsExclusionSupported = false
 }
