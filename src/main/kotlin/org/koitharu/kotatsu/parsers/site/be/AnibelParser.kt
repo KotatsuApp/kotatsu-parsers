@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.be
 import androidx.collection.ArraySet
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -18,6 +19,7 @@ import org.koitharu.kotatsu.parsers.util.json.stringIterator
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
+@Broken
 @MangaSourceParser("ANIBEL", "Anibel", "be")
 internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.ANIBEL) {
 

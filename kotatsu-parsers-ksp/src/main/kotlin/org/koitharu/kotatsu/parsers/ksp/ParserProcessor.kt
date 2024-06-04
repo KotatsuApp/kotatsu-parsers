@@ -83,11 +83,11 @@ class ParserProcessor(
 				
 				enum class MangaSource(
 					val title: String,
-					val locale: String?,
+					val locale: String,
 					val contentType: ContentType,
 					val isBroken: Boolean,
 				) {
-					LOCAL("Local", null, ContentType.OTHER, false),
+					LOCAL("Local", "", ContentType.OTHER, false),
 				
 			""".trimIndent(),
 		)
@@ -110,7 +110,7 @@ class ParserProcessor(
 		)
 		sourcesWriter?.write(
 			"""
-				DUMMY("Dummy", null, ContentType.OTHER, false),
+				DUMMY("Dummy", "", ContentType.OTHER, false),
 				;
 			}
 			""".trimIndent(),
@@ -135,7 +135,7 @@ class ParserProcessor(
 			val title = annotation.arguments.single { it.name?.asString() == "title" }.value as String
 			val locale = annotation.arguments.single { it.name?.asString() == "locale" }.value as String
 			val type = annotation.arguments.single { it.name?.asString() == "type" }.value
-			val localeString = if (locale.isEmpty()) "null" else "\"$locale\""
+			val localeString = "\"$locale\""
 			val localeObj = if (locale.isEmpty()) null else Locale(locale)
 			val localeTitle = localeObj?.getDisplayLanguage(localeObj)
 			if (localeObj != null && localeObj !in availableLocales) {
