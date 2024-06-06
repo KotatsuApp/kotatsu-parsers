@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("SHINIGAMI", "Shinigami", "id")
 internal class Shinigami(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHINIGAMI, "shinigamitoon.com", 10) {
+	MadaraParser(context, MangaSource.SHINIGAMI, "shinigamitoon.id", 10) {
 
 	override val tagPrefix = "genre/"
 	override val listUrl = "series/"
