@@ -66,6 +66,7 @@ internal class ExHentaiParser(
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
 		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
 		paginator.firstPage = 0
+		searchPaginator.firstPage = 0
 	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -147,7 +148,7 @@ internal class ExHentaiParser(
 			val tagsDiv = gLink.nextElementSibling() ?: gLink.parseFailed("tags div not found")
 			val mainTag = td2.selectFirst("div.cn")?.let { div ->
 				MangaTag(
-					title = div.text().toTitleCase(),
+					title = div.text().toTitleCase(Locale.ENGLISH),
 					key = tagIdByClass(div.classNames()) ?: return@let null,
 					source = source,
 				)

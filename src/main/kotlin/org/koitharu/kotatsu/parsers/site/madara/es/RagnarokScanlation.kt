@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RAGNAROKSCANLATION", "RagnarokScanlation", "es")
 internal class RagnarokScanlation(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RAGNAROKSCANLATION, "ragnarokscanlation.com")
+	MadaraParser(context, MangaSource.RAGNAROKSCANLATION, "ragnarokscanlation.net")

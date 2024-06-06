@@ -163,7 +163,7 @@ internal abstract class ZeistMangaParser(
 			}
 			Manga(
 				id = generateUid(href),
-				url = href,
+				url = href.toRelativeUrl(domain),
 				publicUrl = href,
 				coverUrl = urlImg.orEmpty(),
 				title = name,
@@ -183,7 +183,7 @@ internal abstract class ZeistMangaParser(
 		return doc.selectFirstOrThrow("div.filter").select("ul li").mapNotNullToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("input").attr("value"),
-				title = it.selectFirstOrThrow("label").text(),
+				title = it.selectFirstOrThrow("label").text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

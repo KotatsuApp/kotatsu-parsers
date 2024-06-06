@@ -1,8 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,7 +9,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGATOWN", "MangaTown", "en")
-internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGATOWN) {
+internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGATOWN, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com")
 
@@ -29,8 +27,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		val page = (offset / 30) + 1
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga>  {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -88,8 +85,13 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		val root = doc.body().selectFirstOrThrow("ul.manga_pic_list")
-		return root.select("li").mapNotNull { li ->
+		val root = doc.body().selectFirst("ul.manga_pic_list") ?: return emptyList()
+		val manga = root.select("li")
+
+		if (manga.isEmpty()) {
+			return emptyList()
+		}
+		return manga.mapNotNull { li ->
 			val a = li.selectFirst("a.manga_cover")
 			val href = a?.attrAsRelativeUrlOrNull("href")
 				?: return@mapNotNull null
@@ -172,21 +174,41 @@ internal class MangaTownParser(context: MangaLoaderContext) : MangaParser(contex
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow("div.page_select")
-		return root.selectFirstOrThrow("select").selectOrThrow("option").mapNotNull {
-			val href = it.attrAsRelativeUrlOrNull("value")
-			if (href == null || href.endsWith("featured.html")) {
-				return@mapNotNull null
+		val isManga = root.select("select")
+
+		if(isManga.isEmpty()){//Webtoon
+			val imgElements = doc.select("div#viewer.read_img img.image")
+			return imgElements.map {
+				val href = it.attr("src")
+				MangaPage(
+					id = generateUid(href),
+					url = href,
+					preview = null,
+					source = MangaSource.MANGATOWN,
+				)
+
 			}
-			MangaPage(
-				id = generateUid(href),
-				url = href,
-				preview = null,
-				source = MangaSource.MANGATOWN,
-			)
+		}else{ //Manga
+			return isManga.select("option").mapNotNull {
+				val href = it.attrAsRelativeUrlOrNull("value")
+				if (href == null || href.endsWith("featured.html")) {
+					return@mapNotNull null
+				}
+				MangaPage(
+					id = generateUid(href),
+					url = href,
+					preview = null,
+					source = MangaSource.MANGATOWN,
+				)
+			}
 		}
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
+		if(page.url.startsWith("//")){//Webtoon
+			return page.url.toAbsoluteUrl(domain)
+		}
+
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.requireElementById("image").attrAsAbsoluteUrl("src")
 	}

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
+import androidx.annotation.VisibleForTesting
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -75,13 +76,14 @@ abstract class MangaParser @InternalParsersApi constructor(
 	abstract val configKeyDomain: ConfigKey.Domain
 
 	open val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_MOBILE)
+		.add("User-Agent", context.getDefaultUserAgent())
 		.build()
 
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
 	 */
-	protected open val defaultSortOrder: SortOrder
+	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
+	open val defaultSortOrder: SortOrder
 		get() {
 			val supported = availableSortOrders
 			return SortOrder.entries.first { it in supported }

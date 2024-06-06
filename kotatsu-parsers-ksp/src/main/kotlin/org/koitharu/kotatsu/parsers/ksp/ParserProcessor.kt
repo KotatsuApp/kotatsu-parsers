@@ -83,10 +83,11 @@ class ParserProcessor(
 				
 				enum class MangaSource(
 					val title: String,
-					val locale: String?,
+					val locale: String,
 					val contentType: ContentType,
+					val isBroken: Boolean,
 				) {
-					LOCAL("Local", null, ContentType.OTHER),
+					LOCAL("Local", "", ContentType.OTHER, false),
 				
 			""".trimIndent(),
 		)
@@ -109,7 +110,7 @@ class ParserProcessor(
 		)
 		sourcesWriter?.write(
 			"""
-				DUMMY("Dummy", null, ContentType.OTHER),
+				DUMMY("Dummy", "", ContentType.OTHER, false),
 				;
 			}
 			""".trimIndent(),
@@ -129,11 +130,12 @@ class ParserProcessor(
 			}
 			val annotation = classDeclaration.annotations.single { it.shortName.asString() == "MangaSourceParser" }
 			val deprecation = classDeclaration.annotations.singleOrNull { it.shortName.asString() == "Deprecated" }
+			val isBroken = classDeclaration.annotations.any { it.shortName.asString() == "Broken" }
 			val name = annotation.arguments.single { it.name?.asString() == "name" }.value as String
 			val title = annotation.arguments.single { it.name?.asString() == "title" }.value as String
 			val locale = annotation.arguments.single { it.name?.asString() == "locale" }.value as String
 			val type = annotation.arguments.single { it.name?.asString() == "type" }.value
-			val localeString = if (locale.isEmpty()) "null" else "\"$locale\""
+			val localeString = "\"$locale\""
 			val localeObj = if (locale.isEmpty()) null else Locale(locale)
 			val localeTitle = localeObj?.getDisplayLanguage(localeObj)
 			if (localeObj != null && localeObj !in availableLocales) {
@@ -165,7 +167,7 @@ class ParserProcessor(
 				"@Deprecated(\"$reason\") "
 			} else ""
 			val localeComment = localeTitle?.toTitleCase(localeObj)?.let { " /* $it */" }.orEmpty()
-			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment, ContentType.$type),\n")
+			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment, ContentType.$type, $isBroken),\n")
 		}
 	}
 }

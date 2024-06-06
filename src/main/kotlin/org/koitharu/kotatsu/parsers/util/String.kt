@@ -3,6 +3,7 @@
 package org.koitharu.kotatsu.parsers.util
 
 import androidx.annotation.FloatRange
+import androidx.collection.MutableIntList
 import androidx.collection.arraySetOf
 import java.math.BigInteger
 import java.net.URLDecoder
@@ -84,7 +85,7 @@ fun String.ellipsize(maxLength: Int) = if (this.length > maxLength) {
 } else this
 
 fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
-	val indices = ArrayList<Int>(4)
+	val indices = MutableIntList(4)
 	for ((i, c) in this.withIndex()) {
 		if (c == delimiter) {
 			indices += i
@@ -100,6 +101,8 @@ fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
 fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.name())
 
 fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
+
+fun String.nl2br() = replace("\n", "<br>")
 
 fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
@@ -242,3 +245,12 @@ inline fun <T> Appendable.appendAll(
 }
 
 fun String.isNumeric() = all { c -> c.isDigit() }
+
+internal fun StringBuilder.removeTrailingZero() {
+	if (length > 2 && get(length - 1) == '0') {
+		val dot = get(length - 2)
+		if (dot == ',' || dot == '.') {
+			delete(length - 2, length)
+		}
+	}
+}

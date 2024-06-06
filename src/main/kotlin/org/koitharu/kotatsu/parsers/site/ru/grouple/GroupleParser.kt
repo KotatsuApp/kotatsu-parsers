@@ -4,6 +4,8 @@ import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import okhttp3.Headers
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -18,6 +20,7 @@ import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
@@ -43,6 +46,7 @@ internal abstract class GroupleParser(
 	private val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
+	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 
 	override val headers: Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
@@ -109,11 +113,25 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired().parseHtml()
+		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired()
+		val doc = response.parseHtml()
 		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
+		val translations = if (config[splitTranslationsKey]) {
+			root.selectFirst("div.translator-selection")
+				?.select(".translator-selection-item")
+				?.associate {
+					it.id().removePrefix("tr-").toLong() to it.selectFirst(".translator-selection-name")?.textOrNull()
+				}
+		} else {
+			null
+		}
+		val newSource = getSource(response.request.url)
 		return manga.copy(
+			source = newSource,
+			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
+				?: manga.altTitle,
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
 			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
@@ -128,30 +146,58 @@ internal abstract class GroupleParser(
 			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
 			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
 			chapters = root.requireElementById("chapters-list").select("a.chapter-link")
-				.mapChapters(reversed = true) { i, a ->
-					val tr = a.selectFirstParent("tr") ?: return@mapChapters null
+				.flatMapChapters(reversed = true) { a ->
+					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()
 					val href = a.attrAsRelativeUrl("href")
-					var translators = ""
-					val translatorElement = a.attr("title")
-					if (!translatorElement.isNullOrBlank()) {
-						translators = translatorElement.replace("(Переводчик),", "&").removeSuffix(" (Переводчик)")
+					val number = tr.attr("data-num").toFloatOrNull()?.div(10f) ?: 0f
+					val volume = tr.attr("data-vol").toIntOrNull() ?: 0
+					if (translations.isNullOrEmpty() || a.attr("data-translations").isEmpty()) {
+						var translators = ""
+						val translatorElement = a.attr("title")
+						if (!translatorElement.isNullOrBlank()) {
+							translators = translatorElement.replace("(Переводчик),", "&").removeSuffix(" (Переводчик)")
+						}
+						listOf(
+							MangaChapter(
+								id = generateUid(href),
+								name = a.text().removePrefix(manga.title).trim(),
+								number = number,
+								volume = volume,
+								url = href,
+								uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
+								scanlator = translators,
+								source = newSource,
+								branch = null,
+							),
+						)
+					} else {
+						val translationData = JSONArray(a.attr("data-translations"))
+						translationData.mapJSON { jo ->
+							val personId = jo.getLong("personId")
+							val link = href.setQueryParam("tran", personId.toString())
+							MangaChapter(
+								id = generateUid(link),
+								name = a.text().removePrefix(manga.title).trim(),
+								number = number,
+								volume = volume,
+								url = link,
+								uploadDate = dateFormat.tryParse(jo.getStringOrNull("dateCreated")),
+								scanlator = null,
+								source = newSource,
+								branch = translations[personId],
+							)
+						}
 					}
-					MangaChapter(
-						id = generateUid(href),
-						name = a.text().removePrefix(manga.title).trim(),
-						number = i + 1,
-						url = href,
-						uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
-						scanlator = translators,
-						source = source,
-						branch = null,
-					)
 				},
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain) + "?mtr=1").checkAuthRequired().parseHtml()
+		if (chapter.source != source) { // handle redirects between websites
+			return context.newParserInstance(chapter.source).getPages(chapter)
+		}
+		val url = chapter.url.toAbsoluteUrl(domain).toHttpUrl().newBuilder().setQueryParameter("mtr", "1").build()
+		val doc = webClient.httpGet(url).checkAuthRequired().parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
@@ -246,6 +292,7 @@ internal abstract class GroupleParser(
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
+		keys.add(splitTranslationsKey)
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
@@ -253,6 +300,14 @@ internal abstract class GroupleParser(
 		val root = doc.body().requireElementById("mangaBox").select("h4").first { it.ownText() == RELATED_TITLE }
 			.nextElementSibling() ?: doc.parseFailed("Cannot find root")
 		return root.select("div.tile").mapNotNull(::parseManga)
+	}
+
+	protected open fun getSource(url: HttpUrl): MangaSource = when (url.host) {
+		in SeiMangaParser.domains -> MangaSource.SEIMANGA
+		in MintMangaParser.domains -> MangaSource.MINTMANGA
+		in ReadmangaParser.domains -> MangaSource.READMANGA_RU
+		in SelfMangaParser.domains -> MangaSource.SELFMANGA
+		else -> source
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) = when (sortOrder) {
@@ -334,7 +389,7 @@ internal abstract class GroupleParser(
 			url = relUrl,
 			publicUrl = href,
 			title = title,
-			altTitle = descDiv.selectFirst("h4")?.text(),
+			altTitle = descDiv.selectFirst("h5")?.textOrNull(),
 			coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)
@@ -401,5 +456,15 @@ internal abstract class GroupleParser(
 				source = source,
 			)
 		}
+	}
+
+	private fun String.setQueryParam(name: String, value: String): String {
+		return toAbsoluteUrl(domain)
+			.toHttpUrl()
+			.newBuilder()
+			.setQueryParameter(name, value)
+			.build()
+			.toString()
+			.toRelativeUrl(domain)
 	}
 }

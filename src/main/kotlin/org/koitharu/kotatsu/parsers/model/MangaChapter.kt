@@ -10,9 +10,13 @@ class MangaChapter(
 	 */
 	@JvmField val name: String,
 	/**
-	 * Chapter number starting from 1
+	 * Chapter number starting from 1, 0 if unknown
 	 */
-	@JvmField val number: Int,
+	@JvmField val number: Float,
+	/**
+	 * Volume number starting from 1, 0 if unknown
+	 */
+	@JvmField val volume: Int,
 	/**
 	 * Relative url to chapter (**without** a domain) or any other uri.
 	 * Used principally in parsers
@@ -32,11 +36,29 @@ class MangaChapter(
 	 */
 	@JvmField val branch: String?,
 	@JvmField val source: MangaSource,
-) : Comparable<MangaChapter> {
+) {
 
-	override fun compareTo(other: MangaChapter): Int {
-		return number.compareTo(other.number)
-	}
+	@Deprecated(message = "Consider using constructor with volume value")
+	constructor(
+		id: Long,
+		name: String,
+		number: Int,
+		url: String,
+		scanlator: String?,
+		uploadDate: Long,
+		branch: String?,
+		source: MangaSource,
+	) : this(
+		id = id,
+		name = name,
+		number = number.toFloat(),
+		volume = 0,
+		url = url,
+		scanlator = scanlator,
+		uploadDate = uploadDate,
+		branch = branch,
+		source = source,
+	)
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
@@ -47,6 +69,7 @@ class MangaChapter(
 		if (id != other.id) return false
 		if (name != other.name) return false
 		if (number != other.number) return false
+		if (volume != other.volume) return false
 		if (url != other.url) return false
 		if (scanlator != other.scanlator) return false
 		if (uploadDate != other.uploadDate) return false
@@ -59,7 +82,8 @@ class MangaChapter(
 	override fun hashCode(): Int {
 		var result = id.hashCode()
 		result = 31 * result + name.hashCode()
-		result = 31 * result + number
+		result = 31 * result + number.hashCode()
+		result = 31 * result + volume
 		result = 31 * result + url.hashCode()
 		result = 31 * result + (scanlator?.hashCode() ?: 0)
 		result = 31 * result + uploadDate.hashCode()
@@ -72,10 +96,11 @@ class MangaChapter(
 		return "MangaChapter($id - #$number [$url] - $source)"
 	}
 
-	internal fun copy(number: Int) = MangaChapter(
+	internal fun copy(volume: Int, number: Float) = MangaChapter(
 		id = id,
 		name = name,
 		number = number,
+		volume = volume,
 		url = url,
 		scanlator = scanlator,
 		uploadDate = uploadDate,

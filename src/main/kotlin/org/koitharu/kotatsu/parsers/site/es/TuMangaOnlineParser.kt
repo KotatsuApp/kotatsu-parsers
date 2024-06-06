@@ -210,7 +210,9 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 		if (script1 != null) {
 			val data = script1.data()
-			val regexParams = """\{uniqid:'(.+)',cascade:(.+)\}""".toRegex()
+
+			@Suppress("RegExpRedundantEscape")
+			val regexParams = """\{uniqid:\s*'(\S+)',\s*cascade:\s*(\S+)\}""".toRegex()
 			val regexAction = """form\.action\s?=\s?'(.+)'""".toRegex()
 			val params = regexParams.find(data)!!
 			val action = regexAction.find(data)!!.groupValues[1].toHttpUrl()

@@ -103,7 +103,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 		val href = it.attr("href").substringAfterLast("tag/").substringBeforeLast('/')
 		MangaTag(
 			key = href,
-			title = it.selectFirstOrThrow("h3.list_tag").text(),
+			title = it.selectFirstOrThrow("h3.list_tag").text().toTitleCase(sourceLocale),
 			source = source,
 		)
 	}

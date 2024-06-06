@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fmreader.ja
 
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -42,12 +43,24 @@ internal class Klz9(context: MangaLoaderContext) :
 		}
 	}
 
+	private val chapterListSelector = "div#list-chapters p, table.table tr, .list-chapters > a"
+
+	private fun generateRandomStr(length: Int): String {
+		return (1..length).map { toPathCharacters.random() }.joinToString("")
+	}
+
+	private val toPathCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
+
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val slug = doc.selectFirstOrThrow("div.h0rating").attr("slug")
+		val xhrUrl = "https://$domain/${generateRandomStr(25)}.lstc".toHttpUrl().newBuilder()
+			.addQueryParameter("slug", slug)
+			.build()
 		val docLoad =
-			webClient.httpGet("https://$domain/app/manga/controllers/cont.listChapter.php?slug=$slug").parseHtml()
+			webClient.httpGet(xhrUrl).parseHtml()
+
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return docLoad.body().select(selectChapter).mapChapters(reversed = true) { i, a ->
+		return docLoad.body().select(chapterListSelector).mapChapters(reversed = true) { i, a ->
 			val href = "/" + a.selectFirstOrThrow("a.chapter").attrAsRelativeUrl("href")
 			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(

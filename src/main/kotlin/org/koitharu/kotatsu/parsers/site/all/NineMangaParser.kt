@@ -191,7 +191,7 @@ internal abstract class NineMangaParser(
 			val cateId = el.attr("cate_id")
 			val a = el.selectFirstOrThrow("a")
 			tagMap[el.text()] = MangaTag(
-				title = a.text().toTitleCase(),
+				title = a.text().toTitleCase(sourceLocale),
 				key = cateId,
 				source = source,
 			)

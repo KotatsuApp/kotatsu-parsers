@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("MANHUASCAN", "ManhuaScan.io", "en")
 internal class ManhuaScan(context: MangaLoaderContext) :
@@ -120,21 +120,4 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 			)
 		}
 	}
-
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
-		val docs = webClient.httpGet(chapterUrl).parseHtml()
-
-		val script = docs.selectFirstOrThrow("script:containsData(var chapImages)")
-		val images = script.data().substringAfter("= \"").substringBefore("\";").split(",")
-		return images.map {
-			MangaPage(
-				id = generateUid(it),
-				url = it,
-				preview = null,
-				source = source,
-			)
-		}
-	}
-
 }

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan.to", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "m.isekaiscan.to") {
+	MadaraParser(context, MangaSource.ISEKAISCAN_EU, "paragonscans.com") {
 
 	override val datePattern = "MM/dd/yyyy"
 	override val withoutAjax = true
@@ -121,7 +121,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
-					?.lowercase()) {
+					?.lowercase().orEmpty()) {
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
 					else -> null

@@ -11,5 +11,5 @@ internal class HuntersScanEn(context: MangaLoaderContext) :
 	override val withoutAjax = true
 	override val datePattern = "MM/dd/yyyy"
 	override val tagPrefix = "series-genre/"
-	override val listUrl = "series/"
+	override val listUrl = "manga/"
 }

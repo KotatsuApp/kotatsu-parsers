@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("DEMONSECT", "DemonSect", "pt")
 internal class DemonSect(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DEMONSECT, "demonsect.com.br", 10)
+	MadaraParser(context, MangaSource.DEMONSECT, "dsectcomics.org", 10)

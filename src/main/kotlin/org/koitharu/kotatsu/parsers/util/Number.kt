@@ -45,3 +45,12 @@ infix fun Int.upBy(step: Int): Int {
 		this - mod + step
 	}
 }
+
+fun Number.formatSimple(): String {
+	val raw = toString()
+	return if (raw.endsWith(".0") || raw.endsWith(",0")) {
+		raw.dropLast(2)
+	} else {
+		raw
+	}
+}

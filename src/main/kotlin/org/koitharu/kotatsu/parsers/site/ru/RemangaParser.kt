@@ -18,7 +18,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.net.URLDecoder
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -28,12 +27,12 @@ private const val STATUS_ONGOING = 1
 private const val STATUS_FINISHED = 0
 private const val TOO_MANY_REQUESTS = 429
 
-@MangaSourceParser("REMANGA", "ReManga", "ru")
+@MangaSourceParser("REMANGA", "Реманга", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder()
@@ -252,7 +251,7 @@ internal class RemangaParser(
 		val userCookie = context.cookieJar.getCookies(domain).find {
 			it.name == "user"
 		} ?: return baseHeaders
-		val jo = JSONObject(URLDecoder.decode(userCookie.value, Charsets.UTF_8.name()))
+		val jo = JSONObject(userCookie.value.urlDecode())
 		val accessToken = jo.getStringOrNull("access_token") ?: return baseHeaders
 		return baseHeaders.newBuilder().add("authorization", "bearer $accessToken").build()
 	}
@@ -271,7 +270,8 @@ internal class RemangaParser(
 	}
 
 	private fun parsePage(jo: JSONObject) = MangaPage(
-		id = generateUid(jo.getLong("id")),
+		// id = generateUid(jo.getLong("id")), 19.01.2024 page id is gone
+		id = generateUid(jo.getString("link")),
 		url = jo.getString("link"),
 		preview = null,
 		source = source,

@@ -11,9 +11,10 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -51,21 +52,24 @@ class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, 
 		body.put("sortOrder", "ASC")
 		val chapterRequest = webClient.httpPost(chapterApi, body).parseJson()
 		return manga.copy(
-			chapters = chapterRequest.getJSONArray("data").mapJSONIndexed { i, jo ->
+			chapters = chapterRequest.getJSONArray("data").mapJSON { jo ->
+				val number = jo.getFloatOrDefault("chapterNum", 0f)
+				val volume = jo.getIntOrDefault("volume", 0)
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
 					name = buildString {
 						append("Том ")
-						append(jo.optString("volume", "0"))
+						append(volume)
 						append(". ")
 						append("Розділ ")
-						append(jo.optString("chapterNum", "0"))
+						append(number)
 						if (jo.optString("title") != "Title") {
 							append(" - ")
 							append(jo.optString("title"))
 						}
 					},
-					number = i + 1,
+					number = number,
+					volume = volume,
 					url = jo.optString("chapterResourcesId"),
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(jo.getString("lastUpdated")),

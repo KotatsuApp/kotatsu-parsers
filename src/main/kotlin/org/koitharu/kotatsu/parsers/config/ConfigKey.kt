@@ -25,4 +25,8 @@ sealed class ConfigKey<T>(
 	class UserAgent(
 		override val defaultValue: String,
 	) : ConfigKey<String>("user_agent")
+
+	class SplitByTranslations(
+		override val defaultValue: Boolean,
+	) : ConfigKey<Boolean>("split_translations")
 }

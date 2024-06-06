@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.parsers
 
 import okhttp3.CookieJar
 import okhttp3.OkHttpClient
+import okhttp3.Response
+import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.*
@@ -29,4 +31,25 @@ abstract class MangaLoaderContext {
 	abstract suspend fun evaluateJs(script: String): String?
 
 	abstract fun getConfig(source: MangaSource): MangaSourceConfig
+
+	abstract fun getDefaultUserAgent(): String
+
+	/**
+	 * Helper function to be used in an interceptor
+	 * to descramble images
+	 * @param response Image response
+	 * @param redraw lambda function to implement descrambling logic
+	 */
+	abstract fun redrawImageResponse(
+		response: Response,
+		redraw: (image: Bitmap) -> Bitmap
+	): Response
+
+	/**
+	 * create a new empty Bitmap with given dimensions
+	 */
+	abstract fun createBitmap(
+		width: Int,
+		height: Int
+	): Bitmap
 }

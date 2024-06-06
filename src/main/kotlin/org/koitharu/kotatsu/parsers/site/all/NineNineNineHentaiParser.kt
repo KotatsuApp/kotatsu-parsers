@@ -278,7 +278,8 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(id),
 					name = name,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = id,
 					uploadDate = runCatching {
 						dateFormat.parse(entry.getString("uploadDate"))!!.time
@@ -376,7 +377,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun apiCall(query: String): JSONObject {
-		return webClient.graphQLQuery("https://api.$domain/api", query).getJSONObject("data")
+		return webClient.graphQLQuery("https://hapi.$domain/api", query).getJSONObject("data")
 	}
 
 	companion object {

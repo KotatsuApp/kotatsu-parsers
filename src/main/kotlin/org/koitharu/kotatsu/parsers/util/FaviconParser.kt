@@ -18,7 +18,11 @@ class FaviconParser(
 		val manifestLink = doc.getElementsByAttributeValue("rel", "manifest").firstOrNull()
 			?.attrAsAbsoluteUrlOrNull("href")
 		if (manifestLink != null) {
-			result += parseManifest(manifestLink)
+			runCatchingCancellable {
+				parseManifest(manifestLink)
+			}.onSuccess { manifest ->
+				result += manifest
+			}
 		}
 		val links = doc.getElementsByAttributeValueContaining("rel", "icon")
 		links.mapNotNullTo(result) { link ->
@@ -55,7 +59,7 @@ class FaviconParser(
 
 	private suspend fun parseManifest(url: String): List<Favicon> {
 		val json = webClient.httpGet(url).parseJson()
-		val icons = json.getJSONArray("icons")
+		val icons = json.optJSONArray("icons") ?: return emptyList()
 		return icons.mapJSON { jo ->
 			Favicon(
 				url = jo.getString("src").resolveLink(),

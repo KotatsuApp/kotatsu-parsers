@@ -114,7 +114,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		return doc.requireElementById("select_genre").select("option").mapNotNullToSet {
 			MangaTag(
 				key = it.attr("value"),
-				title = it.text(),
+				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

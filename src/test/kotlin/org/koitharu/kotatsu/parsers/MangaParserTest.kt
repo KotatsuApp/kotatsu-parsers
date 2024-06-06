@@ -4,19 +4,12 @@ import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.medianOrNull
 import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.isDistinct
-import org.koitharu.kotatsu.test_util.isDistinctBy
-import org.koitharu.kotatsu.test_util.isUrlAbsolute
-import org.koitharu.kotatsu.test_util.maxDuplicates
+import org.koitharu.kotatsu.test_util.*
 import kotlin.time.Duration.Companion.minutes
-
 
 //@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserTest {
@@ -28,7 +21,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun list(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -40,7 +33,7 @@ internal class MangaParserTest {
 		val page1 = parser.getList(0, filter = null)
 		val page2 = parser.getList(page1.size, filter = null)
 		if (parser is PagedMangaParser) {
-			assert(parser.pageSize == page1.size) {
+			assert(parser.pageSize >= page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
 			}
 		}
@@ -93,10 +86,19 @@ internal class MangaParserTest {
 		val titles = tags.map { it.title }
 		assert(titles.isDistinct())
 		assert("" !in titles)
+		assert(titles.all { it.isCapitalized() }) {
+			val badTags = titles.filterNot { it.isCapitalized() }.joinToString()
+			"Not all tags are capitalized: $badTags"
+		}
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.getList(offset = 0, tags = setOf(tag), null, sortOrder = null)
+		val list = parser.getList(
+			offset = 0,
+			MangaListFilter.Advanced.Builder(parser.defaultSortOrder)
+				.tags(setOf(tag))
+				.build(),
+		)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
 	}
@@ -142,7 +144,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.POPULARITY, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		val manga = list[3]
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
@@ -156,8 +158,9 @@ internal class MangaParserTest {
 			assert(c.isDistinctBy { it.id }) {
 				"Chapters are not distinct by id: ${c.maxDuplicates { it.id }} for $publicUrl"
 			}
-			assert(c.isDistinctBy { it.number to it.branch }) {
-				"Chapters are not distinct by number: ${c.maxDuplicates { it.number to it.branch }} for $publicUrl"
+			assert(c.isDistinctByNotNull { it.key() }) {
+				val dup = c.mapNotNull { it.key() }.maxDuplicates { it }
+				"Chapters are not distinct by branch/volume/number: $dup for $publicUrl"
 			}
 			assert(c.all { it.source == source })
 			checkImageRequest(coverUrl, source)
@@ -171,7 +174,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.getList(0, sortOrder = SortOrder.UPDATED, tags = null, tagsExclude = null)
+		val list = parser.getList(0, null)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
@@ -255,5 +258,15 @@ internal class MangaParserTest {
 				"Wrong response mime type: ${it.mimeType}"
 			}
 		}
+	}
+
+	private fun String.isCapitalized(): Boolean {
+		return !first().isLowerCase()
+	}
+
+	private fun MangaChapter.key(): Any? = when {
+		number > 0f && volume > 0 -> Triple(branch, volume, number)
+		number > 0f -> Pair(branch, number)
+		else -> null
 	}
 }

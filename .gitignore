@@ -4,6 +4,7 @@
 .idea/**/usage.statistics.xml
 .idea/**/dictionaries
 .idea/**/shelf
+.idea/**/copilot
 
 # Generated files
 .idea/**/contentModel.xml
@@ -16,6 +17,7 @@
 .idea/**/dynamic.xml
 .idea/**/uiDesigner.xml
 .idea/**/dbnavigator.xml
+.idea/**/Project_Default.xml
 
 # Gradle
 .idea/**/gradle.xml
@@ -75,6 +77,7 @@ build/
 .idea/**/vcs.xml
 .idea/**/ktlint.xml
 .idea/codeStyles/
+.idea/kotlinc.xml
 
 src/test/resources/cookies.txt
 local.properties

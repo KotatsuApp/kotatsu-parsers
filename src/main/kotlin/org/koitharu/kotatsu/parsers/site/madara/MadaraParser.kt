@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara
 
+import androidx.collection.scatterSetOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONObject
@@ -22,6 +23,7 @@ internal abstract class MadaraParser(
 ) : PagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	override val isMultipleTagsSupported = false
 
@@ -58,7 +60,7 @@ internal abstract class MadaraParser(
 	}
 
 	@JvmField
-	protected val ongoing: Set<String> = hashSetOf(
+	protected val ongoing = scatterSetOf(
 		"مستمرة",
 		"En curso",
 		"En Curso",
@@ -100,7 +102,7 @@ internal abstract class MadaraParser(
 	)
 
 	@JvmField
-	protected val finished: Set<String> = hashSetOf(
+	protected val finished = scatterSetOf(
 		"Completed",
 		"Complete",
 		"Completo",
@@ -131,7 +133,7 @@ internal abstract class MadaraParser(
 	)
 
 	@JvmField
-	protected val abandoned: Set<String> = hashSetOf(
+	protected val abandoned = scatterSetOf(
 		"Canceled",
 		"Cancelled",
 		"Cancelado",
@@ -144,7 +146,7 @@ internal abstract class MadaraParser(
 	)
 
 	@JvmField
-	protected val paused: Set<String> = hashSetOf(
+	protected val paused = scatterSetOf(
 		"Hiatus",
 		"On Hold",
 		"Pausado",
@@ -154,7 +156,7 @@ internal abstract class MadaraParser(
 	)
 
 	@JvmField
-	protected val upcoming: Set<String> = hashSetOf(
+	protected val upcoming = scatterSetOf(
 		"Upcoming",
 		"upcoming",
 		"لم تُنشَر بعد",
@@ -342,7 +344,12 @@ internal abstract class MadaraParser(
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()) {
+				state = when (
+					summary?.selectFirst(".mg_status")
+						?.selectFirst(".summary-content")
+						?.ownText()
+						.orEmpty()
+				) {
 					in ongoing -> MangaState.ONGOING
 					in finished -> MangaState.FINISHED
 					in abandoned -> MangaState.ABANDONED
@@ -374,9 +381,9 @@ internal abstract class MadaraParser(
 			}
 			MangaTag(
 				key = href,
-				title = a.ownText().trim().ifEmpty {
-					a.selectFirst(".menu-image-title")?.text()?.trim() ?: return@mapNotNullToSet null
-				}.toTitleCase(),
+				title = a.ownText().ifEmpty {
+					a.selectFirst(".menu-image-title")?.textOrNull()
+				}?.toTitleCase(sourceLocale) ?: return@mapNotNullToSet null,
 				source = source,
 			)
 		}
@@ -640,6 +647,11 @@ internal abstract class MadaraParser(
 
 			else -> dateFormat.tryParse(date)
 		}
+	}
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 	}
 
 	// Parses dates in this form:

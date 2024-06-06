@@ -1,9 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
+import okhttp3.Headers
 import org.jsoup.internal.StringUtil
+import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -27,6 +30,13 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = true
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override val headers: Headers
+		get() = super.headers.newBuilder()
+			.set("User-Agent", config[userAgentKey])
+			.build()
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
 		val url = buildString {
@@ -35,9 +45,18 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					append("/search/?q=pages:>0 ")
-					append(filter.query.urlEncoded())
-					append("&")
+					// Check if the query is all numbers
+					val numericQuery = filter.query.trim()
+					if (numericQuery.matches("\\d+".toRegex())) {
+						val title = fetchMangaTitle("$this/g/$numericQuery/")
+						append("/search/?q=pages:>0 ")
+						append(title)
+						append("&")
+					} else {
+						append("/search/?q=pages:>0 ")
+						append(filter.query.urlEncoded())
+						append("&")
+					}
 				}
 
 				is MangaListFilter.Advanced -> {
@@ -55,19 +74,21 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 						}
 						append("/")
 						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular/")
+							append("popular")
 						}
-
-						append("?")
+						if (page > 1) {
+							append("?")
+						}
 					} else if (filter.locale != null) {
 						append("/language/")
 						append(filter.locale.toLanguagePath())
 						append("/")
 						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular/")
+							append("popular")
 						}
-
-						append("?")
+						if (page > 1) {
+							append("?")
+						}
 					} else {
 						if (filter.sortOrder == SortOrder.POPULARITY) {
 							append("/?sort=popular&")
@@ -79,10 +100,37 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 				null -> append("/?")
 			}
-			append("page=")
-			append(page.toString())
+			if (page > 1) {
+				append("page=")
+				append(page.toString())
+			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
+
+	private suspend fun fetchMangaTitle(url: String): String {
+		val doc = webClient.httpGet(url).parseHtml()
+		return doc.selectFirstOrThrow("h1.title").text().trim()
+	}
+
+	override fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select(selectGallery).map { div ->
+			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				title = div.select(selectGalleryTitle).text().trim(),
+				altTitle = null,
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				rating = RATING_UNKNOWN,
+				isNsfw = isNsfwSource,
+				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
+				tags = emptySet(),
+				state = null,
+				author = null,
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
@@ -106,6 +154,11 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		Locale.JAPANESE,
 		Locale.CHINESE,
 	)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {
 		val joiner = StringUtil.StringJoiner(" ")

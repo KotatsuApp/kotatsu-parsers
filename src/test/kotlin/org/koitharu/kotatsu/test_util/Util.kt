@@ -30,6 +30,16 @@ internal fun <T, K> Collection<T>.isDistinctBy(selector: (T) -> K): Boolean {
 	return set.size == size
 }
 
+internal fun <T, K> Collection<T>.isDistinctByNotNull(selector: (T) -> K?): Boolean {
+	val set = ArraySet<K>(size)
+	for (item in this) {
+		if (!set.add(selector(item) ?: continue)) {
+			return false
+		}
+	}
+	return true
+}
+
 internal fun String.isUrlRelative() = matches(PATTERN_URL_RELATIVE)
 internal fun String.isUrlAbsolute() = matches(PATTERN_URL_ABSOLUTE)
 

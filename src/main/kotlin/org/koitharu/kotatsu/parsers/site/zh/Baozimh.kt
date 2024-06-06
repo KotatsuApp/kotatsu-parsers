@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.util.*
+import kotlin.collections.HashSet
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
 internal class Baozimh(context: MangaLoaderContext) :
@@ -111,7 +112,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	private fun parseMangaListSearch(doc: Document): List<Manga> {
 		return doc.select("div.comics-card").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val href = "https://$domain" + div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -163,8 +164,9 @@ internal class Baozimh(context: MangaLoaderContext) :
 				else -> null
 			},
 			tags = tags,
-			chapters = doc.requireElementById("chapter-items").select("div.comics-chapters a")
-				.mapChapters(reversed = true) { i, a ->
+			chapters = (doc.requireElementById("chapter-items").select("div.comics-chapters a")
+				+ doc.requireElementById("chapters_other_list").select("div.comics-chapters a"))
+				.mapChapters { i, a ->
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
@@ -181,15 +183,48 @@ internal class Baozimh(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml().requireElementById("__nuxt")
-		return doc.select("button.pure-button").map { btn ->
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val pagesList = doc.requireElementById("__nuxt")
+		var chapterLink = doc.select("link[rel=canonical]").attr("href")
+		var nextChapterLink = doc.select("a#next-chapter").attr("href")
+		var part = 2
+		val idSet = HashSet<Long>()
+		var pages = pagesList.select("button.pure-button").map { btn ->
 			val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
+			val id = generateUid(urlPage)
+			idSet.add(id)
 			MangaPage(
-				id = generateUid(urlPage),
+				id = id,
 				url = urlPage,
 				preview = null,
 				source = source,
 			)
 		}
+
+		var chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html")
+		var nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
+		while (nextChapterLink != "" && (nexChapterPart == chapterPart + "_" + part.toString())){
+			val doc2 = webClient.httpGet(nextChapterLink).parseHtml()
+			val pages2 = doc2.requireElementById("__nuxt").select("button.pure-button").mapNotNull { btn ->
+				val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
+				val id = generateUid(urlPage)
+				if(!idSet.add(id)){
+					 null
+				}else{
+					MangaPage(
+						id = id,
+						url = urlPage,
+						preview = null,
+						source = source,
+					)}
+			}
+			pages = pages+pages2
+			part++
+			chapterLink = doc2.select("link[rel=canonical]").attr("href")
+			nextChapterLink = doc2.select("a#next-chapter").attr("href")
+			chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html").substringBeforeLast("_")
+			nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
+		}
+		return pages
 	}
 }

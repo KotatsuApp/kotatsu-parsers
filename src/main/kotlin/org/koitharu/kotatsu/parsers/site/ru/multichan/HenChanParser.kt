@@ -39,7 +39,7 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 				val a = it.children().last() ?: doc.parseFailed("Invalid tag")
 				MangaTag(
 					title = a.text().toTitleCase(),
-					key = a.attr("href").substringAfterLast('/'),
+					key = a.attr("href").substringAfterLast('/').urlDecode(),
 					source = source,
 				)
 			} ?: manga.tags,
@@ -48,7 +48,8 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 					id = generateUid(readLink),
 					url = readLink,
 					source = source,
-					number = 1,
+					number = 0f,
+					volume = 0,
 					uploadDate = 0L,
 					name = manga.title,
 					scanlator = null,

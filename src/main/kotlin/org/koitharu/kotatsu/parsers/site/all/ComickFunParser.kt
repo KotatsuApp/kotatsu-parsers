@@ -23,7 +23,7 @@ private const val CHAPTERS_LIMIT = 99999
 @MangaSourceParser("COMICK_FUN", "ComicK")
 internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICK_FUN, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("comick.cc")
+	override val configKeyDomain = ConfigKey.Domain("comick.io", "comick.cc")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -34,8 +34,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
-	@Volatile
-	private var cachedTags: SparseArrayCompat<MangaTag>? = null
+	private val tagsArray = SuspendLazy(::loadTags)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
@@ -83,7 +82,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			}
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
-		val tagsMap = cachedTags ?: loadTags()
+		val tagsMap = tagsArray.get()
 		return ja.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			Manga(
@@ -120,7 +119,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 		comic.getJSONArray("md_titles").mapJSON { alt += it.getString("title") + " - " }
 		return manga.copy(
 			altTitle = alt.ifEmpty { comic.getStringOrNull("title") },
-			isNsfw = jo.getBoolean("matureContent") || comic.getBoolean("hentai"),
+			isNsfw = jo.getBooleanOrDefault("matureContent", false) || comic.getBooleanOrDefault("hentai", false),
 			description = comic.getStringOrNull("parsed") ?: comic.getStringOrNull("desc"),
 			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
 				val g = it.getJSONObject("md_genres")
@@ -151,7 +150,7 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 	}
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val sparseArray = cachedTags ?: loadTags()
+		val sparseArray = tagsArray.get()
 		val set = ArraySet<MangaTag>(sparseArray.size())
 		for (i in 0 until sparseArray.size()) {
 			set.add(sparseArray.valueAt(i))
@@ -166,13 +165,12 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			tags.append(
 				jo.getInt("id"),
 				MangaTag(
-					title = jo.getString("name"),
+					title = jo.getString("name").toTitleCase(Locale.ENGLISH),
 					key = jo.getString("slug"),
 					source = source,
 				),
 			)
 		}
-		cachedTags = tags
 		return tags
 	}
 
@@ -181,10 +179,9 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-		val counters = HashMap<String?, Int>()
 		return ja.toJSONList().reversed().mapChapters { _, jo ->
-			val vol = jo.getStringOrNull("vol")
-			val chap = jo.getStringOrNull("chap")
+			val vol = jo.getIntOrDefault("vol", 0)
+			val chap = jo.getFloatOrDefault("chap", 0f)
 			val locale = Locale.forLanguageTag(jo.getString("lang"))
 			val group = jo.optJSONArray("group_name")?.joinToString(", ")
 			val branch = buildString {
@@ -198,11 +195,14 @@ internal class ComickFunParser(context: MangaLoaderContext) : PagedMangaParser(c
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
 				name = buildString {
-					vol?.let { append("Vol ").append(it).append(' ') }
-					chap?.let { append("Chap ").append(it) }
+					if (vol > 0) {
+						append("Vol ").append(vol).append(' ')
+					}
+					append("Chap ").append(chap)
 					jo.getStringOrNull("title")?.let { append(": ").append(it) }
 				},
-				number = counters.incrementAndGet(branch),
+				number = chap,
+				volume = vol,
 				url = jo.getString("hid"),
 				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },

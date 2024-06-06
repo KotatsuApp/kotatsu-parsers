@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
+
 internal abstract class NepnepParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
@@ -23,7 +24,8 @@ internal abstract class NepnepParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val isTagsExclusionSupported = true
 
@@ -31,16 +33,18 @@ internal abstract class NepnepParser(
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
+	private val searchDoc = SoftSuspendLazy {
+		webClient.httpGet("https://$domain/search/").parseHtml()
+	}
+
+	data class MangaWithLastUpdate(
+		val manga: Manga,
+		val lastUpdate: Long,
+		val views: String,
+	)
+
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
-
-		var foundTag = true
-		var foundTagExclude = true
-		var foundState = true
-
-		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
+		val doc = searchDoc.get()
 		val json = JSONArray(
 			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
 				.substringAfter("vm.Directory = ")
@@ -48,80 +52,83 @@ internal abstract class NepnepParser(
 				.trim()
 				.replace(';', ' '),
 		)
-		val manga = ArrayList<Manga>(json.length())
-
+		val mangaWithLastUpdateList = ArrayList<MangaWithLastUpdate>(json.length())
+		var sort = false
 
 		for (i in 0 until json.length()) {
 			val m = json.getJSONObject(i)
 			val href = "/manga/" + m.getString("i")
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
+			val lastUpdate = m.getLong("lt")
+			val views = m.getString("v")
+			val viewMonth = m.getString("vm")
+
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					if (m.getString("s").contains(filter.query, ignoreCase = true) || m.getString("al")
-							.contains(filter.query, ignoreCase = true)
+					if (m.getString("s").contains(filter.query, ignoreCase = true) || (m.getJSONArray("al")
+							.length() > 0 && m.getJSONArray("al").getString(0)
+							.contains(filter.query, ignoreCase = true))
 					) {
-						manga.add(
-							addManga(href, imgUrl, m),
+						mangaWithLastUpdateList.add(
+							MangaWithLastUpdate(addManga(href, imgUrl, m), lastUpdate, views),
 						)
 					}
 				}
 
 				is MangaListFilter.Advanced -> {
+					val tags = filter.tags
+					val tagsExcluded = filter.tagsExclude
+					val tagsJson = m.getJSONArray("g").toString()
 
-					if (filter.tags.isNotEmpty()) {
-						val tagsJon = m.getJSONArray("g").toString()
-						filter.tags.forEach {
-							foundTag = false
-							if (tagsJon.contains(it.key, ignoreCase = true)) {
-								foundTag = true
-							}
-						}
+					val tagsMatched =
+						tags.isEmpty() || tags.all { tag -> tagsJson.contains(tag.key, ignoreCase = true) }
+					val tagsExcludeMatched = tagsExcluded.isEmpty() || tagsExcluded.none { tag ->
+						tagsJson.contains(
+							tag.key,
+							ignoreCase = true,
+						)
 					}
+					val statesMatched = filter.states.isEmpty() || filter.states.any { state ->
+						m.getString("ps").contains(
+							when (state) {
+								MangaState.ONGOING -> "Ongoing"
+								MangaState.FINISHED -> "Complete"
+								MangaState.ABANDONED -> "Cancelled"
+								MangaState.PAUSED -> "Hiatus"
+								else -> ""
+							},
+							ignoreCase = true,
+						)
+					}
+					if (tagsMatched && tagsExcludeMatched && statesMatched) {
+						mangaWithLastUpdateList.add(
+							MangaWithLastUpdate(addManga(href, imgUrl, m), lastUpdate, views),
+						)
 
-					if (filter.tagsExclude.isNotEmpty()) {
-						val tagsJon = m.getJSONArray("g").toString()
-						filter.tagsExclude.forEach {
-							foundTagExclude = false
-							if (!tagsJon.contains(it.key, ignoreCase = true)) {
-								foundTagExclude = true
-							}
-						}
 					}
-
-					if (filter.states.isNotEmpty()) {
-						val stateJson = m.getString("ps")
-						filter.states.oneOrThrowIfMany().let {
-							foundState = false
-							if (stateJson.contains(
-									when (it) {
-										MangaState.ONGOING -> "Ongoing"
-										MangaState.FINISHED -> "Complete"
-										MangaState.ABANDONED -> "Cancelled"
-										MangaState.PAUSED -> "Hiatus"
-										else -> ""
-									},
-									ignoreCase = true,
-								)
-							) {
-								foundState = true
-							}
-						}
-					}
-
-					if (foundTag && foundState && foundTagExclude) {
-						manga.add(addManga(href, imgUrl, m))
-					}
+					sort = true
 				}
 
 				null -> {
-					manga.add(
-						addManga(href, imgUrl, m),
+					mangaWithLastUpdateList.add(
+						MangaWithLastUpdate(addManga(href, imgUrl, m), lastUpdate, views),
 					)
 				}
 			}
 		}
-		return manga
+		if (sort) {
+			when (filter?.sortOrder) {
+				SortOrder.POPULARITY -> mangaWithLastUpdateList.sortByDescending { it.views }
+				SortOrder.UPDATED -> mangaWithLastUpdateList.sortByDescending { it.lastUpdate }
+				SortOrder.ALPHABETICAL -> {}
+				else -> if (filter != null) {
+					throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
+				}
+			}
+		}
+		return mangaWithLastUpdateList.map { it.manga }
+			.subList(offset, (offset + 30).coerceAtMost(mangaWithLastUpdateList.size))
 	}
 
 	private fun addManga(href: String, imgUrl: String, m: JSONObject): Manga {
@@ -141,8 +148,9 @@ internal abstract class NepnepParser(
 		)
 	}
 
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/search/").parseHtml()
+		val doc = searchDoc.get()
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
 			.substringAfter("\"Genre\"")
 			.substringAfter('[')

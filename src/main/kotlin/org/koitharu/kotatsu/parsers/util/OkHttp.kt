@@ -31,3 +31,9 @@ fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers
 fun Response.copy() = newBuilder()
 	.body(peekBody(Long.MAX_VALUE))
 	.build()
+
+fun Response.Builder.setHeader(name: String, value: String?) = if (value == null) {
+	removeHeader(name)
+} else {
+	header(name, value)
+}

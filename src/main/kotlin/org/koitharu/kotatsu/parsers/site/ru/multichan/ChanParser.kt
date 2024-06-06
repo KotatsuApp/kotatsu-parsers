@@ -57,7 +57,7 @@ internal abstract class ChanParser(
 					row.selectFirst("div.genre")?.select("a")?.mapToSet {
 						MangaTag(
 							title = it.text().toTagName(),
-							key = it.attr("href").substringAfterLast('/').urlEncoded(),
+							key = it.attr("href").substringAfterLast('/').urlDecode(),
 							source = source,
 						)
 					}
@@ -133,7 +133,7 @@ internal abstract class ChanParser(
 			val a = li.children().lastOrNull() ?: li.parseFailed("a is null")
 			MangaTag(
 				title = a.text().toTagName(),
-				key = a.attr("href").substringAfterLast('/'),
+				key = a.attr("href").substringAfterLast('/').urlDecode(),
 				source = source,
 			)
 		}
