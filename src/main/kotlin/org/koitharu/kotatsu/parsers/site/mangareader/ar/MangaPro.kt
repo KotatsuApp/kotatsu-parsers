@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MANGAPRO", "MangaPro", "ar")
 internal class MangaPro(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANGAPRO, "mangapro.club", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaSource.MANGAPRO, "promanga.pro", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
   }
