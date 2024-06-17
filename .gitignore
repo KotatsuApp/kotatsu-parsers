@@ -72,6 +72,7 @@ fabric.properties
 
 .gradle/
 build/
+bin/
 
 .idea/**/misc.xml
 .idea/**/vcs.xml

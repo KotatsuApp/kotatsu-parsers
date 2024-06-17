@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -156,6 +157,14 @@ internal class Baozimh(context: MangaLoaderContext) :
 		val tagMap = tagsMap.get()
 		val selectTag = doc.select(".tag-list span.tag").drop(1)
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
+		var chaptersReversed = false
+		val chapters = try {
+			doc.requireElementById("chapter-items").select("div.comics-chapters a") + doc.requireElementById("chapters_other_list").select("div.comics-chapters a")
+		} catch (e: ParseException) {
+			chaptersReversed = true
+			// If the above fails it means the manga is new, so we select the chapters using the "comics-chapters__item" query
+			doc.select(".comics-chapters__item")
+		}
 		return manga.copy(
 			description = doc.selectFirst(".comics-detail__desc")?.text().orEmpty(),
 			state = when (state) {
@@ -164,9 +173,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				else -> null
 			},
 			tags = tags,
-			chapters = (doc.requireElementById("chapter-items").select("div.comics-chapters a")
-				+ doc.requireElementById("chapters_other_list").select("div.comics-chapters a"))
-				.mapChapters { i, a ->
+			chapters = chapters.mapChapters(chaptersReversed) { i, a ->
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
