@@ -15,38 +15,40 @@ class ParserProcessor(
 	private val logger: KSPLogger,
 	private val options: Map<String, String>,
 ) : SymbolProcessor {
-
 	private val availableLocales = Locale.getAvailableLocales().toSet()
 	private val sourceNamePattern = Regex("[A-Z_][A-Z0-9_]{3,}")
 
 	override fun process(resolver: Resolver): List<KSAnnotated> {
-		val symbols = resolver
-			.getSymbolsWithAnnotation("org.koitharu.kotatsu.parsers.MangaSourceParser")
+		val symbols =
+			resolver
+				.getSymbolsWithAnnotation("org.koitharu.kotatsu.parsers.MangaSourceParser")
 		val ret = symbols.filterNot { it.validate() }.toList()
 		if (!symbols.iterator().hasNext()) {
 			return ret
 		}
 		val dependencies = Dependencies.ALL_FILES
-		val factoryFile = try {
-			codeGenerator.createNewFile(
-				dependencies = dependencies,
-				packageName = "org.koitharu.kotatsu.parsers",
-				fileName = "MangaParserFactory",
-			)
-		} catch (e: FileAlreadyExistsException) {
-			logger.warn(e.toString(), null)
-			null
-		}
-		val sourcesFile = try {
-			codeGenerator.createNewFile(
-				dependencies = dependencies,
-				packageName = "org.koitharu.kotatsu.parsers.model",
-				fileName = "MangaSource",
-			)
-		} catch (e: FileAlreadyExistsException) {
-			logger.warn(e.toString(), null)
-			null
-		}
+		val factoryFile =
+			try {
+				codeGenerator.createNewFile(
+					dependencies = dependencies,
+					packageName = "org.koitharu.kotatsu.parsers",
+					fileName = "MangaParserFactory",
+				)
+			} catch (e: FileAlreadyExistsException) {
+				logger.warn(e.toString(), null)
+				null
+			}
+		val sourcesFile =
+			try {
+				codeGenerator.createNewFile(
+					dependencies = dependencies,
+					packageName = "org.koitharu.kotatsu.parsers.model",
+					fileName = "MangaSource",
+				)
+			} catch (e: FileAlreadyExistsException) {
+				logger.warn(e.toString(), null)
+				null
+			}
 		sourcesFile?.writer().use { sourcesWriter ->
 			factoryFile?.writer().use { factoryWriter ->
 				writeContent(sourcesWriter, factoryWriter, symbols)
@@ -65,30 +67,31 @@ class ParserProcessor(
 		}
 		factoryWriter?.write(
 			"""
-				package org.koitharu.kotatsu.parsers
+			package org.koitharu.kotatsu.parsers
 
-				import org.koitharu.kotatsu.parsers.model.MangaSource
-				
-				@Suppress("DEPRECATION")
-				@InternalParsersApi
-				@Deprecated("", replaceWith = ReplaceWith("context.newParserInstance(this)"))
-				fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
-				
+			import org.koitharu.kotatsu.parsers.model.MangaSource
+			
+			@Suppress("DEPRECATION")
+			@InternalParsersApi
+			@Deprecated("", replaceWith = ReplaceWith("context.newParserInstance(this)"))
+			fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
+			
 			""".trimIndent(),
 		)
 		//language=kotlin
 		sourcesWriter?.write(
 			"""
-				package org.koitharu.kotatsu.parsers.model
-				
-				enum class MangaSource(
-					val title: String,
-					val locale: String,
-					val contentType: ContentType,
-					val isBroken: Boolean,
-				) {
-					LOCAL("Local", "", ContentType.OTHER, false),
-				
+			package org.koitharu.kotatsu.parsers.model
+			
+			enum class MangaSource(
+				val title: String,
+				val locale: String,
+				val contentType: ContentType,
+				val isBroken: Boolean,
+			) {
+				LOCAL("Local", "", ContentType.OTHER, false),
+				UNKNOWN("Unknown", "", ContentType.OTHER, true),
+			
 			""".trimIndent(),
 		)
 
@@ -99,8 +102,9 @@ class ParserProcessor(
 
 		factoryWriter?.write(
 			"""
-				MangaSource.LOCAL -> throw NotImplementedError("Local manga parser is not supported")
-				MangaSource.DUMMY -> throw NotImplementedError("Dummy manga parser cannot be instantiated")
+				MangaSource.LOCAL,
+				MangaSource.UNKNOWN,
+				MangaSource.DUMMY -> throw NotImplementedError("Manga parser ${'$'}name cannot be instantiated")
 			}.also {
 				require(it.source == this) {
 					"Cannot instantiate manga parser: ${'$'}name mapped to ${'$'}{it.source}"
@@ -121,10 +125,12 @@ class ParserProcessor(
 		private val sourcesWriter: Writer?,
 		private val factoryWriter: Writer?,
 	) : KSVisitorVoid() {
-
 		private val titles = HashMap<String, String>()
 
-		override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
+		override fun visitClassDeclaration(
+			classDeclaration: KSClassDeclaration,
+			data: Unit,
+		) {
 			if (classDeclaration.classKind != ClassKind.CLASS || classDeclaration.isAbstract()) {
 				logger.error("Only non-abstract can be annotated with @MangaSourceParser", classDeclaration)
 			}
@@ -161,13 +167,21 @@ class ParserProcessor(
 			}
 
 			factoryWriter?.write("\tMangaSource.$name -> $className(context)\n")
-			val deprecationString = if (deprecation != null) {
-				val reason = deprecation.arguments
-					.find { it.name?.asString() == "message" }?.value?.toString() ?: "Unknown reason"
-				"@Deprecated(\"$reason\") "
-			} else ""
+			val deprecationString =
+				if (deprecation != null) {
+					val reason =
+						deprecation.arguments
+							.find { it.name?.asString() == "message" }
+							?.value
+							?.toString() ?: "Unknown reason"
+					"@Deprecated(\"$reason\") "
+				} else {
+					""
+				}
 			val localeComment = localeTitle?.toTitleCase(localeObj)?.let { " /* $it */" }.orEmpty()
-			sourcesWriter?.write("\t$deprecationString$name(\"$title\", $localeString$localeComment, ContentType.$type, $isBroken),\n")
+			sourcesWriter?.write(
+				"\t$deprecationString$name(\"$title\", $localeString$localeComment, ContentType.$type, $isBroken),\n",
+			)
 		}
 	}
 }
