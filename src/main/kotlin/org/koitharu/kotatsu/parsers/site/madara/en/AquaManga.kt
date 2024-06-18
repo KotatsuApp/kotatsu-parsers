@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("AQUAMANGA", "AquaManga", "en")
 internal class AquaManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.AQUAMANGA, "aquamanga.org", 20)
+	MadaraParser(context, MangaSource.AQUAMANGA, "aquareader.net", 20)
