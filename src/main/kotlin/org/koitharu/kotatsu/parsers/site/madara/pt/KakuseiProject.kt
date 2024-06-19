@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("KAKUSEIPROJECT", "Kakusei Project", "pt")
 internal class KakuseiProject(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.KAKUSEIPROJECT, "kakuseiproject.com.br", 10)
+	MadaraParser(context, MangaSource.KAKUSEIPROJECT, "kakuseiproject.com", 10)
