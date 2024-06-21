@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
@@ -109,9 +110,9 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 				id = generateUid(urlManga),
 				title = j.getString("manga_title"),
 				altTitle = null,
-				url = urlManga,
+				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
-				rating = j.getString("manga_rate").toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+				rating = j.getFloatOrDefault("manga_rate", RATING_UNKNOWN).div(5f),
 				isNsfw = false,
 				coverUrl = img,
 				tags = setOf(),
@@ -130,7 +131,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 				id = generateUid(urlManga),
 				title = j.getString("title"),
 				altTitle = null,
-				url = urlManga,
+				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
 				rating = j.getString("rate").toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				isNsfw = false,
@@ -151,7 +152,15 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 	override suspend fun getDetails(manga: Manga): Manga {
 		val json = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseJson()
 		val jsonManga = json.getJSONObject("manga")
-		val chapters = json.getJSONObject("chapters").toString().split("{\"id\":").drop(1)
+		val chaptersJson = json.getJSONObject("chapters")
+		val chapters = mutableListOf<String>()
+		chaptersJson.keys().forEach { key ->
+			val chapterArray = chaptersJson.getJSONArray(key)
+			for (i in chapterArray.length() - 1 downTo 0) {
+				chapters.add(chapterArray.getJSONObject(i).toString())
+
+			}
+		}
 		val slug = manga.url.substringAfterLast("/")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 		return manga.copy(
@@ -164,7 +173,7 @@ internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(cont
 			},
 			author = jsonManga.getString("author"),
 			description = jsonManga.getString("description"),
-			chapters = chapters.mapChapters(reversed = true) { i, it ->
+			chapters = chapters.mapChapters { i, it ->
 				val id = it.substringAfter("\"chapter\":").substringBefore(",")
 				val url = "https://$domain/api/get/chapter/$slug/$id"
 				val date = getDateString(
