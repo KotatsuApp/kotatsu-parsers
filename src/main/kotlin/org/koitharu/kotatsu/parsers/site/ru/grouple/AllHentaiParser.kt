@@ -20,6 +20,7 @@ internal class AllHentaiParser(
 ) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {
 
 	override val configKeyDomain = ConfigKey.Domain(
+		"z.ahen.me",
 		"20.allhen.online",
 		"24.allhen.online",
 		"z.allhen.online",
