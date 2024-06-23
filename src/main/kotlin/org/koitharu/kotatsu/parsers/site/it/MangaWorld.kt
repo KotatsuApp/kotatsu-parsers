@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.it
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -9,14 +10,16 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAWORLD", "mangaworld.ac", "it")
+@MangaSourceParser("MANGAWORLD", "MangaWorld", "it")
 internal class MangaWorld(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaSource.MANGAWORLD, pageSize = 16) {
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC)
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC, SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("mangaworld.ac")
+
+	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
 
 	override val isMultipleTagsSupported = true
 
@@ -61,6 +64,10 @@ internal class MangaWorld(
 				append("&page=$page")
 			}
 		val doc = webClient.httpGet(url).parseHtml()
+		return parseMangaList(doc)
+	}
+
+	private fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select(".comics-grid .entry").map { div ->
 			val href = div.selectFirstOrThrow("a.thumb").attrAsRelativeUrl("href")
 			val tags = div.select(".genres a[href*=/archive?genre=]")
@@ -89,15 +96,26 @@ internal class MangaWorld(
 		}
 	}
 
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
+		val genres = doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
 			MangaTag(
 				key = it.attr("href"),
 				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
+
+		val tags = doc.select("div[aria-labelledby=typesDropdown] a").mapNotNullToSet {
+			MangaTag(
+				key = it.attr("href"),
+				title = it.text().toTitleCase(sourceLocale),
+				source = source,
+			)
+		}
+
+		return genres + tags
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
