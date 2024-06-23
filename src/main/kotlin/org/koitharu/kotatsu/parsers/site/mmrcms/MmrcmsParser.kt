@@ -24,6 +24,7 @@ internal abstract class MmrcmsParser(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 	)
 
 	protected open val listUrl = "filterList"
@@ -103,7 +104,7 @@ internal abstract class MmrcmsParser(
 						}
 						append("&sortBy=")
 						when (filter.sortOrder) {
-							SortOrder.POPULARITY -> append("views&asc=true")
+							SortOrder.POPULARITY -> append("views&asc=false")
 							SortOrder.ALPHABETICAL -> append("name&asc=true")
 							SortOrder.ALPHABETICAL_DESC -> append("name&asc=false")
 							else -> append("name")
