@@ -17,6 +17,9 @@ internal class MangaWorld(
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC, SortOrder.UPDATED)
 
+	override val defaultSortOrder: SortOrder
+		get() = SortOrder.ALPHABETICAL
+
 	override val configKeyDomain = ConfigKey.Domain("mangaworld.ac")
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
@@ -39,6 +42,8 @@ internal class MangaWorld(
 					}
 
 					is MangaListFilter.Advanced -> {
+						if(filter.tags.isEmpty() && filter.states.isEmpty() && filter.sortOrder == SortOrder.UPDATED) return parseMangaList(webClient.httpGet("https://$domain/?page=$page").parseHtml())
+
 						if (filter.tags.isNotEmpty()) {
 							filter.tags.joinTo(this, "&") { it.key.substringAfter("archive?") }
 						}
@@ -107,7 +112,7 @@ internal class MangaWorld(
 			)
 		}
 
-		val tags = doc.select("div[aria-labelledby=typesDropdown] a").mapNotNullToSet {
+		val types = doc.select("div[aria-labelledby=typesDropdown] a").mapNotNullToSet {
 			MangaTag(
 				key = it.attr("href"),
 				title = it.text().toTitleCase(sourceLocale),
@@ -115,7 +120,7 @@ internal class MangaWorld(
 			)
 		}
 
-		return genres + tags
+		return genres + types
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
