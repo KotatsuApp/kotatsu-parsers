@@ -4,7 +4,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.mapToSet
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("ASMHENTAI", "AsmHentai", type = ContentType.HENTAI)
 internal class AsmHentai(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.ASMHENTAI, "asmhentai.com") {
+	GalleryAdultsParser(context, MangaParserSource.ASMHENTAI, "asmhentai.com") {
 	override val selectGallery = ".preview_item"
 	override val selectGalleryLink = ".image a"
 	override val selectGalleryImg = ".image img"

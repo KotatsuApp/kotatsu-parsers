@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.util.*
 
 @MangaSourceParser("DESUME", "Desu", "ru")
-internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DESUME, 20) {
+internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.DESUME, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.win", "desu.me")
 
@@ -71,7 +71,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			list += Manga(
 				url = "/manga/api/$id",
 				publicUrl = jo.getString("url"),
-				source = MangaSource.DESUME,
+				source = MangaParserSource.DESUME,
 				title = jo.getString("russian"),
 				altTitle = jo.getString("name"),
 				coverUrl = cover.getString("preview"),

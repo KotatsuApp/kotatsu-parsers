@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("MANGA_DISTRICT", "MangaDistrict", "en", ContentType.HENTAI)
 internal class MangaDistrict(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
+	MadaraParser(context, MangaParserSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
 
 	override val tagPrefix = "publication-genre/"
 	override val datePattern = "MMM dd,yyyy"

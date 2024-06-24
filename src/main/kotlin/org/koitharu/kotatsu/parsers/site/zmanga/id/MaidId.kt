@@ -4,7 +4,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zmanga.ZMangaParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 // Info: Some scans are password-protected
 @MangaSourceParser("MAID_ID", "MaidId", "id")
 internal class MaidId(context: MangaLoaderContext) :
-	ZMangaParser(context, MangaSource.MAID_ID, "www.maid.my.id") {
+	ZMangaParser(context, MangaParserSource.MAID_ID, "www.maid.my.id") {
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

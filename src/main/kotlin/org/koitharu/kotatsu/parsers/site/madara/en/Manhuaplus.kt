@@ -5,13 +5,13 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANHUAPLUS", "ManhuaPlus", "en")
 internal class Manhuaplus(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHUAPLUS, "manhuaplus.org") {
+	MadaraParser(context, MangaParserSource.MANHUAPLUS, "manhuaplus.org") {
 
 	override val withoutAjax = true
 

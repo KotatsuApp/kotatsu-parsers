@@ -8,11 +8,11 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANGAKAKALOTTV", "Mangakakalot.tv", "en")
 internal class MangakakalotTv(context: MangaLoaderContext) :
-	MangaboxParser(context, MangaSource.MANGAKAKALOTTV) {
+	MangaboxParser(context, MangaParserSource.MANGAKAKALOTTV) {
 
 	override val configKeyDomain = ConfigKey.Domain("ww7.mangakakalot.tv")
 	override val searchUrl = "/search/"

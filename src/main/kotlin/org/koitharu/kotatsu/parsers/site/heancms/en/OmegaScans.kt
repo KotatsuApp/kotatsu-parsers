@@ -14,7 +14,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("OMEGASCANS", "OmegaScans", "en", ContentType.HENTAI)
-internal class OmegaScans(context: MangaLoaderContext) : HeanCms(context, MangaSource.OMEGASCANS, "omegascans.org") {
+internal class OmegaScans(context: MangaLoaderContext) :
+	HeanCms(context, MangaParserSource.OMEGASCANS, "omegascans.org") {
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://api.")

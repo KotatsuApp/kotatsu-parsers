@@ -7,14 +7,13 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.lang.IllegalArgumentException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRWEBTOON", "TrWebtoon", "tr")
 class TrWebtoon(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.TRWEBTOON, pageSize = 21) {
+	PagedMangaParser(context, MangaParserSource.TRWEBTOON, pageSize = 21) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 

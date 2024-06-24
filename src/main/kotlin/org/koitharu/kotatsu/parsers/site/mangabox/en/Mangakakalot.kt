@@ -8,11 +8,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANGAKAKALOT", "Mangakakalot.com", "en")
 internal class Mangakakalot(context: MangaLoaderContext) :
-	MangaboxParser(context, MangaSource.MANGAKAKALOT) {
+	MangaboxParser(context, MangaParserSource.MANGAKAKALOT) {
 	override val configKeyDomain = ConfigKey.Domain("mangakakalot.com", "chapmanganato.com")
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MUITOHENTAI", "MuitoHentai", "pt", ContentType.HENTAI)
-class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MUITOHENTAI, 24) {
+class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MUITOHENTAI, 24) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 

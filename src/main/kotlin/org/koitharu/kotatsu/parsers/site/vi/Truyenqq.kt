@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
-internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TRUYENQQ, 42) {
+internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)

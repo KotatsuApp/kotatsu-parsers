@@ -4,14 +4,14 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANGAJINX", "MangaJinx", "en")
 internal class MangaJinx(context: MangaLoaderContext) :
-	MadthemeParser(context, MangaSource.MANGAJINX, "mangajinx.com") {
+	MadthemeParser(context, MangaParserSource.MANGAJINX, "mangajinx.com") {
 	override val listUrl = "search"
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {

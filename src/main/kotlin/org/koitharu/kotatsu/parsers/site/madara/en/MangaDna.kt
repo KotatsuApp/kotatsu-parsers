@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGADNA, "mangadna.com", 20) {
+	MadaraParser(context, MangaParserSource.MANGADNA, "mangadna.com", 20) {
 
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true

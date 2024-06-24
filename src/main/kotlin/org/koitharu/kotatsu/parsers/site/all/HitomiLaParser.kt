@@ -27,7 +27,7 @@ import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
 @MangaSourceParser("HITOMILA", "Hitomi.La", type = ContentType.HENTAI)
-class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HITOMILA) {
+class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HITOMILA) {
 	override val configKeyDomain = ConfigKey.Domain("hitomi.la")
 
 	private val ltnBaseUrl get() = "https://${getDomain("ltn")}"

@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("YAOIFLIX", "YaoiFlix", "tr", ContentType.HENTAI)
-class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YAOIFLIX, 8) {
+class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YAOIFLIX, 8) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 

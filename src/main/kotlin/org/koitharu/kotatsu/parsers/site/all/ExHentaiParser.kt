@@ -24,7 +24,7 @@ private const val DOMAIN_AUTHORIZED = "exhentai.org"
 @MangaSourceParser("EXHENTAI", "ExHentai", type = ContentType.HENTAI)
 internal class ExHentaiParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
+) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 	override val isTagsExclusionSupported: Boolean = true

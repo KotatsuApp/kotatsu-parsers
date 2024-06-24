@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANHWA18COM", "Manhwa18.com", "en", ContentType.HENTAI)
 internal class Manhwa18Com(context: MangaLoaderContext) :
-	FmreaderParser(context, MangaSource.MANHWA18COM, "manhwa18.com") {
+	FmreaderParser(context, MangaParserSource.MANHWA18COM, "manhwa18.com") {
 
 	override val listUrl = "/tim-kiem"
 	override val selectState = "div.info-item:contains(Status) span.info-value "

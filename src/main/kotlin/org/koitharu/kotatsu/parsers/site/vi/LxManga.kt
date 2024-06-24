@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LXMANGA", "LxManga", "vi")
-internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LXMANGA, 60) {
+internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,

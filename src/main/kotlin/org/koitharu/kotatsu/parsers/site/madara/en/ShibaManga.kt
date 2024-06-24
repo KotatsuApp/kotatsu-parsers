@@ -1,15 +1,18 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("SHIBAMANGA", "ShibaManga", "en")
 internal class ShibaManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SHIBAMANGA, "shibamanga.com") {
+	MadaraParser(context, MangaParserSource.SHIBAMANGA, "shibamanga.com") {
 
 	override val datePattern = "MM/dd/yyyy"
 	override fun parseMangaList(doc: Document): List<Manga> {

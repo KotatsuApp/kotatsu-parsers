@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("IMHENTAI", "ImHentai", type = ContentType.HENTAI)
 internal class ImHentai(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.IMHENTAI, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.IMHENTAI, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)

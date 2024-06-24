@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIERA", "HentaiEra", type = ContentType.HENTAI)
 internal class HentaiEra(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIERA, "hentaiera.com", 25) {
+	GalleryAdultsParser(context, MangaParserSource.HENTAIERA, "hentaiera.com", 25) {
 	override val selectTags = ".tags_section"
 	override val selectTag = ".galleries_info li:contains(Tags) div.info_tags"
 	override val selectAuthor = ".galleries_info li:contains(Artists) span.item_name"

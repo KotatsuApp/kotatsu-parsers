@@ -8,12 +8,12 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
+import java.util.*
 
 
 @MangaSourceParser("MANHWA_FREAK", "Manhwa-Freak.com", "en")
 internal class ManhwaFreak(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.MANHWA_FREAK, "manhwa-freak.com", pageSize = 0, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANHWA_FREAK, "manhwa-freak.com", pageSize = 0, searchPageSize = 10) {
 
 	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"

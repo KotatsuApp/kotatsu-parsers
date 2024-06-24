@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
 import org.junit.jupiter.params.provider.EnumSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 
-@EnumSource(MangaSource::class, names = ["LOCAL", "DUMMY"], mode = EnumSource.Mode.EXCLUDE)
+@EnumSource(MangaParserSource::class)
 internal annotation class MangaSources

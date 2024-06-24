@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIFOX", "HentaiFox", type = ContentType.HENTAI)
 internal class HentaiFox(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIFOX, "hentaifox.com") {
+	GalleryAdultsParser(context, MangaParserSource.HENTAIFOX, "hentaifox.com") {
 	override val selectGallery = ".lc_galleries .thumb, .related_galleries .thumb"
 	override val pathTagUrl = "/tags/popular/pag/"
 	override val selectTags = ".list_tags"

@@ -6,14 +6,14 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es", ContentType.HENTAI)
 internal class ManhwaLatino(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWALATINO, "manhwa-latino.com", 10) {
+	MadaraParser(context, MangaParserSource.MANHWALATINO, "manhwa-latino.com", 10) {
 
 	override val datePattern = "MM/dd"
 	override val withoutAjax = true

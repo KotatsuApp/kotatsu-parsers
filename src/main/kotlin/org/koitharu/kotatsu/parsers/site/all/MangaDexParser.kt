@@ -24,7 +24,7 @@ private const val CHAPTERS_MAX_COUNT = 10_000 // strange api behavior, looks lik
 private const val LOCALE_FALLBACK = "en"
 
 @MangaSourceParser("MANGADEX", "MangaDex")
-internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.MANGADEX) {
+internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.MANGADEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 

@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.model
 
 class Favicons internal constructor(
 	favicons: Collection<Favicon>,
-	@JvmField val referer: String,
+	@JvmField val referer: String?,
 ) : Collection<Favicon> {
 
 	private val icons = favicons.sortedDescending()
@@ -46,5 +46,13 @@ class Favicons internal constructor(
 			}
 		}
 		return result
+	}
+
+	companion object {
+
+		@JvmStatic
+		fun empty() = Favicons(emptySet(), null)
+
+		fun single(url: String) = Favicons(setOf(Favicon(url, 0, null)), null)
 	}
 }

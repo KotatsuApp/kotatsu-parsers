@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MANGASTORM", "MangaStorm", "ar")
-internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGASTORM, 30) {
+internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGASTORM, 30) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")

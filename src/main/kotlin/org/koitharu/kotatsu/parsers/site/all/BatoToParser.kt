@@ -11,7 +11,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.isNullOrEmpty
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.*
@@ -22,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec
 @MangaSourceParser("BATOTO", "Bato.To")
 internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	context = context,
-	source = MangaSource.BATOTO,
+	source = MangaParserSource.BATOTO,
 	pageSize = 60,
 	searchPageSize = 20,
 ) {

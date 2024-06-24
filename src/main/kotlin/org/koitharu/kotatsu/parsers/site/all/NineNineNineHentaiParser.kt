@@ -20,7 +20,7 @@ import java.util.*
 
 @MangaSourceParser("NINENINENINEHENTAI", "999Hentai", type = ContentType.HENTAI)
 internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.NINENINENINEHENTAI, size), Interceptor {
+	PagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, size), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("999hentai.net")
 

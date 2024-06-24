@@ -8,13 +8,15 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
+import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
 internal abstract class PizzaReaderParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 20,
 ) : PagedMangaParser(context, source, pageSize) {

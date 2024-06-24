@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("SCANS_MANGAS_ME", "ScansMangas.me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 0) {
+	PagedMangaParser(context, MangaParserSource.SCANS_MANGAS_ME, 0) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,

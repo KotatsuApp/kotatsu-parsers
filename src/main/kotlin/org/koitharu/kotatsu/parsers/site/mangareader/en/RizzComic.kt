@@ -14,11 +14,18 @@ import java.util.*
 
 @MangaSourceParser("RIZZCOMIC", "RizzComic", "en")
 internal class RizzComic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.RIZZCOMIC, "rizzfables.com", pageSize = 50, searchPageSize = 20){
+	MangaReaderParser(context, MangaParserSource.RIZZCOMIC, "rizzfables.com", pageSize = 50, searchPageSize = 20) {
 	override val datePattern = "dd MMM yyyy"
 	override val listUrl = "/series"
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.POPULARITY, SortOrder.ALPHABETICAL_DESC)
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.ALPHABETICAL,
+		SortOrder.UPDATED,
+		SortOrder.NEWEST,
+		SortOrder.POPULARITY,
+		SortOrder.ALPHABETICAL_DESC,
+	)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 	override val isMultipleTagsSupported = true
 	override val isSearchSupported = true
 	override val isTagsExclusionSupported = false
@@ -64,7 +71,8 @@ internal class RizzComic(context: MangaLoaderContext) :
 					null
 				}
 			}
-			is MangaListFilter.Advanced ->{
+
+			is MangaListFilter.Advanced -> {
 				val state = filter.states.oneOrThrowIfMany()?.toPayloadValue() ?: "all"
 
 				val genres = filter.tags.map { it.key }
@@ -79,6 +87,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				}
 				formBuilder.build()
 			}
+
 			else -> {
 				FormBody.Builder()
 					.add("StatusValue", "all")
@@ -100,7 +109,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 		val response = context.httpClient.newCall(request).execute().parseJsonArray()
 		return response.mapJSON { j ->
 			val title = j.getString("title")
-			val urlManga =  "https://$domain$listUrl/${randomPartCache.get()}-" + title.trim().lowercase()
+			val urlManga = "https://$domain$listUrl/${randomPartCache.get()}-" + title.trim().lowercase()
 				.replace(slugRegex, "-")
 				.replace("-s-", "s-")
 				.replace("-ll-", "ll-")
@@ -113,7 +122,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				publicUrl = urlManga,
 				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN) / 10f,
 				isNsfw = false,
-				coverUrl = "https://$domain/assets/images/"+ j.getString("image_url"),
+				coverUrl = "https://$domain/assets/images/" + j.getString("image_url"),
 				tags = setOf(),
 				state = when (j.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
@@ -146,6 +155,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 		MangaState.PAUSED -> "hiatus"
 		else -> "all"
 	}
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val url = "https://$domain/series"
 		val doc = webClient.httpGet(url).parseHtml()

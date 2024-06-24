@@ -29,7 +29,7 @@ private val JSON_MEDIA_TYPE get() = "application/json; charset=utf-8".toMediaTyp
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.REAPERCOMICS, pageSize = 32) {
+	PagedMangaParser(context, MangaParserSource.REAPERCOMICS, pageSize = 32) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 

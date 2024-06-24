@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIFORCE", "HentaiForce", type = ContentType.HENTAI)
 internal class HentaiForce(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIFORCE, "hentaiforce.net", pageSize = 30) {
+	GalleryAdultsParser(context, MangaParserSource.HENTAIFORCE, "hentaiforce.net", pageSize = 30) {
 	override val selectGallery = ".gallery"
 	override val selectGalleryLink = "a.gallery-thumb"
 	override val pathTagUrl = "/tags/popular/"

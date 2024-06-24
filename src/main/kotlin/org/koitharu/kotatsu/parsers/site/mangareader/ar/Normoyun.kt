@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("NORMOYUN", "Normoyun", "ar")
 internal class Normoyun(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.NORMOYUN, "normoyun.com", pageSize = 42, searchPageSize = 39) {
+	MangaReaderParser(context, MangaParserSource.NORMOYUN, "normoyun.com", pageSize = 42, searchPageSize = 39) {
 
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectMangaList = ".listupd .bs .bsx"

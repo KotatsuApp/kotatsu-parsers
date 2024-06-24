@@ -3,15 +3,21 @@ package org.koitharu.kotatsu.parsers.site.madara.all
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("ERO18X", "Ero18x", "", ContentType.HENTAI)
 internal class Ero18x(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.ERO18X, "ero18x.com", 10) {
+	MadaraParser(context, MangaParserSource.ERO18X, "ero18x.com", 10) {
 	override val datePattern = "MM/dd"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true

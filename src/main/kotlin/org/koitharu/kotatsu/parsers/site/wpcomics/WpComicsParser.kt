@@ -19,7 +19,7 @@ import java.util.*
 
 internal abstract class WpComicsParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 48,
 ) : PagedMangaParser(context, source, pageSize) {
@@ -272,7 +272,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 				d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
-			-> parseRelativeDate(date)
+				-> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {

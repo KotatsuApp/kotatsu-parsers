@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -22,9 +24,9 @@ private const val MIN_SPLIT_COUNT = 5
 
 internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
-	private val siteLang: String
-): PagedMangaParser(context, source, 30), Interceptor {
+	source: MangaParserSource,
+	private val siteLang: String,
+) : PagedMangaParser(context, source, 30), Interceptor {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 
@@ -44,7 +46,7 @@ internal abstract class MangaFireParser(
 				MangaTag(
 					title = it.selectFirstOrThrow("label").ownText().toTitleCase(sourceLocale),
 					key = it.selectFirstOrThrow("input").attr("value"),
-					source = source
+					source = source,
 				)
 			}.associateBy { it.title }
 	}
@@ -73,7 +75,7 @@ internal abstract class MangaFireParser(
 								SortOrder.NEWEST -> "release_date"
 								SortOrder.ALPHABETICAL -> "title_az"
 								else -> ""
-							}
+							},
 						)
 					}
 				}
@@ -97,7 +99,7 @@ internal abstract class MangaFireParser(
 								MangaState.ABANDONED -> "discontinued"
 								MangaState.PAUSED -> "on_hiatus"
 								MangaState.UPCOMING -> "info"
-							}
+							},
 						)
 					}
 					addQueryParameter(
@@ -109,7 +111,7 @@ internal abstract class MangaFireParser(
 							SortOrder.NEWEST -> "release_date"
 							SortOrder.ALPHABETICAL -> "title_az"
 							else -> ""
-						}
+						},
 					)
 				}
 
@@ -176,14 +178,14 @@ internal abstract class MangaFireParser(
 			author = document.select("div.meta a[href*=/author/]")
 				.joinToString { it.ownText().trim() },
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
-			chapters = getChapters(manga.url, document)
+			chapters = getChapters(manga.url, document),
 		)
 	}
 
 	private data class ChapterBranch(
 		val type: String,
 		val langCode: String,
-		val langTitle: String
+		val langTitle: String,
 	)
 
 	private suspend fun getChapters(mangaUrl: String, document: Document): List<MangaChapter> {
@@ -252,7 +254,7 @@ internal abstract class MangaFireParser(
 				scanlator = null,
 				uploadDate = dateFormat.tryParse(it.attr("upload-date")),
 				branch = "${branch.langTitle} ${branch.type.toTitleCase()}",
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -263,7 +265,7 @@ internal abstract class MangaFireParser(
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> = coroutineScope {
 		val document = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
 		val total = document.select(
-			"section.m-related a[href*=/manga/], .side-manga:not(:has(.head:contains(trending))) .unit"
+			"section.m-related a[href*=/manga/], .side-manga:not(:has(.head:contains(trending))) .unit",
 		).size
 		val mangas = ArrayList<Manga>(total)
 
@@ -322,7 +324,7 @@ internal abstract class MangaFireParser(
 					rating = RATING_UNKNOWN,
 					state = null,
 					tags = emptySet(),
-				)
+				),
 			)
 		}
 
@@ -366,8 +368,8 @@ internal abstract class MangaFireParser(
 						"$url#scrambled_$offset"
 					},
 					preview = null,
-					source = source
-				)
+					source = source,
+				),
 			)
 		}
 
@@ -425,23 +427,25 @@ internal abstract class MangaFireParser(
 	private fun Int.ceilDiv(other: Int) = (this + (other - 1)) / other
 
 	@MangaSourceParser("MANGAFIRE_EN", "MangaFire English", "en")
-	class English(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_EN, "en")
+	class English(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_EN, "en")
 
 	@MangaSourceParser("MANGAFIRE_ES", "MangaFire Spanish", "es")
-	class Spanish(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_ES, "es")
+	class Spanish(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_ES, "es")
 
 	@MangaSourceParser("MANGAFIRE_ESLA", "MangaFire Spanish (Latim)", "es")
-	class SpanishLatim(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_ESLA, "es-la")
+	class SpanishLatim(context: MangaLoaderContext) :
+		MangaFireParser(context, MangaParserSource.MANGAFIRE_ESLA, "es-la")
 
 	@MangaSourceParser("MANGAFIRE_FR", "MangaFire French", "fr")
-	class French(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_FR, "fr")
+	class French(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_FR, "fr")
 
 	@MangaSourceParser("MANGAFIRE_JA", "MangaFire Japanese", "ja")
-	class Japanese(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_JA, "ja")
+	class Japanese(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_JA, "ja")
 
 	@MangaSourceParser("MANGAFIRE_PT", "MangaFire Portuguese", "pt")
-	class Portuguese(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_PT, "pt")
+	class Portuguese(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_PT, "pt")
 
 	@MangaSourceParser("MANGAFIRE_PTBR", "MangaFire Portuguese (Brazil)", "pt")
-	class PortugueseBR(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_PTBR, "pt-br")
+	class PortugueseBR(context: MangaLoaderContext) :
+		MangaFireParser(context, MangaParserSource.MANGAFIRE_PTBR, "pt-br")
 }

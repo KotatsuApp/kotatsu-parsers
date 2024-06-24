@@ -12,11 +12,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.util.*
-import kotlin.collections.HashSet
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
 internal class Baozimh(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.BAOZIMH, pageSize = 36) {
+	PagedMangaParser(context, MangaParserSource.BAOZIMH, pageSize = 36) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
@@ -159,7 +158,9 @@ internal class Baozimh(context: MangaLoaderContext) :
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 		var chaptersReversed = false
 		val chapters = try {
-			doc.requireElementById("chapter-items").select("div.comics-chapters a") + doc.requireElementById("chapters_other_list").select("div.comics-chapters a")
+			doc.requireElementById("chapter-items")
+				.select("div.comics-chapters a") + doc.requireElementById("chapters_other_list")
+				.select("div.comics-chapters a")
 		} catch (e: ParseException) {
 			chaptersReversed = true
 			// If the above fails it means the manga is new, so we select the chapters using the "comics-chapters__item" query
@@ -174,18 +175,18 @@ internal class Baozimh(context: MangaLoaderContext) :
 			},
 			tags = tags,
 			chapters = chapters.mapChapters(chaptersReversed) { i, a ->
-					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
-					MangaChapter(
-						id = generateUid(url),
-						name = a.selectFirstOrThrow("span").text(),
-						number = i + 1,
-						url = url,
-						scanlator = null,
-						uploadDate = 0,
-						branch = null,
-						source = source,
-					)
-				},
+				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
+				MangaChapter(
+					id = generateUid(url),
+					name = a.selectFirstOrThrow("span").text(),
+					number = i + 1,
+					url = url,
+					scanlator = null,
+					uploadDate = 0,
+					branch = null,
+					source = source,
+				)
+			},
 		)
 	}
 
@@ -210,22 +211,23 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 		var chapterPart = chapterLink.substringAfterLast("/").substringBefore(".html")
 		var nexChapterPart = nextChapterLink.substringAfterLast("/").substringBefore(".html")
-		while (nextChapterLink != "" && (nexChapterPart == chapterPart + "_" + part.toString())){
+		while (nextChapterLink != "" && (nexChapterPart == chapterPart + "_" + part.toString())) {
 			val doc2 = webClient.httpGet(nextChapterLink).parseHtml()
 			val pages2 = doc2.requireElementById("__nuxt").select("button.pure-button").mapNotNull { btn ->
 				val urlPage = btn.attr("on").substringAfter(": '").substringBefore("?t=")
 				val id = generateUid(urlPage)
-				if(!idSet.add(id)){
-					 null
-				}else{
+				if (!idSet.add(id)) {
+					null
+				} else {
 					MangaPage(
 						id = id,
 						url = urlPage,
 						preview = null,
 						source = source,
-					)}
+					)
+				}
 			}
-			pages = pages+pages2
+			pages = pages + pages2
 			part++
 			chapterLink = doc2.select("link[rel=canonical]").attr("href")
 			nextChapterLink = doc2.select("a#next-chapter").attr("href")

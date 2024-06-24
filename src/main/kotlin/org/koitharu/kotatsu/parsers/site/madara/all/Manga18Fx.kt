@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("MANGA18FX", "Manga18Fx", "", ContentType.HENTAI)
 internal class Manga18Fx(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGA18FX, "manga18fx.com") {
+	MadaraParser(context, MangaParserSource.MANGA18FX, "manga18fx.com") {
 
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val datePattern = "dd MMM yy"

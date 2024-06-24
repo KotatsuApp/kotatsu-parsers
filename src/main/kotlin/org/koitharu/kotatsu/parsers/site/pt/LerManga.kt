@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LERMANGA", "LerManga", "pt")
-class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LERMANGA, 24) {
+class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

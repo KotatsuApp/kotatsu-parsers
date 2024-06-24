@@ -3,14 +3,14 @@ package org.koitharu.kotatsu.parsers.site.madara.id
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.Locale
+import java.util.*
 import kotlin.random.Random
 
 @MangaSourceParser("MGKOMIK", "MgKomik", "id")
 internal class Mgkomik(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MGKOMIK, "mgkomik.id", 20) {
+	MadaraParser(context, MangaParserSource.MGKOMIK, "mgkomik.id", 20) {
 	override val tagPrefix = "genres/"
 	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"

@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWA18", "Manhwa18.net", "en", type = ContentType.HENTAI)
 class Manhwa18Parser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANHWA18, pageSize = 18, searchPageSize = 18) {
+	PagedMangaParser(context, MangaParserSource.MANHWA18, pageSize = 18, searchPageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.net")
 
@@ -122,7 +122,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 					author = null,
 					largeCoverUrl = null,
 					description = null,
-					source = MangaSource.MANHWA18,
+					source = MangaParserSource.MANHWA18,
 				)
 			}
 	}
@@ -166,7 +166,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 					scanlator = null,
 					uploadDate = uploadDate,
 					branch = null,
-					source = MangaSource.MANHWA18,
+					source = MangaParserSource.MANHWA18,
 				)
 			},
 		)
@@ -209,7 +209,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				source = MangaSource.MANHWA18,
+				source = MangaParserSource.MANHWA18,
 			)
 		}
 	}

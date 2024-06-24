@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("ONEPIECEEX", "OnePieceEx", "pt")
-class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.ONEPIECEEX, 1) {
+class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.ONEPIECEEX, 1) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 

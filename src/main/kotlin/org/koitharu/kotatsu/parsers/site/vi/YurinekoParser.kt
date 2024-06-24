@@ -6,17 +6,13 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.json.*
-import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
-class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YURINEKO, 20) {
+class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")
 

@@ -7,11 +7,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("INSTAMANHWA", "InstaManhwa", "en", ContentType.HENTAI)
 internal class InstaManhwa(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.INSTAMANHWA, "www.instamanhwa.com", 15) {
+	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.instamanhwa.com", 15) {
 	override val tagPrefix = "genre/"
 	override val listUrl = "latest/"
 	override val postReq = true

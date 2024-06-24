@@ -4,20 +4,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("BRAKEOUT", "Brakeout", "es")
 internal class Brakeout(context: MangaLoaderContext) :
-	HeanCmsAlt(context, MangaSource.BRAKEOUT, "brakeout.xyz", 10) {
+	HeanCmsAlt(context, MangaParserSource.BRAKEOUT, "brakeout.xyz", 10) {
 	override val selectManga = "div.grid.grid-cols-2 figure"
 	override val selectMangaTitle = "figcaption"
 

@@ -21,7 +21,7 @@ private const val PAGE_SIZE = 15
 private const val SEARCH_PAGE_SIZE = 10
 
 @MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
-class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIVN) {
+class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIVN) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.red", "hentaivn.autos", "hentaivn.tv")
 

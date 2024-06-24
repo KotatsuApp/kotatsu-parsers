@@ -3,14 +3,19 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANHWA_ES", "Manhwa-Es", "es")
 internal class ManhwaEs(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWA_ES, "manhwa-es.com", 10) {
+	MadaraParser(context, MangaParserSource.MANHWA_ES, "manhwa-es.com", 10) {
 
 	override val withoutAjax = true
 	override val datePattern = "MM/dd"

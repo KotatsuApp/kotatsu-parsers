@@ -1,18 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LIRESCAN", "LireScan", "fr")
-internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LIRESCAN, 20) {
+internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LIRESCAN, 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 

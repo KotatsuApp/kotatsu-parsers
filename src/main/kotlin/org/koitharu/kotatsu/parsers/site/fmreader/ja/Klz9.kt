@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("KLZ9", "Klz9", "ja")
 internal class Klz9(context: MangaLoaderContext) :
-	FmreaderParser(context, MangaSource.KLZ9, "klz9.com") {
+	FmreaderParser(context, MangaParserSource.KLZ9, "klz9.com") {
 
 	override val selectDesc = "div.row:contains(Description)"
 	override val selectState = "ul.manga-info li:contains(Status) a"

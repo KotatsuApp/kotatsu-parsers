@@ -19,7 +19,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("DYNASTYSCANS", "DynastyScans", "en")
-internal class DynastyScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DYNASTYSCANS, 117) {
+internal class DynastyScans(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.DYNASTYSCANS, 117) {
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("dynasty-scans.com")
 

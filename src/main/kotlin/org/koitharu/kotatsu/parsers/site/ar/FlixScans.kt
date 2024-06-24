@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("FLIXSCANS", "FlixScans.net", "ar")
-internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.FLIXSCANS, 18) {
+internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.FLIXSCANS, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)

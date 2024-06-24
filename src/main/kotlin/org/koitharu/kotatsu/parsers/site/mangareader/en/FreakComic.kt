@@ -5,7 +5,7 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 
 @MangaSourceParser("FREAKCOMIC", "FreakComic", "en")
 internal class FreakComic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.FREAKCOMIC, "freakcomic.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.FREAKCOMIC, "freakcomic.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 	override val selectMangaList = ".listupd .lastest-serie"
 	override val selectMangaListImg = "img"

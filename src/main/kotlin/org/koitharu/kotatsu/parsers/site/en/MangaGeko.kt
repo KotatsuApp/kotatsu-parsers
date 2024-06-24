@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAGEKO", "MangaGeko", "en")
-internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAGEKO, 30) {
+internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAGEKO, 30) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)

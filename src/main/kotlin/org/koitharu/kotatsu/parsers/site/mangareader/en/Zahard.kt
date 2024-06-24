@@ -2,11 +2,7 @@ package org.koitharu.kotatsu.parsers.site.mangareader.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
@@ -16,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("ZAHARD", "Zahard", "en")
 internal class Zahard(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.ZAHARD, "zahard.xyz", pageSize = 20, searchPageSize = 30) {
+	MangaReaderParser(context, MangaParserSource.ZAHARD, "zahard.xyz", pageSize = 20, searchPageSize = 30) {
 
 	override val listUrl = "/library"
 	override val selectChapter = "#chapterlist > ul > a"

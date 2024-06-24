@@ -14,7 +14,7 @@ import java.util.*
 
 internal abstract class MadthemeParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 48,
 ) : PagedMangaParser(context, source, pageSize) {

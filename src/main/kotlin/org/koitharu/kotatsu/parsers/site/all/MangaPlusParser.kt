@@ -22,7 +22,7 @@ import java.util.*
 
 internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	private val sourceLang: String,
 ) : MangaParser(context, source), Interceptor {
 
@@ -267,63 +267,63 @@ internal abstract class MangaPlusParser(
 	@MangaSourceParser("MANGAPLUSPARSER_EN", "MANGA Plus English", "en")
 	class English(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_EN,
+		MangaParserSource.MANGAPLUSPARSER_EN,
 		"ENGLISH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_ES", "MANGA Plus Spanish", "es")
 	class Spanish(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_ES,
+		MangaParserSource.MANGAPLUSPARSER_ES,
 		"SPANISH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_FR", "MANGA Plus French", "fr")
 	class French(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_FR,
+		MangaParserSource.MANGAPLUSPARSER_FR,
 		"FRENCH",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_ID", "MANGA Plus Indonesian", "id")
 	class Indonesian(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_ID,
+		MangaParserSource.MANGAPLUSPARSER_ID,
 		"INDONESIAN",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_PTBR", "MANGA Plus Portuguese (Brazil)", "pt")
 	class Portuguese(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_PTBR,
+		MangaParserSource.MANGAPLUSPARSER_PTBR,
 		"PORTUGUESE_BR",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_RU", "MANGA Plus Russian", "ru")
 	class Russian(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_RU,
+		MangaParserSource.MANGAPLUSPARSER_RU,
 		"RUSSIAN",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_TH", "MANGA Plus Thai", "th")
 	class Thai(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_TH,
+		MangaParserSource.MANGAPLUSPARSER_TH,
 		"THAI",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_VI", "MANGA Plus Vietnamese", "vi")
 	class Vietnamese(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_VI,
+		MangaParserSource.MANGAPLUSPARSER_VI,
 		"VIETNAMESE",
 	)
 
 	@MangaSourceParser("MANGAPLUSPARSER_DE", "MANGA Plus German", "de")
 	class German(context: MangaLoaderContext) : MangaPlusParser(
 		context,
-		MangaSource.MANGAPLUSPARSER_DE,
-		"GERMAN"
+		MangaParserSource.MANGAPLUSPARSER_DE,
+		"GERMAN",
 	)
 }

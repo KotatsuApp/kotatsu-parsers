@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("MODESCANLATOR", "ModeScanlator", "pt")
 internal class ModeScanlator(
 	context: MangaLoaderContext,
-) : HeanCms(context, MangaSource.MODESCANLATOR, "modescanlator.com") {
+) : HeanCms(context, MangaParserSource.MODESCANLATOR, "modescanlator.com") {
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

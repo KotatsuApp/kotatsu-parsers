@@ -16,7 +16,7 @@ import java.util.*
 
 @MangaSourceParser("MANGAOWL", "MangaOwl.to", "en")
 internal class Mangaowl(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANGAOWL, pageSize = 24) {
+	PagedMangaParser(context, MangaParserSource.MANGAOWL, pageSize = 24) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,

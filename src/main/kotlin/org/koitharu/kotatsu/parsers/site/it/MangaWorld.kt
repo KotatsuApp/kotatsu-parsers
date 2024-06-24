@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("MANGAWORLD", "mangaworld.ac", "it")
 internal class MangaWorld(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.MANGAWORLD, pageSize = 16) {
+) : PagedMangaParser(context, MangaParserSource.MANGAWORLD, pageSize = 16) {
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC)
 

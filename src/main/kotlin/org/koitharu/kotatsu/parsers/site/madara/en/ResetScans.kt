@@ -5,7 +5,7 @@ import org.jsoup.select.Elements
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -13,7 +13,7 @@ import java.util.Collections.emptyMap
 
 @MangaSourceParser("RESETSCANS", "ResetScans", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.RESETSCANS, "reset-scans.xyz", 18) {
+	MadaraParser(context, MangaParserSource.RESETSCANS, "reset-scans.xyz", 18) {
 	override val datePattern = "MMM dd"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {

@@ -17,7 +17,7 @@ import java.util.*
 
 internal abstract class NineMangaParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	defaultDomain: String,
 ) : PagedMangaParser(context, source, pageSize = 26), Interceptor {
 
@@ -266,49 +266,49 @@ internal abstract class NineMangaParser(
 	@MangaSourceParser("NINEMANGA_EN", "NineManga English", "en")
 	class English(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_EN,
+		MangaParserSource.NINEMANGA_EN,
 		"www.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_ES", "NineManga Español", "es")
 	class Spanish(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_ES,
+		MangaParserSource.NINEMANGA_ES,
 		"es.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_RU", "NineManga Русский", "ru")
 	class Russian(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_RU,
+		MangaParserSource.NINEMANGA_RU,
 		"ru.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_DE", "NineManga Deutsch", "de")
 	class Deutsch(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_DE,
+		MangaParserSource.NINEMANGA_DE,
 		"de.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_BR", "NineManga Brasil", "pt")
 	class Brazil(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_BR,
+		MangaParserSource.NINEMANGA_BR,
 		"br.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_IT", "NineManga Italiano", "it")
 	class Italiano(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_IT,
+		MangaParserSource.NINEMANGA_IT,
 		"it.ninemanga.com",
 	)
 
 	@MangaSourceParser("NINEMANGA_FR", "NineManga Français", "fr")
 	class Francais(context: MangaLoaderContext) : NineMangaParser(
 		context,
-		MangaSource.NINEMANGA_FR,
+		MangaParserSource.NINEMANGA_FR,
 		"fr.ninemanga.com",
 	)
 }

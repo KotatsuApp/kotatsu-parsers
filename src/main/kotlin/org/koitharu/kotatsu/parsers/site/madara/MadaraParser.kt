@@ -17,7 +17,7 @@ import java.util.*
 
 internal abstract class MadaraParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 12,
 ) : PagedMangaParser(context, source, pageSize) {

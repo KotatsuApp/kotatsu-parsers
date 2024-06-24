@@ -16,7 +16,8 @@ import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import java.util.*
 
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
-internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BENTOMANGA, 10) {
+internal class BentomangaParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.BENTOMANGA, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

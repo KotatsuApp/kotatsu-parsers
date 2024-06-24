@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("XOXOCOMICS", "XoxoComics", "en", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomic.com", 50) {
+	WpComicsParser(context, MangaParserSource.XOXOCOMICS, "xoxocomic.com", 50) {
 
 	override val listUrl = "/comic-list"
 	override val datePattern = "MM/dd/yyyy"
@@ -176,7 +176,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain) + "/all"
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(selectPage).mapNotNull{ url ->
+		return doc.select(selectPage).mapNotNull { url ->
 			val img = url.src()?.toRelativeUrl(domain) ?: return@mapNotNull null
 			MangaPage(
 				id = generateUid(img),

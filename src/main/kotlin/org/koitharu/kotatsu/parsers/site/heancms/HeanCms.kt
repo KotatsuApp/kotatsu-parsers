@@ -13,7 +13,7 @@ import java.util.*
 
 internal abstract class HeanCms(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 20,
 ) : PagedMangaParser(context, source, pageSize) {

@@ -2,9 +2,9 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("HOUSEMANGAS", "HouseMangas", "es")
 internal class HouseMangas(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HOUSEMANGAS, "housemangas.com")
+	MadaraParser(context, MangaParserSource.HOUSEMANGAS, "housemangas.com")

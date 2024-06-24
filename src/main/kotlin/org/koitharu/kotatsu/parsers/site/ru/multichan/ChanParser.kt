@@ -13,7 +13,7 @@ import java.util.*
 
 internal abstract class ChanParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 ) : MangaParser(context, source), MangaParserAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -205,7 +205,7 @@ internal abstract class ChanParser(
 						when (filter.sortOrder) {
 							SortOrder.RATING,
 							SortOrder.POPULARITY,
-							-> "favdesc"
+								-> "favdesc"
 
 							SortOrder.ALPHABETICAL -> "abcasc"
 							else -> "" // SortOrder.NEWEST

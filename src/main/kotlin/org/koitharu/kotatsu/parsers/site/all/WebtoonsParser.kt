@@ -14,39 +14,16 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.SoftSuspendLazy
-import org.koitharu.kotatsu.parsers.util.SuspendLazy
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.splitTwoParts
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.urlEncoded
-import java.util.Calendar
-import java.util.EnumSet
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.*
+import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
 
 internal abstract class WebtoonsParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 ) : MangaParser(context, source) {
 
 	override val isMultipleTagsSupported = false
@@ -223,7 +200,8 @@ internal abstract class WebtoonsParser(
 								description = null,
 								state = null,
 								source = source,
-							))
+							),
+						)
 					}
 			}
 
@@ -305,25 +283,25 @@ internal abstract class WebtoonsParser(
 	}
 
 	@MangaSourceParser("WEBTOONS_EN", "Webtoons English", "en", type = ContentType.MANGA)
-	class English(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_EN)
+	class English(context: MangaLoaderContext) : WebtoonsParser(context, MangaParserSource.WEBTOONS_EN)
 
 	@MangaSourceParser("WEBTOONS_ID", "Webtoons Indonesia", "id", type = ContentType.MANGA)
-	class Indonesian(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_ID)
+	class Indonesian(context: MangaLoaderContext) : WebtoonsParser(context, MangaParserSource.WEBTOONS_ID)
 
 	@MangaSourceParser("WEBTOONS_ES", "Webtoons Spanish", "es", type = ContentType.MANGA)
-	class Spanish(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_ES)
+	class Spanish(context: MangaLoaderContext) : WebtoonsParser(context, MangaParserSource.WEBTOONS_ES)
 
 	@MangaSourceParser("WEBTOONS_FR", "Webtoons French", "fr", type = ContentType.MANGA)
-	class French(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_FR)
+	class French(context: MangaLoaderContext) : WebtoonsParser(context, MangaParserSource.WEBTOONS_FR)
 
 	@MangaSourceParser("WEBTOONS_TH", "Webtoons Thai", "th", type = ContentType.MANGA)
-	class Thai(context: MangaLoaderContext) : WebtoonsParser(context, MangaSource.WEBTOONS_TH)
+	class Thai(context: MangaLoaderContext) : WebtoonsParser(context, MangaParserSource.WEBTOONS_TH)
 
 	@MangaSourceParser("WEBTOONS_ZH", "Webtoons Chinese", "zh", type = ContentType.MANGA)
-	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.WEBTOONS_ZH)
+	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.WEBTOONS_ZH)
 
 	@MangaSourceParser("WEBTOONS_DE", "Webtoons German", "de", type = ContentType.MANGA)
-	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.WEBTOONS_DE)
+	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.WEBTOONS_DE)
 
 	private inner class WebtoonsUrlSigner(private val secret: String) {
 

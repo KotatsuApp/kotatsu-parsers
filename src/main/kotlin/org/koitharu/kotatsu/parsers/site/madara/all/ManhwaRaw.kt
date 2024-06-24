@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANHWARAW", "ManhwaRaw", "", ContentType.HENTAI)
 internal class ManhwaRaw(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWARAW, "manhwa-raw.com", 10) {
+	MadaraParser(context, MangaParserSource.MANHWARAW, "manhwa-raw.com", 10) {
 	override val datePattern = "MM/dd"
 	override val withoutAjax = true
 

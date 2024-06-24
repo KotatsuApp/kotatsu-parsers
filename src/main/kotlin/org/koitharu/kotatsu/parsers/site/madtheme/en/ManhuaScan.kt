@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("MANHUASCAN", "ManhuaScan.io", "en")
 internal class ManhuaScan(context: MangaLoaderContext) :
-	MadthemeParser(context, MangaSource.MANHUASCAN, "manhuascan.io") {
+	MadthemeParser(context, MangaParserSource.MANHUASCAN, "manhuascan.io") {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "search"
 

@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec
 
 internal abstract class LineWebtoonsParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 ) : MangaParser(context, source) {
 
 	override val isMultipleTagsSupported = false
@@ -307,25 +307,25 @@ internal abstract class LineWebtoonsParser(
 	}
 
 	@MangaSourceParser("LINEWEBTOONS_EN", "LineWebtoons English", "en", type = ContentType.MANGA)
-	class English(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_EN)
+	class English(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_EN)
 
 	@MangaSourceParser("LINEWEBTOONS_ZH", "LineWebtoons Chinese", "zh", type = ContentType.MANGA)
-	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ZH)
+	class Chinese(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_ZH)
 
 	@MangaSourceParser("LINEWEBTOONS_TH", "LineWebtoons Thai", "th", type = ContentType.MANGA)
-	class Thai(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_TH)
+	class Thai(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_TH)
 
 	@MangaSourceParser("LINEWEBTOONS_ID", "LineWebtoons Indonesian", "id", type = ContentType.MANGA)
-	class Indonesian(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ID)
+	class Indonesian(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_ID)
 
 	@MangaSourceParser("LINEWEBTOONS_ES", "LineWebtoons Spanish", "es", type = ContentType.MANGA)
-	class Spanish(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_ES)
+	class Spanish(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_ES)
 
 	@MangaSourceParser("LINEWEBTOONS_FR", "LineWebtoons French", "fr", type = ContentType.MANGA)
-	class French(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_FR)
+	class French(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_FR)
 
 	@MangaSourceParser("LINEWEBTOONS_DE", "LineWebtoons German", "de", type = ContentType.MANGA)
-	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaSource.LINEWEBTOONS_DE)
+	class German(context: MangaLoaderContext) : LineWebtoonsParser(context, MangaParserSource.LINEWEBTOONS_DE)
 
 	private inner class WebtoonsUrlSigner(private val secret: String) {
 

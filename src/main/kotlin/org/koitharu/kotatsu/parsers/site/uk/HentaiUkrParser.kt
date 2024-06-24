@@ -24,7 +24,7 @@ private const val PAGE_SIZE = 60
 
 // NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
-class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.HENTAIUKR), Interceptor {
+class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR), Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 

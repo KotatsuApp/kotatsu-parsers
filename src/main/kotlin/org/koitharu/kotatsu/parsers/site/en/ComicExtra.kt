@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en")
-internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.COMICEXTRA, 25) {
+internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 25) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)

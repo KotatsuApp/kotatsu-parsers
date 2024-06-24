@@ -14,7 +14,7 @@ import java.util.*
 
 internal abstract class HeanCmsAlt(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 18,
 ) : PagedMangaParser(context, source, pageSize) {

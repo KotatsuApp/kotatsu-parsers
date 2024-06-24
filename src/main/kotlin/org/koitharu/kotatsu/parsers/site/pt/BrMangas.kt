@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("BRMANGAS", "BrMangas", "pt")
-internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BRMANGAS, 25) {
+internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.BRMANGAS, 25) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
 

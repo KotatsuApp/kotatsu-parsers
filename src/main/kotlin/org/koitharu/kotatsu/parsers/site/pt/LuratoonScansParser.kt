@@ -17,7 +17,7 @@ import java.text.SimpleDateFormat
 import java.util.zip.ZipInputStream
 
 @MangaSourceParser("RANDOMSCANS", "Luratoon Scan", "pt")
-internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.RANDOMSCANS),
+internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.RANDOMSCANS),
 	Interceptor {
 
 	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)

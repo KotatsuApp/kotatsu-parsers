@@ -4,14 +4,14 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("ANIMEXNOVEL", "AnimeXNovel", "pt")
 internal class AnimeXNovel(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.ANIMEXNOVEL, "www.animexnovel.com") {
+	ZeistMangaParser(context, MangaParserSource.ANIMEXNOVEL, "www.animexnovel.com") {
 
 	override val sateOngoing: String = "Ativo"
 	override val sateFinished: String = "Completo"

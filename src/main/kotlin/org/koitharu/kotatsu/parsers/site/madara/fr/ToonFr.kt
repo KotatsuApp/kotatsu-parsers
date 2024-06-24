@@ -5,14 +5,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("TOONFR", "ToonFr", "fr", ContentType.HENTAI)
 internal class ToonFr(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TOONFR, "toonfr.com") {
+	MadaraParser(context, MangaParserSource.TOONFR, "toonfr.com") {
 
 	override val tagPrefix = "webtoon-genre/"
 	override val listUrl = "webtoon/"

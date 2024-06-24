@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("ACOMICS", "AComics", "ru", ContentType.COMICS)
 internal class AComics(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.ACOMICS, pageSize = 10) {
+	PagedMangaParser(context, MangaParserSource.ACOMICS, pageSize = 10) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)

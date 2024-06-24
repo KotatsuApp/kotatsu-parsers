@@ -16,7 +16,7 @@ import java.util.*
 @MangaSourceParser("TUMANGAONLINE", "TuMangaOnline", "es")
 class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	context,
-	source = MangaSource.TUMANGAONLINE,
+	source = MangaParserSource.TUMANGAONLINE,
 	pageSize = 24,
 ) {
 

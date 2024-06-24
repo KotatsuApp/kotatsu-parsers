@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("NHENTAI", "NHentai.net", type = ContentType.HENTAI)
 internal class NHentaiParser(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.NHENTAI, "nhentai.net", 25) {
+	GalleryAdultsParser(context, MangaParserSource.NHENTAI, "nhentai.net", 25) {
 	override val selectGallery = "div.index-container:not(.index-popular) .gallery, #related-container .gallery"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"

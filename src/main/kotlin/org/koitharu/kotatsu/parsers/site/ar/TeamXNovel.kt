@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TEAMXNOVEL", "TeamXNovel", "ar")
-internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
+internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TEAMXNOVEL, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 	override val availableStates: Set<MangaState> =

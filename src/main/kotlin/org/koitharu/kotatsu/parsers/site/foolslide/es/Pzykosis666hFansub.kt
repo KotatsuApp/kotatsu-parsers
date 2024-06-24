@@ -3,13 +3,15 @@ package org.koitharu.kotatsu.parsers.site.foolslide.es
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("PZYKOSIS666HFANSUB", "Pzykosis666h Fansub", "es", ContentType.HENTAI)
 internal class Pzykosis666hFansub(context: MangaLoaderContext) :
-	FoolSlideParser(context, MangaSource.PZYKOSIS666HFANSUB, "lector.pzykosis666hfansub.com") {
+	FoolSlideParser(context, MangaParserSource.PZYKOSIS666HFANSUB, "lector.pzykosis666hfansub.com") {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

@@ -21,7 +21,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("ANIBEL", "Anibel", "be")
-internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.ANIBEL) {
+internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.ANIBEL) {
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 

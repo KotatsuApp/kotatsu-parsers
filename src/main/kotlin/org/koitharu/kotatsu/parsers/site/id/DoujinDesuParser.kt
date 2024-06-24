@@ -11,7 +11,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("DOUJINDESU", "DoujinDesu.tv", "id")
-class DoujinDesuParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.DOUJINDESU, pageSize = 18) {
+class DoujinDesuParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.DOUJINDESU, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("doujindesu.tv")

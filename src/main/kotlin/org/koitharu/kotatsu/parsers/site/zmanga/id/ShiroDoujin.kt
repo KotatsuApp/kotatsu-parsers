@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zmanga.ZMangaParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("SHIRO_DOUJIN", "ShiroDoujin", "id", ContentType.HENTAI)
 internal class ShiroDoujin(context: MangaLoaderContext) :
-	ZMangaParser(context, MangaSource.SHIRO_DOUJIN, "shirodoujin.com") {
+	ZMangaParser(context, MangaParserSource.SHIRO_DOUJIN, "shirodoujin.com") {
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

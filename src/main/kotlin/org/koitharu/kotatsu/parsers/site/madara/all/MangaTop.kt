@@ -3,13 +3,13 @@ package org.koitharu.kotatsu.parsers.site.madara.all
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.*
 
 @MangaSourceParser("MANGATOP", "MangaTop", "", ContentType.HENTAI)
 internal class MangaTop(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGATOP, "mangatop.site") {
+	MadaraParser(context, MangaParserSource.MANGATOP, "mangatop.site") {
 	override val datePattern = "d MMMM yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val stylePage = ""

@@ -9,12 +9,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.animebootstrap.AnimeBootstrapParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("PAPSCAN", "PapScan", "fr")
 internal class PapScan(context: MangaLoaderContext) :
-	AnimeBootstrapParser(context, MangaSource.PAPSCAN, "papscan.com") {
+	AnimeBootstrapParser(context, MangaParserSource.PAPSCAN, "papscan.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val isMultipleTagsSupported = false
 	override val listUrl = "/liste-manga"
