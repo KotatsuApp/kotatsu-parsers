@@ -132,7 +132,10 @@ internal class MangaWorld(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("img.page-image").map { img ->
+		val selectWebtoonPages = "img.page-image"
+		val selectMangaPages = "#page .img-fluid"
+		val imgSelector = if (doc.select(selectWebtoonPages).isNotEmpty()) selectWebtoonPages else selectMangaPages
+		return doc.select(imgSelector).map { img ->
 			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(urlPage),
