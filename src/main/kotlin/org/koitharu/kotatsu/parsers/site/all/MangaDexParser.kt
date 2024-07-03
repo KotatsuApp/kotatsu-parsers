@@ -52,6 +52,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				is MangaListFilter.Search -> {
 					append("&title=")
 					append(filter.query)
+					append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
 				}
 
 				is MangaListFilter.Advanced -> {

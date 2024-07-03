@@ -107,11 +107,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = getChapters(doc)
 		val desc = doc.selectFirstOrThrow("div.desc").html()
-		val state = if (doc.select("div.spe span:contains(En cours)").isNullOrEmpty()) {
-			MangaState.FINISHED
-		} else {
-			MangaState.ONGOING
-		}
 		val alt = doc.body().select("div.infox span.alter").text()
 		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "")
 		manga.copy(
@@ -125,7 +120,12 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			description = desc,
 			altTitle = alt,
 			author = aut,
-			state = state,
+			state = when (doc.selectFirstOrThrow("div.spe span:contains(Statut:)").textOrNull()
+				?.substringAfterLast(':')) {
+				" En cours" -> MangaState.ONGOING
+				" Terminé" -> MangaState.FINISHED
+				else -> null
+			},
 			chapters = chaptersDeferred,
 			isNsfw = manga.isNsfw,
 		)
