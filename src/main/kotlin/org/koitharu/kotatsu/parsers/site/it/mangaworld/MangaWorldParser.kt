@@ -1,8 +1,7 @@
-package org.koitharu.kotatsu.parsers.site.it
+package org.koitharu.kotatsu.parsers.site.it.mangaworld
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -10,17 +9,19 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAWORLD", "MangaWorld", "it")
-internal class MangaWorld(
-	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.MANGAWORLD, pageSize = 16) {
+abstract class MangaWorldParser(
+    context: MangaLoaderContext,
+    source: MangaSource,
+    domain: String,
+    pageSize: Int = 16
+) : PagedMangaParser(context, source, pageSize) {
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC, SortOrder.UPDATED)
 
 	override val defaultSortOrder: SortOrder
 		get() = SortOrder.ALPHABETICAL
 
-	override val configKeyDomain = ConfigKey.Domain("mangaworld.ac")
+	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
 
