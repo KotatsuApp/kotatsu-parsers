@@ -37,6 +37,7 @@ internal abstract class LibSocialParser(
 		5, MangaState.ABANDONED,
 	)
 	private val imageServers = SuspendLazy(::fetchServers)
+	private val splitTranslationsKey = ConfigKey.SplitByTranslations(true)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val urlBuilder = urlBuilder("api")
@@ -167,6 +168,11 @@ internal abstract class LibSocialParser(
 		}
 	}
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(splitTranslationsKey)
+	}
+
 	private fun parseManga(jo: JSONObject): Manga {
 		val cover = jo.getJSONObject("cover")
 		return Manga(
@@ -197,6 +203,7 @@ internal abstract class LibSocialParser(
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
 		val builder = ChaptersListBuilder(json.length())
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
+		val useBranching = config[splitTranslationsKey]
 		for (i in 0 until json.length()) {
 			val jo = json.getJSONObject(i)
 			val volume = jo.getIntOrDefault("volume", 0)
@@ -219,7 +226,7 @@ internal abstract class LibSocialParser(
 					url = "${manga.url}/chapter?number=$numberString&volume=$volume",
 					scanlator = team,
 					uploadDate = dateFormat.tryParse(bjo.getStringOrNull("created_at")),
-					branch = team,
+					branch = if (useBranching) team else null,
 					source = source,
 				)
 			}
