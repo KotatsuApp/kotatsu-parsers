@@ -29,4 +29,9 @@ sealed class ConfigKey<T>(
 	class SplitByTranslations(
 		override val defaultValue: Boolean,
 	) : ConfigKey<Boolean>("split_translations")
+
+	class PreferredImageServer(
+		val presetValues: Map<String?, String?>,
+		override val defaultValue: String?,
+	) : ConfigKey<String?>("img_server")
 }

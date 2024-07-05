@@ -38,6 +38,16 @@ internal abstract class LibSocialParser(
 	)
 	private val imageServers = SuspendLazy(::fetchServers)
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(true)
+	private val preferredServerKey = ConfigKey.PreferredImageServer(
+		presetValues = mapOf(
+			SERVER_MAIN to "Первый",
+			SERVER_SECONDARY to "Второй",
+			SERVER_COMPRESS to "Сжатия",
+			SERVER_DOWNLOAD to "Загрузки",
+			SERVER_CROP to "Обрезки",
+		),
+		defaultValue = null,
+	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val urlBuilder = urlBuilder("api")
@@ -133,10 +143,7 @@ internal abstract class LibSocialParser(
 		}
 		val servers = imageServers.get()
 		val json = pages.await()
-		val primaryServer =
-			checkNotNull(servers[SERVER_MAIN] ?: servers[SERVER_DOWNLOAD] ?: servers[SERVER_SECONDARY]) {
-				"No available images servers"
-			}
+		val primaryServer = getPrimaryImageServer(servers)
 		json.getJSONArray("pages").mapJSON { jo ->
 			val url = jo.getString("url")
 			MangaPage(
@@ -191,6 +198,16 @@ internal abstract class LibSocialParser(
 			largeCoverUrl = cover.getString("default"),
 			source = source,
 		)
+	}
+
+	private fun getPrimaryImageServer(servers: ScatterMap<String, String>): String {
+		val preferred = config[preferredServerKey]
+		if (preferred != null) {
+			servers[preferred]?.let { return it }
+		}
+		return checkNotNull(servers[SERVER_MAIN] ?: servers[SERVER_DOWNLOAD] ?: servers[SERVER_SECONDARY]) {
+			"No available images servers"
+		}
 	}
 
 	private suspend fun fetchChapters(manga: Manga): List<MangaChapter> {
