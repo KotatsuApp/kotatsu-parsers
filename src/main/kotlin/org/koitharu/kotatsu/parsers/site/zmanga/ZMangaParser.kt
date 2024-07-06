@@ -199,7 +199,8 @@ internal abstract class ZMangaParser(
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow(".flexch-infoz span:not(.date)").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

@@ -5,7 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangadventure.MangAdventureParser
-import org.koitharu.kotatsu.parsers.util.urlEncoded
 
 @MangaSourceParser("ARCRELIGHT", "Arc-Relight", "en")
 internal class ArcRelight(context: MangaLoaderContext) :

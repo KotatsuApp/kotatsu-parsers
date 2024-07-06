@@ -183,7 +183,8 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				MangaChapter(
 					id = generateUid(url),
 					name = li.selectFirstOrThrow(".epl-title").text(),
-					number = url.substringAfterLast('/').toIntOrNull() ?: 0,
+					number = url.substringAfterLast('/').toFloatOrNull() ?: 0f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(li.selectFirstOrThrow(".epl-date").text()),

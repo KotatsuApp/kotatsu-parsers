@@ -28,7 +28,8 @@ internal class MaidId(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = "Chapter $numChapter",
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

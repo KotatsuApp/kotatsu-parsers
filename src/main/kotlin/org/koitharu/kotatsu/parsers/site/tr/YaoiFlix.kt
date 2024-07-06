@@ -116,7 +116,8 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaSou
 					MangaChapter(
 						id = generateUid(href),
 						name = div.selectFirstOrThrow(".name").text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(div.selectFirstOrThrow(".date").text()),

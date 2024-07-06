@@ -151,7 +151,8 @@ internal class ScantradUnion(context: MangaLoaderContext) : PagedMangaParser(con
 					MangaChapter(
 						id = generateUid(href),
 						name = name,
-						number = i,
+						number = i.toFloat(),
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(date),

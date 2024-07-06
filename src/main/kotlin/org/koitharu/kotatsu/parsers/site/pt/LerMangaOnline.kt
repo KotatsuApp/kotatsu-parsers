@@ -114,7 +114,8 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 				MangaChapter(
 					id = generateUid(href),
 					name = title,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(dateText),

@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class ArAreaScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.ARAREASCANS, "ar.areascans.org", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
-  }
+}

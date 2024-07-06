@@ -127,7 +127,8 @@ internal abstract class ScanParser(
 				MangaChapter(
 					id = generateUid(href),
 					name = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(doc.selectFirstOrThrow("h5 div").text()),

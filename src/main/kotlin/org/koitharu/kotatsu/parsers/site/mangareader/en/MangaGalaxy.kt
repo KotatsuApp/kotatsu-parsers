@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
 internal class MangaGalaxy(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaSource.MANGAGALAXY, "mangagalaxy.me", 20, 16) {
-		override val listUrl = "/series"
+	override val listUrl = "/series"
 }

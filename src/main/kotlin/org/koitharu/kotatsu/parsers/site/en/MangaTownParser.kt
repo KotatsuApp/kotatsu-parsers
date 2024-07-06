@@ -27,7 +27,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga>  {
+	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -157,7 +157,8 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 					id = generateUid(href),
 					url = href,
 					source = MangaSource.MANGATOWN,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					uploadDate = parseChapterDate(
 						dateFormat,
 						li.selectFirst("span.time")?.text(),
@@ -176,7 +177,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 		val root = doc.body().selectFirstOrThrow("div.page_select")
 		val isManga = root.select("select")
 
-		if(isManga.isEmpty()){//Webtoon
+		if (isManga.isEmpty()) {//Webtoon
 			val imgElements = doc.select("div#viewer.read_img img.image")
 			return imgElements.map {
 				val href = it.attr("src")
@@ -188,7 +189,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 				)
 
 			}
-		}else{ //Manga
+		} else { //Manga
 			return isManga.select("option").mapNotNull {
 				val href = it.attrAsRelativeUrlOrNull("value")
 				if (href == null || href.endsWith("featured.html")) {
@@ -205,7 +206,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		if(page.url.startsWith("//")){//Webtoon
+		if (page.url.startsWith("//")) {//Webtoon
 			return page.url.toAbsoluteUrl(domain)
 		}
 
@@ -253,7 +254,8 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 				id = generateUid(href),
 				url = href,
 				source = MangaSource.MANGATOWN,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				uploadDate = parseChapterDate(
 					dateFormat,
 					li.selectFirst("span.time")?.text(),

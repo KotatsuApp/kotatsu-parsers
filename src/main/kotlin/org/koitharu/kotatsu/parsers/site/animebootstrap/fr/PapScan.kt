@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.animebootstrap.fr
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,6 +13,7 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 
+@Broken
 @MangaSourceParser("PAPSCAN", "PapScan", "fr")
 internal class PapScan(context: MangaLoaderContext) :
 	AnimeBootstrapParser(context, MangaSource.PAPSCAN, "papscan.com") {
@@ -126,7 +128,8 @@ internal class PapScan(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow("span em").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = dateFormat.tryParse(dateText),
 				source = source,

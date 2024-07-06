@@ -83,7 +83,8 @@ internal abstract class ChanParser(
 				MangaChapter(
 					id = generateUid(href),
 					name = tr.selectFirst("a")?.text().orEmpty(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					branch = null,

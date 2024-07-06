@@ -223,7 +223,8 @@ internal abstract class NepnepParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = name,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(date),

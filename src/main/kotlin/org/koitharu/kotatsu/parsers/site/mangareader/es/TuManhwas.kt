@@ -60,7 +60,8 @@ internal class TuManhwas(context: MangaLoaderContext) :
 				id = generateUid(url),
 				name = element.selectFirst(".chapternum")?.textOrNull() ?: "Chapter ${index + 1}",
 				url = url,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				scanlator = null,
 				uploadDate = parseChapterDate(
 					dateFormat,

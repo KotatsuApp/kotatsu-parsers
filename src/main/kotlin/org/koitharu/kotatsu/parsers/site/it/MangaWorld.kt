@@ -116,7 +116,8 @@ internal class MangaWorld(
 				MangaChapter(
 					id = generateUid(url),
 					name = a.selectFirstOrThrow("span.d-inline-block").text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate =

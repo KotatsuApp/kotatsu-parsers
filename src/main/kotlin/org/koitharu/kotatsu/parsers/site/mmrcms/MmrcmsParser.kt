@@ -232,7 +232,8 @@ internal abstract class MmrcmsParser(
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow("h5").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = dateFormat.tryParse(dateText),
 				source = source,

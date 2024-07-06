@@ -43,8 +43,8 @@ internal class YugenMangasEs(context: MangaLoaderContext) :
 						SortOrder.POPULARITY -> append("total_views&order=desc")
 						SortOrder.UPDATED -> append("latest&order=desc")
 						SortOrder.NEWEST -> append("created_at&order=desc")
-						SortOrder.ALPHABETICAL -> append("title&order=desc")
-						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
+						SortOrder.ALPHABETICAL -> append("title&order=asc")
+						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")
 					}
 					append("&series_type=Comic&perPage=12")

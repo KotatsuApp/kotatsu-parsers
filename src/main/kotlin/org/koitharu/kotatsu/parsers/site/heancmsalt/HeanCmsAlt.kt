@@ -99,7 +99,8 @@ internal abstract class HeanCmsAlt(
 					MangaChapter(
 						id = generateUid(url),
 						name = a.selectFirstOrThrow(selectChapterTitle).text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = url,
 						scanlator = null,
 						uploadDate = parseChapterDate(

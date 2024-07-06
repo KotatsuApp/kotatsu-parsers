@@ -8,4 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("SCANHENTAIMENU", "ScanHentai.Menu", "fr", ContentType.HENTAI)
 internal class ScanHentaiMenu(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SCANHENTAIMENU, "scan.hentai.menu")
+	MadaraParser(context, MangaSource.SCANHENTAIMENU, "x-manga.net")

@@ -155,7 +155,8 @@ internal class Mangaowl(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					name = name,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					uploadDate = dateFormat.tryParse(date),
 					source = source,

@@ -23,8 +23,8 @@ private const val MIN_SPLIT_COUNT = 5
 internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
 	source: MangaSource,
-	private val siteLang: String
-): PagedMangaParser(context, source, 30), Interceptor {
+	private val siteLang: String,
+) : PagedMangaParser(context, source, 30), Interceptor {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 
@@ -44,7 +44,7 @@ internal abstract class MangaFireParser(
 				MangaTag(
 					title = it.selectFirstOrThrow("label").ownText().toTitleCase(sourceLocale),
 					key = it.selectFirstOrThrow("input").attr("value"),
-					source = source
+					source = source,
 				)
 			}.associateBy { it.title }
 	}
@@ -73,7 +73,7 @@ internal abstract class MangaFireParser(
 								SortOrder.NEWEST -> "release_date"
 								SortOrder.ALPHABETICAL -> "title_az"
 								else -> ""
-							}
+							},
 						)
 					}
 				}
@@ -97,7 +97,7 @@ internal abstract class MangaFireParser(
 								MangaState.ABANDONED -> "discontinued"
 								MangaState.PAUSED -> "on_hiatus"
 								MangaState.UPCOMING -> "info"
-							}
+							},
 						)
 					}
 					addQueryParameter(
@@ -109,7 +109,7 @@ internal abstract class MangaFireParser(
 							SortOrder.NEWEST -> "release_date"
 							SortOrder.ALPHABETICAL -> "title_az"
 							else -> ""
-						}
+						},
 					)
 				}
 
@@ -176,14 +176,14 @@ internal abstract class MangaFireParser(
 			author = document.select("div.meta a[href*=/author/]")
 				.joinToString { it.ownText().trim() },
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
-			chapters = getChapters(manga.url, document)
+			chapters = getChapters(manga.url, document),
 		)
 	}
 
 	private data class ChapterBranch(
 		val type: String,
 		val langCode: String,
-		val langTitle: String
+		val langTitle: String,
 	)
 
 	private suspend fun getChapters(mangaUrl: String, document: Document): List<MangaChapter> {
@@ -252,7 +252,7 @@ internal abstract class MangaFireParser(
 				scanlator = null,
 				uploadDate = dateFormat.tryParse(it.attr("upload-date")),
 				branch = "${branch.langTitle} ${branch.type.toTitleCase()}",
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -263,7 +263,7 @@ internal abstract class MangaFireParser(
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> = coroutineScope {
 		val document = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
 		val total = document.select(
-			"section.m-related a[href*=/manga/], .side-manga:not(:has(.head:contains(trending))) .unit"
+			"section.m-related a[href*=/manga/], .side-manga:not(:has(.head:contains(trending))) .unit",
 		).size
 		val mangas = ArrayList<Manga>(total)
 
@@ -322,7 +322,7 @@ internal abstract class MangaFireParser(
 					rating = RATING_UNKNOWN,
 					state = null,
 					tags = emptySet(),
-				)
+				),
 			)
 		}
 
@@ -366,8 +366,8 @@ internal abstract class MangaFireParser(
 						"$url#scrambled_$offset"
 					},
 					preview = null,
-					source = source
-				)
+					source = source,
+				),
 			)
 		}
 

@@ -90,7 +90,8 @@ internal class Komikcast(context: MangaLoaderContext) :
 				id = generateUid(url),
 				name = element.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
 				url = url,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				scanlator = null,
 				uploadDate = parseChapterDate(
 					dateFormat,

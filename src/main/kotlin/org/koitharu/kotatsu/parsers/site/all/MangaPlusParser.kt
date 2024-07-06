@@ -324,6 +324,6 @@ internal abstract class MangaPlusParser(
 	class German(context: MangaLoaderContext) : MangaPlusParser(
 		context,
 		MangaSource.MANGAPLUSPARSER_DE,
-		"GERMAN"
+		"GERMAN",
 	)
 }

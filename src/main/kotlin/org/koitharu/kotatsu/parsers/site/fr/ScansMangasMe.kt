@@ -138,7 +138,8 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow("span.mobile chapter").text(),
-				number = i + 1,
+				number = li.selectFirstOrThrow("span.mobile chapter").text().substringAfterLast(" ").toFloat(),
+				volume = 0,
 				url = href,
 				uploadDate = 0,
 				source = source,

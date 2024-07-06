@@ -28,7 +28,8 @@ internal class Neoxscans(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = link,
 				name = name,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,

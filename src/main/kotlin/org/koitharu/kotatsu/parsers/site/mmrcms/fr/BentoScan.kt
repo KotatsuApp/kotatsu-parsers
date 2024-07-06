@@ -10,4 +10,5 @@ import java.util.Locale
 internal class BentoScan(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaSource.BENTOSCAN, "bentoscan.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val imgUpdated = ".jpg"
 }

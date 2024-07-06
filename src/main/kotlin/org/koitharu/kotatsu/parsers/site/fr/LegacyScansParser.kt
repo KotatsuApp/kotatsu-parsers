@@ -1,13 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import okhttp3.Headers
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
@@ -146,7 +144,8 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 					MangaChapter(
 						id = generateUid(href),
 						name = name,
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(dateText),

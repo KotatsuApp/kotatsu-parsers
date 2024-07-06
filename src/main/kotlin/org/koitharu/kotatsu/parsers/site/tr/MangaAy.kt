@@ -167,7 +167,8 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaSour
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(tr.selectFirstOrThrow("time").attr("datetime")),

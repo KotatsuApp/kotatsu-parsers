@@ -99,7 +99,8 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 				MangaChapter(
 					id = generateUid(href),
 					name = a.text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					uploadDate = 0,

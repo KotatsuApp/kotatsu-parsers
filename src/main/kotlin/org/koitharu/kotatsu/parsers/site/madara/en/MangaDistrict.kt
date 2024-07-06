@@ -33,7 +33,8 @@ internal class MangaDistrict(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = a.ownText(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

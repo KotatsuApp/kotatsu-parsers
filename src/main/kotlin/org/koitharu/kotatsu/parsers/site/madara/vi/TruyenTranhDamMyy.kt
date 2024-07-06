@@ -26,7 +26,8 @@ internal class TruyenTranhDamMyy(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = link,
 				name = name,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				branch = null,
 				uploadDate = 0, // Correct datePattern not found.
 				scanlator = null,

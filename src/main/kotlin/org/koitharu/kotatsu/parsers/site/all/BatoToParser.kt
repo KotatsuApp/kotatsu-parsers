@@ -11,7 +11,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.isNullOrEmpty
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.*
@@ -319,7 +318,8 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = a.text(),
-			number = index + 1,
+			number = index + 1f,
+			volume = 0,
 			url = href,
 			scanlator = extra?.getElementsByAttributeValueContaining("href", "/group/")?.text(),
 			uploadDate = runCatching {

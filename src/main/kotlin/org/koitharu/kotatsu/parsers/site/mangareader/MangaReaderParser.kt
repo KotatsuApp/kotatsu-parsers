@@ -29,6 +29,13 @@ internal abstract class MangaReaderParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
 			SortOrder.UPDATED,
@@ -156,7 +163,8 @@ internal abstract class MangaReaderParser(
 				id = generateUid(url),
 				name = element.selectFirst(".chapternum")?.text() ?: "Chapter ${index + 1}",
 				url = url,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				scanlator = null,
 				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
 				branch = null,

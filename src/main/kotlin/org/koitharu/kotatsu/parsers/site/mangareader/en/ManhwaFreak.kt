@@ -90,7 +90,8 @@ internal class ManhwaFreak(context: MangaLoaderContext) :
 				id = generateUid(url),
 				name = a.selectFirst(".chapter-info p:contains(Chapter)")?.text() ?: "Chapter ${index + 1}",
 				url = url,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				scanlator = null,
 				uploadDate = if (dateText == "NEW") {
 					parseChapterDate(

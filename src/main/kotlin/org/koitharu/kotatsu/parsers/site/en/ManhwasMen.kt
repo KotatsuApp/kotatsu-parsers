@@ -113,7 +113,8 @@ class ManhwasMen(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					name = li.selectFirstOrThrow(".flex-grow-1 span").text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = parseChapterDate(

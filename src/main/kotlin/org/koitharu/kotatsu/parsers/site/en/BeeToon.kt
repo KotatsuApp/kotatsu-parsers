@@ -109,7 +109,8 @@ internal class BeeToon(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					name = a.selectFirstOrThrow(".chap").text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH)
