@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.model.*
 @MangaSourceParser("MANGAWORLDADULT", "MangaWorldAdult", "it")
 internal class MangaWorldAdult(
 	context: MangaLoaderContext,
-) : MangaWorldParser(context, MangaSource.MANGAWORLD, "mangaworldadult.net")
+) : MangaWorldParser(context, MangaSource.MANGAWORLDADULT, "mangaworldadult.net")
