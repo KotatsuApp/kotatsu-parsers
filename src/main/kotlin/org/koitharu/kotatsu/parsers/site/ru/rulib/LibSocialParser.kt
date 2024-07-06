@@ -179,6 +179,7 @@ internal abstract class LibSocialParser(
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(splitTranslationsKey)
+		keys.add(preferredServerKey)
 	}
 
 	private fun parseManga(jo: JSONObject): Manga {
