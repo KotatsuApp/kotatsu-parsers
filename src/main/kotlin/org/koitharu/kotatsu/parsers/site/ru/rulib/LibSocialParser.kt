@@ -40,6 +40,7 @@ internal abstract class LibSocialParser(
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(true)
 	private val preferredServerKey = ConfigKey.PreferredImageServer(
 		presetValues = mapOf(
+			null to null,
 			SERVER_MAIN to "Первый",
 			SERVER_SECONDARY to "Второй",
 			SERVER_COMPRESS to "Сжатия",
@@ -86,7 +87,7 @@ internal abstract class LibSocialParser(
 				SortOrder.NEWEST -> "created_at"
 				SortOrder.ALPHABETICAL,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "rus_name"
+					-> "rus_name"
 			},
 		)
 		urlBuilder.addQueryParameter(
@@ -97,7 +98,7 @@ internal abstract class LibSocialParser(
 				SortOrder.RATING,
 				SortOrder.NEWEST,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "desc"
+					-> "desc"
 
 				SortOrder.ALPHABETICAL -> "asc"
 			},
