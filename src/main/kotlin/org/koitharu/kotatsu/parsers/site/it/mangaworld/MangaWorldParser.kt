@@ -142,7 +142,7 @@ abstract class MangaWorldParser(
 					name = a.selectFirstOrThrow("span.d-inline-block").text(),
 					number = i + 1f,
 					volume = 0,
-					url = url,
+					url = "$url?style=list",
 					scanlator = null,
 					uploadDate =
 					SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
@@ -158,7 +158,7 @@ abstract class MangaWorldParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val selectWebtoonPages = "img.page-image"
-		val selectMangaPages = "#page .img-fluid"
+		val selectMangaPages = "img.img-fluid"
 		val imgSelector = if (doc.select(selectWebtoonPages).isNotEmpty()) selectWebtoonPages else selectMangaPages
 		return doc.select(imgSelector).map { img ->
 			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
