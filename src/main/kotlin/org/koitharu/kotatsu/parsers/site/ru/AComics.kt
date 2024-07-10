@@ -142,7 +142,8 @@ internal class AComics(context: MangaLoaderContext) :
 				MangaChapter(
 					id = manga.id,
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = manga.url.replace("/about", "/"),
 					scanlator = null,
 					uploadDate = 0,

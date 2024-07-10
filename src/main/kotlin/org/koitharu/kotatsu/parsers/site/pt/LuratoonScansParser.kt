@@ -6,6 +6,7 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
@@ -16,13 +17,14 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.zip.ZipInputStream
 
-@MangaSourceParser("RANDOMSCANS", "Luratoon Scan", "pt")
+@Broken // Not dead but totally changed structure
+@MangaSourceParser("RANDOMSCANS", "LuratoonScan", "pt")
 internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(context, MangaSource.RANDOMSCANS),
 	Interceptor {
 
 	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)
 
-	override val configKeyDomain = ConfigKey.Domain("luratoon.com")
+	override val configKeyDomain = ConfigKey.Domain("luratoons.com")
 
 	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 

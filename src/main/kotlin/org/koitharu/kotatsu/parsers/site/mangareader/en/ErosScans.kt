@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("FLAMECOMICS", "FlameComics", "en")
-internal class FlameComics(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.FLAMECOMICS, "flamecomics.me", pageSize = 24, searchPageSize = 10) {
-	override val listUrl = "/series"
-}
+@MangaSourceParser("EROSSCANS", "ErosScans", "en")
+internal class ErosScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaSource.EROSSCANS, "erosscans.xyz", pageSize = 20, searchPageSize = 10)

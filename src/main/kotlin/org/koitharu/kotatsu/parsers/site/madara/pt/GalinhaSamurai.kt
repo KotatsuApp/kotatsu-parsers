@@ -5,8 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("GALINHASAMURAI", "Galinha Samurai", "pt")
+@MangaSourceParser("GALINHASAMURAI", "GalinhaSamurai", "pt")
 internal class GalinhaSamurai(context: MangaLoaderContext) :
 	MadaraParser(context, MangaSource.GALINHASAMURAI, "galinhasamurai.com") {
 	override val datePattern = "dd/MM/yyyy"
+	override val withoutAjax = true
 }

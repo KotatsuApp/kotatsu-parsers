@@ -133,7 +133,8 @@ class TruyentranhLHParser(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(element.attrAsRelativeUrl("href")),
 					name = element.selectFirst(".chapter-name")?.text()?.trim().orEmpty(),
-					number = index + 1,
+					number = index + 1f,
+					volume = 0,
 					url = element.attrAsRelativeUrl("href"),
 					scanlator = null,
 					uploadDate = chapterDateFormat.tryParse(element.selectFirst(".chapter-time")?.text()),

@@ -244,7 +244,8 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaSo
 			MangaChapter(
 				id = generateUid(titleEl.attrAsRelativeUrl("href")),
 				name = titleEl.text(),
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				url = titleEl.attrAsRelativeUrl("href"),
 				scanlator = null,
 				uploadDate = chapterDateFormat.tryParse(dateStr),

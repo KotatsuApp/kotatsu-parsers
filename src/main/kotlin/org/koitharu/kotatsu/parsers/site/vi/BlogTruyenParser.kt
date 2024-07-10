@@ -197,7 +197,8 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(id),
 				name = name,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				url = relativeUrl,
 				scanlator = null,
 				uploadDate = uploadDate,

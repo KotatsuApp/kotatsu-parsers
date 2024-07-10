@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("CRYSTALSCAN", "CrystalScan", "pt")
+@MangaSourceParser("CRYSTALSCAN", "CrystalComics", "pt")
 internal class CrystalScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.CRYSTALSCAN, "crystalscan.net")
+	MadaraParser(context, MangaSource.CRYSTALSCAN, "crystalcomics.com")

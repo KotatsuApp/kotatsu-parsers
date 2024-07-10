@@ -91,7 +91,8 @@ internal abstract class GuyaParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = chapter.getString("title"),
-					number = i,
+					number = i.toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = 0,

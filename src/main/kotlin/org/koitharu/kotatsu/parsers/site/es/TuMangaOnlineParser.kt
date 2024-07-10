@@ -147,7 +147,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = "One Shot",
-			number = 1,
+			number = 1f,
+			volume = 0,
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
@@ -163,7 +164,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = chName,
-			number = number + 1,
+			number = number + 1f,
+			volume = 0,
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,

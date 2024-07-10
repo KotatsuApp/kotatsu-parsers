@@ -219,7 +219,8 @@ internal abstract class LikeMangaParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = li.selectFirstOrThrow("a").text(),
-					number = chapNum.toInt(),
+					number = chapNum.toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = parseChapterDate(
