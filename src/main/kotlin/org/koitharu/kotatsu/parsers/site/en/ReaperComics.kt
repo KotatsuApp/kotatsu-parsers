@@ -35,9 +35,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(
-		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-	)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
@@ -171,7 +169,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
-		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toIntOrNull() ?: 0) - 1
+		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toFloatOrNull() ?: 0f) - 1f
 		val chapters = mutableSetOf<MangaChapter>()
 		var hasNextPage = doc.selectFirst(chapterListNextPageSelector()) != null
 		chapters.addAll(
@@ -182,6 +180,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 					id = generateUid(chapterUrl),
 					name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
 					number = totalChapters--,
+					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
 					uploadDate = parseChapterDate(
@@ -256,6 +255,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 						id = generateUid(chapterUrl),
 						name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
 						number = totalChapters--,
+						volume = 0,
 						url = chapterUrl,
 						scanlator = null,
 						uploadDate = parseChapterDate(

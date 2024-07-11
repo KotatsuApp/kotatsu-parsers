@@ -91,7 +91,7 @@ internal abstract class ScanParser(
 		return getOrCreateTagMap().values.toSet()
 	}
 
-	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
 		val tagElements = webClient.httpGet("https://$domain/manga").parseHtml()

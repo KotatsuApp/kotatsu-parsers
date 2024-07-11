@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.requireElementById
 
 @MangaSourceParser("GUILDATIERDRAW", "GuildaTierDraw", "pt")
 internal class GuildaTierDraw(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.GUILDATIERDRAW, "www.guildatierdraw.com") {
+	ZeistMangaParser(context, MangaSource.GUILDATIERDRAW, "www.guildatierdraw.top") {
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
