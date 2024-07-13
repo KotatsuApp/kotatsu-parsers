@@ -5,9 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("TOPMANHUA", "TopManhua", "en")
+@MangaSourceParser("TOPMANHUA", "ManhuaTop", "en")
 internal class TopManhua(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TOPMANHUA, "topmanhua.com") {
+	MadaraParser(context, MangaSource.TOPMANHUA, "manhuatop.org") {
 	override val tagPrefix = "manhua-genre/"
+	override val listUrl = "manhua/"
 	override val datePattern = "MM/dd/yyyy"
 }

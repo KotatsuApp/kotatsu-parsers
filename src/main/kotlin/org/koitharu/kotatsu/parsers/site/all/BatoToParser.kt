@@ -104,7 +104,12 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 					filter.locale?.let {
 						append("&langs=")
-						append(it.language)
+						if (it.language == "in") {
+							append("id")
+						} else {
+							append(it.language)
+						}
+
 					}
 
 					append("&genres=")

@@ -5,6 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SUSSYSCAN", "SussyScan", "pt")
-internal class SussyScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SUSSYSCAN, "oldi.sussytoons.com")
+@MangaSourceParser("LEITORDEMANGA", "LeitorDeManga", "pt")
+internal class LeitorDeManga(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.LEITORDEMANGA, "leitordemanga.com", 10) {
+	override val datePattern = "dd/MM/yyyy"
+	override val listUrl = "ler-manga/"
+}

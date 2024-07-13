@@ -15,7 +15,7 @@ import java.util.*
 @MangaSourceParser("YUGENMANGAS", "YugenApp", "pt")
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YUGENMANGAS, 28) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("yugenapp.lat")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -40,13 +40,22 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 				is MangaListFilter.Advanced -> {
 
-
-					val url = buildString {
-						append("https://api.")
-						append(domain)
-						append("/api/latest_updates/")
+					if (filter.sortOrder == SortOrder.UPDATED) {
+						val url = buildString {
+							append("https://api.")
+							append(domain)
+							append("/api/latest_updates/")
+						}
+						webClient.httpGet(url).parseJsonArray()
+					} else {
+						val url = buildString {
+							append("https://api.")
+							append(domain)
+							append("/api/series_novels/all_series/")
+						}
+						webClient.httpGet(url).parseJson().getJSONArray("series")
 					}
-					webClient.httpGet(url).parseJsonArray()
+
 				}
 
 				null -> {

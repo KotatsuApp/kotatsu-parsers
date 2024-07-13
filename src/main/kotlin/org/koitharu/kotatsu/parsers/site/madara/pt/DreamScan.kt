@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("SUSSYSCAN", "SussyScan", "pt")
-internal class SussyScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SUSSYSCAN, "oldi.sussytoons.com")
+@MangaSourceParser("DREAMSCAN", "DreamScan", "pt")
+internal class DreamScan(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.DREAMSCAN, "dreamscan.com.br")

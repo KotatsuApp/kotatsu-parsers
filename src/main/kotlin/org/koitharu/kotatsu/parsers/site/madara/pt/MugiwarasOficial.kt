@@ -2,12 +2,11 @@ package org.koitharu.kotatsu.parsers.site.madara.pt
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MAIDSCAN", "MaidScan", "pt", ContentType.HENTAI)
-internal class MaidScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MAIDSCAN, "maidscans.com", 10) {
+@MangaSourceParser("MUGIWARASOFICIAL", "MugiwarasOficial", "pt")
+internal class MugiwarasOficial(context: MangaLoaderContext) :
+	MadaraParser(context, MangaSource.MUGIWARASOFICIAL, "mugiwarasoficial.com") {
 	override val datePattern: String = "dd/MM/yyyy"
 }

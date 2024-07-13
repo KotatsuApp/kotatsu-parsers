@@ -32,7 +32,9 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 
 				is MangaListFilter.Search -> {
 					append(searchUrl)
-					append(filter.query.urlEncoded())
+					val regex = Regex("[^A-Za-z0-9 ]")
+					val q = regex.replace(filter.query, "")
+					append(q.replace(" ", "_"))
 					append("?page=")
 				}
 
