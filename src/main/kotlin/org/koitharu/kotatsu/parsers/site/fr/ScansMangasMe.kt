@@ -132,7 +132,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 	}
 
 	private fun getChapters(doc: Document): List<MangaChapter> {
-		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { i, li ->
+		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { _, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(

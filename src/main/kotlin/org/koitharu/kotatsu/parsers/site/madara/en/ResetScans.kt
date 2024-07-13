@@ -27,7 +27,7 @@ internal class ResetScans(context: MangaLoaderContext) :
 			webClient.httpPost(url, emptyMap()).parseHtml()
 		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
+		return doc.select(selectChapter).mapChapters(reversed = true) { _, li ->
 			val a = li.getElementsByTag("a").findWithText()
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylePage
