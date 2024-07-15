@@ -160,7 +160,8 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 					id = generateUid(href),
 					url = href,
 					source = MangaParserSource.MANGATOWN,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					uploadDate = parseChapterDate(
 						dateFormat,
 						li.selectFirst("span.time")?.text(),
@@ -176,10 +177,10 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirstOrThrow("div.page_select")
-		val isManga = root.select("select")
+		val root = doc.body().selectFirst("div.page_select")
+		val isManga = root?.select("select")
 
-		if (isManga.isEmpty()) {//Webtoon
+		if (isManga.isNullOrEmpty()) {//Webtoon
 			val imgElements = doc.select("div#viewer.read_img img.image")
 			return imgElements.map {
 				val href = it.attr("src")
@@ -256,7 +257,8 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				source = MangaParserSource.MANGATOWN,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				uploadDate = parseChapterDate(
 					dateFormat,
 					li.selectFirst("span.time")?.text(),

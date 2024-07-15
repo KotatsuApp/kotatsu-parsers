@@ -109,7 +109,8 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = div.selectFirstOrThrow("div.title").text() + " : " + div.selectFirstOrThrow("div.name").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

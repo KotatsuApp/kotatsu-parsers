@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("ROCKSMANGA", "RocksManga", "ar")
-internal class RocksManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ROCKSMANGA, "rocks-manga.com")
+@MangaSourceParser("MANGAPEAK", "MangaPeak", "ar")
+internal class MangaPeak(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.MANGAPEAK, "mangapeak.org")

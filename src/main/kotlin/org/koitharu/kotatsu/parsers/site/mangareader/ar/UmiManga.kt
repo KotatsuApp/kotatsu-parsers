@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("UMIMANGA", "UmiManga", "ar")
-internal class BeastScans(context: MangaLoaderContext) :
+internal class UmiManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.UMIMANGA, "www.umimanga.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

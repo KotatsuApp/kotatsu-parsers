@@ -131,7 +131,8 @@ internal class HentaiEra(context: MangaLoaderContext) :
 				MangaChapter(
 					id = manga.id,
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = urlChapters,
 					scanlator = null,
 					uploadDate = 0,

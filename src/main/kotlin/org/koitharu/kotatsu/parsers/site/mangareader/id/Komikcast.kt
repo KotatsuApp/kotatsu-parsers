@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("KOMIKCAST", "KomikCast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast.lol", pageSize = 60, searchPageSize = 28) {
+	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast.cz", pageSize = 60, searchPageSize = 28) {
 
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
@@ -90,7 +90,8 @@ internal class Komikcast(context: MangaLoaderContext) :
 				id = generateUid(url),
 				name = element.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
 				url = url,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				scanlator = null,
 				uploadDate = parseChapterDate(
 					dateFormat,

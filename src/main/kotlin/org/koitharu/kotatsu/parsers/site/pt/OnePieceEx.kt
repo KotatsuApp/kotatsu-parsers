@@ -73,7 +73,8 @@ class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaP
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = 0,
@@ -92,7 +93,8 @@ class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaP
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = 0,

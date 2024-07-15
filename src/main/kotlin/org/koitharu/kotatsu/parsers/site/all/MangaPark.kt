@@ -193,7 +193,8 @@ internal class MangaPark(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(href),
 					name = a.text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					uploadDate = parseChapterDate(
 						dateFormat,
@@ -256,7 +257,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 			.findAll(script)
 			.mapNotNullTo(ArrayList()) {
 				val url = it.groupValues.getOrNull(1) ?: return@mapNotNullTo null
-				if (url.contains("/comic/") || url.contains("/manga/")) {
+				if (url.contains("/comic/") || url.contains("/manga/") || url.contains("/image/mpup/")) {
 					MangaPage(
 						id = generateUid(url),
 						url = url,

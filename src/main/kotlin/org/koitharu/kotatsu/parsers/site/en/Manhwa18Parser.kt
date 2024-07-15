@@ -161,7 +161,8 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(chapterUrl),
 					name = element.selectFirst(".chapter-name")?.text().orEmpty(),
-					number = index + 1,
+					number = index + 1f,
+					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
 					uploadDate = uploadDate,

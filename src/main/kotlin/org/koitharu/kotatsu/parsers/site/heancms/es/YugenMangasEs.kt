@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.heancms.es
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -7,6 +8,7 @@ import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 
+@Broken // Not dead but changed template and url visualikigai.com
 @MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas.lat", "es", ContentType.HENTAI)
 internal class YugenMangasEs(context: MangaLoaderContext) :
 	HeanCms(context, MangaParserSource.YUGEN_MANGAS_ES, "yugenmangas.lat") {
@@ -43,8 +45,8 @@ internal class YugenMangasEs(context: MangaLoaderContext) :
 						SortOrder.POPULARITY -> append("total_views&order=desc")
 						SortOrder.UPDATED -> append("latest&order=desc")
 						SortOrder.NEWEST -> append("created_at&order=desc")
-						SortOrder.ALPHABETICAL -> append("title&order=desc")
-						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
+						SortOrder.ALPHABETICAL -> append("title&order=asc")
+						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")
 					}
 					append("&series_type=Comic&perPage=12")

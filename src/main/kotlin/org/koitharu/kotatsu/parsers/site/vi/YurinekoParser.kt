@@ -89,7 +89,8 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 					MangaChapter(
 						id = generateUid(chapterId.toLong()),
 						name = jo.getString("name"),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						scanlator = null,
 						url = "/read/$mangaId/$chapterId",
 						uploadDate = df.tryParse(jo.getString("date")),

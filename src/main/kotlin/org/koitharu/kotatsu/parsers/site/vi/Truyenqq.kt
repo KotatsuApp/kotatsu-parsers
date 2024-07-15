@@ -17,7 +17,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("truyenqqvn.com")
+	override val configKeyDomain = ConfigKey.Domain("truyenqqviet.com")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
@@ -138,7 +138,8 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 				MangaChapter(
 					id = generateUid(href),
 					name = name,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(dateText),

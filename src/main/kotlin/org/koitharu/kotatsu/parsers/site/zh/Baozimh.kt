@@ -179,7 +179,8 @@ internal class Baozimh(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					name = a.selectFirstOrThrow("span").text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = 0,

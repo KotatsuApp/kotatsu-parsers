@@ -1,7 +1,7 @@
-package org.koitharu.kotatsu.parsers.site.it
+package org.koitharu.kotatsu.parsers.site.it.mangaworld
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -9,14 +9,28 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAWORLD", "mangaworld.ac", "it")
-internal class MangaWorld(
+abstract class MangaWorldParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.MANGAWORLD, pageSize = 16) {
+	source: MangaParserSource,
+	domain: String,
+	pageSize: Int = 16,
+) : PagedMangaParser(context, source, pageSize) {
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC)
+		EnumSet.of(
+			SortOrder.POPULARITY,
+			SortOrder.ALPHABETICAL,
+			SortOrder.NEWEST,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.UPDATED,
+		)
 
-	override val configKeyDomain = ConfigKey.Domain("mangaworld.ac")
+	override val defaultSortOrder: SortOrder
+		get() = SortOrder.ALPHABETICAL
+
+	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
 
 	override val isMultipleTagsSupported = true
 
@@ -36,6 +50,10 @@ internal class MangaWorld(
 					}
 
 					is MangaListFilter.Advanced -> {
+						if (filter.tags.isEmpty() && filter.states.isEmpty() && filter.sortOrder == SortOrder.UPDATED) return parseMangaList(
+							webClient.httpGet("https://$domain/?page=$page").parseHtml(),
+						)
+
 						if (filter.tags.isNotEmpty()) {
 							filter.tags.joinTo(this, "&") { it.key.substringAfter("archive?") }
 						}
@@ -61,6 +79,10 @@ internal class MangaWorld(
 				append("&page=$page")
 			}
 		val doc = webClient.httpGet(url).parseHtml()
+		return parseMangaList(doc)
+	}
+
+	private fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select(".comics-grid .entry").map { div ->
 			val href = div.selectFirstOrThrow("a.thumb").attrAsRelativeUrl("href")
 			val tags = div.select(".genres a[href*=/archive?genre=]")
@@ -89,15 +111,26 @@ internal class MangaWorld(
 		}
 	}
 
+
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
+		val genres = doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
 			MangaTag(
 				key = it.attr("href"),
 				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
+
+		val types = doc.select("div[aria-labelledby=typesDropdown] a").mapNotNullToSet {
+			MangaTag(
+				key = it.attr("href"),
+				title = it.text().toTitleCase(sourceLocale),
+				source = source,
+			)
+		}
+
+		return genres + types
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -116,8 +149,9 @@ internal class MangaWorld(
 				MangaChapter(
 					id = generateUid(url),
 					name = a.selectFirstOrThrow("span.d-inline-block").text(),
-					number = i + 1,
-					url = url,
+					number = i + 1f,
+					volume = 0,
+					url = "$url?style=list",
 					scanlator = null,
 					uploadDate =
 					SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
@@ -132,7 +166,10 @@ internal class MangaWorld(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("img.page-image").map { img ->
+		val selectWebtoonPages = "img.page-image"
+		val selectMangaPages = "img.img-fluid"
+		val imgSelector = if (doc.select(selectWebtoonPages).isNotEmpty()) selectWebtoonPages else selectMangaPages
+		return doc.select(imgSelector).map { img ->
 			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(urlPage),

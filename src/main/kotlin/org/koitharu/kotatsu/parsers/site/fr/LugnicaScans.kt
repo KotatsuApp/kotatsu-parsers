@@ -183,7 +183,8 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					name = "Chapitre : $id",
-					number = i,
+					number = i.toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(date),

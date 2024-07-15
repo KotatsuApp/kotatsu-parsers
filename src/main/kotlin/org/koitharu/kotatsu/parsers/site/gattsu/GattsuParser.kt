@@ -115,7 +115,8 @@ internal abstract class GattsuParser(
 				MangaChapter(
 					id = manga.id,
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = urlChapter,
 					scanlator = null,
 					uploadDate = 0,

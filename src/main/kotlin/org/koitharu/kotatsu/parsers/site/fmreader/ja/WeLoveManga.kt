@@ -25,7 +25,8 @@ internal class WeLoveManga(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("a").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

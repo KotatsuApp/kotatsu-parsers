@@ -31,7 +31,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					append("/series?search=")
+					append("/?search=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
 						append("&page=")
@@ -95,7 +95,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src()?.replace("thumbnail_", "").orEmpty(),
 				tags = emptySet(),
 				state = when (div.selectFirst(".status")?.text()) {
 					"مستمرة" -> MangaState.ONGOING
@@ -183,7 +183,8 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				MangaChapter(
 					id = generateUid(url),
 					name = li.selectFirstOrThrow(".epl-title").text(),
-					number = url.substringAfterLast('/').toIntOrNull() ?: 0,
+					number = url.substringAfterLast('/').toFloatOrNull() ?: 0f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(li.selectFirstOrThrow(".epl-date").text()),

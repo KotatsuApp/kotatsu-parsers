@@ -186,7 +186,8 @@ internal abstract class OtakuSanctuaryParser(
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = i,
+						number = i.toFloat(),
+						volume = 0,
 						url = url,
 						scanlator = null,
 						uploadDate = parseChapterDate(

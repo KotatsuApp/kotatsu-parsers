@@ -108,7 +108,8 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow(".chapter-title").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

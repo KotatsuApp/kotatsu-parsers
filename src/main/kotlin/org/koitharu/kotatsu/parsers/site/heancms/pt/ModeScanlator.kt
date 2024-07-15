@@ -45,8 +45,8 @@ internal class ModeScanlator(
 						SortOrder.POPULARITY -> append("total_views&order=desc")
 						SortOrder.UPDATED -> append("latest&order=desc")
 						SortOrder.NEWEST -> append("created_at&order=desc")
-						SortOrder.ALPHABETICAL -> append("title&order=desc")
-						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
+						SortOrder.ALPHABETICAL -> append("title&order=asc")
+						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")
 					}
 					append("&series_type=All&perPage=")
@@ -108,7 +108,7 @@ internal class ModeScanlator(
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
 
 		val chaptersJsonArray = json.getJSONArray("data")
-		var totalChapters = json.getJSONObject("meta").getInt("total")
+		var totalChapters = json.getJSONObject("meta").getInt("total").toFloat()
 		val chapters = chaptersJsonArray.mapJSON { j ->
 			val slug = j.getJSONObject("series").getString("series_slug")
 			val chapterUrl = "https://$domain/$pathManga/$slug/${j.getString("chapter_slug")}"
@@ -118,6 +118,7 @@ internal class ModeScanlator(
 				url = chapterUrl,
 				name = j.getString("chapter_name"),
 				number = totalChapters--,
+				volume = 0,
 				branch = null,
 				uploadDate = dateFormat.tryParse(date),
 				scanlator = null,

@@ -8,7 +8,7 @@ import java.util.*
 
 @MangaSourceParser("SCANMANGAVF_WS", "ScanMangaVf.ws", "fr")
 internal class ScanMangaVfWs(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaParserSource.SCANMANGAVF_WS, "scanmanga-vf.ws") {
+	MmrcmsParser(context, MangaParserSource.SCANMANGAVF_WS, "scanmanga-vf.me") {
 	override val imgUpdated = ".jpg"
 	override val selectTag = "dt:contains(Genres)"
 	override val selectAlt = "dt:contains(Appelé aussi)"

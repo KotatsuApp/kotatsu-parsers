@@ -122,7 +122,8 @@ internal abstract class VmpParser(
 				MangaChapter(
 					id = manga.id,
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = manga.url,
 					scanlator = null,
 					uploadDate = 0,

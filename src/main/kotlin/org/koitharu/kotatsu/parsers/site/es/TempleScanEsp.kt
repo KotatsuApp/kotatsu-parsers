@@ -96,7 +96,8 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(href),
 					name = div.requireElementById("name").text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = href,
 					uploadDate = date,
 					source = source,

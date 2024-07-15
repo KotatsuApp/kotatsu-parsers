@@ -144,7 +144,8 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 					MangaChapter(
 						id = generateUid(href),
 						name = name,
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(dateText),

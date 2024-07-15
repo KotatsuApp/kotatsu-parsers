@@ -5,6 +5,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -15,6 +16,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import java.util.*
 
+@Broken
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
 internal class BentomangaParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BENTOMANGA, 10) {
@@ -227,7 +229,8 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(href),
 					name = if (name != null && name != title) "$title: $name" else title,
-					number = href.substringAfterLast('/').toIntOrNull() ?: 0,
+					number = href.substringAfterLast('/').toFloatOrNull() ?: 0f,
+					volume = 0,
 					url = href,
 					scanlator = div.selectFirst(".team_link-name")?.textOrNull(),
 					uploadDate = div.selectFirst(".component-chapter-date")

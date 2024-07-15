@@ -35,7 +35,8 @@ internal class Brakeout(context: MangaLoaderContext) :
 					MangaChapter(
 						id = generateUid(url),
 						name = div.selectFirstOrThrow(selectChapterTitle).text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = url,
 						scanlator = null,
 						uploadDate = parseChapterDate(

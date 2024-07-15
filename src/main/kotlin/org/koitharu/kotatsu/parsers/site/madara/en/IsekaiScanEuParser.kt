@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("ISEKAISCAN_EU", "IsekaiScan.to", "en")
+@MangaSourceParser("ISEKAISCAN_EU", "ParagonScans", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.ISEKAISCAN_EU, "paragonscans.com") {
 

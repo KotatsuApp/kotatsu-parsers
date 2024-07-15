@@ -176,7 +176,8 @@ internal abstract class SinmhParser(
 			MangaChapter(
 				id = generateUid(href),
 				name = name,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = 0,
 				source = source,

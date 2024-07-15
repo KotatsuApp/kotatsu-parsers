@@ -86,7 +86,8 @@ internal abstract class WebtoonsParser(
 			MangaChapter(
 				id = generateUid("$titleNo-$i"),
 				name = jo.getString("episodeTitle"),
-				number = jo.getInt("episodeSeq"),
+				number = jo.getInt("episodeSeq").toFloat(),
+				volume = 0,
 				url = "$titleNo-${jo.get("episodeNo")}",
 				uploadDate = jo.getLong("registerYmdt"),
 				branch = null,

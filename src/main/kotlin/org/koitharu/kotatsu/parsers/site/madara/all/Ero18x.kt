@@ -33,7 +33,8 @@ internal class Ero18x(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = name,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = link,
 				uploadDate = if (dateText == "Newly Published!") {
 					parseChapterDate(

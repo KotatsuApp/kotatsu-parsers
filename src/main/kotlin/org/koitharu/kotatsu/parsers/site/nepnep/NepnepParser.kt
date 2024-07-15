@@ -61,7 +61,7 @@ internal abstract class NepnepParser(
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
 			val lastUpdate = m.getLong("lt")
 			val views = m.getString("v")
-			val viewMonth = m.getString("vm")
+			//val viewMonth = m.getString("vm")
 
 			when (filter) {
 
@@ -223,7 +223,8 @@ internal abstract class NepnepParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = name,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(date),

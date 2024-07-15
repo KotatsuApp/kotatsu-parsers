@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("JIANGZAITOON", "JiangzaiToon", "tr", ContentType.HENTAI)
 internal class Jiangzaitoon(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.JIANGZAITOON, "jiangzaitoon.cc") {
+	MadaraParser(context, MangaParserSource.JIANGZAITOON, "jiangzaitoon.dev") {
 	override val datePattern = "d MMMM yyyy"
+	override val postReq = true
 }

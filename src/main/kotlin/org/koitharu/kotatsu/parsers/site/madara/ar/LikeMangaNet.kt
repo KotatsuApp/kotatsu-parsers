@@ -6,5 +6,5 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("LIKEMANGANET", "Like-Manga.net", "ar")
-internal class MangaLikeNet(context: MangaLoaderContext) :
+internal class LikeMangaNet(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.LIKEMANGANET, "like-manga.net", pageSize = 10)

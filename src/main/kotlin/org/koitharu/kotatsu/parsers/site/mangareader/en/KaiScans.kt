@@ -8,6 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("KAISCANS", "KaiScans", "en")
 internal class KaiScans(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.KAISCANS, "kaiscans.org", pageSize = 20, searchPageSize = 10) {
-	override val listUrl = "/series"
 	override val isTagsExclusionSupported = false
 }

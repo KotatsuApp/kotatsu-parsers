@@ -155,7 +155,8 @@ internal abstract class FoolSlideParser(
 			MangaChapter(
 				id = generateUid(href),
 				name = a.text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = if (div.selectFirstOrThrow(selectDate).text().contains(", ")) {
 					dateFormat.tryParse(dateText)

@@ -125,7 +125,8 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = a.selectFirstOrThrow("div.chapter-name").text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = href,
 				uploadDate = parseChapterDate(
 					dateFormat,

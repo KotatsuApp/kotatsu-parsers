@@ -212,7 +212,8 @@ internal class ExHentaiParser(
 					chapters += MangaChapter(
 						id = generateUid(url),
 						name = "${manga.title} #$i",
-						number = i,
+						number = i.toFloat(),
+						volume = 0,
 						url = url,
 						uploadDate = 0L,
 						source = source,

@@ -104,7 +104,12 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 					filter.locale?.let {
 						append("&langs=")
-						append(it.language)
+						if (it.language == "in") {
+							append("id")
+						} else {
+							append(it.language)
+						}
+
 					}
 
 					append("&genres=")
@@ -318,7 +323,8 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = a.text(),
-			number = index + 1,
+			number = index + 1f,
+			volume = 0,
 			url = href,
 			scanlator = extra?.getElementsByAttributeValueContaining("href", "/group/")?.text(),
 			uploadDate = runCatching {

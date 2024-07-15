@@ -1,11 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.heancms
 
-import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
@@ -20,8 +18,16 @@ internal abstract class HeanCms(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
@@ -30,15 +36,11 @@ internal abstract class HeanCms(
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
 
 	protected open val pathManga = "series"
 	protected open val apiPath
 		get() = getDomain("api")
 
-	//For some sources, you need to send a json. For the moment, this part only works in Get. ( ex source need json gloriousscan.com , omegascans.org )
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
@@ -147,7 +149,8 @@ internal abstract class HeanCms(
 				MangaChapter(
 					id = generateUid(url),
 					name = name,
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = dateFormat.tryParse(date),

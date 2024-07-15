@@ -127,7 +127,8 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 					MangaChapter(
 						id = generateUid(url),
 						name = titleTag.text(),
-						number = index + 1,
+						number = index + 1f,
+						volume = 0,
 						url = url,
 						scanlator = null,
 						uploadDate = chapterDateFormat.tryParse(element.select(".epsleft > .date").text()),

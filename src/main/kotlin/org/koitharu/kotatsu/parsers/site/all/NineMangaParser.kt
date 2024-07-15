@@ -145,7 +145,8 @@ internal abstract class NineMangaParser(
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
-						number = i + 1,
+						number = i + 1f,
+						volume = 0,
 						url = href,
 						uploadDate = parseChapterDateByLang(li.selectFirst("span")?.text().orEmpty()),
 						source = source,

@@ -101,7 +101,8 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 				MangaChapter(
 					id = generateUid(url),
 					name = a.text(),
-					number = i + 1,
+					number = i + 1f,
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = 0,

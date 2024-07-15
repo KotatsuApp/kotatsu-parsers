@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PARAGONSCANS", "ParagonScans", "en")
-internal class Paragonscans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.PARAGONSCANS, "paragonscans.com", pageSize = 50) {
-	override val datePattern = "MM/dd/yyyy"
+@MangaSourceParser("MANGATX_TO", "MangaTx.to", "en")
+internal class MangaTxTo(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.MANGATX_TO, "mangatx.to", 10) {
+	override val tagPrefix = "manhua-genre/"
 }

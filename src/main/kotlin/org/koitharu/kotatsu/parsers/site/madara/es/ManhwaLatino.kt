@@ -35,7 +35,8 @@ internal class ManhwaLatino(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				name = name,
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				url = link,
 				uploadDate = parseChapterDate(
 					dateFormat,

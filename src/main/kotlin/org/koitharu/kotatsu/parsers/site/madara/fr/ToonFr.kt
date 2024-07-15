@@ -32,7 +32,8 @@ internal class ToonFr(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				name = a.text(),
-				number = i + 1,
+				number = i + 1f,
+				volume = 0,
 				branch = null,
 				uploadDate = parseChapterDate(
 					dateFormat,

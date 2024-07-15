@@ -107,11 +107,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = getChapters(doc)
 		val desc = doc.selectFirstOrThrow("div.desc").html()
-		val state = if (doc.select("div.spe span:contains(En cours)").isNullOrEmpty()) {
-			MangaState.FINISHED
-		} else {
-			MangaState.ONGOING
-		}
 		val alt = doc.body().select("div.infox span.alter").text()
 		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "")
 		manga.copy(
@@ -125,20 +120,26 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			description = desc,
 			altTitle = alt,
 			author = aut,
-			state = state,
+			state = when (doc.selectFirstOrThrow("div.spe span:contains(Statut:)").textOrNull()
+				?.substringAfterLast(':')) {
+				" En cours" -> MangaState.ONGOING
+				" Terminé" -> MangaState.FINISHED
+				else -> null
+			},
 			chapters = chaptersDeferred,
 			isNsfw = manga.isNsfw,
 		)
 	}
 
 	private fun getChapters(doc: Document): List<MangaChapter> {
-		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { i, li ->
+		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { _, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
 				name = li.selectFirstOrThrow("span.mobile chapter").text(),
-				number = i + 1,
+				number = li.selectFirstOrThrow("span.mobile chapter").text().substringAfterLast(" ").toFloat(),
+				volume = 0,
 				url = href,
 				uploadDate = 0,
 				source = source,
