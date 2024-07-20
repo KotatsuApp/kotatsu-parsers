@@ -6,14 +6,15 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.site.mangareader.mangareaderParser
+import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.Collections.emptyMap
 
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	mangareaderParser(context, MangaParserSource.RESETSCANS, "mangagalaxy.org", 18) {
+	MadaraParser(context, MangaParserSource.RESETSCANS, "mangagalaxy.org", 18) {
+
 	override val datePattern = "MM dd"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
@@ -52,19 +53,3 @@ internal class ResetScans(context: MangaLoaderContext) :
 
 	private fun Elements.findWithText() = firstOrNull { it.hasText() } ?: first()
 }
-
-
-
-'''package org.koitharu.kotatsu.parsers.site.mangareader.en
-
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-
-@MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
-internal class MangaGalaxy(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGAGALAXY, "mangagalaxy.org", 20, 16) {
-	override val listUrl = "/series"
-}
-'''
