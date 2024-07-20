@@ -20,7 +20,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("comicextra.org")
+	override val configKeyDomain = ConfigKey.Domain("comixextra.com")
 
 	override val isMultipleTagsSupported = false
 

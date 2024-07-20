@@ -36,7 +36,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 	private var randomPartCache = SuspendLazy(::getRandomPart)
 	private val randomPartRegex = Regex("""^(r\d+-)""")
 	private val slugRegex = Regex("""[^a-z0-9]+""")
-	private fun searchMangaSelector() = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"
+	private val searchMangaSelector = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"
 	private suspend fun getRandomPart(): String {
 		val request = Request.Builder()
 			.url("https://$domain$listUrl")
@@ -45,7 +45,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 		val response = context.httpClient.newCall(request).await()
 		val url = response.parseHtml()
-			.selectFirst(searchMangaSelector())!!
+			.selectFirst(searchMangaSelector)!!
 			.select("a").attr("href")
 
 		val slug = url

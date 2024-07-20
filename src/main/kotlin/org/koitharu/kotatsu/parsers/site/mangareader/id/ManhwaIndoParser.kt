@@ -4,12 +4,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import java.util.*
 
-@MangaSourceParser("MANHWAINDO", "ManhwaIndo.id", "id")
+@MangaSourceParser("MANHWAINDO", "ManhwaIndo", "id")
 internal class ManhwaIndoParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANHWAINDO, "manhwaindo.id", pageSize = 30, searchPageSize = 10) {
-	override val datePattern = "MMMM dd, yyyy"
-	override val sourceLocale: Locale = Locale.ENGLISH
+	MangaReaderParser(context, MangaParserSource.MANHWAINDO, "manhwaindo.net", pageSize = 30, searchPageSize = 10) {
+	override val datePattern = "MMM d, yyyy"
 	override val listUrl = "/series"
 }

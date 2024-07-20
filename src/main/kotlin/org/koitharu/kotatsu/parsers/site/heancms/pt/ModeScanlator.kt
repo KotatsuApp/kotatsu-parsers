@@ -13,12 +13,13 @@ import java.util.*
 @MangaSourceParser("MODESCANLATOR", "ModeScanlator", "pt")
 internal class ModeScanlator(
 	context: MangaLoaderContext,
-) : HeanCms(context, MangaParserSource.MODESCANLATOR, "modescanlator.com") {
+) : HeanCms(context, MangaParserSource.MODESCANLATOR, "site.modescanlator.net") {
 
+	private val domainNoSite = domain.removePrefix("site.")
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://api.")
-			append(domain)
+			append(domainNoSite)
 			append("/query?adult=true&query_string=")
 			when (filter) {
 				is MangaListFilter.Search -> {
@@ -70,7 +71,7 @@ internal class ModeScanlator(
 			val cover = if (j.getString("thumbnail").contains('/')) {
 				j.getString("thumbnail")
 			} else {
-				"https://api.$domain/${j.getString("thumbnail")}"
+				"https://api.$domainNoSite/${j.getString("thumbnail")}"
 			}
 			Manga(
 				id = j.getLong("id"),
@@ -100,7 +101,7 @@ internal class ModeScanlator(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val url = buildString {
 			append("https://api.")
-			append(domain)
+			append(domainNoSite)
 			append("/chapter/query?perPage=9999&series_id=")
 			append(manga.id)
 		}

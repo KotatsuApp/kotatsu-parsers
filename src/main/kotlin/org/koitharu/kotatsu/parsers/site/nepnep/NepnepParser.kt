@@ -184,17 +184,17 @@ internal abstract class NepnepParser(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
 				"Ongoing (Scan)", "Ongoing (Publish)",
-					-> MangaState.ONGOING
+				-> MangaState.ONGOING
 
 				"Complete (Scan)", "Complete (Publish)",
-					-> MangaState.FINISHED
+				-> MangaState.FINISHED
 
 				"Cancelled (Scan)", "Cancelled (Publish)",
 				"Discontinued (Scan)", "Discontinued (Publish)",
-					-> MangaState.ABANDONED
+				-> MangaState.ABANDONED
 
 				"Hiatus (Scan)", "Hiatus (Publish)",
-					-> MangaState.PAUSED
+				-> MangaState.PAUSED
 
 				else -> null
 			},

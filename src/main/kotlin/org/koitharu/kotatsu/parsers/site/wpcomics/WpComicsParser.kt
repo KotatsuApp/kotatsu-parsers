@@ -273,7 +273,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 				d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
-				-> parseRelativeDate(date)
+			-> parseRelativeDate(date)
 
 			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {

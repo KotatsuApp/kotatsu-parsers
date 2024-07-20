@@ -69,7 +69,7 @@ class MangaWtfParser(
 						SortOrder.NEWEST -> "createdAt,desc"
 						SortOrder.ALPHABETICAL,
 						SortOrder.ALPHABETICAL_DESC,
-							-> throw IllegalArgumentException("Unsupported ${filter.sortOrder}")
+						-> throw IllegalArgumentException("Unsupported ${filter.sortOrder}")
 					},
 				)
 				if (filter.tags.isNotEmpty()) {

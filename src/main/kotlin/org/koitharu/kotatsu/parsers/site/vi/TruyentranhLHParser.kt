@@ -4,6 +4,7 @@ import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -13,6 +14,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("TRUYENTRANHLH", "TruyentranhLH", "vi")
 class TruyentranhLHParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, source = MangaParserSource.TRUYENTRANHLH, pageSize = 18) {

@@ -132,6 +132,8 @@ internal abstract class Manga18Parser(
 	protected open val selectState = "div.item:contains(Status) div.info_value"
 	protected open val selectAlt = "div.item:contains(Other name) div.info_value"
 	protected open val selectTag = "div.item:contains(Categories) div.info_value a"
+	protected open val selectAuthor =
+		"div.info_label:contains(author) + div.info_value, div.info_label:contains(autor) + div.info_value"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
@@ -152,7 +154,8 @@ internal abstract class Manga18Parser(
 			}
 		}
 
-		val alt = doc.body().select(selectAlt).text()
+		val alt = body.selectFirst(selectAlt)?.text().takeIf { it != "Updating" || it.isNotEmpty() }
+		val author = body.selectFirst(selectAuthor)?.text().takeIf { it != "Updating" }
 
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
@@ -164,6 +167,7 @@ internal abstract class Manga18Parser(
 			},
 			description = desc,
 			altTitle = alt,
+			author = author,
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

@@ -7,8 +7,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("MANHWAINDOICU", "ManhwaIndo.sbs", "id", ContentType.HENTAI)
+@MangaSourceParser("MANHWAINDOICU", "KomikCinta", "id", ContentType.HENTAI)
 internal class ManhwaIndoIcu(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANHWAINDOICU, "manhwaindo.sbs", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANHWAINDOICU, "komikcinta.icu", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val listUrl = "/komik"
 }

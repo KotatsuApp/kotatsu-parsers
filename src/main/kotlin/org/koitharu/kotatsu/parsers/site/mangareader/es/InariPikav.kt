@@ -5,10 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("NEKOSCANS", "NekoScans", "es")
-internal class NekoScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.NEKOSCANS, "nekoscans.com", pageSize = 20, searchPageSize = 10) {
-	override val listUrl = "/proyecto"
-	override val encodedSrc = true
+@MangaSourceParser("INARIPIKAV", "InariPikav", "es")
+internal class InariPikav(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.INARIPIKAV, "inaripikav.org", pageSize = 10, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

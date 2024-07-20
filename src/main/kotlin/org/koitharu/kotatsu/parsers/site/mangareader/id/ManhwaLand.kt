@@ -6,8 +6,9 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANHWALAND", "ManhwaLand", "id", ContentType.HENTAI)
+@MangaSourceParser("MANHWALAND", "ManhwaLand.vip", "id", ContentType.HENTAI)
 internal class ManhwaLand(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANHWALAND, "62.182.80.253", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANHWALAND, "manhwaland.vip", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
+	override val datePattern = "MMM d, yyyy"
 }

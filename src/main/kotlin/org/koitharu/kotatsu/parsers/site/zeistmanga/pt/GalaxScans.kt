@@ -5,9 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
-@MangaSourceParser("GALAXSCANS", "GalaxScans", "pt")
+@MangaSourceParser("GALAXSCANS", "GalaxScanlator", "pt")
 internal class GalaxScans(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaParserSource.GALAXSCANS, "galaxscans.blogspot.com") {
+	ZeistMangaParser(context, MangaParserSource.GALAXSCANS, "galaxscanlator.blogspot.com") {
 	override val mangaCategory = "Recentes"
 	override val sateOngoing: String = "Lançando"
 	override val sateFinished: String = "Completo"

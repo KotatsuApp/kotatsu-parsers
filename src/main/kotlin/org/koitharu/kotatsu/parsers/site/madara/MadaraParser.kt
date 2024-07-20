@@ -595,7 +595,15 @@ internal abstract class MadaraParser(
 				)
 			}
 		} else {
-			val chapterProtectorHtml = chapterProtector.html()
+
+			val chapterProtectorHtml = chapterProtector.attr("src")
+				.takeIf { it.startsWith("data:text/javascript;base64,") }
+				?.substringAfter("data:text/javascript;base64,")
+				?.let {
+					Base64.getDecoder().decode(it).decodeToString()
+				}
+				?: chapterProtector.html()
+
 			val password = chapterProtectorHtml.substringAfter("wpmangaprotectornonce='").substringBefore("';")
 			val chapterData = JSONObject(
 				chapterProtectorHtml.substringAfter("chapter_data='").substringBefore("';").replace("\\/", "/"),

@@ -94,7 +94,7 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					source = source,
 				)
 			},
-			chapters = doc.select(".backgroundpost h3 a").mapChapters() { i, a ->
+			chapters = doc.select(".backgroundpost h3 a").mapChapters { i, a ->
 				val href = a.attrAsAbsoluteUrl("href")
 				MangaChapter(
 					id = generateUid(href),

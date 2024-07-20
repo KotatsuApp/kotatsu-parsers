@@ -206,7 +206,7 @@ internal abstract class ChanParser(
 						when (filter.sortOrder) {
 							SortOrder.RATING,
 							SortOrder.POPULARITY,
-								-> "favdesc"
+							-> "favdesc"
 
 							SortOrder.ALPHABETICAL -> "abcasc"
 							else -> "" // SortOrder.NEWEST
