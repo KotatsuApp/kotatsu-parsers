@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.Collections.emptyMap
 
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
-internal class ResetScans(context: MangaLoaderContext) :
+internal class MangaGalaxyParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.RESETSCANS, "mangagalaxy.org", 18) {
 
 	override val datePattern = "MM dd"
