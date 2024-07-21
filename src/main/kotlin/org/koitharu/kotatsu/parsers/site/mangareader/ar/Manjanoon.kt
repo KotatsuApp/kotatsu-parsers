@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("MANJANOON", "Manjanoon.co", "ar")
+@MangaSourceParser("MANJANOON", "Manjanoon", "ar")
 internal class Manjanoon(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.MANJANOON, "manjanoon.co", pageSize = 21, searchPageSize = 10) {
 
