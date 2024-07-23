@@ -39,8 +39,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&")
-					append("classes[]".urlEncoded())
-					append("=Serie&page=")
+					append("classes[]=Series&page=")
 					append(page.toString())
 				}
 				return parseMangaListQuery(webClient.httpGet(url).parseHtml())
@@ -155,6 +154,9 @@ internal class DynastyScans(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val chapters = getChapters(doc)
 		val root = doc.requireElementById("main")
+		val licensedText = root.select("h4")
+			.find { it.ownText() == "This manga has been licensed" }
+			?.nextElementSibling()?.html()
 		return manga.copy(
 			altTitle = null,
 			state = when (root.select("h2.tag-title small").last()?.text()) {
@@ -168,7 +170,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 				.orEmpty(), // It is needed if the manga was found via the search.
 			tags = root.selectFirstOrThrow("div.tag-tags").parseTags(),
 			author = null,
-			description = null,
+			description = licensedText,
 			chapters = chapters,
 		)
 	}
