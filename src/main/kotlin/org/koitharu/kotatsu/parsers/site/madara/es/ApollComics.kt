@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("APOLL_COMICS", "ApollComics", "es")
 internal class ApollComics(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.APOLL_COMICS, "apollcomics.com", 10)
+	MadaraParser(context, MangaParserSource.APOLL_COMICS, "apollcomics.es", 10)

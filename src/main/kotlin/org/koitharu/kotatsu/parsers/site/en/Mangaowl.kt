@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.en
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -14,6 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("MANGAOWL", "MangaOwl.to", "en")
 internal class Mangaowl(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANGAOWL, pageSize = 24) {

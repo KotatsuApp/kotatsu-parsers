@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("INARIMANGA", "InariManga", "es")
 internal class InariManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.INARIMANGA, "inarimanga.net", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.INARIMANGA, "nakamatoon.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

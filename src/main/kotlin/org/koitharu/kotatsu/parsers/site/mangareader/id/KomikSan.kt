@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.id
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -9,6 +10,7 @@ import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 
+@Broken
 @MangaSourceParser("KOMIKSAN", "KomikSan", "id")
 internal class KomikSan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.KOMIKSAN, "komiksan.link", pageSize = 40, searchPageSize = 10) {

@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ASTRASCANS", "AstraScans", "en")
 internal class AstraScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.ASTRASCANS, "astrascans.com", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.ASTRASCANS, "astrascans.org", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
+	override val listUrl = "/series"
 }

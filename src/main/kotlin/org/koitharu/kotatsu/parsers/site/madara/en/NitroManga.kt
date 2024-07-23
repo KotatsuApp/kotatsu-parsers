@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("NITROMANGA", "NitroManga", "en")
 internal class NitroManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.NITROMANGA, "nitromanga.com", pageSize = 18)
+	MadaraParser(context, MangaParserSource.NITROMANGA, "nitroscans.net", pageSize = 18)

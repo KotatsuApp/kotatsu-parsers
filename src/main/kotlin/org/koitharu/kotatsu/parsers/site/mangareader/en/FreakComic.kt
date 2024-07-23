@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.mangareader.en
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
@@ -13,6 +14,7 @@ import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 
+@Broken
 @MangaSourceParser("FREAKCOMIC", "FreakComic", "en")
 internal class FreakComic(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.FREAKCOMIC, "freakcomic.com", pageSize = 20, searchPageSize = 10) {

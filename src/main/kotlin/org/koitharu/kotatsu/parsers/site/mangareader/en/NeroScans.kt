@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("NEROSCANS", "NeroScans", "en")
 internal class NeroScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.NEROSCANS, "neroscans.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.NEROSCANS, "vofeg.com", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/series"
 	override val isTagsExclusionSupported = false
 }

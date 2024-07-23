@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.zeistmanga.id
 
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -10,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 
+@Broken
 @MangaSourceParser("MONZEEKOMIK", "MonzeeKomik", "id")
 internal class MonzeeKomik(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.MONZEEKOMIK, "www.monzeekomik.my.id") {

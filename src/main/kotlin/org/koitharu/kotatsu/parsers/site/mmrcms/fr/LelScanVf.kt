@@ -8,6 +8,6 @@ import java.util.*
 
 @MangaSourceParser("LELSCANVF", "LelScanVf", "fr")
 internal class LelScanVf(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaParserSource.LELSCANVF, "lelscanvf.cc") {
+	MmrcmsParser(context, MangaParserSource.LELSCANVF, "lelscanfr.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

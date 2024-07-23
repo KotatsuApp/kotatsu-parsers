@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("OLIMPOSCANS", "OlimpoScans", "es")
 internal class OlimpoScans(context: MangaLoaderContext) :
-	FmreaderParser(context, MangaParserSource.OLIMPOSCANS, "olimposcans.com") {
+	FmreaderParser(context, MangaParserSource.OLIMPOSCANS, "leerolimpo.com") {
 
 	override val selectState = "ul.manga-info li:contains(Estado) a"
 	override val selectAlt = "ul.manga-info li:contains(Otros nombres)"

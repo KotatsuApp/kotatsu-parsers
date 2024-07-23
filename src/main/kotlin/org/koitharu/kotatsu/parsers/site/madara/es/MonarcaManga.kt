@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MONARCAMANGA", "MonarcaManga", "es")
 internal class MonarcaManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MONARCAMANGA, "monarcamanga.com") {
+	MadaraParser(context, MangaParserSource.MONARCAMANGA, "visormonarca.com") {
 	override val tagPrefix = "manga-generos/"
 }

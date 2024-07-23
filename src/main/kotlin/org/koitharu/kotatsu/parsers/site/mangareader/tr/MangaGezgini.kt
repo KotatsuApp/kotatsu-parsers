@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @Broken
 @MangaSourceParser("MANGAGEZGINI", "MangaGezgini", "tr")
 internal class MangaGezgini(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.net", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

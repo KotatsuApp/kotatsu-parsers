@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.keyoapp.KeyoappParser
 
 @MangaSourceParser("STARBOUNDSCANS", "StarboundScans", "fr")
 internal class StarboundScans(context: MangaLoaderContext) :
-	KeyoappParser(context, MangaParserSource.STARBOUNDSCANS, "starboundscans.org")
+	KeyoappParser(context, MangaParserSource.STARBOUNDSCANS, "starboundscans.com")

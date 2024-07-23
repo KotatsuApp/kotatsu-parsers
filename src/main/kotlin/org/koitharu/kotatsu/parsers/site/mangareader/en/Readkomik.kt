@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("READKOMIK", "ReadKomik", "en")
 internal class Readkomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.READKOMIK, "readkomik.com", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaParserSource.READKOMIK, "novelstreams.com", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
 	override val isTagsExclusionSupported = false
 }

@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("MANGAJINX", "MangaJinx", "en")
 internal class MangaJinx(context: MangaLoaderContext) :
-	MadthemeParser(context, MangaParserSource.MANGAJINX, "mangajinx.com") {
+	MadthemeParser(context, MangaParserSource.MANGAJINX, "mgjinx.com") {
 	override val listUrl = "search"
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {

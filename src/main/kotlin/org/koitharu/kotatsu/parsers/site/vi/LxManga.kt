@@ -23,7 +23,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	)
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.net")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.life")
 
 	override val isMultipleTagsSupported = false
 

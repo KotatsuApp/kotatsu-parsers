@@ -14,7 +14,7 @@ import java.util.*
 internal class MangakakalotTv(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaParserSource.MANGAKAKALOTTV) {
 
-	override val configKeyDomain = ConfigKey.Domain("ww7.mangakakalot.tv")
+	override val configKeyDomain = ConfigKey.Domain("ww8.mangakakalot.tv")
 	override val searchUrl = "/search/"
 	override val listUrl = "/manga_list"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(

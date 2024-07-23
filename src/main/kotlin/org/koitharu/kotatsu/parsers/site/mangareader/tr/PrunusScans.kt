@@ -5,9 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("SUMMERTOON", "SummerToon", "tr")
-internal class SummerToon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.SUMMERTOON, "summertoon.biz", pageSize = 10, searchPageSize = 10) {
-	override val isTagsExclusionSupported = false
-}
+@MangaSourceParser("PRUNUSSCANS", "PrunusScans", "tr")
+internal class PrunusScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.PRUNUSSCANS, "prunusscans.com", pageSize = 20, searchPageSize = 10)
 
