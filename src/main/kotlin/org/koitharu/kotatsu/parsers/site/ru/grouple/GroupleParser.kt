@@ -132,6 +132,7 @@ internal abstract class GroupleParser(
 			source = newSource,
 			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
 				?: manga.altTitle,
+			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
 			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
