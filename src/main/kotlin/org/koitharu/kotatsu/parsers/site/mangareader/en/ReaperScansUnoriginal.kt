@@ -5,8 +5,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("LUASCANS", "LuaScans", "en")
-internal class LuaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.LUASCANS, "luacomic.net", pageSize = 20, searchPageSize = 10) {
-	override val isTagsExclusionSupported = false
-}
+@MangaSourceParser("REAPERSCANSUNORIGINAL", "ReaperScansUnoriginal", "en")
+internal class ReaperScansUnoriginal(context: MangaLoaderContext) :
+	MangaReaderParser(
+		context,
+		MangaParserSource.REAPERSCANSUNORIGINAL,
+		"reaper-scans.com",
+		pageSize = 30,
+		searchPageSize = 42,
+	)
