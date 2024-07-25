@@ -18,8 +18,6 @@ internal class XoxoComics(context: MangaLoaderContext) :
 	override val listUrl = "/comic-list"
 	override val datePattern = "MM/dd/yyyy"
 
-	override val isMultipleTagsSupported = false
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,

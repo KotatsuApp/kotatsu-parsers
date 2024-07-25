@@ -35,7 +35,9 @@ internal abstract class WpComicsParser(
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	protected open val listUrl = "/tim-truyen-nang-cao"
+	override val isMultipleTagsSupported = false
+
+	protected open val listUrl = "/tim-truyen"
 	protected open val datePattern = "dd/MM/yy"
 
 
@@ -49,12 +51,16 @@ internal abstract class WpComicsParser(
 	protected val ongoing: Set<String> = setOf(
 		"Đang tiến hành",
 		"Ongoing",
+		"Updating",
+		"連載中",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"Hoàn thành",
+		"Complete",
 		"Completed",
+		"完結済み",
 	)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -64,7 +70,8 @@ internal abstract class WpComicsParser(
 					val url = buildString {
 						append("https://")
 						append(domain)
-						append("/tim-truyen?keyword=")
+						append(listUrl)
+						append("?keyword=")
 						append(filter.query.urlEncoded())
 						append("&page=")
 						append(page.toString())
@@ -82,10 +89,14 @@ internal abstract class WpComicsParser(
 					val url = buildString {
 						append("https://")
 						append(domain)
-						val tagQuery = filter.tags.joinToString(",") { it.key }
-						append("/tim-truyen-nang-cao?genres=")
-						append(tagQuery)
-						append("&notgenres=&gender=-1&minchapter=1&sort=")
+						append(listUrl)
+						if (filter.tags.isNotEmpty()) {
+							append('/')
+							filter.tags.oneOrThrowIfMany()?.let {
+								append(it.key)
+							}
+						}
+						append("?sort=")
 						append(
 							when (filter.sortOrder) {
 								SortOrder.UPDATED -> 0
@@ -116,32 +127,33 @@ internal abstract class WpComicsParser(
 					val url = buildString {
 						append("https://")
 						append(domain)
-						append("/tim-truyen-nang-cao?genres=&notgenres=&gender=-1&status=-1&minchapter=1&sort=0&page=")
+						append(listUrl)
+						append("?genres=&notgenres=&gender=-1&status=-1&minchapter=1&sort=0&page=")
 						append(page.toString())
 					}
 					webClient.httpGet(url)
 				}
 			}
 
-		val itemsElements = response.parseHtml()
-			.select("div.ModuleContent > div.items")
-			.select("div.item")
-		return itemsElements.mapNotNull { item ->
+		val tagMap = getOrCreateTagMap()
+		return parseMangaList(response.parseHtml(), tagMap)
+	}
+
+	protected open fun parseMangaList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
+		return doc.select("div.items div.item").mapNotNull { item ->
 			val tooltipElement = item.selectFirst("div.box_tootip") ?: return@mapNotNull null
 			val absUrl = item.selectFirst("div.image > a")?.attrAsAbsoluteUrlOrNull("href") ?: return@mapNotNull null
 			val slug = absUrl.substringAfterLast('/')
 			val mangaState = when (tooltipElement.selectFirst("div.message_main > p:contains(Tình trạng)")?.ownText()) {
-				"Đang tiến hành" -> MangaState.ONGOING
-				"Hoàn thành" -> MangaState.FINISHED
+				in ongoing -> MangaState.ONGOING
+				in finished -> MangaState.FINISHED
 				else -> null
 			}
-
-			val tagMap = getOrCreateTagMap()
 			val tagsElement = tooltipElement.selectFirst("div.message_main > p:contains(Thể loại)")?.ownText().orEmpty()
 			val mangaTags = tagsElement.split(',').mapNotNullToSet { tagMap[it.trim()] }
 			Manga(
 				id = generateUid(slug),
-				title = tooltipElement.selectFirst("div.title")?.text().orEmpty(),
+				title = item.selectFirst("div.box_tootip div.title, h3 a")?.text().orEmpty(),
 				altTitle = null,
 				url = absUrl.toRelativeUrl(domain),
 				publicUrl = absUrl,
@@ -168,18 +180,17 @@ internal abstract class WpComicsParser(
 		return tagSet
 	}
 
-
 	private val mutex = Mutex()
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 
-	private suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
+	protected open suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
-		val doc = webClient.httpGet("/tim-truyen-nang-cao".toAbsoluteUrl(domain)).parseHtml()
-		val tagItems = doc.select("div.genre-item")
+		val doc = webClient.httpGet(listUrl.toAbsoluteUrl(domain)).parseHtml()
+		val tagItems = doc.select("div.dropdown-genres select option")
 		val result = ArrayMap<String, MangaTag>(tagItems.size)
 		for (item in tagItems) {
 			val title = item.text()
-			val key = item.select("span[data-id]").attr("data-id")
+			val key = item.attr("value").substringAfterLast('/')
 			if (key.isNotEmpty() && title.isNotEmpty()) {
 				result[title] = MangaTag(title = title, key = key, source = source)
 			}
@@ -190,35 +201,36 @@ internal abstract class WpComicsParser(
 
 	protected open val selectDesc = "div.detail-content p"
 	protected open val selectState = "div.col-info li.status p:not(.name)"
-	protected open val selectAut = "div.col-info li.author p:not(.name)"
-	protected open val selectTag = "div.col-info li.kind p:not(.name) a"
+	protected open val selectAut = "div.col-info li.author p:not(.name), li.author p.col-xs-8"
+	protected open val selectTag = "div.col-info li.kind p:not(.name) a, li.kind p.col-xs-8 a"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
-		val stateDiv = doc.selectFirst(selectState)
-		val state = stateDiv?.let {
-			when (it.text()) {
-				in ongoing -> MangaState.ONGOING
-				in finished -> MangaState.FINISHED
-				else -> null
-			}
-		}
-		val aut = doc.body().select(selectAut).text()
+		val tagMap = getOrCreateTagMap()
+		val tagsElement = doc.select("li.kind p.col-xs-8 a")
+		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
 		manga.copy(
-			description = desc,
-			altTitle = null,
-			author = aut,
-			state = state,
+			description = doc.selectFirst(selectDesc)?.html().orEmpty(),
+			altTitle = doc.selectFirst("h2.other-name")?.text().orEmpty(),
+			author = doc.body().select(selectAut).text(),
+			state = doc.selectFirst(selectState)?.let {
+				when (it.text()) {
+					in ongoing -> MangaState.ONGOING
+					in finished -> MangaState.FINISHED
+					else -> null
+				}
+			},
+			tags = mangaTags,
+			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 			chapters = chaptersDeferred.await(),
 		)
 	}
 
 
 	protected open val selectDate = "div.col-xs-4"
-	protected open val selectChapter = "div#nt_listchapter li .chapter"
+	protected open val selectChapter = "div.list-chapter li.row:not(.heading)"
 
 	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
@@ -248,14 +260,11 @@ internal abstract class WpComicsParser(
 		}
 	}
 
-
-	protected open val selectPage = "div.reading-detail img"
+	protected open val selectPage = "div.page-chapter > img, li.blocks-gallery-item img"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
-
 		return doc.select(selectPage).map { url ->
 			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
 			MangaPage(
@@ -268,16 +277,14 @@ internal abstract class WpComicsParser(
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") ||
-				d.endsWith(" trước")  // Handle translated 'ago' in Viêt Nam.
+				d.endsWith(" trước")
 			-> parseRelativeDate(date)
 
-			// Handle 'yesterday' and 'today', using midnight
 			d.startsWith("year") -> Calendar.getInstance().apply {
-				add(Calendar.DAY_OF_MONTH, -1) // yesterday
+				add(Calendar.DAY_OF_MONTH, -1)
 				set(Calendar.HOUR_OF_DAY, 0)
 				set(Calendar.MINUTE, 0)
 				set(Calendar.SECOND, 0)
@@ -303,49 +310,33 @@ internal abstract class WpComicsParser(
 		}
 	}
 
-	// Parses dates in this form:
-	// 21 hours ago
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
-
 		return when {
-			WordSet(
-				"day",
-				"days",
-				"d",
-				"ngày ",
-			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h").anyWordIn(date) -> cal.apply {
+			WordSet("second", "giây").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
+			WordSet("min", "minute", "minutes", "mins", "phút").anyWordIn(date) -> cal.apply {
+				add(Calendar.MINUTE, -number)
+			}.timeInMillis
+
+			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "giờ").anyWordIn(date) -> cal.apply {
+				add(Calendar.HOUR, -number)
+			}.timeInMillis
+
+			WordSet("day", "days", "d", "ngày").anyWordIn(date) -> cal.apply {
+				add(Calendar.DAY_OF_MONTH, -number)
+			}.timeInMillis
+
+			WordSet("month", "months", "tháng").anyWordIn(date) -> cal.apply {
 				add(
-					Calendar.HOUR,
+					Calendar.MONTH,
 					-number,
 				)
 			}.timeInMillis
 
-			WordSet(
-				"min",
-				"minute",
-				"minutes",
-				"mins",
-				"phút",
-			).anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MINUTE,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("second").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.SECOND,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("year", "năm").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}
 	}

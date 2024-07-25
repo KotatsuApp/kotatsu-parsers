@@ -31,7 +31,6 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = true
 
-	// &types=-1&order=desc
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")
@@ -72,7 +71,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 						SortOrder.NEWEST -> append("latest")
 						SortOrder.ALPHABETICAL_DESC -> append("desc")
 						SortOrder.ALPHABETICAL -> append("asc")
-						else -> append("Updated")
+						else -> append("update")
 					}
 				}
 
