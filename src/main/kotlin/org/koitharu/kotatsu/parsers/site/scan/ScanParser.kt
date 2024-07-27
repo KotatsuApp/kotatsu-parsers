@@ -3,11 +3,13 @@ package org.koitharu.kotatsu.parsers.site.scan
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.unescapeJson
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -21,6 +23,8 @@ internal abstract class ScanParser(
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	protected open val listUrl = "/manga"
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
@@ -38,7 +42,7 @@ internal abstract class ScanParser(
 
 				is MangaListFilter.Advanced -> {
 
-					append("/manga")
+					append(listUrl)
 					append("?q=")
 					append(
 						when (filter.sortOrder) {
@@ -60,62 +64,40 @@ internal abstract class ScanParser(
 				}
 
 				null -> {
-					append("/manga?page=")
+					append(listUrl)
+					append("?page=")
 					append(page.toString())
 				}
 			}
 		}
 
-		if (query) {
-			val doc = webClient.httpGet(url).parseRaw()
-
-			val list = if (doc.contains("grid-item-series")) {
-				doc.split("grid-item-series").drop(1)
-			} else {
-				doc.split("class=\\u0022series\\u0022\\").drop(1)
-			}
-
-			return list.map { l ->
-				val href = l.substringAfter("href=\\u0022\\").substringBefore("\\u0022").replace("\\", "")
-				val cover = l.substringAfter("data-src=\\u0022").substringBefore("\\u0022\\u003E").replace("\\", "")
-				val title = l.substringAfter("item-title\\u0022\\u003E").substringBefore("\\u003C\\/p\\u003E").ifEmpty {
-					l.substringAfter("\\u003Ch3\\u003E").substringBefore("\\u003C\\/h3\\u003E")
-				}
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(domain),
-					coverUrl = cover,
-					title = title,
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
+		val doc = if (query) {
+			val raw = webClient.httpGet(url).parseRaw()
+			Jsoup.parseBodyFragment(
+				raw.unescapeJson(),
+				domain,
+			)
 
 		} else {
-			val doc = webClient.httpGet(url).parseHtml()
-			return doc.select(".series-paginated .series, .series-paginated .grid-item-series").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-				Manga(
-					id = generateUid(href),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-					coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
-					title = div.selectFirstOrThrow(".link-series h3, .item-title").text().orEmpty(),
-					altTitle = null,
-					rating = RATING_UNKNOWN,
-					tags = emptySet(),
-					author = null,
-					state = null,
-					source = source,
-					isNsfw = isNsfwSource,
-				)
-			}
+			webClient.httpGet(url).parseHtml()
+		}
+
+		return doc.select(".series, .series-paginated .grid-item-series").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
+				title = div.selectFirstOrThrow(".link-series h3, .item-title").text().orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				author = null,
+				state = null,
+				source = source,
+				isNsfw = isNsfwSource,
+			)
 		}
 
 	}
@@ -130,7 +112,7 @@ internal abstract class ScanParser(
 	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
-		val tagElements = webClient.httpGet("https://$domain/manga").parseHtml()
+		val tagElements = webClient.httpGet("https://$domain$listUrl").parseHtml()
 			.requireElementById("filter-wrapper")
 			.select(".form-filters div.form-check, .form-filters div.custom-control")
 		for (el in tagElements) {
