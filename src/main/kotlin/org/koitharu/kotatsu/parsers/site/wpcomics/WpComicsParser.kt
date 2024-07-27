@@ -128,7 +128,7 @@ internal abstract class WpComicsParser(
 						append("https://")
 						append(domain)
 						append(listUrl)
-						append("?genres=&notgenres=&gender=-1&status=-1&minchapter=1&sort=0&page=")
+						append("?sort=0&status=-1&page=")
 						append(page.toString())
 					}
 					webClient.httpGet(url)
