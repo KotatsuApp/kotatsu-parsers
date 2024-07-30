@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 @Broken
 @MangaSourceParser("TRUYENTRANHDAMMYY", "TruyenTranhDamMyy", "vi")
 internal class TruyenTranhDamMyy(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TRUYENTRANHDAMMYY, "truyentranhdammyy.net") {
+	MadaraParser(context, MangaParserSource.TRUYENTRANHDAMMYY, "truyennhameo.com") {
 	override val postReq = true
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
