@@ -18,7 +18,7 @@ import java.util.*
 
 internal abstract class ZeistMangaParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 12,
 ) : PagedMangaParser(context, source, pageSize) {
@@ -189,7 +189,7 @@ internal abstract class ZeistMangaParser(
 		}
 	}
 
-	protected open val selectTags = "article div.mt-15 a, .info-genre a"
+	protected open val selectTags = "article div.mt-15 a, .info-genre a, dl:contains(Genre) dd a"
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val state =
@@ -198,6 +198,7 @@ internal abstract class ZeistMangaParser(
 				?: doc.selectFirst("ul.infonime li:contains(Status) span")
 				?: doc.selectFirst("ul.infonime li:contains(Estado) span")
 				?: doc.selectFirst("span.status-novel")
+				?: doc.selectFirst("span[data-status]")
 		val mangaState = state?.text()?.lowercase().let {
 			when (it) {
 				in ongoing -> MangaState.ONGOING
@@ -209,11 +210,13 @@ internal abstract class ZeistMangaParser(
 		}
 		val author = doc.selectFirst("div.y6x11p:contains(الكاتب) .dt")
 			?: doc.selectFirst("div.y6x11p:contains(Author) .dt")
+			?: doc.selectFirst("dl:contains(Author) dd")
 			?: doc.selectFirst("div.y6x11p:contains(Autor) .dt")
 			?: doc.selectFirst("div.y6x11p:contains(Yazar) .dt")
+			?: doc.selectFirst("ul.infonime li:contains(Author) span")
 
 		val desc = doc.getElementById("synopsis") ?: doc.getElementById("Sinopse") ?: doc.getElementById("sinopas")
-		?: doc.selectFirst(".sinopsis")
+		?: doc.selectFirst(".sinopsis") ?: doc.selectFirst(".sinopas")
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
 		manga.copy(
 			author = author?.text(),
@@ -254,6 +257,8 @@ internal abstract class ZeistMangaParser(
 				?.groupValues?.get(1)
 				?: throw Exception("Failed to find chapter feed")
 
+		} else if (doc.selectFirst("#chapterlist") != null) {
+			doc.selectFirstOrThrow("#chapterlist").attr("data-post-title")
 		} else {
 			doc.selectFirstOrThrow("script:containsData(var label_chapter)").data()
 				.substringAfter("label_chapter = \"").substringBefore("\"")
@@ -293,7 +298,8 @@ internal abstract class ZeistMangaParser(
 		}
 	}
 
-	protected open val selectPage = "div.check-box img, article#reader .separator img, article.container .separator img"
+	protected open val selectPage =
+		"div.check-box img, article#reader .separator img, article.container .separator img, #readarea img, #reader img, #readerarea img"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 

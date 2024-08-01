@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec
 @MangaSourceParser("BATOTO", "Bato.To")
 internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	context = context,
-	source = MangaSource.BATOTO,
+	source = MangaParserSource.BATOTO,
 	pageSize = 60,
 	searchPageSize = 20,
 ) {
@@ -104,7 +104,12 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 					filter.locale?.let {
 						append("&langs=")
-						append(it.language)
+						if (it.language == "in") {
+							append("id")
+						} else {
+							append(it.language)
+						}
+
 					}
 
 					append("&genres=")

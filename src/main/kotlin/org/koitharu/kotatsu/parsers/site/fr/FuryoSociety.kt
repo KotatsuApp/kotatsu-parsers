@@ -17,7 +17,7 @@ import java.util.*
 
 @MangaSourceParser("FURYOSOCIETY", "FuryoSociety", "fr")
 internal class FuryoSociety(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.FURYOSOCIETY, 0) {
+	PagedMangaParser(context, MangaParserSource.FURYOSOCIETY, 0) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
 

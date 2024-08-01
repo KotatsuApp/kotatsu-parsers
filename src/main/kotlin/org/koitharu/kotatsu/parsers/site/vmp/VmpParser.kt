@@ -10,7 +10,7 @@ import java.util.*
 
 internal abstract class VmpParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {
@@ -122,7 +122,8 @@ internal abstract class VmpParser(
 				MangaChapter(
 					id = manga.id,
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = manga.url,
 					scanlator = null,
 					uploadDate = 0,

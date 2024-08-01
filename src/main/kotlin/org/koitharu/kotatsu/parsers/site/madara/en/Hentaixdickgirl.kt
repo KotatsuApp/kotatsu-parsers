@@ -6,14 +6,14 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("HENTAIXDICKGIRL", "Hentai x Dickgirl", "en", ContentType.HENTAI)
 internal class Hentaixdickgirl(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HENTAIXDICKGIRL, "hentaixdickgirl.com", 16) {
+	MadaraParser(context, MangaParserSource.HENTAIXDICKGIRL, "hentaixdickgirl.com", 16) {
 	override val postReq = true
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {

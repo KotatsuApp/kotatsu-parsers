@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("SCANS_MANGAS_ME", "ScansMangas.me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.SCANS_MANGAS_ME, 0) {
+	PagedMangaParser(context, MangaParserSource.SCANS_MANGAS_ME, 0) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -132,7 +132,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 	}
 
 	private fun getChapters(doc: Document): List<MangaChapter> {
-		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { i, li ->
+		return doc.body().requireElementById("chapter_list").select("li").mapChapters(reversed = true) { _, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(

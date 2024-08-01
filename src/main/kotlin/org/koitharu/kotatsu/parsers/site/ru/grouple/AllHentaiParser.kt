@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import org.koitharu.kotatsu.parsers.util.parseHtml
@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.util.urlEncoded
 @MangaSourceParser("ALLHENTAI", "AllHentai", "ru", type = ContentType.HENTAI)
 internal class AllHentaiParser(
 	context: MangaLoaderContext,
-) : GroupleParser(context, MangaSource.ALLHENTAI, 1) {
+) : GroupleParser(context, MangaParserSource.ALLHENTAI, 1) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"z.ahen.me",

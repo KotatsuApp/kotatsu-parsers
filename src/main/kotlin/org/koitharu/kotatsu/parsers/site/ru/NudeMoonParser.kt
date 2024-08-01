@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("NUDEMOON", "Nude-Moon", "ru", type = ContentType.HENTAI)
 internal class NudeMoonParser(
 	context: MangaLoaderContext,
-) : MangaParser(context, MangaSource.NUDEMOON), MangaParserAuthProvider {
+) : MangaParser(context, MangaParserSource.NUDEMOON), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"x.nude-moon.fun",

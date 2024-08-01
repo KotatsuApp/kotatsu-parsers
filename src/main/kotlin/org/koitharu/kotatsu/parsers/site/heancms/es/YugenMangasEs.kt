@@ -1,15 +1,17 @@
 package org.koitharu.kotatsu.parsers.site.heancms.es
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
 
+@Broken // Not dead but changed template and url visualikigai.com
 @MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas.lat", "es", ContentType.HENTAI)
 internal class YugenMangasEs(context: MangaLoaderContext) :
-	HeanCms(context, MangaSource.YUGEN_MANGAS_ES, "yugenmangas.lat") {
+	HeanCms(context, MangaParserSource.YUGEN_MANGAS_ES, "yugenmangas.lat") {
 
 	private val domainAlt = "yugenmangas.net"
 

@@ -23,21 +23,18 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.random.Random
 
-private const val TOO_MANY_REQUESTS = 429
 private const val MAX_RETRY_COUNT = 5
 private val JSON_MEDIA_TYPE get() = "application/json; charset=utf-8".toMediaType()
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.REAPERCOMICS, pageSize = 32) {
+	PagedMangaParser(context, MangaParserSource.REAPERCOMICS, pageSize = 32) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(
-		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-	)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
@@ -159,9 +156,9 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	private fun chapterListNextPageSelector(): String = "button[wire:click*=nextPage]"
+	private val chapterListNextPageSelector: String = "button[wire:click*=nextPage]"
 
-	private fun chapterListSelector() = "div[wire:id] > div > ul[role=list] > li"
+	private val chapterListSelector: String = "div[wire:id] > div > ul[role=list] > li"
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val cachedChapters = chapterCache[manga.url]
@@ -171,17 +168,18 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
-		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toIntOrNull() ?: 0) - 1
+		var totalChapters = (doc.selectFirst(selectTotalChapter)?.text()?.toFloatOrNull() ?: 0f) - 1f
 		val chapters = mutableSetOf<MangaChapter>()
-		var hasNextPage = doc.selectFirst(chapterListNextPageSelector()) != null
+		var hasNextPage = doc.selectFirst(chapterListNextPageSelector) != null
 		chapters.addAll(
-			doc.select(chapterListSelector()).mapChapters { _, li ->
+			doc.select(chapterListSelector).mapChapters { _, li ->
 				val a = li.selectFirstOrThrow("a")
 				val chapterUrl = a.attr("href").toRelativeUrl(domain)
 				MangaChapter(
 					id = generateUid(chapterUrl),
 					name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
 					number = totalChapters--,
+					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
 					uploadDate = parseChapterDate(
@@ -219,7 +217,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		var pageToQuery = 2
 
 		//  Javascript: (Math.random() + 1).toString(36).substring(8)
-		val generateId = { ->
+		val generateId = {
 			"1.${
 				Random.nextLong().toString(36)
 			}".substring(10)
@@ -249,13 +247,14 @@ internal class ReaperComics(context: MangaLoaderContext) :
 			serverMemo = mergeLeft(serverMemo, responseData.serverMemo)
 			val chaptersHtml = Jsoup.parse(responseData.effects.html, "https://$domain")
 			chapters.addAll(
-				chaptersHtml.select(chapterListSelector()).mapChapters { _, li ->
+				chaptersHtml.select(chapterListSelector).mapChapters { _, li ->
 					val a = li.selectFirstOrThrow("a")
 					val chapterUrl = a.attr("href").toRelativeUrl(domain)
 					MangaChapter(
 						id = generateUid(chapterUrl),
 						name = li.selectFirst("div.truncate p.truncate")?.text().orEmpty(),
 						number = totalChapters--,
+						volume = 0,
 						url = chapterUrl,
 						scanlator = null,
 						uploadDate = parseChapterDate(
@@ -267,7 +266,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 					)
 				},
 			)
-			hasNextPage = chaptersHtml.selectFirst(chapterListNextPageSelector()) != null
+			hasNextPage = chaptersHtml.selectFirst(chapterListNextPageSelector) != null
 			pageToQuery++
 		}
 

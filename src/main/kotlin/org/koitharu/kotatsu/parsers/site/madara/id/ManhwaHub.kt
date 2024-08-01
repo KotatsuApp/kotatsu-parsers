@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWAHUB", "ManhwaHub", "id", ContentType.HENTAI)
 internal class ManhwaHub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWAHUB, "manhwahub.net", 40) {
+	MadaraParser(context, MangaParserSource.MANHWAHUB, "manhwahub.net", 40) {
 
 	override val tagPrefix = "genre/"
 	override val datePattern = "MMMM d, yyyy"

@@ -18,11 +18,11 @@ import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("NINENINENINEHENTAI", "999Hentai", type = ContentType.HENTAI)
+@MangaSourceParser("NINENINENINEHENTAI", "AnimeH", type = ContentType.HENTAI)
 internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.NINENINENINEHENTAI, size), Interceptor {
+	PagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, size), Interceptor {
 
-	override val configKeyDomain = ConfigKey.Domain("999hentai.net")
+	override val configKeyDomain = ConfigKey.Domain("animeh.to")
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -377,7 +377,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun apiCall(query: String): JSONObject {
-		return webClient.graphQLQuery("https://hapi.$domain/api", query).getJSONObject("data")
+		return webClient.graphQLQuery("https://api.$domain/api", query).getJSONObject("data")
 	}
 
 	companion object {

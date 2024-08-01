@@ -21,7 +21,7 @@ import java.util.*
 
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int,
 	searchPageSize: Int,

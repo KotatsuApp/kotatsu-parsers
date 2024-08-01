@@ -2,13 +2,13 @@ package org.koitharu.kotatsu.parsers.site.mmrcms.tr
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("MANGA_DENIZI", "MangaDenizi", "tr")
 internal class MangaDenizi(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaSource.MANGA_DENIZI, "www.mangadenizi.net") {
+	MmrcmsParser(context, MangaParserSource.MANGA_DENIZI, "www.mangadenizi.net") {
 	override val selectState = "dt:contains(Durum)"
 	override val selectAlt = "dt:contains(Diğer Adları)"
 	override val selectAut = "dt:contains(Yazar & Çizer)"

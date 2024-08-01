@@ -53,7 +53,7 @@ This library provides manga sources.
 3. Usage in code
 
    ```kotlin
-   val parser = mangaLoaderContext.newParserInstance(MangaSource.MANGADEX)
+   val parser = mangaLoaderContext.newParserInstance(MangaParserSourceMANGADEX)
    ```
 
    `mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.
@@ -62,7 +62,7 @@ This library provides manga sources.
    and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/jvmMain/kotlin/org/koitharu/kotatsu_dl/logic/MangaLoaderContextImpl.kt)
    implementation.
 
-   Note that the `MangaSource.LOCAL` and `MangaSource.DUMMY` parsers cannot be instantiated.
+   Note that the `MangaParserSourceLOCAL` and `MangaParserSourceDUMMY` parsers cannot be instantiated.
 
 ## Contribution
 

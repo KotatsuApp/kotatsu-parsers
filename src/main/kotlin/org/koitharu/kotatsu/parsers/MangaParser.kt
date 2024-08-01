@@ -15,7 +15,7 @@ import java.util.*
 
 abstract class MangaParser @InternalParsersApi constructor(
 	@property:InternalParsersApi val context: MangaLoaderContext,
-	val source: MangaSource,
+	val source: MangaParserSource,
 ) {
 
 	/**
@@ -62,7 +62,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	val config by lazy { context.getConfig(source) }
 
 	open val sourceLocale: Locale
-		get() = source.locale?.let { Locale(it) } ?: Locale.ROOT
+		get() = if (source.locale.isEmpty()) Locale.ROOT else Locale(source.locale)
 
 	val isNsfwSource = source.contentType == ContentType.HENTAI
 
@@ -244,7 +244,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 		return RelatedMangaFinder(listOf(this)).invoke(seed)
 	}
 
-	protected fun getParser(source: MangaSource) = if (this.source == source) {
+	protected fun getParser(source: MangaParserSource) = if (this.source == source) {
 		this
 	} else {
 		context.newParserInstance(source)

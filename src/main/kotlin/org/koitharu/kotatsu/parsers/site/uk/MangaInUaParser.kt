@@ -15,7 +15,7 @@ private const val DEF_BRANCH_NAME = "Основний переклад"
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
 class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	context = context,
-	source = MangaSource.MANGAINUA,
+	source = MangaParserSource.MANGAINUA,
 	pageSize = 24,
 	searchPageSize = 10,
 ) {

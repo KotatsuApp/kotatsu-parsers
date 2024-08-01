@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -9,7 +11,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGATOWN", "MangaTown", "en")
-internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGATOWN, 30) {
+internal class MangaTownParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.MANGATOWN, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com")
 
@@ -102,7 +105,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 				id = generateUid(href),
 				title = a.attr("title"),
 				coverUrl = a.selectFirst("img")?.absUrl("src").orEmpty(),
-				source = MangaSource.MANGATOWN,
+				source = MangaParserSource.MANGATOWN,
 				altTitle = null,
 				rating = li.selectFirst("p.score")?.selectFirst("b")
 					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
@@ -118,7 +121,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 					MangaTag(
 						title = x.attr("title").toTitleCase(),
 						key = x.attr("href").substringAfter("/directory/0-").substringBefore("-0-"),
-						source = MangaSource.MANGATOWN,
+						source = MangaParserSource.MANGATOWN,
 					)
 				}.orEmpty(),
 				url = href,
@@ -143,7 +146,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 				MangaTag(
 					title = a.attr("title").toTitleCase(),
 					key = a.attr("href").substringAfter("/directory/0-").substringBefore("-0-"),
-					source = MangaSource.MANGATOWN,
+					source = MangaParserSource.MANGATOWN,
 				)
 			}.orEmpty(),
 			description = info?.getElementById("show")?.ownText(),
@@ -156,7 +159,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 				MangaChapter(
 					id = generateUid(href),
 					url = href,
-					source = MangaSource.MANGATOWN,
+					source = MangaParserSource.MANGATOWN,
 					number = i + 1f,
 					volume = 0,
 					uploadDate = parseChapterDate(
@@ -174,10 +177,10 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirstOrThrow("div.page_select")
-		val isManga = root.select("select")
+		val root = doc.body().selectFirst("div.page_select")
+		val isManga = root?.select("select")
 
-		if (isManga.isEmpty()) {//Webtoon
+		if (isManga.isNullOrEmpty()) {//Webtoon
 			val imgElements = doc.select("div#viewer.read_img img.image")
 			return imgElements.map {
 				val href = it.attr("src")
@@ -185,7 +188,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 					id = generateUid(href),
 					url = href,
 					preview = null,
-					source = MangaSource.MANGATOWN,
+					source = MangaParserSource.MANGATOWN,
 				)
 
 			}
@@ -199,7 +202,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 					id = generateUid(href),
 					url = href,
 					preview = null,
-					source = MangaSource.MANGATOWN,
+					source = MangaParserSource.MANGATOWN,
 				)
 			}
 		}
@@ -224,7 +227,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
 			val key = a.attr("href").substringAfter("/directory/0-").substringBefore("-0-")
 			MangaTag(
-				source = MangaSource.MANGATOWN,
+				source = MangaParserSource.MANGATOWN,
 				key = key,
 				title = a.text().toTitleCase(),
 			)
@@ -253,7 +256,7 @@ internal class MangaTownParser(context: MangaLoaderContext) : PagedMangaParser(c
 			MangaChapter(
 				id = generateUid(href),
 				url = href,
-				source = MangaSource.MANGATOWN,
+				source = MangaParserSource.MANGATOWN,
 				number = i + 1f,
 				volume = 0,
 				uploadDate = parseChapterDate(

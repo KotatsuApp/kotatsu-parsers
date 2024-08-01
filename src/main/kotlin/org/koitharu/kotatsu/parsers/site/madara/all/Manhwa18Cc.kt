@@ -5,12 +5,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.HashSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("MANHWA18CC", "Manhwa18.cc", "", ContentType.HENTAI)
 internal class Manhwa18Cc(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWA18CC, "manhwa18.cc", 24) {
+	MadaraParser(context, MangaParserSource.MANHWA18CC, "manhwa18.cc", 24) {
 	override val datePattern = "dd MMM yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "webtoons/"

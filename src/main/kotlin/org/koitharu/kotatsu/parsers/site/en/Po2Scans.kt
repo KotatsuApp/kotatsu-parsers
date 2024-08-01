@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("PO2SCANS", "Po2Scans", "en")
-internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, MangaSource.PO2SCANS) {
+internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.PO2SCANS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("po2scans.com")

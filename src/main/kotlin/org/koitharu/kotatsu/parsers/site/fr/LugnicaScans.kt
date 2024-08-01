@@ -16,7 +16,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LUGNICASCANS", "LugnicaScans", "fr")
-internal class LugnicaScans(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LUGNICASCANS, 10) {
+internal class LugnicaScans(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.LUGNICASCANS, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,

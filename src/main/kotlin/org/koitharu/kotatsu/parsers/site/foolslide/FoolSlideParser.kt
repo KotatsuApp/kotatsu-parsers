@@ -13,7 +13,7 @@ import java.util.*
 
 internal abstract class FoolSlideParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 25,
 ) : PagedMangaParser(context, source, pageSize) {

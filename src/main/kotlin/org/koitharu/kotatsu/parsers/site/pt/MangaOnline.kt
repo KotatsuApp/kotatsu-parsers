@@ -10,7 +10,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAONLINE", "MangaOnline.biz", "pt")
-class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAONLINE, 20) {
+class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAONLINE, 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 

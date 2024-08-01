@@ -14,7 +14,7 @@ import java.util.*
 
 internal abstract class FmreaderParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 20,
 ) : PagedMangaParser(context, source, pageSize) {

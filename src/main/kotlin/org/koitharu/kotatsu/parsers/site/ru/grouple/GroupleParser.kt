@@ -35,7 +35,7 @@ private const val RELATED_TITLE = "Связанные произведения"
 
 internal abstract class GroupleParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	private val siteId: Int,
 ) : MangaParser(context, source), MangaParserAuthProvider, Interceptor {
 
@@ -132,6 +132,7 @@ internal abstract class GroupleParser(
 			source = newSource,
 			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
 				?: manga.altTitle,
+			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attr("data-full"),
 			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
@@ -193,7 +194,7 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		if (chapter.source != source) { // handle redirects between websites
+		if (chapter.source != source && chapter.source is MangaParserSource) { // handle redirects between websites
 			return context.newParserInstance(chapter.source).getPages(chapter)
 		}
 		val url = chapter.url.toAbsoluteUrl(domain).toHttpUrl().newBuilder().setQueryParameter("mtr", "1").build()
@@ -303,10 +304,10 @@ internal abstract class GroupleParser(
 	}
 
 	protected open fun getSource(url: HttpUrl): MangaSource = when (url.host) {
-		in SeiMangaParser.domains -> MangaSource.SEIMANGA
-		in MintMangaParser.domains -> MangaSource.MINTMANGA
-		in ReadmangaParser.domains -> MangaSource.READMANGA_RU
-		in SelfMangaParser.domains -> MangaSource.SELFMANGA
+		in SeiMangaParser.domains -> MangaParserSource.SEIMANGA
+		in MintMangaParser.domains -> MangaParserSource.MINTMANGA
+		in ReadmangaParser.domains -> MangaParserSource.READMANGA_RU
+		in SelfMangaParser.domains -> MangaParserSource.SELFMANGA
 		else -> source
 	}
 

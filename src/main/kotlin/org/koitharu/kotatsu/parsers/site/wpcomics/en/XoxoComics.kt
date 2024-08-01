@@ -1,24 +1,21 @@
 package org.koitharu.kotatsu.parsers.site.wpcomics.en
 
 import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("XOXOCOMICS", "XoxoComics", "en", ContentType.COMICS)
 internal class XoxoComics(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaSource.XOXOCOMICS, "xoxocomic.com", 50) {
+	WpComicsParser(context, MangaParserSource.XOXOCOMICS, "xoxocomic.com", 50) {
 
 	override val listUrl = "/comic-list"
 	override val datePattern = "MM/dd/yyyy"
-
-	override val isMultipleTagsSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -121,7 +118,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChapters(doc) }
+		val chaptersDeferred = async { loadChapters(fullUrl) }
 		val desc = doc.selectFirstOrThrow(selectDesc).html()
 		val stateDiv = doc.selectFirst(selectState)
 		val state = stateDiv?.let {
@@ -148,29 +145,37 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getChapters(doc: Document): List<MangaChapter> {
-		val pages = doc.select("ul.pagination > li:not(.active)")
-		return if (pages.size <= 1) {
-			super.getChapters(doc)
-		} else {
-			val subPageChapterList = coroutineScope {
-				pages.mapNotNull { page ->
-					val a = page.selectFirst("a") ?: return@mapNotNull null
-					if (a.text().isNumeric()) {
-						val href = a.attrAsAbsoluteUrl("href")
-						async {
-							super.getChapters(webClient.httpGet(href).parseHtml()).asReversed()
-						}
-					} else {
-						null // TODO support pagination with overflow
-					}
-				}.awaitAll().flatten()
-			}
-			val firstPageChapterList = super.getChapters(doc).asReversed().toMutableList()
-			firstPageChapterList.addAll(subPageChapterList)
-			firstPageChapterList.reverse()
-			firstPageChapterList.mapIndexed { i, x -> x.copy(volume = x.volume, number = (i + 1).toFloat()) }
+	private val dateFormat = SimpleDateFormat("MM/dd/yyyy", sourceLocale)
+
+	private suspend fun loadChapters(baseUrl: String): List<MangaChapter> {
+		val chapters = ArrayList<MangaChapter>()
+		var page = 0
+		while (true) {
+			++page
+			val doc = webClient.httpGet("$baseUrl?page=$page").parseHtml()
+			doc.selectFirst("#nt_listchapter nav ul li:not(.heading)") ?: break
+			chapters.addAll(
+				doc.select("#nt_listchapter nav ul li:not(.heading)").mapChapters { _, li ->
+					val a = li.selectFirstOrThrow("a")
+					val href = a.attr("href")
+					val dateText = li.selectFirst("div.col-xs-3")?.text()
+					MangaChapter(
+						id = generateUid(href),
+						name = a.text(),
+						number = 0f,
+						volume = 0,
+						url = href,
+						scanlator = null,
+						uploadDate = dateFormat.tryParse(dateText),
+						branch = null,
+						source = source,
+					)
+
+				},
+			)
 		}
+		chapters.reverse()
+		return chapters.mapIndexed { i, x -> x.copy(volume = x.volume, number = (i + 1).toFloat()) }
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

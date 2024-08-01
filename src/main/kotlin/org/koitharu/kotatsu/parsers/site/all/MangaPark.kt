@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("MANGAPARK", "MangaPark")
 internal class MangaPark(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANGAPARK, pageSize = 36) {
+	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
@@ -257,7 +257,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 			.findAll(script)
 			.mapNotNullTo(ArrayList()) {
 				val url = it.groupValues.getOrNull(1) ?: return@mapNotNullTo null
-				if (url.contains("/comic/") || url.contains("/manga/")) {
+				if (url.contains("/comic/") || url.contains("/manga/") || url.contains("/image/mpup/")) {
 					MangaPage(
 						id = generateUid(url),
 						url = url,

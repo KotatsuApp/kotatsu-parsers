@@ -6,15 +6,18 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.parseFailed
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("HENTAIZONE", "HentaiZone", "fr", ContentType.HENTAI)
 internal class Hentaizone(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HENTAIZONE, "hentaizone.xyz", pageSize = 10) {
+	MadaraParser(context, MangaParserSource.HENTAIZONE, "hentaizone.xyz", pageSize = 10) {
 
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.FRENCH

@@ -1,22 +1,20 @@
 package org.koitharu.kotatsu.parsers.site.zeistmanga.id
 
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.tryParse
 import java.text.SimpleDateFormat
 
+@Broken
 @MangaSourceParser("MONZEEKOMIK", "MonzeeKomik", "id")
 internal class MonzeeKomik(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.MONZEEKOMIK, "www.monzeekomik.my.id") {
+	ZeistMangaParser(context, MangaParserSource.MONZEEKOMIK, "www.monzeekomik.my.id") {
 	override val selectPage = "article#reader img"
 
 	override suspend fun loadChapters(mangaUrl: String, doc: Document): List<MangaChapter> {

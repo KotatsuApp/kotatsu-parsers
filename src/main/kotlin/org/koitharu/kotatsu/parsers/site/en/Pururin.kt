@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("PURURIN", "Pururin", "en", ContentType.HENTAI)
 internal class Pururin(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.PURURIN, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.PURURIN, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.ALPHABETICAL)

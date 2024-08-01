@@ -20,7 +20,7 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.math.min
 
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
-class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MANGAREADERTO, 16),
+class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
 	Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")

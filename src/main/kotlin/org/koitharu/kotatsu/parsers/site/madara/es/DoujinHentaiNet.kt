@@ -5,14 +5,14 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("DOUJIN_HENTAI_NET", "DoujinHentai.net", "es", ContentType.HENTAI)
 internal class DoujinHentaiNet(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DOUJIN_HENTAI_NET, "doujinhentai.net", 18) {
+	MadaraParser(context, MangaParserSource.DOUJIN_HENTAI_NET, "doujinhentai.net", 18) {
 
 	override val datePattern = "dd MMM. yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH

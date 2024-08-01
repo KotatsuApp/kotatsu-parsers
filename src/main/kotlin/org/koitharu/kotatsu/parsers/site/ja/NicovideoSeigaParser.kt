@@ -14,7 +14,7 @@ private const val STATUS_FINISHED = "完結"
 
 @MangaSourceParser("NICOVIDEO_SEIGA", "NicoVideo Seiga", "ja")
 class NicovideoSeigaParser(context: MangaLoaderContext) :
-	MangaParser(context, MangaSource.NICOVIDEO_SEIGA),
+	MangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
 	override val headers: Headers = Headers.Builder()

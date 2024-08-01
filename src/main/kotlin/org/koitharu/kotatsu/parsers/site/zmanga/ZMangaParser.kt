@@ -14,7 +14,7 @@ import java.util.*
 
 internal abstract class ZMangaParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 16,
 ) : PagedMangaParser(context, source, pageSize) {

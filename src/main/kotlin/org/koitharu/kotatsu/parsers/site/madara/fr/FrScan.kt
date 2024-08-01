@@ -4,13 +4,13 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("FRSCAN", "Fr-Scan", "fr")
 internal class FrScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.FRSCAN, "fr-scan.com") {
+	MadaraParser(context, MangaParserSource.FRSCAN, "fr-scan.com") {
 	override val stylePage = ""
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {

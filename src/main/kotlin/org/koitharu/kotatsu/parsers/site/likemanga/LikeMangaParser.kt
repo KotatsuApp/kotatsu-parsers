@@ -17,7 +17,7 @@ import java.util.*
 
 internal abstract class LikeMangaParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 36,
 ) : PagedMangaParser(context, source, pageSize) {
@@ -219,7 +219,8 @@ internal abstract class LikeMangaParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = li.selectFirstOrThrow("a").text(),
-					number = chapNum.toInt(),
+					number = chapNum.toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = parseChapterDate(

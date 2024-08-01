@@ -2,19 +2,14 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
+	MadaraParser(context, MangaParserSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
 	override val selectPage = "div#chapter_imgs img"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = emptySet()

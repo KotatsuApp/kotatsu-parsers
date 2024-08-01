@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWASMEN", "ManhwasMen", "en", type = ContentType.HENTAI)
 class ManhwasMen(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.MANHWASMEN, pageSize = 30, searchPageSize = 30) {
+	PagedMangaParser(context, MangaParserSource.MANHWASMEN, pageSize = 30, searchPageSize = 30) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwas.men")
 

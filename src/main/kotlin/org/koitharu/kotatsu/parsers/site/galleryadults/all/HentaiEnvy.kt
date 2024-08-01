@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIENVY", "HentaiEnvy", type = ContentType.HENTAI)
 internal class HentaiEnvy(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIENVY, "hentaienvy.com", pageSize = 24) {
+	GalleryAdultsParser(context, MangaParserSource.HENTAIENVY, "hentaienvy.com", pageSize = 24) {
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = "div.title"
 	override val selectTags = ".tags_items"

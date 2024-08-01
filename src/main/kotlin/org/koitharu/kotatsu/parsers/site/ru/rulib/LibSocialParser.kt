@@ -16,7 +16,7 @@ import java.util.*
 
 internal abstract class LibSocialParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	protected val siteDomain: String,
 	protected val siteId: Int,
 ) : PagedMangaParser(context, source, pageSize = 60) {
@@ -87,7 +87,7 @@ internal abstract class LibSocialParser(
 				SortOrder.NEWEST -> "created_at"
 				SortOrder.ALPHABETICAL,
 				SortOrder.ALPHABETICAL_DESC,
-					-> "rus_name"
+				-> "rus_name"
 			},
 		)
 		urlBuilder.addQueryParameter(
@@ -98,7 +98,7 @@ internal abstract class LibSocialParser(
 				SortOrder.RATING,
 				SortOrder.NEWEST,
 				SortOrder.ALPHABETICAL_DESC,
-					-> "desc"
+				-> "desc"
 
 				SortOrder.ALPHABETICAL -> "asc"
 			},

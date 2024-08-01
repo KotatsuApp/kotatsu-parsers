@@ -5,20 +5,14 @@ import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANGAIRO", "MangaIro", "en")
 internal class Mangairo(context: MangaLoaderContext) :
-	MangaboxParser(context, MangaSource.MANGAIRO) {
+	MangaboxParser(context, MangaParserSource.MANGAIRO) {
 	override val configKeyDomain = ConfigKey.Domain("w.mangairo.com", "chap.mangairo.com")
 	override val otherDomain = "chap.mangairo.com"
 	override val datePattern = "MMM-dd-yy"

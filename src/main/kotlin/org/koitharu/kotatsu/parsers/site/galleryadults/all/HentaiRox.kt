@@ -4,7 +4,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.mapToSet
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIROX", "HentaiRox", type = ContentType.HENTAI)
 internal class HentaiRox(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.HENTAIROX, "hentairox.com") {
+	GalleryAdultsParser(context, MangaParserSource.HENTAIROX, "hentairox.com") {
 	override val selectGalleryImg = ".inner_thumb img"
 	override val selectTags = ".gtags"
 	override val selectTag = "li:contains(Tags:)"
