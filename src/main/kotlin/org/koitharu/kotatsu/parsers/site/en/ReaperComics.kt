@@ -175,21 +175,21 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		val url = "https://api.$domain/chapter/query?page=1&perPage=9999&series_id=$seriesid"
 		val response = makeRequest(url)
 		val data = response.getJSONArray("data")
-		val chapters = data.mapJSONIndexed { index, it ->
-			val chapterUrl = "/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
-			MangaChapter(
-				id = it.getLong("id"),
-				name = it.getString("chapter_name"),
-				number = data.length() - index,
-				url = chapterUrl,
-				scanlator = null,
-				uploadDate = parseChapterDate(dateFormat, it.getString("created_at")),
-				branch = null,
-				source = source,
-			)
-		}
 		return manga.copy(
-			chapters = chapters
+			chapters = data.mapJSONIndexed { index, it ->
+				val chapterUrl = "/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
+				MangaChapter(
+					id = it.getLong("id"),
+					name = it.getString("chapter_name"),
+					number = (data.length() - index).toFloat(),
+					volume = 0,
+					url = chapterUrl,
+					scanlator = null,
+					uploadDate = parseChapterDate(dateFormat, it.getString("created_at")),
+					branch = null,
+					source = source,
+				)
+			}
 		)
 	}
 
@@ -205,14 +205,27 @@ internal class ReaperComics(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select(pageSelector).map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		val processedUrls = mutableSetOf<String>()
+
+		return doc.select(pageSelector).mapNotNull { img ->
+			val url = img.attr("data-cfsrc").takeIf { it.isNotBlank() }
+				?: img.attr("src").takeIf { it.isNotBlank() }
+				?: img.selectFirst("noscript img")?.attr("src")
+				?: return@mapNotNull null
+
+			val relativeUrl = url.toRelativeUrl(domain)
+
+			if (relativeUrl !in processedUrls) {
+				processedUrls.add(relativeUrl)
+				MangaPage(
+					id = generateUid(relativeUrl),
+					url = relativeUrl,
+					preview = null,
+					source = source,
+				)
+			} else {
+				null
+			}
 		}
 	}
 
