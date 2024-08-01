@@ -279,8 +279,8 @@ internal class ExHentaiParser(
 
 		val doc = webClient.httpGet("https://${domain}").parseHtml()
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
-		root.select("div.cs").mapNotNullToSet { div ->
-			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@mapNotNullToSet null
+		root.select("div.cs").forEach { div ->
+			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@forEach
 			val name = div.text().toTitleCase(Locale.ENGLISH)
 			tagMap[name] = MangaTag(
 				title = "Kind: $name",
