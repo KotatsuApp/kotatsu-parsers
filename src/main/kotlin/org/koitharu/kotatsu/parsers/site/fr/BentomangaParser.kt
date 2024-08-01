@@ -18,7 +18,8 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
-internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.BENTOMANGA, 10) {
+internal class BentomangaParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.BENTOMANGA, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -228,7 +229,8 @@ internal class BentomangaParser(context: MangaLoaderContext) : PagedMangaParser(
 				MangaChapter(
 					id = generateUid(href),
 					name = if (name != null && name != title) "$title: $name" else title,
-					number = href.substringAfterLast('/').toIntOrNull() ?: 0,
+					number = href.substringAfterLast('/').toFloatOrNull() ?: 0f,
+					volume = 0,
 					url = href,
 					scanlator = div.selectFirst(".team_link-name")?.textOrNull(),
 					uploadDate = div.selectFirst(".component-chapter-date")

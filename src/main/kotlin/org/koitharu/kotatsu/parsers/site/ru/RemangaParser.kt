@@ -29,7 +29,7 @@ private const val TOO_MANY_REQUESTS = 429
 @MangaSourceParser("REMANGA", "Реманга", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
+) : PagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
 	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
@@ -121,10 +121,10 @@ internal class RemangaParser(
 					MangaTag(
 						title = g.getString("name").toTitleCase(),
 						key = g.getInt("id").toString(),
-						source = MangaSource.REMANGA,
+						source = MangaParserSource.REMANGA,
 					)
 				}.orEmpty(),
-				source = MangaSource.REMANGA,
+				source = MangaParserSource.REMANGA,
 			)
 		}
 	}
@@ -157,7 +157,7 @@ internal class RemangaParser(
 				MangaTag(
 					title = g.getString("name").toTitleCase(),
 					key = g.getInt("id").toString(),
-					source = MangaSource.REMANGA,
+					source = MangaParserSource.REMANGA,
 				)
 			},
 			chapters = chapters.mapChapters { i, jo ->
@@ -187,7 +187,7 @@ internal class RemangaParser(
 					},
 					uploadDate = dateFormat.tryParse(jo.getString("upload_date")),
 					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
-					source = MangaSource.REMANGA,
+					source = MangaParserSource.REMANGA,
 					branch = null,
 				)
 			}.asReversed(),

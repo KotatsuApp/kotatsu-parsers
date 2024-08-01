@@ -3,17 +3,13 @@ package org.koitharu.kotatsu.parsers.site.gattsu.pt
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("UNIVERSOHENTAI", "UniversoHentai", "pt", ContentType.HENTAI)
 internal class UniversoHentai(context: MangaLoaderContext) :
-	GattsuParser(context, MangaSource.UNIVERSOHENTAI, "universohentai.com") {
+	GattsuParser(context, MangaParserSource.UNIVERSOHENTAI, "universohentai.com") {
 
 	override val tagPrefix = "category"
 

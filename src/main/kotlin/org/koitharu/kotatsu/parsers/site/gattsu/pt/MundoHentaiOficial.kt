@@ -5,18 +5,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.selectLastOrThrow
-import org.koitharu.kotatsu.parsers.util.src
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MUNDOHENTAIOFICIAL", "MundoHentaiOficial", "pt", ContentType.HENTAI)
 internal class MundoHentaiOficial(context: MangaLoaderContext) :
-	GattsuParser(context, MangaSource.MUNDOHENTAIOFICIAL, "mundohentaioficial.com") {
+	GattsuParser(context, MangaParserSource.MUNDOHENTAIOFICIAL, "mundohentaioficial.com") {
 
 	override val tagUrl = "tags"
 

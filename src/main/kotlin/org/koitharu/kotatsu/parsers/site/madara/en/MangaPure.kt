@@ -7,11 +7,11 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANGAPURE", "MangaPure", "en")
 internal class MangaPure(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANGAPURE, "mangapure.net") {
+	MadaraParser(context, MangaParserSource.MANGAPURE, "mangapure.net") {
 	override val tagPrefix = "mangas/"
 	override val listUrl = "latest-manga/"
 	override val datePattern = "MMMM d, HH:mm"

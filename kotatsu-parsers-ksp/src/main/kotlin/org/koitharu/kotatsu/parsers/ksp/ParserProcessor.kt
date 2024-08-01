@@ -69,12 +69,9 @@ class ParserProcessor(
 			"""
 			package org.koitharu.kotatsu.parsers
 
-			import org.koitharu.kotatsu.parsers.model.MangaSource
-			
-			@Suppress("DEPRECATION")
-			@InternalParsersApi
-			@Deprecated("", replaceWith = ReplaceWith("context.newParserInstance(this)"))
-			fun MangaSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
+			import org.koitharu.kotatsu.parsers.model.MangaParserSource
+
+			internal fun MangaParserSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
 			
 			""".trimIndent(),
 		)
@@ -83,14 +80,12 @@ class ParserProcessor(
 			"""
 			package org.koitharu.kotatsu.parsers.model
 			
-			enum class MangaSource(
+			enum class MangaParserSource(
 				val title: String,
 				val locale: String,
 				val contentType: ContentType,
 				val isBroken: Boolean,
-			) {
-				LOCAL("Local", "", ContentType.OTHER, false),
-				UNKNOWN("Unknown", "", ContentType.OTHER, true),
+			): MangaSource {
 			
 			""".trimIndent(),
 		)
@@ -102,9 +97,7 @@ class ParserProcessor(
 
 		factoryWriter?.write(
 			"""
-				MangaSource.LOCAL,
-				MangaSource.UNKNOWN,
-				MangaSource.DUMMY -> throw NotImplementedError("Manga parser ${'$'}name cannot be instantiated")
+				MangaParserSource.DUMMY -> throw NotImplementedError("Manga parser ${'$'}name cannot be instantiated")
 			}.also {
 				require(it.source == this) {
 					"Cannot instantiate manga parser: ${'$'}name mapped to ${'$'}{it.source}"
@@ -166,7 +159,7 @@ class ParserProcessor(
 				logger.warn("Source title duplication: \"$title\" is assigned to both $prevTitleClass and $className")
 			}
 
-			factoryWriter?.write("\tMangaSource.$name -> $className(context)\n")
+			factoryWriter?.write("\tMangaParserSource.$name -> $className(context)\n")
 			val deprecationString =
 				if (deprecation != null) {
 					val reason =

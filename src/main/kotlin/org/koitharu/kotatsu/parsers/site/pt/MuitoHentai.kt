@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MUITOHENTAI", "MuitoHentai", "pt", ContentType.HENTAI)
-class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.MUITOHENTAI, 24) {
+class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MUITOHENTAI, 24) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
@@ -94,7 +94,7 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					source = source,
 				)
 			},
-			chapters = doc.select(".backgroundpost h3 a").mapChapters() { i, a ->
+			chapters = doc.select(".backgroundpost h3 a").mapChapters { i, a ->
 				val href = a.attrAsAbsoluteUrl("href")
 				MangaChapter(
 					id = generateUid(href),

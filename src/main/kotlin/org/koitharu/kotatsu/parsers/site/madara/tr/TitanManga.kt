@@ -4,13 +4,13 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("TITANMANGA", "TitanManga", "tr")
 internal class TitanManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TITANMANGA, "titanmanga.com") {
+	MadaraParser(context, MangaParserSource.TITANMANGA, "titanmanga.com") {
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"

@@ -17,7 +17,7 @@ import java.util.*
 
 @MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
 class BlogTruyenParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.BLOGTRUYEN, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyenmoi.com")
@@ -197,7 +197,8 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(id),
 				name = name,
-				number = index + 1,
+				number = index + 1f,
+				volume = 0,
 				url = relativeUrl,
 				scanlator = null,
 				uploadDate = uploadDate,

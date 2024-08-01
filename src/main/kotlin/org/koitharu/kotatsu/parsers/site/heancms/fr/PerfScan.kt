@@ -3,34 +3,16 @@ package org.koitharu.kotatsu.parsers.site.heancms.fr
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
-import org.koitharu.kotatsu.parsers.util.json.unescapeJson
-import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.tryParse
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("PERF_SCAN", "PerfScan", "fr")
 internal class PerfScan(context: MangaLoaderContext) :
-	HeanCms(context, MangaSource.PERF_SCAN, "perf-scan.fr") {
+	HeanCms(context, MangaParserSource.PERF_SCAN, "perf-scan.fr") {
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
@@ -125,7 +107,7 @@ internal class PerfScan(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
 
 		val chaptersJsonArray = json.getJSONArray("data")
-		var totalChapters = json.getJSONObject("meta").getInt("total")
+		var totalChapters = json.getJSONObject("meta").getInt("total").toFloat()
 		val chapters = chaptersJsonArray.mapJSON { j ->
 			val slug = j.getJSONObject("series").getString("series_slug")
 			val chapterUrl = "https://$domain/$pathManga/$slug/${j.getString("chapter_slug")}"
@@ -135,6 +117,7 @@ internal class PerfScan(context: MangaLoaderContext) :
 				url = chapterUrl,
 				name = j.getString("chapter_name"),
 				number = totalChapters--,
+				volume = 0,
 				branch = null,
 				uploadDate = dateFormat.tryParse(date),
 				scanlator = null,

@@ -3,18 +3,23 @@ package org.koitharu.kotatsu.parsers
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.mergeWith
 
 private const val HEADER_REFERER = "Referer"
 
-internal class CommonHeadersInterceptor() : Interceptor {
+internal class CommonHeadersInterceptor : Interceptor {
 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		val source = request.tag(MangaSource::class.java)
-		val parser = source?.let { MangaLoaderContextMock.newParserInstance(it) }
+		val parser = if (source is MangaParserSource) {
+			MangaLoaderContextMock.newParserInstance(source)
+		} else {
+			null
+		}
 		val sourceHeaders = parser?.headers
 		val headersBuilder = request.headers.newBuilder()
 		if (sourceHeaders != null) {

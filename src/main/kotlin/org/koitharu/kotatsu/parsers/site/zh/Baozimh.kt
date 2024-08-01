@@ -12,11 +12,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.util.*
-import kotlin.collections.HashSet
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
 internal class Baozimh(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.BAOZIMH, pageSize = 36) {
+	PagedMangaParser(context, MangaParserSource.BAOZIMH, pageSize = 36) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 

@@ -14,7 +14,8 @@ import java.util.*
 
 @MangaSourceParser("RIZZCOMIC", "RizzComic", "en")
 internal class RizzComic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.RIZZCOMIC, "rizzfables.com", pageSize = 50, searchPageSize = 20) {
+	MangaReaderParser(context, MangaParserSource.RIZZCOMIC, "rizzfables.com", pageSize = 50, searchPageSize = 20) {
+
 	override val datePattern = "dd MMM yyyy"
 	override val listUrl = "/series"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -35,7 +36,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 	private var randomPartCache = SuspendLazy(::getRandomPart)
 	private val randomPartRegex = Regex("""^(r\d+-)""")
 	private val slugRegex = Regex("""[^a-z0-9]+""")
-	private fun searchMangaSelector() = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"
+	private val searchMangaSelector = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"
 	private suspend fun getRandomPart(): String {
 		val request = Request.Builder()
 			.url("https://$domain$listUrl")
@@ -44,7 +45,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 		val response = context.httpClient.newCall(request).await()
 		val url = response.parseHtml()
-			.selectFirst(searchMangaSelector())!!
+			.selectFirst(searchMangaSelector)!!
 			.select("a").attr("href")
 
 		val slug = url

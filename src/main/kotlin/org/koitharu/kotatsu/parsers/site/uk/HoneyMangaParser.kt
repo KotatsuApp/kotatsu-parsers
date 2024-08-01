@@ -24,7 +24,8 @@ private const val HEADER_ENCODING = "Content-Encoding"
 private const val IMAGE_BASEURL_FALLBACK = "https://hmvolumestorage.b-cdn.net/public-resources"
 
 @MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
-class HoneyMangaParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.HONEYMANGA, PAGE_SIZE),
+class HoneyMangaParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE),
 	Interceptor {
 
 	private val urlApi get() = "https://data.api.$domain"

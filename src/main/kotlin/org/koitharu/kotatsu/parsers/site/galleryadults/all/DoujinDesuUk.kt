@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("DOUJINDESUUK", "DoujinDesu.uk", type = ContentType.HENTAI)
 internal class DoujinDesuUk(context: MangaLoaderContext) :
-	GalleryAdultsParser(context, MangaSource.DOUJINDESUUK, "doujindesu.uk", 25) {
+	GalleryAdultsParser(context, MangaParserSource.DOUJINDESUUK, "doujindesu.uk", 25) {
 	override val selectGallery = ".gallery"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"

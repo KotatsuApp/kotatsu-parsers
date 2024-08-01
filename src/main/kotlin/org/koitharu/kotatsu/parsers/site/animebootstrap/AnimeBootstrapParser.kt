@@ -13,7 +13,7 @@ import java.util.*
 
 internal abstract class AnimeBootstrapParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {

@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.zeistmanga.id
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.domain
@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.requireElementById
 
 @MangaSourceParser("KLMANHUA", "KlManhua", "id", ContentType.HENTAI)
 internal class KlManhua(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.KLMANHUA, "klmanhua.blogspot.com") {
+	ZeistMangaParser(context, MangaParserSource.KLMANHUA, "klmanhua.blogspot.com") {
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()

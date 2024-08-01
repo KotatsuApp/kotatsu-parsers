@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.toJSONList
@@ -13,7 +13,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("KOMIKGES", "KomikGes", "id")
 internal class KomikGes(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaSource.KOMIKGES, "www.komikges.my.id") {
+	ZeistMangaParser(context, MangaParserSource.KOMIKGES, "www.komikges.my.id") {
 
 	override suspend fun loadChapters(mangaUrl: String, doc: Document): List<MangaChapter> {
 		val feed = doc.selectFirstOrThrow(".episode-list script").html().substringAfter("('").substringBefore("');")

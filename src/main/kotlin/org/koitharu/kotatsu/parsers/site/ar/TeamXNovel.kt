@@ -14,13 +14,13 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TEAMXNOVEL", "TeamXNovel", "ar")
-internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TEAMXNOVEL, 10) {
+internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TEAMXNOVEL, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
 
-	override val configKeyDomain = ConfigKey.Domain("teamxnovel.com")
+	override val configKeyDomain = ConfigKey.Domain("teamoney.site")
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -31,7 +31,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 			when (filter) {
 
 				is MangaListFilter.Search -> {
-					append("/series?search=")
+					append("/?search=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
 						append("&page=")
@@ -95,7 +95,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src()?.replace("thumbnail_", "").orEmpty(),
 				tags = emptySet(),
 				state = when (div.selectFirst(".status")?.text()) {
 					"مستمرة" -> MangaState.ONGOING

@@ -1,13 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.Headers
-import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.Request
-import okhttp3.RequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -20,22 +17,18 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.random.Random
 
-private const val TOO_MANY_REQUESTS = 429
 private const val MAX_RETRY_COUNT = 5
 
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.REAPERCOMICS, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.REAPERCOMICS, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC)
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(
-		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-	)
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()

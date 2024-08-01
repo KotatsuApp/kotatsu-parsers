@@ -8,11 +8,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("ONMA", "Onma", "ar")
 internal class Onma(context: MangaLoaderContext) :
-	MmrcmsParser(context, MangaSource.ONMA, "onma.me") {
+	MmrcmsParser(context, MangaParserSource.ONMA, "onma.me") {
 
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val selectState = "h3:contains(الحالة) .text"

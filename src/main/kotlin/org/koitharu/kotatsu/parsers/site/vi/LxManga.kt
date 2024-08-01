@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LXMANGA", "LxManga", "vi")
-internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LXMANGA, 60) {
+internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -23,7 +23,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	)
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.net")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.life")
 
 	override val isMultipleTagsSupported = false
 
@@ -142,7 +142,8 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					MangaChapter(
 						id = generateUid(href),
 						name = name,
-						number = i,
+						number = i.toFloat(),
+						volume = 0,
 						url = href,
 						scanlator = null,
 						uploadDate = dateFormat.tryParse(date),

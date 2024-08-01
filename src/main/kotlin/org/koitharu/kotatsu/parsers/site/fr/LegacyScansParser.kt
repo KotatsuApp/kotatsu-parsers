@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("LEGACY_SCANS", "LegacyScans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.LEGACY_SCANS, 18) {
+	PagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 

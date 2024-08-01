@@ -8,9 +8,9 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("NORMOYUN", "Normoyun", "ar")
+@MangaSourceParser("NORMOYUN", "MaxLevelTeam", "ar")
 internal class Normoyun(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.NORMOYUN, "normoyun.com", pageSize = 42, searchPageSize = 39) {
+	MangaReaderParser(context, MangaParserSource.NORMOYUN, "maxlevelteam.com", pageSize = 42, searchPageSize = 39) {
 
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectMangaList = ".listupd .bs .bsx"
@@ -98,25 +98,11 @@ internal class Normoyun(context: MangaLoaderContext) :
 	}
 
 	override suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
-
-		/// set if is table
-
 		val states = docs.selectFirst("div.spe span:contains(Ongoing)")?.text()
-
-		val state = if (states.isNullOrEmpty()) {
-			"completed"
+		val mangaState = if (states.isNullOrEmpty()) {
+			MangaState.FINISHED
 		} else {
-			"ongoing"
-		}
-
-		val mangaState = state.let {
-			when (it) {
-				"ongoing" -> MangaState.ONGOING
-
-				"completed" -> MangaState.FINISHED
-
-				else -> null
-			}
+			MangaState.ONGOING
 		}
 		val author = docs.selectFirst("span.author i")?.text()
 

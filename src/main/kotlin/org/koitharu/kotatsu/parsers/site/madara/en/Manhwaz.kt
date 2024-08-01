@@ -5,11 +5,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANHWAZ", "ManhwaZ", "en")
 internal class Manhwaz(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.MANHWAZ, "manhwaz.com", 40) {
+	MadaraParser(context, MangaParserSource.MANHWAZ, "manhwaz.com", 40) {
 
 	override val listUrl = "genre/manhwa"
 	override val tagPrefix = "genre/"

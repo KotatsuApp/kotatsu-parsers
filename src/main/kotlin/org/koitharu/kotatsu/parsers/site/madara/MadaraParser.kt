@@ -7,8 +7,11 @@ import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -17,13 +20,41 @@ import java.util.*
 
 internal abstract class MadaraParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 12,
-) : PagedMangaParser(context, source, pageSize) {
+) : PagedMangaParser(context, source, pageSize), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
 	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val authUrl: String
+		get() = "https://${domain}"
+
+	override val isAuthorized: Boolean
+		get() {
+			return context.cookieJar.getCookies(domain).any {
+				it.name.contains("wordpress_logged_in")
+			}
+		}
+
+	override suspend fun getUsername(): String {
+		val body = webClient.httpGet("https://${domain}/").parseHtml().body()
+		return body.selectFirst(".c-user_name")?.text()
+			?: run {
+				throw if (body.selectFirst("#loginform") != null) {
+					AuthRequiredException(source)
+				} else {
+					body.parseFailed("Cannot find username")
+				}
+			}
+	}
 
 	override val isMultipleTagsSupported = false
 
@@ -333,7 +364,7 @@ internal abstract class MadaraParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
-				?: div.selectFirst(".manga-name"))?.text().orEmpty(),
+				?: div.selectFirst(".manga-name") ?: div.selectFirst(".post-title"))?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
@@ -551,7 +582,8 @@ internal abstract class MadaraParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
-			val root = doc.body().selectFirstOrThrow(selectBodyPage)
+			val root = doc.body().selectFirst(selectBodyPage)
+				?: throw ParseException("No image found, try to log in", fullUrl)
 			return root.select(selectPage).map { div ->
 				val img = div.selectFirstOrThrow("img")
 				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
@@ -563,7 +595,15 @@ internal abstract class MadaraParser(
 				)
 			}
 		} else {
-			val chapterProtectorHtml = chapterProtector.html()
+
+			val chapterProtectorHtml = chapterProtector.attr("src")
+				.takeIf { it.startsWith("data:text/javascript;base64,") }
+				?.substringAfter("data:text/javascript;base64,")
+				?.let {
+					Base64.getDecoder().decode(it).decodeToString()
+				}
+				?: chapterProtector.html()
+
 			val password = chapterProtectorHtml.substringAfter("wpmangaprotectornonce='").substringBefore("';")
 			val chapterData = JSONObject(
 				chapterProtectorHtml.substringAfter("chapter_data='").substringBefore("';").replace("\\/", "/"),
@@ -649,11 +689,6 @@ internal abstract class MadaraParser(
 
 			else -> dateFormat.tryParse(date)
 		}
-	}
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
 	}
 
 	// Parses dates in this form:

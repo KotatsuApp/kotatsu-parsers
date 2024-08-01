@@ -6,11 +6,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("TMOMANGA", "TmoManga", "es")
 internal class TmoManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.TMOMANGA, "tmomanga.com") {
+	MadaraParser(context, MangaParserSource.TMOMANGA, "tmomanga.com") {
 
 	override val tagPrefix = "genero/"
 	override val listUrl = "biblioteca/"

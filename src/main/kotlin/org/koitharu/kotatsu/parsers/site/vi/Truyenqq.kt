@@ -10,14 +10,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
-internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.TRUYENQQ, 42) {
+internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("truyenqqvn.com")
+	override val configKeyDomain = ConfigKey.Domain("truyenqqviet.com")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

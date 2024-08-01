@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en", ContentType.HENTAI)
 internal class Hentai4Free(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.HENTAI_4FREE, "hentai4free.net", pageSize = 24) {
+	MadaraParser(context, MangaParserSource.HENTAI_4FREE, "hentai4free.net", pageSize = 24) {
 
 	override val tagPrefix = "hentai-tag/"
 	override val listUrl = ""

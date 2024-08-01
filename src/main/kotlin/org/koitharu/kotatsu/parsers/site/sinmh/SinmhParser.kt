@@ -11,7 +11,7 @@ import java.util.*
 
 internal abstract class SinmhParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 36,
 ) : PagedMangaParser(context, source, pageSize) {

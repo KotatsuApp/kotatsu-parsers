@@ -13,7 +13,7 @@ import java.util.*
 
 internal abstract class MangaboxParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {
 

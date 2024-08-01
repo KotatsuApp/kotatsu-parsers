@@ -12,11 +12,11 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("YUGENMANGAS", "YugenMangas.net.br", "pt")
-class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.YUGENMANGAS, 28) {
+@MangaSourceParser("YUGENMANGAS", "YugenApp", "pt")
+class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YUGENMANGAS, 28) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED)
-	override val configKeyDomain = ConfigKey.Domain("yugenmangas.net.br")
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
+	override val configKeyDomain = ConfigKey.Domain("yugenapp.lat")
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
@@ -32,14 +32,13 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					val url = buildString {
 						append("https://api.")
 						append(domain)
-						append("/api/series/list/?query=")
+						append("/api/series/?search=")
 						append(filter.query.urlEncoded())
 					}
 					webClient.httpGet(url).parseJsonArray()
 				}
 
 				is MangaListFilter.Advanced -> {
-
 
 					if (filter.sortOrder == SortOrder.UPDATED) {
 						val url = buildString {
@@ -52,7 +51,7 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 						val url = buildString {
 							append("https://api.")
 							append(domain)
-							append("/api/all_series/")
+							append("/api/series_novels/all_series/")
 						}
 						webClient.httpGet(url).parseJson().getJSONArray("series")
 					}
@@ -73,7 +72,7 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 			val slug = j.getString("slug")
 			val cover = if (!j.getString("cover").startsWith("https://")) {
 				// Some covers don't have the "/" so we ensure that the URL will be spelled correctly.
-				"https://$domain/media/" + j.getString("cover").removePrefix("/")
+				"https://api.$domain/media/" + j.getString("cover").removePrefix("/")
 			} else {
 				j.getString("cover")
 			}
@@ -97,11 +96,12 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val detailManga =
-			webClient.httpPost("https://api.$domain/api/serie_details/${manga.url}", emptyMap()).parseJson()
+			webClient.httpPost("https://api.$domain/api/serie/serie_details/${manga.url}", emptyMap()).parseJson()
 		val body = JSONObject()
 		body.put("serie_slug", manga.url)
-		val chapterManga = webClient.httpPost("https://api.$domain/api/get_chapters_by_serie/", body).parseJson()
-			.getJSONArray("chapters")
+		val chapterManga =
+			webClient.httpPost("https://api.$domain/api/chapters/get_chapters_by_serie/", body).parseJson()
+				.getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		return manga.copy(
 			description = detailManga.getString("synopsis"),
@@ -117,11 +117,12 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 				}
 			},
 			chapters = chapterManga.mapJSON { j ->
-				val url = "https://api.$domain/api/serie/${manga.url}/chapter/${j.getString("slug")}/images/imgs/"
+				val url = "https://api.$domain/api/serie/${manga.url}/chapter/${j.getString("slug")}/images/imgs/get/"
 				MangaChapter(
 					id = generateUid(url),
 					name = j.getString("name"),
-					number = j.getString("name").removePrefix("Capítulo ").toInt(),
+					number = j.getString("name").removePrefix("Capítulo ").toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = parseChapterDate(
@@ -158,7 +159,7 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		val jsonPages = webClient.httpPost(chapter.url, emptyMap()).parseJson().getJSONArray("chapter_images")
 		val pages = ArrayList<MangaPage>(jsonPages.length())
 		for (i in 0 until jsonPages.length()) {
-			val img = "https://$domain/${jsonPages.getString(i)}"
+			val img = "https://api.$domain/${jsonPages.getString(i)}"
 			pages.add(
 				MangaPage(
 					id = generateUid(img),

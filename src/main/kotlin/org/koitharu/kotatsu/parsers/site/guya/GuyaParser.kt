@@ -10,7 +10,7 @@ import java.util.*
 
 internal abstract class GuyaParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 0,
 ) : PagedMangaParser(context, source, pageSize) {
@@ -91,7 +91,8 @@ internal abstract class GuyaParser(
 				MangaChapter(
 					id = generateUid(url),
 					name = chapter.getString("title"),
-					number = i,
+					number = i.toFloat(),
+					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = 0,

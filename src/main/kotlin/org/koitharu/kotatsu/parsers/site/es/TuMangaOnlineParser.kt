@@ -16,7 +16,7 @@ import java.util.*
 @MangaSourceParser("TUMANGAONLINE", "TuMangaOnline", "es")
 class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	context,
-	source = MangaSource.TUMANGAONLINE,
+	source = MangaParserSource.TUMANGAONLINE,
 	pageSize = 24,
 ) {
 
@@ -147,7 +147,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = "One Shot",
-			number = 1,
+			number = 1f,
+			volume = 0,
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
@@ -163,7 +164,8 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		return MangaChapter(
 			id = generateUid(href),
 			name = chName,
-			number = number + 1,
+			number = number + 1f,
+			volume = 0,
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
@@ -205,6 +207,9 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	private suspend fun redirectToReadingPage(document: Document): Document {
 		val script1 = document.selectFirst("script:containsData(uniqid)")
 		val script2 = document.selectFirst("script:containsData(window.location.replace)")
+		val script3 = document.selectFirst("script:containsData(redirectUrl)")
+		val script4 = document.selectFirst("input#redir")
+		val script5 = document.selectFirst("script:containsData(window.opener):containsData(location.replace)")
 
 		val redirectHeaders = Headers.Builder().set("Referer", document.baseUri()).build()
 
@@ -226,14 +231,51 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 		if (script2 != null) {
 			val data = script2.data()
-			val regexRedirect = """window\.location\.replace\('(.+)'\)""".toRegex()
-			val url = regexRedirect.find(data)!!.groupValues[1]
+			val regexRedirect = """window\.location\.replace\(['"](.+)['"]\)""".toRegex()
+			val url = regexRedirect.find(data)?.groupValues?.get(1)?.unescapeUrl()
+
+			if (url != null) {
+				return redirectToReadingPage(webClient.httpGet(url, redirectHeaders).parseHtml())
+			}
+		}
+
+		if (script3 != null) {
+			val data = script3.data()
+			val regexRedirect = """redirectUrl\s*=\s*'(.+)'""".toRegex()
+			val url = regexRedirect.find(data)?.groupValues?.get(1)?.unescapeUrl()
+
+			if (url != null) {
+				return redirectToReadingPage(webClient.httpGet(url, redirectHeaders).parseHtml())
+			}
+		}
+
+		if (script4 != null) {
+			val url = script4.attr("value").unescapeUrl()
 
 			return redirectToReadingPage(webClient.httpGet(url, redirectHeaders).parseHtml())
 		}
 
+		if (script5 != null) {
+			val data = script5.data()
+			val regexRedirect = """;[^.]location\.replace\(['"](.+)['"]\)""".toRegex()
+			val url = regexRedirect.find(data)?.groupValues?.get(1)?.unescapeUrl()
+
+			if (url != null) {
+				return redirectToReadingPage(webClient.httpGet(url, redirectHeaders).parseHtml())
+			}
+		}
+
 		return document
 	}
+
+	private fun String.unescapeUrl(): String {
+		return if (this.startsWith("http:\\/\\/") || this.startsWith("https:\\/\\/")) {
+			this.replace("\\/", "/")
+		} else {
+			this
+		}
+	}
+
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library", headers).parseHtml()

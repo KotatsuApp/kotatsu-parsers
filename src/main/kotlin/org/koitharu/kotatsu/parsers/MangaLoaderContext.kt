@@ -5,6 +5,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.*
 
@@ -14,8 +15,7 @@ abstract class MangaLoaderContext {
 
 	abstract val cookieJar: CookieJar
 
-	@Suppress("DEPRECATION")
-	fun newParserInstance(source: MangaSource): MangaParser = source.newParser(this)
+	fun newParserInstance(source: MangaParserSource): MangaParser = source.newParser(this)
 
 	open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
 
@@ -42,7 +42,7 @@ abstract class MangaLoaderContext {
 	 */
 	abstract fun redrawImageResponse(
 		response: Response,
-		redraw: (image: Bitmap) -> Bitmap
+		redraw: (image: Bitmap) -> Bitmap,
 	): Response
 
 	/**
@@ -50,6 +50,6 @@ abstract class MangaLoaderContext {
 	 */
 	abstract fun createBitmap(
 		width: Int,
-		height: Int
+		height: Int,
 	): Bitmap
 }

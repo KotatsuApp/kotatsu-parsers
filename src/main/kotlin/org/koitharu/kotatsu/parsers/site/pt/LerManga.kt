@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.pt
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -10,8 +11,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("LERMANGA", "LerManga", "pt")
-class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaSource.LERMANGA, 24) {
+class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("HENCHAN", "Хентай-тян", "ru", type = ContentType.HENTAI)
-internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.HENCHAN) {
+internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, MangaParserSource.HENCHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"xxxx.henchan.pro",

@@ -2,12 +2,12 @@ package org.koitharu.kotatsu.parsers.site.madara.es
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("LECTORMANGA", "LectorManga", "es")
 internal class LectorManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.LECTORMANGA, "www.lectormanga.lat") {
+	MadaraParser(context, MangaParserSource.LECTORMANGA, "www.lectormanga.lat") {
 	override val listUrl = "biblioteca/"
 	override val tagPrefix = "comics-genero/"
 }

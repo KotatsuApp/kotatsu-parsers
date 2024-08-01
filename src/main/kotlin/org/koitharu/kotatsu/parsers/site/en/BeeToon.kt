@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("BEETOON", "BeeToon.net", "en")
 internal class BeeToon(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.BEETOON, pageSize = 30) {
+	PagedMangaParser(context, MangaParserSource.BEETOON, pageSize = 30) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 

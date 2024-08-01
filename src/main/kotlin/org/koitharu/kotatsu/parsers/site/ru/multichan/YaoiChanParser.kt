@@ -5,12 +5,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("YAOICHAN", "Яой-тян", "ru")
-internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaSource.YAOICHAN) {
+internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaParserSource.YAOICHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"v3.yaoi-chan.me",

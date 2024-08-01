@@ -4,14 +4,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("LELMANGA", "LelManga", "fr")
 internal class LelManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.LELMANGA, "www.lelmanga.com", pageSize = 21, searchPageSize = 20) {
+	MangaReaderParser(context, MangaParserSource.LELMANGA, "www.lelmanga.com", pageSize = 21, searchPageSize = 20) {
 
 	override val sourceLocale: Locale = Locale.ENGLISH
 

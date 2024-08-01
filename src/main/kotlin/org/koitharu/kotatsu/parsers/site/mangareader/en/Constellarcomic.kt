@@ -2,13 +2,22 @@ package org.koitharu.kotatsu.parsers.site.mangareader.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("CONSTELLARCOMIC", "ConstellarComic", "en", ContentType.HENTAI)
 internal class Constellarcomic(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaSource.CONSTELLARCOMIC, "constellarcomic.com", pageSize = 30, searchPageSize = 18) {
+	MangaReaderParser(
+		context,
+		MangaParserSource.CONSTELLARCOMIC,
+		"constellarcomic.com",
+		pageSize = 30,
+		searchPageSize = 18,
+	) {
 	override val selectTestScript = "script:containsData(ts_rea_der_._run)"
 	override val isTagsExclusionSupported = false
 

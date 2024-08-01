@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("SAYTRUYENHAY", "PheTruyen", "vi")
 internal class Saytruyenhay(context: MangaLoaderContext) :
-	MadaraParser(context, MangaSource.SAYTRUYENHAY, "phetruyen.vip", 40) {
+	MadaraParser(context, MangaParserSource.SAYTRUYENHAY, "phetruyen.vip", 40) {
 
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true

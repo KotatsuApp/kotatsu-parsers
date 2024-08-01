@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("MANGA_WTF", "MangaWtf", "ru")
 class MangaWtfParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaSource.MANGA_WTF, pageSize = 20) {
+) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
 			SortOrder.POPULARITY,

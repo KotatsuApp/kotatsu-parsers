@@ -18,7 +18,7 @@ import java.util.*
 
 internal abstract class NepnepParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	domain: String,
 ) : MangaParser(context, source) {
 
@@ -61,7 +61,7 @@ internal abstract class NepnepParser(
 			val imgUrl = "https://temp.compsci88.com/cover/" + m.getString("i") + ".jpg"
 			val lastUpdate = m.getLong("lt")
 			val views = m.getString("v")
-			val viewMonth = m.getString("vm")
+			//val viewMonth = m.getString("vm")
 
 			when (filter) {
 

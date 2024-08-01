@@ -3,13 +3,14 @@ package org.koitharu.kotatsu.parsers.site.foolslide.en
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.foolslide.FoolSlideParser
 import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("SEINAGI", "Seinagi", "en")
 internal class Seinagi(context: MangaLoaderContext) :
-	FoolSlideParser(context, MangaSource.SEINAGI, "reader.seinagi.org.es") {
+	FoolSlideParser(context, MangaParserSource.SEINAGI, "reader.seinagi.org.es") {
 
 	override val pagination = false
 

@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("TEMPLESCANESP", "TempleScanEsp", "es", ContentType.HENTAI)
 internal class TempleScanEsp(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaSource.TEMPLESCANESP, pageSize = 15) {
+	PagedMangaParser(context, MangaParserSource.TEMPLESCANESP, pageSize = 15) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST, SortOrder.UPDATED)
 

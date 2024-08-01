@@ -10,20 +10,27 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 abstract class MangaWorldParser(
-    context: MangaLoaderContext,
-    source: MangaSource,
-    domain: String,
-    pageSize: Int = 16
+	context: MangaLoaderContext,
+	source: MangaParserSource,
+	domain: String,
+	pageSize: Int = 16,
 ) : PagedMangaParser(context, source, pageSize) {
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC, SortOrder.UPDATED)
+		EnumSet.of(
+			SortOrder.POPULARITY,
+			SortOrder.ALPHABETICAL,
+			SortOrder.NEWEST,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.UPDATED,
+		)
 
 	override val defaultSortOrder: SortOrder
 		get() = SortOrder.ALPHABETICAL
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
+	override val availableStates: Set<MangaState> =
+		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
 
 	override val isMultipleTagsSupported = true
 
@@ -43,7 +50,9 @@ abstract class MangaWorldParser(
 					}
 
 					is MangaListFilter.Advanced -> {
-						if(filter.tags.isEmpty() && filter.states.isEmpty() && filter.sortOrder == SortOrder.UPDATED) return parseMangaList(webClient.httpGet("https://$domain/?page=$page").parseHtml())
+						if (filter.tags.isEmpty() && filter.states.isEmpty() && filter.sortOrder == SortOrder.UPDATED) return parseMangaList(
+							webClient.httpGet("https://$domain/?page=$page").parseHtml(),
+						)
 
 						if (filter.tags.isNotEmpty()) {
 							filter.tags.joinTo(this, "&") { it.key.substringAfter("archive?") }

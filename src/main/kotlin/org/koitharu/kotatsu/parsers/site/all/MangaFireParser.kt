@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -22,7 +24,7 @@ private const val MIN_SPLIT_COUNT = 5
 
 internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
-	source: MangaSource,
+	source: MangaParserSource,
 	private val siteLang: String,
 ) : PagedMangaParser(context, source, 30), Interceptor {
 
@@ -425,23 +427,25 @@ internal abstract class MangaFireParser(
 	private fun Int.ceilDiv(other: Int) = (this + (other - 1)) / other
 
 	@MangaSourceParser("MANGAFIRE_EN", "MangaFire English", "en")
-	class English(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_EN, "en")
+	class English(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_EN, "en")
 
 	@MangaSourceParser("MANGAFIRE_ES", "MangaFire Spanish", "es")
-	class Spanish(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_ES, "es")
+	class Spanish(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_ES, "es")
 
 	@MangaSourceParser("MANGAFIRE_ESLA", "MangaFire Spanish (Latim)", "es")
-	class SpanishLatim(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_ESLA, "es-la")
+	class SpanishLatim(context: MangaLoaderContext) :
+		MangaFireParser(context, MangaParserSource.MANGAFIRE_ESLA, "es-la")
 
 	@MangaSourceParser("MANGAFIRE_FR", "MangaFire French", "fr")
-	class French(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_FR, "fr")
+	class French(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_FR, "fr")
 
 	@MangaSourceParser("MANGAFIRE_JA", "MangaFire Japanese", "ja")
-	class Japanese(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_JA, "ja")
+	class Japanese(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_JA, "ja")
 
 	@MangaSourceParser("MANGAFIRE_PT", "MangaFire Portuguese", "pt")
-	class Portuguese(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_PT, "pt")
+	class Portuguese(context: MangaLoaderContext) : MangaFireParser(context, MangaParserSource.MANGAFIRE_PT, "pt")
 
 	@MangaSourceParser("MANGAFIRE_PTBR", "MangaFire Portuguese (Brazil)", "pt")
-	class PortugueseBR(context: MangaLoaderContext) : MangaFireParser(context, MangaSource.MANGAFIRE_PTBR, "pt-br")
+	class PortugueseBR(context: MangaLoaderContext) :
+		MangaFireParser(context, MangaParserSource.MANGAFIRE_PTBR, "pt-br")
 }
