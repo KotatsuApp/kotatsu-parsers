@@ -20,7 +20,7 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("blogtruyenmoi.com")
+		get() = ConfigKey.Domain("blogtruyenmoi.com", "blogtruyen.vn")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
