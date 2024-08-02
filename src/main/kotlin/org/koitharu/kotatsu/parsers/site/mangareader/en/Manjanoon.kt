@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANJANOON_EN", "Manjanoon.net", "en")
+@MangaSourceParser("MANJANOON_EN", "NoonScan", "en")
 internal class Manjanoon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANJANOON_EN, "manjanoon.net", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANJANOON_EN, "noonscan.net", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

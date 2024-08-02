@@ -91,7 +91,7 @@ internal abstract class HeanCms(
 
 				}
 
-				null -> append("status=All&orderBy=$paramsUpdated&order=desc&series_type=Comic&perPage=20")
+				null -> append("&status=All&orderBy=$paramsUpdated&order=desc&series_type=Comic&perPage=20")
 			}
 			append("&page=")
 			append(page.toString())
@@ -105,6 +105,7 @@ internal abstract class HeanCms(
 		return response.getJSONArray("data").mapJSON { it ->
 			val id = it.getLong("id")
 			val url = "/comic/${it.getString("series_slug")}"
+			val publicUrl = "/series/${it.getString("series_slug")}"
 			val title = it.getString("title")
 			val cover = if (it.getString("thumbnail").startsWith("https://")) {
 				it.getString("thumbnail")
@@ -117,7 +118,7 @@ internal abstract class HeanCms(
 				url = url,
 				title = title,
 				altTitle = it.getString("alternative_names").takeIf { it.isNotBlank() },
-				publicUrl = url.replace("/comic/", "/series/").toAbsoluteUrl(domain),
+				publicUrl = publicUrl.toAbsoluteUrl(domain),
 				description = it.getString("description"),
 				rating = it.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,
 				isNsfw = isNsfwSource,

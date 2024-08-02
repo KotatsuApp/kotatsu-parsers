@@ -5,9 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MURIMSCAN", "MurimScan", "en")
+@MangaSourceParser("MURIMSCAN", "InkReads", "en")
 internal class MurimScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MURIMSCAN, "murimscan.run", 100) {
+	MadaraParser(context, MangaParserSource.MURIMSCAN, "inkreads.com", 100) {
 	override val withoutAjax = true
 	override val postReq = true
+	override val listUrl = "mangax/"
 }

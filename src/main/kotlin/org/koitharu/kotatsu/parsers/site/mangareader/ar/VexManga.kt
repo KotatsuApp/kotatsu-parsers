@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.ar
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -12,6 +13,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("VEXMANGA", "VexManga", "ar")
 internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.VEXMANGA, "vexmanga.com", pageSize = 10, searchPageSize = 10) {

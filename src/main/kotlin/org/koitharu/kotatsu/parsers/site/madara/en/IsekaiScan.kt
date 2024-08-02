@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("ISEKAISCAN", "IsekaiScan.top", "en")
 internal class IsekaiScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ISEKAISCAN, "isekaiscan.top", 16) {
+	MadaraParser(context, MangaParserSource.ISEKAISCAN, "www.isekaiscan.top", 16) {
 
 	override val tagPrefix = "mangas/"
 	override val listUrl = "latest-manga/"
