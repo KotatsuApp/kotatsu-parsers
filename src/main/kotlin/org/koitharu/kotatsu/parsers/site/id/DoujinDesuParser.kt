@@ -76,15 +76,14 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 			.requireElementById("archives")
 			.selectFirstOrThrow("div.entries")
 			.select(".entry")
-			.map {
-				val titleTag = it.selectFirstOrThrow(".metadata > a")
-				val relativeUrl = titleTag.attrAsRelativeUrl("href")
+			.mapNotNull {
+				val href = it.selectFirst(".metadata > a")?.attr("href") ?: return@mapNotNull null
 				Manga(
-					id = generateUid(relativeUrl),
-					title = titleTag.attr("title"),
+					id = generateUid(href),
+					title = it.selectFirst(".metadata > a")?.attr("title").orEmpty(),
 					altTitle = null,
-					url = relativeUrl,
-					publicUrl = relativeUrl.toAbsoluteUrl(domain),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
 					coverUrl = it.selectFirst(".thumbnail > img")?.src().orEmpty(),

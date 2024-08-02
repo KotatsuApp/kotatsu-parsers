@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -10,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("FIRESCANS", "FireScans", "en")
 internal class FireScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.FIRESCANS, "firescans.xyz", 10) {
+	MadaraParser(context, MangaParserSource.FIRESCANS, "firecomics.org", 10) {
 
 	override fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
@@ -53,37 +52,15 @@ internal class FireScans(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chapterProtector = doc.requireElementById("chapter-protector-data")
-		val chapterProtectorHtml =
-			context.decodeBase64(chapterProtector.attr("src").removePrefix("data:text/javascript;base64,"))
-				.toString(Charsets.UTF_8)
-		val password = chapterProtectorHtml.substringAfter("wpmangaprotectornonce='").substringBefore("';")
-		val chapterData = JSONObject(
-			chapterProtectorHtml.substringAfter("chapter_data='").substringBefore("';").replace("\\/", "/"),
-		)
-		val unsaltedCiphertext = context.decodeBase64(chapterData.getString("ct"))
-		val salt = chapterData.getString("s").toString().decodeHex()
-		val ciphertext = "Salted__".toByteArray(Charsets.UTF_8) + salt + unsaltedCiphertext
-		val rawImgArray = CryptoAES(context).decrypt(context.encodeBase64(ciphertext), password)
-		val imgArrayString = rawImgArray.filterNot { c -> c == '[' || c == ']' || c == '\\' || c == '"' }
-
-		return imgArrayString.split(",").map { url ->
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
+	override suspend fun getAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/?s=&post_type=wp-manga").parseHtml()
+		return doc.select("form.search-advanced-form div.form-group div.checkbox ").mapNotNullToSet { div ->
+			val key = div.selectFirst("input")?.attr("value") ?: return@mapNotNullToSet null
+			MangaTag(
+				key = key,
+				title = div.selectFirst("label")?.text() ?: key,
 				source = source,
 			)
 		}
 	}
-
-	private fun String.decodeHex(): ByteArray {
-		check(length % 2 == 0) { "Must have an even length" }
-
-		return chunked(2).map { it.toInt(16).toByte() }.toByteArray()
-	}
-
 }

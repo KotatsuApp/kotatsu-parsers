@@ -159,7 +159,7 @@ internal abstract class ZeistMangaParser(
 					?.replace("""/s.+?-c-rw/""".toRegex(), "/w600/")
 					?.replace("""=s(?!.*=s).+?-c-rw$""".toRegex(), "=w600")
 			} else {
-				Jsoup.parse(j.getJSONObject("content").getString("\$t")).selectFirstOrThrow("img").attr("src")
+				Jsoup.parse(j.getJSONObject("content").getString("\$t")).selectFirst("img")?.attr("src")
 			}
 			Manga(
 				id = generateUid(href),

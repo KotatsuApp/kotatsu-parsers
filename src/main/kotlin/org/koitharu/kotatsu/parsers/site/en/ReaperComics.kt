@@ -24,7 +24,13 @@ private const val MAX_RETRY_COUNT = 5
 internal class ReaperComics(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.REAPERCOMICS, pageSize = 20) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL_DESC)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.ALPHABETICAL,
+		SortOrder.POPULARITY,
+		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL_DESC,
+	)
 
 	override val configKeyDomain = ConfigKey.Domain("reaperscans.com")
 
@@ -46,7 +52,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if(page > 1) return emptyList()
+		if (page > 1) return emptyList()
 
 		val url = buildString {
 			append("https://")
@@ -154,7 +160,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 					MangaTag(
 						key = id,
 						title = name.toTitleCase(sourceLocale),
-						source = source
+						source = source,
 					)
 				} else {
 					null
@@ -168,6 +174,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sourceLocale)
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -177,7 +184,8 @@ internal class ReaperComics(context: MangaLoaderContext) :
 		val data = response.getJSONArray("data")
 		return manga.copy(
 			chapters = data.mapJSONIndexed { index, it ->
-				val chapterUrl = "/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
+				val chapterUrl =
+					"/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
 				MangaChapter(
 					id = it.getLong("id"),
 					name = it.getString("chapter_name"),
@@ -189,7 +197,7 @@ internal class ReaperComics(context: MangaLoaderContext) :
 					branch = null,
 					source = source,
 				)
-			}
+			},
 		)
 	}
 

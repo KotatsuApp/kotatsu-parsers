@@ -141,15 +141,17 @@ internal abstract class WpComicsParser(
 
 	protected open fun parseMangaList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
 		return doc.select("div.items div.item").mapNotNull { item ->
-			val tooltipElement = item.selectFirst("div.box_tootip") ?: return@mapNotNull null
+			val tooltipElement = item.selectFirst("div.box_tootip")
 			val absUrl = item.selectFirst("div.image > a")?.attrAsAbsoluteUrlOrNull("href") ?: return@mapNotNull null
 			val slug = absUrl.substringAfterLast('/')
-			val mangaState = when (tooltipElement.selectFirst("div.message_main > p:contains(Tình trạng)")?.ownText()) {
-				in ongoing -> MangaState.ONGOING
-				in finished -> MangaState.FINISHED
-				else -> null
-			}
-			val tagsElement = tooltipElement.selectFirst("div.message_main > p:contains(Thể loại)")?.ownText().orEmpty()
+			val mangaState =
+				when (tooltipElement?.selectFirst("div.message_main > p:contains(Tình trạng)")?.ownText()) {
+					in ongoing -> MangaState.ONGOING
+					in finished -> MangaState.FINISHED
+					else -> null
+				}
+			val tagsElement =
+				tooltipElement?.selectFirst("div.message_main > p:contains(Thể loại)")?.ownText().orEmpty()
 			val mangaTags = tagsElement.split(',').mapNotNullToSet { tagMap[it.trim()] }
 			Manga(
 				id = generateUid(slug),
@@ -163,8 +165,8 @@ internal abstract class WpComicsParser(
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,
-				author = tooltipElement.selectFirst("div.message_main > p:contains(Tác giả)")?.ownText(),
-				description = tooltipElement.selectFirst("div.box_text")?.text(),
+				author = tooltipElement?.selectFirst("div.message_main > p:contains(Tác giả)")?.ownText(),
+				description = tooltipElement?.selectFirst("div.box_text")?.text(),
 				chapters = null,
 				source = source,
 			)
@@ -180,8 +182,8 @@ internal abstract class WpComicsParser(
 		return tagSet
 	}
 
-	private val mutex = Mutex()
-	private var tagCache: ArrayMap<String, MangaTag>? = null
+	protected open val mutex = Mutex()
+	protected open var tagCache: ArrayMap<String, MangaTag>? = null
 
 	protected open suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
