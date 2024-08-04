@@ -1,8 +1,9 @@
-package org.koitharu.kotatsu.parsers.site.it.mangaworld
+package org.koitharu.kotatsu.parsers.site.mangaworld
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.site.mangaworld.it.MangaWorldParser
 
 @MangaSourceParser("MANGAWORLD", "MangaWorld", "it")
 internal class MangaWorld(
