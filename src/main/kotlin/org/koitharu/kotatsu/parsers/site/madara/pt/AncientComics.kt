@@ -1,16 +1,13 @@
-package org.koitharu.kotatsu.parsers.site.mangareader.pt
+package org.koitharu.kotatsu.parsers.site.madara.pt
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ANCIENTCOMICS", "AncientComics", "pt")
 internal class AncientComics(context: MangaLoaderContext) :
-	MangaReaderParser(
-		context,
-		MangaParserSource.ANCIENTCOMICS,
-		"ancientcomics.com.br",
-		pageSize = 20,
-		searchPageSize = 20,
-	)
+	MadaraParser(context, MangaParserSource.ANCIENTCOMICS, "ancientcomics.com.br") {
+	override val datePattern: String = "dd/MM/yyyy"
+	override val withoutAjax = true
+}

@@ -164,10 +164,12 @@ internal abstract class HeanCms(
 		)
 	}
 
+	protected open val selectPages = ".flex > img:not([alt])"
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".flex > img:not([alt])").map { img ->
+		return doc.select(selectPages).map { img ->
 			val url = img.src() ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),

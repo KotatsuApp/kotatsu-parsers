@@ -164,7 +164,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div > img[alt=chapter]").map { img ->
+		return doc.select("div > img[alt*=chapter]").map { img ->
 			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(urlPage),

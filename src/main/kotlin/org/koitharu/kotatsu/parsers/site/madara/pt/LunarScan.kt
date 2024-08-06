@@ -7,8 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @Broken
-@MangaSourceParser("LUNARSCAN", "LunarScan.com.br", "pt")
+@MangaSourceParser("LUNARSCAN", "LunarrScan.com", "pt")
 internal class LunarScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.LUNARSCAN, "lunarscan.com.br") {
-	override val listUrl = "obra/"
-}
+	MadaraParser(context, MangaParserSource.LUNARSCAN, "lunarrscan.com")
