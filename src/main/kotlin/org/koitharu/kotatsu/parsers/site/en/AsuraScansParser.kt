@@ -161,17 +161,20 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 			},
 		)
 	}
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div > img[alt=chapter]").map { img ->
-			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+		return doc.select("div.w-full.mx-auto.center > img[alt=chapter page]").map { img ->
+			val urlPage = img.absUrl("src")
+			if (urlPage.isEmpty()) {
+				img.parseFailed("Image src not found")
+			}
 			MangaPage(
 				id = generateUid(urlPage),
-				url = urlPage,
-				preview = null,
-				source = source,
+            	url = urlPage,
+            	preview = null,
+            	source = source,
 			)
 		}
 	}
 }
+	
