@@ -21,9 +21,7 @@ private const val SEARCH_PAGE_SIZE = 10
 @MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
 class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIVN) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("zhentaivnz.cc")
-
-	// hentaivn has created 2 different interfaces for mobile and desktop, and Cloudflare detects whether it's mobile or not even with a desktop user agent.
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiayame.com")
 	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
