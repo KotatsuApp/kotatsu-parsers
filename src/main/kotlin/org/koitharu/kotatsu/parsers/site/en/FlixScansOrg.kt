@@ -23,6 +23,13 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.org")
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isSearchSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

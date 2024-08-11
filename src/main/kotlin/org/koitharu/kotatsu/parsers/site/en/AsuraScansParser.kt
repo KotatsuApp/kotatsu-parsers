@@ -29,6 +29,13 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("asuracomic.net")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = true
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

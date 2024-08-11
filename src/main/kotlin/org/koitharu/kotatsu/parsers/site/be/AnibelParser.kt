@@ -25,6 +25,13 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)

@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.mangaworld.it
+package org.koitharu.kotatsu.parsers.site.mangaworld
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -28,6 +28,13 @@ abstract class MangaWorldParser(
 		get() = SortOrder.ALPHABETICAL
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)

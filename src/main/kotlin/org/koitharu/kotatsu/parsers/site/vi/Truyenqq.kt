@@ -19,6 +19,13 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val configKeyDomain = ConfigKey.Domain("truyenqqviet.com")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
 		val url =

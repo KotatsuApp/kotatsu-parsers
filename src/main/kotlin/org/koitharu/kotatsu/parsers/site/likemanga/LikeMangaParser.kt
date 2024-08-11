@@ -22,13 +22,20 @@ internal abstract class LikeMangaParser(
 	pageSize: Int = 36,
 ) : PagedMangaParser(context, source, pageSize) {
 
+	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
-
-	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val isMultipleTagsSupported = false
 

@@ -19,6 +19,13 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val headers: Headers = Headers.Builder()
 		.add("Accept-Language", "fr")
 		.build()

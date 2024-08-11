@@ -26,6 +26,13 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 	override val isSearchSupported = false
 

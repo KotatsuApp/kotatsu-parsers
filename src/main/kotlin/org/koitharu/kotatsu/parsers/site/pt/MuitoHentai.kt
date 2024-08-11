@@ -15,6 +15,13 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override val configKeyDomain = ConfigKey.Domain("www.muitohentai.com")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

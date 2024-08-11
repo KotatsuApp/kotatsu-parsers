@@ -16,6 +16,13 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangatown.com")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.RATING,

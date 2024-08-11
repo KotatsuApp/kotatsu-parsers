@@ -42,6 +42,13 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("www.manga-mana.com")
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

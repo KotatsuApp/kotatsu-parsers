@@ -23,6 +23,13 @@ internal abstract class NineMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain)
 
+	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	init {
 		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
 	}
