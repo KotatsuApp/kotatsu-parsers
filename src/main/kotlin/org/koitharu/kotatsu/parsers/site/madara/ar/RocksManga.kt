@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("ROCKSMANGA", "RocksManga", "ar")
 internal class RocksManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ROCKSMANGA, "rocks-manga.com") {
+	MadaraParser(context, MangaParserSource.ROCKSMANGA, "rocksmanga.com") {
 	override val selectChapter = "ul#chapter-list li.chapter-item"
 	override val datePattern = "d MMMM yyyy"
 	override val selectDate = ".ch-post-time"

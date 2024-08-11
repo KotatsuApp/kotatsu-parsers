@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 
-@MangaSourceParser("READCOMICSONLINE", "ReadComicsOnline", "en", ContentType.COMICS)
+@MangaSourceParser("READCOMICSONLINE", "ReadComicsOnline.ru", "en", ContentType.COMICS)
 internal class ReadComicsOnline(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaParserSource.READCOMICSONLINE, "readcomicsonline.ru") {
 	override val selectState = "dt:contains(Status)"

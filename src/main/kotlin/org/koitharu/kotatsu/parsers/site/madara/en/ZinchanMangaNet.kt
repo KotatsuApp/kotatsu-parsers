@@ -1,12 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken
-@MangaSourceParser("AQUAMANGA", "AquaManga", "en")
-internal class AquaManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.AQUAMANGA, "aquareader.net", 20)
+@MangaSourceParser("ZINCHANMANGA_NET", "ZinchanManga.net", "en")
+internal class ZinchanMangaNet(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.ZINCHANMANGA_NET, "zinchanmanga.net", 10)

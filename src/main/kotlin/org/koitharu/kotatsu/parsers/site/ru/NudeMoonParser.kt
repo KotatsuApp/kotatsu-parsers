@@ -47,29 +47,41 @@ internal class NudeMoonParser(
 
 	override suspend fun getList(
 		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
+		filter: MangaListFilter?,
 	): List<Manga> {
 		val domain = domain
-		val url = when {
-			!query.isNullOrEmpty() -> {
-				if (!isAuthorized) {
-					throw AuthRequiredException(source)
+
+		val url =
+			when (filter) {
+				is MangaListFilter.Search -> {
+					if (!isAuthorized) {
+						throw AuthRequiredException(source)
+					}
+					"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
 				}
-				"https://$domain/search?stext=${query.urlEncoded()}&rowstart=$offset"
+
+				is MangaListFilter.Advanced -> {
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.joinToString(
+							separator = "_",
+							prefix = "https://$domain/tags/",
+							postfix = "&rowstart=$offset",
+							transform = { it.key.urlEncoded() },
+						)
+					} else {
+						val order = when (filter.sortOrder) {
+							SortOrder.POPULARITY -> "views"
+							SortOrder.NEWEST -> "date"
+							SortOrder.RATING -> "like"
+							else -> "like"
+						}
+						"https://$domain/all_manga?$order&rowstart=$offset"
+					}
+				}
+
+				null -> "https://$domain/all_manga?views&rowstart=$offset"
 			}
 
-			!tags.isNullOrEmpty() -> tags.joinToString(
-				separator = "_",
-				prefix = "https://$domain/tags/",
-				postfix = "&rowstart=$offset",
-				transform = { it.key.urlEncoded() },
-			)
-
-			else -> "https://$domain/all_manga?${getSortKey(sortOrder)}&rowstart=$offset"
-		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.body().select("table.news_pic2").mapNotNull { row ->
 			val a = row.selectFirstOrThrow("a")
@@ -175,12 +187,5 @@ internal class NudeMoonParser(
 					body.parseFailed("Cannot find username")
 				}
 			}
-	}
-
-	private fun getSortKey(sortOrder: SortOrder) = when (sortOrder) {
-		SortOrder.POPULARITY -> "views"
-		SortOrder.NEWEST -> "date"
-		SortOrder.RATING -> "like"
-		else -> "like"
 	}
 }

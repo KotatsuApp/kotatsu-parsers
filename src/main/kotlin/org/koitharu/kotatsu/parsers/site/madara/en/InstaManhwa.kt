@@ -1,136 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.*
-import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken // Redirect to @XMANHWA
 @MangaSourceParser("INSTAMANHWA", "InstaManhwa", "en", ContentType.HENTAI)
 internal class InstaManhwa(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.instamanhwa.com", 15) {
-	override val tagPrefix = "genre/"
-	override val listUrl = "latest/"
-	override val postReq = true
-	override val datePattern = "d MMMM, yyyy"
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.ALPHABETICAL,
-		SortOrder.UPDATED,
-		SortOrder.NEWEST,
-	)
-	override val availableStates: Set<MangaState> get() = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
-
-	init {
-		paginator.firstPage = 1
-		searchPaginator.firstPage = 1
-	}
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
-					append("/search?q=")
-					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page.toString())
-				}
-
-				is MangaListFilter.Advanced -> {
-
-					val tag = filter.tags.oneOrThrowIfMany()
-					if (filter.tags.isNotEmpty()) {
-						append("/genre/")
-						append(tag?.key.orEmpty())
-						append("?page=")
-						append(page.toString())
-					} else {
-						when (filter.sortOrder) {
-							SortOrder.UPDATED -> append("/latest")
-							SortOrder.NEWEST -> append("/new")
-							SortOrder.ALPHABETICAL -> append("/alphabet")
-							else -> append("/latest")
-						}
-						append("?page=")
-						append(page.toString())
-					}
-				}
-
-				null -> {
-					append("/latest?page=")
-					append(page.toString())
-				}
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select("div.page-listing-item div.page-item-detail").ifEmpty {
-			doc.select("div.page-item-detail.manga")
-		}.map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
-				altTitle = null,
-				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
-				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
-					MangaTag(
-						key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-						title = a.text().ifEmpty { return@mapNotNullToSet null }.toTitleCase(),
-						source = source,
-					)
-				}.orEmpty(),
-				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
-					?.lowercase()) {
-					"ongoing" -> MangaState.ONGOING
-					"completed " -> MangaState.FINISHED
-					else -> null
-				},
-				source = source,
-				isNsfw = isNsfwSource,
-			)
-		}
-	}
-
-	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
-
-		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
-		val token = document.select("meta")[2].attr("content")
-		val url = "https://$domain/ajax"
-		val postData = "_token=$token&action=manga_get_chapters&manga=$mangaId"
-		val doc = webClient.httpPost(url, postData).parseHtml()
-
-		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-
-		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
-			val link = href + stylePage
-			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
-			val name = a.selectFirst("p")?.text() ?: a.ownText()
-			MangaChapter(
-				id = generateUid(href),
-				url = link,
-				name = name,
-				number = i + 1f,
-				volume = 0,
-				branch = null,
-				uploadDate = parseChapterDate(
-					dateFormat,
-					dateText,
-				),
-				scanlator = null,
-				source = source,
-			)
-		}
-	}
+	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.xmanhwa.me", 15) {
+	override val sourceLocale: Locale = Locale.ENGLISH
+	override val selectPage = "img"
 }

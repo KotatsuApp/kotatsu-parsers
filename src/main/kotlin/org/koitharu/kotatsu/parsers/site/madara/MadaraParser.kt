@@ -575,24 +575,31 @@ internal abstract class MadaraParser(
 	}
 
 	protected open val selectBodyPage = "div.main-col-inner div.reading-content"
-	protected open val selectPage = "div.page-break, div.login-required"
+	protected open val selectPage = "div.page-break"
+	protected open val selectRequiredLogin = ".content-blocked, .login-required"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
-			val root = doc.body().selectFirst(selectBodyPage)
-				?: throw ParseException("No image found, try to log in", fullUrl)
-			return root.select(selectPage).map { div ->
-				val img = div.selectFirstOrThrow("img")
-				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
+			throw if (doc.selectFirst(selectRequiredLogin) != null) {
+				AuthRequiredException(source)
+			} else {
+				val root = doc.body().selectFirst(selectBodyPage) ?: throw ParseException(
+					"No image found, try to log in",
+					fullUrl,
 				)
+				return root.select(selectPage).map { div ->
+					val img = div.selectFirstOrThrow("img")
+					val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+					MangaPage(
+						id = generateUid(url),
+						url = url,
+						preview = null,
+						source = source,
+					)
+				}
 			}
 		} else {
 
