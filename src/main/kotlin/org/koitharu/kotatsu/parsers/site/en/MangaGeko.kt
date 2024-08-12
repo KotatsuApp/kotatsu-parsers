@@ -81,7 +81,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = extractCoverUrl(div),
 				tags = emptySet(),
 				state = null,
 				author = div.selectFirstOrThrow("h6").text().removePrefix("Author(S): "),
@@ -90,6 +90,14 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
+	private fun extractCoverUrl(element: Element): String {
+        return element.select("div.max-image img")
+            .firstOrNull()?.attr("src")
+            ?.orEmpty()
+            ?.toAbsoluteUrl(domain)
+            ?: element.selectFirstOrThrow("img").src().orEmpty()
+	}
+	
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
 		return doc.select("label.checkbox-inline").mapNotNullToSet { label ->
@@ -121,6 +129,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 			author = doc.selectFirstOrThrow(".author").text(),
 			description = doc.selectFirstOrThrow(".description").html(),
 			chapters = chaptersDeferred.await(),
+			coverUrl = extractCoverUrl(doc)
 		)
 	}
 
