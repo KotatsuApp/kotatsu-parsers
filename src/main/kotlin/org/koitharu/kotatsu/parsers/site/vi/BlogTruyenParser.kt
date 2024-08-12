@@ -4,6 +4,7 @@ import androidx.collection.ArrayMap
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -24,13 +25,10 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
-
+	override val headers: Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.build()
+		
 	override val isMultipleTagsSupported = false
 
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
