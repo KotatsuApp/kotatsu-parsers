@@ -80,19 +80,43 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val root = doc.body().selectFirst("div.reading-content")
-			?: throw ParseException("No image found, try to log in", fullUrl)
-		return root.select(selectPage).map { div ->
-			val img = div.selectFirstOrThrow("img")
-			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
+    	val fullUrl = chapter.url.toAbsoluteUrl(domain)
+    	val doc = webClient.httpGet(fullUrl).parseHtml()
+    	val root = doc.body().selectFirst("div.reading-content")
+        	?: throw ParseException("No image found, try to log in", fullUrl)
+    
+    	// Initialize the list to collect page URLs
+    	val pageUrls = mutableListOf<String>()
+    	pageUrls.addAll(
+        	root.select(selectPage).mapNotNull { div ->
+            	val img = div.selectFirstOrThrow("img")
+            	img.src()?.toRelativeUrl(domain)
+        	}
+    	)
+
+    	// Handle pagination if available
+    	val paginationLinks = doc.select("div.pagination a[href]")
+    	for (link in paginationLinks) {
+        	val nextPageUrl = link.attrAsRelativeUrlOrNull("href") ?: continue
+        	val nextPageDoc = webClient.httpGet(nextPageUrl.toAbsoluteUrl(domain)).parseHtml()
+        	val nextPageRoot = nextPageDoc.body().selectFirst("div.reading-content")
+            	?: throw ParseException("No reading content found on pagination page", nextPageUrl)
+        
+        	pageUrls.addAll(
+            	nextPageRoot.select(selectPage).mapNotNull { div ->
+                	val img = div.selectFirstOrThrow("img")
+                	img.src()?.toRelativeUrl(domain)
+            	}
+        	)
+    	}
+
+    	return pageUrls.map { url ->
+        	MangaPage(
+            	id = generateUid(url),
+            	url = url,
+            	preview = null,
+            	source = source,
+        	)
+    	}
 	}
 }
