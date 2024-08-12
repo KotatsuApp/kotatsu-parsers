@@ -179,11 +179,12 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val selectTag = doc.select("div[q:key=30_2] span.whitespace-nowrap")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 		val nsfw = tags.any { t -> t.key == "hentai" || t.key == "adult" }
+		val metaDescription = doc.selectFirst("meta[name=description]")?.attr("content").orEmpty()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		manga.copy(
 			altTitle = doc.selectFirst("div[q:key=tz_2]")?.text().orEmpty(),
 			author = doc.selectFirst("div[q:key=tz_4]")?.text().orEmpty(),
-			description = doc.selectFirst("react-island[q:key=0a_9]")?.html().orEmpty(),
+			description = metaDescription,
 			state = when (doc.selectFirst("span[q:key=Yn_5]")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING
 				"completed" -> MangaState.FINISHED
