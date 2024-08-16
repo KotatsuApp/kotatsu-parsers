@@ -8,7 +8,7 @@ import java.util.*
 
 @MangaSourceParser("POJOKMANGA", "PojokManga", "id")
 internal class PojokManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.POJOKMANGA, "pojokmanga.org") {
+	MadaraParser(context, MangaParserSource.POJOKMANGA, "pojokmanga.info") {
 	override val tagPrefix = "komik-genre/"
 	override val listUrl = "komik/"
 	override val datePattern = "MMM d, yyyy"

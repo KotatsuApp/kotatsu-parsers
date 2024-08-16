@@ -6,8 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("ALCEASCAN", "AlceaScan", "id")
-internal class AlceaScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.ALCEASCAN, "alceacomic.my.id", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("MONZEEKOMIK", "MonzeeKomik", "id")
+internal class MonzeeKomik(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.MONZEEKOMIK, "www.monzeekomik.my.id", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
+	override val isTagsExclusionSupported = false
 }

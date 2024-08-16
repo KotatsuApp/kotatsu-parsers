@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("PIEDPIPERFANSUB", "PiedpiperFansub", "tr")
-internal class PiedpiperFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.PIEDPIPERFANSUB, "piedpiperfansub.me", 18) {
-	override val datePattern = "d MMMM yyyy"
+@MangaSourceParser("KORELISCANS", "KoreliScans", "tr")
+internal class KoreliScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.KORELISCANS, "koreliscans.com", 10) {
+	override val datePattern = "d MMMM"
 }

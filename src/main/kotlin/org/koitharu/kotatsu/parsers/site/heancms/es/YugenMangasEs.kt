@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 
-@Broken // Not dead but changed template and url visualikigai.com
+@Broken // Not dead but changed template
 @MangaSourceParser("YUGEN_MANGAS_ES", "YugenMangas.lat", "es", ContentType.HENTAI)
 internal class YugenMangasEs(context: MangaLoaderContext) :
-	HeanCms(context, MangaParserSource.YUGEN_MANGAS_ES, "yugenmangas.lat")
+	HeanCms(context, MangaParserSource.YUGEN_MANGAS_ES, "ikigaimangas.fraviral.com")

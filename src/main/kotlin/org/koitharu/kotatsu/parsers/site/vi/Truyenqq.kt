@@ -17,7 +17,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override val configKeyDomain = ConfigKey.Domain("truyenqqviet.com")
+	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
 
 	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 

@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("RAISCANS", "RaiScans", "en")
 internal class RaiScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.RAISCANS, "www.raiscans.com", pageSize = 20, searchPageSize = 10) {
-	override val listUrl = "/Series"
+	MangaReaderParser(context, MangaParserSource.RAISCANS, "kenmanga.com", pageSize = 20, searchPageSize = 10) {
+	override val listUrl = "/series"
 }

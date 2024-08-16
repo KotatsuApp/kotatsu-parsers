@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
 import org.koitharu.kotatsu.parsers.util.domain
 
-@Broken
+@Broken // Not dead, changed template
 @MangaSourceParser("TEMPLESCAN", "TempleScan", "en")
 internal class TempleScan(context: MangaLoaderContext) :
 	HeanCms(context, MangaParserSource.TEMPLESCAN, "templescan.net") {

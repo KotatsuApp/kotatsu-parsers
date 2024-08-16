@@ -17,7 +17,6 @@ internal class MangaDistrict(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANGA_DISTRICT, "mangadistrict.com", pageSize = 30) {
 
 	override val tagPrefix = "publication-genre/"
-	override val datePattern = "MMM dd,yyyy"
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val slug = manga.url.removeSuffix('/').substringAfterLast('/')

@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANGAGEZGINI", "MangaGezgini", "tr")
-internal class MangaGezgini(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.net", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("TEMPESTSCANS", "TempestScans", "tr")
+internal class TempestScans(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.TEMPESTSCANS, "adumanga.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }
