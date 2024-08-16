@@ -16,7 +16,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 
 @MangaSourceParser("NETTRUYENLL", "NetTruyenLL", "vi")
-internal class NetTruyenSSR(context: MangaLoaderContext) :
+internal class NetTruyenLL(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENLL, "nettruyenll.com", 20) {
 
 	override val isMultipleTagsSupported = true
