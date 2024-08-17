@@ -18,7 +18,7 @@ internal class Mgkomik(context: MangaLoaderContext) :
 	override val sourceLocale: Locale = Locale.ENGLISH
 	private val randomLength = Random.Default.nextInt(13, 21)
 	private val randomString = generateRandomString(randomLength)
-	override val headers: Headers = Headers.Builder()
+	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8")
 		.add("Accept-Language", "en-US,en;q=0.9,id;q=0.8")
 		.add("Sec-Fetch-Dest", "document")

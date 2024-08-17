@@ -30,7 +30,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("lugnica-scans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

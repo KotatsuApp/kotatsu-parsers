@@ -22,8 +22,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain("visortmo.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -93,7 +91,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 			append("&_pg=1&page=")
 			append(page.toString())
 		}
-		val doc = webClient.httpGet(url, headers).parseHtml()
+		val doc = webClient.httpGet(url, getRequestHeaders()).parseHtml()
 		val items = doc.body().select("div.element")
 		return items.mapNotNull { item ->
 			val href =
@@ -183,7 +181,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain), headers).parseHtml()
+		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain), getRequestHeaders()).parseHtml()
 		var doc = redirectToReadingPage(redirectDoc)
 		val currentUrl = doc.location()
 		val newUrl = if (!currentUrl.contains("cascade")) {
@@ -193,7 +191,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 
 		if (currentUrl != newUrl) {
-			doc = webClient.httpGet(newUrl, headers).parseHtml()
+			doc = webClient.httpGet(newUrl, getRequestHeaders()).parseHtml()
 		}
 
 		return doc.select("div.viewer-container img:not(noscript img)").map {
@@ -285,7 +283,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/library", headers).parseHtml()
+		val doc = webClient.httpGet("https://$domain/library", getRequestHeaders()).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
 		return elements.mapNotNullToSet { element ->
 			MangaTag(

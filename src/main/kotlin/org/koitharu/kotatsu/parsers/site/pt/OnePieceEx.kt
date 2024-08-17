@@ -17,8 +17,6 @@ class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaP
 
 	override val configKeyDomain = ConfigKey.Domain("onepieceex.net")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

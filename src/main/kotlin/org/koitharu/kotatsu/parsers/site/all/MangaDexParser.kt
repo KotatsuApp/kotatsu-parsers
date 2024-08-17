@@ -28,8 +28,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

@@ -29,8 +29,6 @@ internal abstract class MangaPlusParser(
 	private val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

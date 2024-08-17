@@ -15,8 +15,6 @@ internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, Mang
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("po2scans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

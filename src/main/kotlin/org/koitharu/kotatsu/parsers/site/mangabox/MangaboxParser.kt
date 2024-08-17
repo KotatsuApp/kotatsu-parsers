@@ -18,9 +18,6 @@ internal abstract class MangaboxParser(
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {
 
-
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

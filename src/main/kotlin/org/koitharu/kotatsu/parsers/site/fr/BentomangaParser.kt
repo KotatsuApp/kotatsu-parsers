@@ -32,8 +32,6 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("bentomanga.com", "www.bentomanga.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

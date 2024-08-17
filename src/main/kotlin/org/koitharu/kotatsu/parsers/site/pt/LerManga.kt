@@ -1,10 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.pt
 
-import org.koitharu.kotatsu.parsers.Broken
-import org.koitharu.kotatsu.parsers.ErrorMessages
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -25,8 +21,6 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 		)
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
-
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

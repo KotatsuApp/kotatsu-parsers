@@ -26,8 +26,6 @@ internal class ExHentaiParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 	override val isTagsExclusionSupported: Boolean = true
 

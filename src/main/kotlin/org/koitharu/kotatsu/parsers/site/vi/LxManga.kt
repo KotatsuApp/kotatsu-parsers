@@ -26,7 +26,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override val isMultipleTagsSupported = false
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

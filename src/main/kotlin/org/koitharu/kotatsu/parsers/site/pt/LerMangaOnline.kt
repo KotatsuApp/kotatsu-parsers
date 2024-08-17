@@ -19,8 +19,6 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 
 	override val configKeyDomain = ConfigKey.Domain("lermangaonline.com.br")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

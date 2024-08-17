@@ -20,8 +20,6 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 
 	override val configKeyDomain = ConfigKey.Domain("manga-ay.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

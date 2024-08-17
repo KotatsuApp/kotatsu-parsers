@@ -18,8 +18,6 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

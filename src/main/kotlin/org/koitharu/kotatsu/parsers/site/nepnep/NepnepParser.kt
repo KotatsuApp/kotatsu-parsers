@@ -23,7 +23,7 @@ internal abstract class NepnepParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -186,17 +186,17 @@ internal abstract class NepnepParser(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
 				"Ongoing (Scan)", "Ongoing (Publish)",
-				-> MangaState.ONGOING
+					-> MangaState.ONGOING
 
 				"Complete (Scan)", "Complete (Publish)",
-				-> MangaState.FINISHED
+					-> MangaState.FINISHED
 
 				"Cancelled (Scan)", "Cancelled (Publish)",
 				"Discontinued (Scan)", "Discontinued (Publish)",
-				-> MangaState.ABANDONED
+					-> MangaState.ABANDONED
 
 				"Hiatus (Scan)", "Hiatus (Publish)",
-				-> MangaState.PAUSED
+					-> MangaState.PAUSED
 
 				else -> null
 			},

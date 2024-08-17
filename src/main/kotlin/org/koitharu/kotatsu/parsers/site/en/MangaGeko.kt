@@ -21,8 +21,6 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val isMultipleTagsSupported = false
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

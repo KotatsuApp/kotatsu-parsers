@@ -29,7 +29,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("mangaowl.to")
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

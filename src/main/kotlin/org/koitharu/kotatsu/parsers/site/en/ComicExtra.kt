@@ -21,7 +21,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val configKeyDomain = ConfigKey.Domain("comixextra.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

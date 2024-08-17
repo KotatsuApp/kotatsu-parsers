@@ -16,7 +16,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

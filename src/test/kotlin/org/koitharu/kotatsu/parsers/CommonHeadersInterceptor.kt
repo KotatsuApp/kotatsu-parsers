@@ -20,7 +20,7 @@ internal class CommonHeadersInterceptor : Interceptor {
 		} else {
 			null
 		}
-		val sourceHeaders = parser?.headers
+		val sourceHeaders = parser?.getRequestHeaders()
 		val headersBuilder = request.headers.newBuilder()
 		if (sourceHeaders != null) {
 			headersBuilder.mergeWith(sourceHeaders, replaceExisting = false)

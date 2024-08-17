@@ -17,8 +17,6 @@ class TrWebtoon(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

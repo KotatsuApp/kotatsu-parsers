@@ -26,9 +26,6 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")
 
-
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

@@ -24,8 +24,6 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("animeh.to")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

@@ -18,7 +18,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")
 	override val isMultipleTagsSupported = false
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

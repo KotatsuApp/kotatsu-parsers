@@ -1,10 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.ArrayMap
+import okhttp3.Headers
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
-import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -25,10 +25,10 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 
-	override val headers: Headers = Headers.Builder()
+	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
-		
+
 	override val isMultipleTagsSupported = false
 
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)

@@ -16,8 +16,6 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 
 	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.dev")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

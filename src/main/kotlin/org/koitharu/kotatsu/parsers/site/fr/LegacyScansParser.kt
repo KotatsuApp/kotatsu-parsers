@@ -22,8 +22,6 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

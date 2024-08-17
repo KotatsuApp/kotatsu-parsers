@@ -26,8 +26,6 @@ internal abstract class WpComicsParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -290,7 +288,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 				d.endsWith(" trước")
-			-> parseRelativeDate(date)
+				-> parseRelativeDate(date)
 
 			d.startsWith("year") -> Calendar.getInstance().apply {
 				add(Calendar.DAY_OF_MONTH, -1)

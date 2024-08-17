@@ -17,8 +17,6 @@ internal class HentaiCrot(context: MangaLoaderContext) :
 	)
 	override val configKeyDomain = ConfigKey.Domain("hentaicrot.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

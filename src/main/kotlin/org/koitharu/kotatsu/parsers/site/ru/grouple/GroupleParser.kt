@@ -43,12 +43,12 @@ internal abstract class GroupleParser(
 	private var cachedPagesServer: String? = null
 	protected open val defaultIsNsfw = false
 
-	private val userAgentKey = ConfigKey.UserAgent(
+	override val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 
-	override val headers: Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

@@ -20,7 +20,7 @@ internal abstract class MangAdventureParser(
 ) : PagedMangaParser(context, source, pageSize) {
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

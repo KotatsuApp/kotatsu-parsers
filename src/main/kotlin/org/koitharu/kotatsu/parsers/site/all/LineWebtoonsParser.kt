@@ -48,7 +48,7 @@ internal abstract class LineWebtoonsParser(
 		SortOrder.UPDATED,
 	)
 
-	private val userAgentKey = ConfigKey.UserAgent("nApps (Android 12;; linewebtoon; 3.1.0)")
+	override val userAgentKey = ConfigKey.UserAgent("nApps (Android 12;; linewebtoon; 3.1.0)")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
