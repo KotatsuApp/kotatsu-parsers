@@ -321,14 +321,14 @@ internal class ExHentaiParser(
 		if (response.headersContentLength() <= 256) {
 			val text = response.peekBody(256).string()
 			if (text.startsWith("Your IP address has been temporarily banned")) {
-				@Language("RegExp")
-				val regex = kotlin.text.Regex("ban expires in ([0-9]+) minutes? and ([0-9]+) seconds?")
-				val groups = regex.find(text)?.groupValues ?: return response
-				val minutes = groups.getOrNull(1)?.toLongOrNull() ?: 0L
-				val seconds = groups.getOrNull(2)?.toLongOrNull() ?: 0L
+				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				val seconds = Regex("([0-9]+) seconds?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				throw TooManyRequestExceptions(
 					url = response.request.url.toString(),
-					retryAfter = TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.SECONDS.toMillis(seconds),
+					retryAfter = TimeUnit.HOURS.toMillis(hours)
+						+ TimeUnit.MINUTES.toMillis(minutes)
+						+ TimeUnit.SECONDS.toMillis(seconds),
 				)
 			}
 		}
