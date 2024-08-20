@@ -5,6 +5,10 @@ import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
+import okhttp3.Response
+import okhttp3.internal.headersContentLength
+import org.intellij.lang.annotations.Language
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -13,9 +17,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
+import java.util.Collections.emptyList
+import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
 private const val DOMAIN_UNAUTHORIZED = "e-hentai.org"
@@ -24,7 +31,7 @@ private const val DOMAIN_AUTHORIZED = "exhentai.org"
 @MangaSourceParser("EXHENTAI", "ExHentai", type = ContentType.HENTAI)
 internal class ExHentaiParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
+) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 	override val isTagsExclusionSupported: Boolean = true
@@ -308,6 +315,25 @@ internal class ExHentaiParser(
 		Locale("th"),
 		Locale("vi"),
 	)
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val response = chain.proceed(chain.request())
+		if (response.headersContentLength() <= 256) {
+			val text = response.peekBody(256).string()
+			if (text.startsWith("Your IP address has been temporarily banned")) {
+				@Language("RegExp")
+				val regex = kotlin.text.Regex("ban expires in ([0-9]+) minutes? and ([0-9]+) seconds?")
+				val groups = regex.find(text)?.groupValues ?: return response
+				val minutes = groups.getOrNull(1)?.toLongOrNull() ?: 0L
+				val seconds = groups.getOrNull(2)?.toLongOrNull() ?: 0L
+				throw TooManyRequestExceptions(
+					url = response.request.url.toString(),
+					retryAfter = TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.SECONDS.toMillis(seconds),
+				)
+			}
+		}
+		return response
+	}
 
 	private fun Locale.toLanguagePath() = when (language) {
 		else -> getDisplayLanguage(Locale.ENGLISH).lowercase()
