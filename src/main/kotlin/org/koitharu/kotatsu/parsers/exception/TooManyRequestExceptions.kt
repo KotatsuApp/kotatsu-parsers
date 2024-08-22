@@ -2,25 +2,30 @@ package org.koitharu.kotatsu.parsers.exception
 
 import okio.IOException
 import java.time.Instant
+import java.time.temporal.ChronoUnit
 
 class TooManyRequestExceptions(
 	val url: String,
-	val retryAfter: Long,
-) : IOException(
-	buildString {
-		append("Too man requests")
-		if (retryAfter > 0) {
-			append(", retry after ")
-			append(retryAfter)
-			append("ms")
-		}
-	},
-) {
+	retryAfter: Long,
+) : IOException("Too man requests") {
 
-	val retryAt: Instant?
-		get() = if (retryAfter > 0 && retryAfter < Long.MAX_VALUE) {
-			Instant.now().plusMillis(retryAfter)
+	val retryAt: Instant? = if (retryAfter > 0 && retryAfter < Long.MAX_VALUE) {
+		Instant.now().plusMillis(retryAfter)
+	} else {
+		null
+	}
+
+	fun getRetryDelay(): Long {
+		if (retryAt == null) {
+			return -1L
+		}
+		return Instant.now().until(retryAt, ChronoUnit.MILLIS).coerceAtLeast(0L)
+	}
+
+	override val message: String?
+		get() = if (retryAt != null) {
+			"${super.message}, retry at $retryAt"
 		} else {
-			null
+			super.message
 		}
 }
