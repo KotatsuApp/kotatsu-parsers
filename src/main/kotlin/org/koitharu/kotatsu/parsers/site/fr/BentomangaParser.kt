@@ -77,6 +77,9 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 
 					SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
 						.addQueryParameter("order", "desc")
+
+					else -> url.addQueryParameter("order_by", "update")
+						.addQueryParameter("order", "desc")
 				}
 
 				if (filter.tags.isNotEmpty()) {

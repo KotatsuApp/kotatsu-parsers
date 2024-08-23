@@ -24,7 +24,7 @@ internal class NetTruyenLL(context: MangaLoaderContext) :
 	override val listUrl = "/tim-kiem-nang-cao"
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.ALPHABETICAL_DESC)
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val response =
@@ -93,6 +93,7 @@ internal class NetTruyenLL(context: MangaLoaderContext) :
 								SortOrder.RATING -> "score"
 								SortOrder.ALPHABETICAL -> "az"
 								SortOrder.ALPHABETICAL_DESC -> "za"
+								else -> null
 							},
 						)
 					}
