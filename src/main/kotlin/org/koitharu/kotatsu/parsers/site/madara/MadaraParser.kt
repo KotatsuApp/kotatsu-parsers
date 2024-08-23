@@ -58,9 +58,13 @@ internal abstract class MadaraParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.RATING,
 	)
 
@@ -302,15 +306,48 @@ internal abstract class MadaraParser(
 					}
 
 					when (filter.sortOrder) {
-						SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
-						SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
-						SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
+						SortOrder.POPULARITY -> {
+							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.POPULARITY_ASC -> {
+							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.UPDATED -> {
+							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.UPDATED_ASC -> {
+							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.NEWEST -> {
+							payload["vars[orderby]"] = "date"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.NEWEST_ASC -> {
+							payload["vars[orderby]"] = "date"
+							payload["vars[order]"] = "asc"
+						}
+
 						SortOrder.ALPHABETICAL -> {
 							payload["vars[orderby]"] = "post_title"
-							payload["vars[order]"] = "ASC"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.ALPHABETICAL_DESC -> {
+							payload["vars[orderby]"] = "post_title"
+							payload["vars[order]"] = "desc"
 						}
 
 						SortOrder.RATING -> {}
+
 						else -> payload["vars[meta_key]"] = "_latest_update"
 					}
 

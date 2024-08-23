@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import java.util.EnumSet
 
 @MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
@@ -16,6 +17,8 @@ internal class MangaDna(context: MangaLoaderContext) :
 
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectDesc = "div.dsct"
 	override val selectChapter = "li.a-h"
 	override val availableStates: Set<MangaState> = emptySet()
