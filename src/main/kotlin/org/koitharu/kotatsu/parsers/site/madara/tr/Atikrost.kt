@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ATIKROST", "Atikrost", "tr")
 internal class Atikrost(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ATIKROST, "www.atikrost.com", 10) {
+	MadaraParser(context, MangaParserSource.ATIKROST, "www.mangaoku.org", 10) {
 	override val datePattern = "d MMMM yyyy"
 }

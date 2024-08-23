@@ -288,7 +288,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 				d.endsWith(" trước")
-				-> parseRelativeDate(date)
+			-> parseRelativeDate(date)
 
 			d.startsWith("year") -> Calendar.getInstance().apply {
 				add(Calendar.DAY_OF_MONTH, -1)

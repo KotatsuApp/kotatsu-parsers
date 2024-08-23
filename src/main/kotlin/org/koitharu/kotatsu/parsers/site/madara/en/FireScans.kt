@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("FIRESCANS", "FireScans", "en")
 internal class FireScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.FIRESCANS, "firecomics.org", 10) {
+	MadaraParser(context, MangaParserSource.FIRESCANS, "firescans.xyz", 10) {
 
 	override fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
