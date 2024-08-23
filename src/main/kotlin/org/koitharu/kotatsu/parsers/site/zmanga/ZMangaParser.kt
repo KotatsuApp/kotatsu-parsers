@@ -26,7 +26,7 @@ internal abstract class ZMangaParser(
 		keys.add(userAgentKey)
 	}
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.ALPHABETICAL_DESC)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
@@ -80,6 +80,7 @@ internal abstract class ZMangaParser(
 						SortOrder.ALPHABETICAL_DESC -> append("titlereverse")
 						SortOrder.NEWEST -> append("latest")
 						SortOrder.RATING -> append("rating")
+						else -> null
 					}
 
 					filter.tags.forEach {

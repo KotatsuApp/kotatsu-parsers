@@ -57,11 +57,15 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 					append(
 						when (filter.sortOrder) {
 							SortOrder.POPULARITY -> "likes_count&order_dir=desc"
+							SortOrder.POPULARITY_ASC -> "likes_count&order_dir=asc"
 							SortOrder.UPDATED -> "release_date&order_dir=desc"
+							SortOrder.UPDATED_ASC -> "release_date&order_dir=asc"
 							SortOrder.NEWEST -> "creation&order_dir=desc"
+							SortOrder.NEWEST_ASC -> "creation&order_dir=asc"
 							SortOrder.ALPHABETICAL -> "alphabetically&order_dir=asc"
 							SortOrder.ALPHABETICAL_DESC -> "alphabetically&order_dir=desc"
 							SortOrder.RATING -> "score&order_dir=desc"
+							SortOrder.RATING_ASC -> "score&order_dir=asc"
 						},
 					)
 					append("&filter_by=title")
