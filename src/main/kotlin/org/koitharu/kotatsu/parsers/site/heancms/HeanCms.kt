@@ -32,8 +32,11 @@ internal abstract class HeanCms(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
 		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 	)
 
 	override val availableStates: Set<MangaState> =
@@ -74,8 +77,11 @@ internal abstract class HeanCms(
 					append("&orderBy=")
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("total_views&order=desc")
+						SortOrder.POPULARITY_ASC -> append("total_views&order=asc")
 						SortOrder.UPDATED -> append("$paramsUpdated&order=desc")
+						SortOrder.UPDATED_ASC -> append("$paramsUpdated&order=asc")
 						SortOrder.NEWEST -> append("created_at&order=desc")
+						SortOrder.NEWEST_ASC -> append("created_at&order=asc")
 						SortOrder.ALPHABETICAL -> append("title&order=asc")
 						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")

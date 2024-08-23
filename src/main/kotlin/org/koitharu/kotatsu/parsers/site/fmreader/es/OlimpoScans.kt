@@ -43,11 +43,13 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 						append(page.toString())
 						append("&sort=")
 						when (filter.sortOrder) {
-							SortOrder.POPULARITY -> append("views")
-							SortOrder.UPDATED -> append("last_update")
+							SortOrder.POPULARITY -> append("views&sort_type=DESC")
+							SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
+							SortOrder.UPDATED -> append("last_update&sort_type=DESC")
+							SortOrder.UPDATED_ASC -> append("last_update&sort_type=ASC")
 							SortOrder.ALPHABETICAL -> append("name&sort_type=ASC")
 							SortOrder.ALPHABETICAL_DESC -> append("name&sort_type=DESC")
-							else -> append("last_update")
+							else -> append("last_update&sort_type=DESC")
 						}
 					}
 

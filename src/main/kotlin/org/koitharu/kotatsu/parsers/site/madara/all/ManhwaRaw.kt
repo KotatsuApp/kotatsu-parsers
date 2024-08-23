@@ -7,18 +7,22 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseFailed
 import java.text.SimpleDateFormat
+import java.util.EnumSet
 
 @MangaSourceParser("MANHWARAW", "ManhwaRaw", "", ContentType.HENTAI)
 internal class ManhwaRaw(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANHWARAW, "manhwa-raw.com", 10) {
 	override val datePattern = "MM/dd"
 	override val withoutAjax = true
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

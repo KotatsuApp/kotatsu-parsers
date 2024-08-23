@@ -27,6 +27,7 @@ internal abstract class MmrcmsParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 		SortOrder.UPDATED,
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
@@ -110,6 +111,7 @@ internal abstract class MmrcmsParser(
 						append("&sortBy=")
 						when (filter.sortOrder) {
 							SortOrder.POPULARITY -> append("views&asc=false")
+							SortOrder.POPULARITY_ASC -> append("views&asc=true")
 							SortOrder.ALPHABETICAL -> append("name&asc=true")
 							SortOrder.ALPHABETICAL_DESC -> append("name&asc=false")
 							else -> append("name")

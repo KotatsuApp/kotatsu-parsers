@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import java.util.EnumSet
 
 @MangaSourceParser("MANYTOON", "ManyToon", "en", ContentType.HENTAI)
 internal class ManyToon(context: MangaLoaderContext) :
@@ -23,6 +24,8 @@ internal class ManyToon(context: MangaLoaderContext) :
 	override val listUrl = "comic/"
 	override val postReq = true
 	override val withoutAjax = true
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 
 	override val availableStates: Set<MangaState> = emptySet()
 
