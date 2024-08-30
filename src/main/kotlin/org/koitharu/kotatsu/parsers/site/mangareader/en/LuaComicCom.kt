@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("LUACOMIC_COM", "luaComic.com", "en")
 internal class LuaComicCom(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.LUACOMIC_COM, "luacomic.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.LUACOMIC_COM, "ponvi.online", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }

@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DEMONSECT", "DemonSect", "pt")
 internal class DemonSect(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.DEMONSECT, "dsectcomics.org", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.DEMONSECT, "seitacelestial.com", pageSize = 20, searchPageSize = 10) {
 	override val listUrl = "/comics"
 	override val isTagsExclusionSupported = false
 }

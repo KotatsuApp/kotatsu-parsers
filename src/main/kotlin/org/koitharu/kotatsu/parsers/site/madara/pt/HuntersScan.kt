@@ -9,7 +9,7 @@ import java.util.EnumSet
 
 @MangaSourceParser("HUNTERSSCAN", "HuntersScan", "pt")
 internal class HuntersScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.HUNTERSSCAN, "huntersscan.net", pageSize = 50) {
+	MadaraParser(context, MangaParserSource.HUNTERSSCAN, "hunterscomics.com", pageSize = 50) {
 	override val withoutAjax = true
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
