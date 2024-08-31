@@ -19,9 +19,9 @@ import java.util.*
 import java.util.zip.Inflater
 
 @MangaSourceParser("CUUTRUYEN", "CuuTruyen", "vi")
-internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20) {
+internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
 
-    override val configKeyDomain = ConfigKey.Domain("cuutruyen.net", "nettrom.com", "hetcuutruyen.net", "cuutruyent9sv7.xyz")
+    override val configKeyDomain = ConfigKey.Domain("cuutruyen.net")
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.UPDATED,
@@ -79,10 +79,10 @@ internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(c
                 altTitle = null,
                 coverUrl = jo.getString("cover_url"),
                 largeCoverUrl = jo.getString("cover_mobile_url"),
-                author = jo.optString("author_name", ""),
+                author = jo.getStringOrNull("author_name"),
                 tags = emptySet(),
                 state = null,
-                description = "",
+                description = null,
                 isNsfw = false,
                 source = source,
                 rating = RATING_UNKNOWN,
@@ -128,53 +128,51 @@ internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(c
         }
     }
 
-    private inner class CuuTruyenImageInterceptor : Interceptor {
-        override fun intercept(chain: Interceptor.Chain): Response {
-            val request = chain.request()
-            val response = chain.proceed(request)
+    override fun intercept(chain: Interceptor.Chain): Response {
+        val request = chain.request()
+        val response = chain.proceed(request)
 
-            if (!request.url.toString().contains(".cuutruyen.net")) {
-                return response
-            }
-
-            val body = response.body ?: return response
-            val contentType = body.contentType()
-            val bytes = body.bytes()
-
-            val decrypted = try {
-                decrypt(bytes)
-            } catch (e: Exception) {
-                bytes
-            }
-
-            val decompressed = try {
-                decompress(decrypted)
-            } catch (e: Exception) {
-                decrypted
-            }
-
-            val newBody = decompressed.toResponseBody(contentType)
-            return response.newBuilder().body(newBody).build()
+        if (!request.url.toString().contains(".cuutruyen.net")) {
+            return response
         }
 
-        private fun decrypt(input: ByteArray): ByteArray {
-            val key = decryptionKey.toByteArray()
-            return input.mapIndexed { index, byte ->
-                (byte.toInt() xor key[index % key.size].toInt()).toByte()
-            }.toByteArray()
+        val body = response.body ?: return response
+        val contentType = body.contentType()
+        val bytes = body.bytes()
+
+        val decrypted = try {
+            decrypt(bytes)
+        } catch (e: Exception) {
+            bytes
         }
 
-        private fun decompress(input: ByteArray): ByteArray {
-            val inflater = Inflater()
-            inflater.setInput(input, 0, input.size)
-            val outputStream = ByteArrayOutputStream(input.size)
-            val buffer = ByteArray(1024)
-            while (!inflater.finished()) {
-                val count = inflater.inflate(buffer)
-                outputStream.write(buffer, 0, count)
-            }
-            return outputStream.toByteArray()
+        val decompressed = try {
+            decompress(decrypted)
+        } catch (e: Exception) {
+            decrypted
         }
+
+        val newBody = decompressed.toResponseBody(contentType)
+        return response.newBuilder().body(newBody).build()
+    }
+
+    private fun decrypt(input: ByteArray): ByteArray {
+        val key = decryptionKey.toByteArray()
+        return input.mapIndexed { index, byte ->
+            (byte.toInt() xor key[index % key.size].toInt()).toByte()
+        }.toByteArray()
+    }
+
+    private fun decompress(input: ByteArray): ByteArray {
+        val inflater = Inflater()
+        inflater.setInput(input, 0, input.size)
+        val outputStream = ByteArrayOutputStream(input.size)
+        val buffer = ByteArray(1024)
+        while (!inflater.finished()) {
+            val count = inflater.inflate(buffer)
+            outputStream.write(buffer, 0, count)
+        }
+        return outputStream.toByteArray()
     }
 
     private fun parseChapterDate(dateString: String): Long {
