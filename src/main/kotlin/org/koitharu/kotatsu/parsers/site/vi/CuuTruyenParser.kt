@@ -21,7 +21,7 @@ import java.util.zip.Inflater
 @MangaSourceParser("CUUTRUYEN", "CuuTruyen", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
 
-    override val configKeyDomain = ConfigKey.Domain("cuutruyen.net")
+    override val configKeyDomain = ConfigKey.Domain("cuutruyen.net", "nettrom.com", "hetcuutruyen.net", "cuutruyent9sv7.xyz")
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.UPDATED,
@@ -132,7 +132,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) : PagedMangaParser(c
         val request = chain.request()
         val response = chain.proceed(request)
 
-        if (!request.url.toString().contains(".cuutruyen.net")) {
+        if (!request.url.host.contains("cuutruyen.net")) {
             return response
         }
 
