@@ -115,7 +115,9 @@ internal abstract class GroupleParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired()
 		val doc = response.parseHtml()
-		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
+		val root = doc.body().requireElementById("mangaBox").run {
+			selectFirst("div.leftContent") ?: this
+		}
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
 		val translations = if (config[splitTranslationsKey]) {
