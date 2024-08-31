@@ -310,6 +310,7 @@ internal abstract class GroupleParser(
 		in MintMangaParser.domains -> MangaParserSource.MINTMANGA
 		in ReadmangaParser.domains -> MangaParserSource.READMANGA_RU
 		in SelfMangaParser.domains -> MangaParserSource.SELFMANGA
+		in UsagiParser.domains -> MangaParserSource.USAGI
 		else -> source
 	}
 
