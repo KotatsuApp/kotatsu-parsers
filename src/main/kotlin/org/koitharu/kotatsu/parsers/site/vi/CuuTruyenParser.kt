@@ -37,7 +37,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		.build()
 
 	private val decryptionKey = "3141592653589793"
-	private val itemsPerPage: Int = 20
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
@@ -73,7 +72,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			}
 
 			append("&per_page=")
-			append(itemsPerPage)
+			append(pageSize)
 		}
 
 		val json = webClient.httpGet(url).parseJson()
