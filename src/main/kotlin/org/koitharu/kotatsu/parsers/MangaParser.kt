@@ -52,6 +52,11 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 */
 	open val isSearchSupported: Boolean = true
 
+	/**
+	 * Whether parser supports searching by string query using [MangaListFilter.Advanced]
+	 */
+	open val searchSupportedWithMultipleFilters: Boolean = false
+
 	@Deprecated(
 		message = "Use availableSortOrders instead",
 		replaceWith = ReplaceWith("availableSortOrders"),
@@ -163,6 +168,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 				locale = null,
 				states = emptySet(),
 				contentRating = emptySet(),
+				query = null,
 			),
 		)
 	}
