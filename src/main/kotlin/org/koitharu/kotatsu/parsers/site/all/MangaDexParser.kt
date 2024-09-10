@@ -94,6 +94,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.NEWEST_ASC -> "[createdAt]=asc"
 							SortOrder.POPULARITY -> "[followedCount]=desc"
 							SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
+							else -> "[latestUploadedChapter]=desc"
 						},
 					)
 					filter.states.forEach {

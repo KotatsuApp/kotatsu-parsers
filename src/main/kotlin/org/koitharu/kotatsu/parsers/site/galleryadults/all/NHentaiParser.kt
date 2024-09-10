@@ -57,48 +57,24 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 				}
 
 				is MangaListFilter.Advanced -> {
-					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
-						append("/search/?q=")
-						append(buildQuery(filter.tags, filter.locale).urlEncoded())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("&sort=popular")
-						}
-						append("&")
-					} else if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append("/tag/")
-							append(it.key)
-						}
-						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
-						}
-						if (page > 1) {
-							append("?")
-						}
-					} else if (filter.locale != null) {
-						append("/language/")
-						append(filter.locale.toLanguagePath())
-						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
-						}
-						if (page > 1) {
-							append("?")
-						}
-					} else {
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("/?sort=popular&")
-						} else {
-							append("/?")
-						}
+					append("/search/?q=pages:>0 ")
+					// for Search with query
+					// append(filter.query.urlEncoded())
+					// append(' ')
+					append(buildQuery(filter.tags, filter.locale).urlEncoded())
+					when (filter.sortOrder) {
+						SortOrder.POPULARITY -> append("&sort=popular")
+						SortOrder.POPULARITY_TODAY -> append("&sort=popular-today")
+						SortOrder.POPULARITY_WEEK -> append("&sort=popular-week")
+						SortOrder.UPDATED -> {}
+						else -> {}
 					}
 				}
 
-				null -> append("/?")
+				null -> append("/search/?q=pages:>0 ")
 			}
 			if (page > 1) {
-				append("page=")
+				append("&page=")
 				append(page.toString())
 			}
 		}
