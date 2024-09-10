@@ -67,13 +67,7 @@ class MangaWtfParser(
 						SortOrder.POPULARITY -> "viewsCount,desc"
 						SortOrder.RATING -> "likesCount,desc"
 						SortOrder.NEWEST -> "createdAt,desc"
-						SortOrder.ALPHABETICAL,
-						SortOrder.ALPHABETICAL_DESC,
-						SortOrder.UPDATED_ASC,
-						SortOrder.POPULARITY_ASC,
-						SortOrder.RATING_ASC,
-						SortOrder.NEWEST_ASC,
-						-> throw IllegalArgumentException("Unsupported ${filter.sortOrder}")
+						else -> throw IllegalArgumentException("Unsupported ${filter.sortOrder}")
 					},
 				)
 				if (filter.tags.isNotEmpty()) {
