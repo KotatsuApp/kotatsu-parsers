@@ -14,7 +14,8 @@ sealed interface MangaListFilter {
 			(tags.size <= 1 || parser.isMultipleTagsSupported) &&
 			(tagsExclude.isEmpty() || parser.isTagsExclusionSupported) &&
 			(contentRating.isEmpty() || parser.availableContentRating.containsAll(contentRating)) &&
-			(states.isEmpty() || parser.availableStates.containsAll(states))
+			(states.isEmpty() || parser.availableStates.containsAll(states) &&
+			(query.isNullOrEmpty() || parser.searchSupportedWithMultipleFilters))
 
 		is Search -> parser.isSearchSupported
 	}
@@ -35,10 +36,11 @@ sealed interface MangaListFilter {
 		@JvmField val locale: Locale?,
 		@JvmField val states: Set<MangaState>,
 		@JvmField val contentRating: Set<ContentRating>,
+		@JvmField val query: String?,
 	) : MangaListFilter {
 
 		override fun isEmpty(): Boolean =
-			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && states.isEmpty() && contentRating.isEmpty()
+			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && states.isEmpty() && contentRating.isEmpty() && query == null
 
 		fun newBuilder() = Builder(sortOrder)
 			.tags(tags)
@@ -46,6 +48,7 @@ sealed interface MangaListFilter {
 			.locale(locale)
 			.states(states)
 			.contentRatings(contentRating)
+			.query(query)
 
 		class Builder(sortOrder: SortOrder) {
 
@@ -55,6 +58,7 @@ sealed interface MangaListFilter {
 			private var _locale: Locale? = null
 			private var _states: Set<MangaState>? = null
 			private var _contentRating: Set<ContentRating>? = null
+			private var _query: String? = null
 
 			fun sortOrder(order: SortOrder) = apply {
 				_sortOrder = order
@@ -80,6 +84,10 @@ sealed interface MangaListFilter {
 				_contentRating = rating
 			}
 
+			fun query(query: String?) {
+				_query = query
+			}
+
 			fun build() = Advanced(
 				sortOrder = _sortOrder,
 				tags = _tags.orEmpty(),
@@ -87,6 +95,7 @@ sealed interface MangaListFilter {
 				locale = _locale,
 				states = _states.orEmpty(),
 				contentRating = _contentRating.orEmpty(),
+				query = _query,
 			)
 		}
 	}

@@ -61,6 +61,12 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				}
 
 				is MangaListFilter.Advanced -> {
+
+					filter.query.let {
+						append("&title=")
+						append(filter.query)
+					}
+
 					filter.tags.forEach {
 						append("&includedTags[]=")
 						append(it.key)
