@@ -57,6 +57,18 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 */
 	open val searchSupportedWithMultipleFilters: Boolean = false
 
+	/**
+	 * Whether parser supports searching by year
+	 */
+
+	open val isSearchYearSupported: Boolean = false
+
+	/**
+	 * Whether parser supports searching Original Languages
+	 */
+	open val isSearchOriginalLanguages: Boolean = false
+
+
 	@Deprecated(
 		message = "Use availableSortOrders instead",
 		replaceWith = ReplaceWith("availableSortOrders"),
@@ -166,9 +178,11 @@ abstract class MangaParser @InternalParsersApi constructor(
 				tags = tags.orEmpty(),
 				tagsExclude = tagsExclude.orEmpty(),
 				locale = null,
+				localeMangas = null,
 				states = emptySet(),
 				contentRating = emptySet(),
 				query = null,
+				year = null,
 			),
 		)
 	}

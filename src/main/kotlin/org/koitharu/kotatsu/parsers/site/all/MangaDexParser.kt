@@ -41,7 +41,9 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
 	override val isTagsExclusionSupported: Boolean = true
-
+	override val searchSupportedWithMultipleFilters: Boolean = true
+	override val isSearchYearSupported: Boolean = true
+	override val isSearchOriginalLanguages: Boolean = true
 
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		val domain = domain
@@ -83,9 +85,10 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 								ContentRating.SAFE -> append("&contentRating[]=safe")
 								ContentRating.SUGGESTIVE -> append("&contentRating[]=suggestive&contentRating[]=erotica")
 								ContentRating.ADULT -> append("&contentRating[]=pornographic")
+
 							}
 						}
-					}
+					} else append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
 
 					append("&order")
 					append(
@@ -115,6 +118,16 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 					filter.locale?.let {
 						append("&availableTranslatedLanguage[]=")
 						append(it.language)
+					}
+
+					filter.localeMangas?.let {
+						append("&originalLanguage[]=")
+						append(it.language)
+					}
+
+					filter.year?.let {
+						append("&year=")
+						append(filter.year)
 					}
 				}
 
