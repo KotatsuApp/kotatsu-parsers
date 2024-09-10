@@ -59,7 +59,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				is MangaListFilter.Search -> {
 					append("&title=")
 					append(filter.query)
-					append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
+					append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic&order[relevance]=desc")
 				}
 
 				is MangaListFilter.Advanced -> {
@@ -99,10 +99,13 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.RATING_ASC -> "[rating]=asc"
 							SortOrder.ALPHABETICAL -> "[title]=asc"
 							SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
-							SortOrder.NEWEST -> "[createdAt]=desc"
-							SortOrder.NEWEST_ASC -> "[createdAt]=asc"
+							SortOrder.NEWEST -> "[year]=desc"
+							SortOrder.NEWEST_ASC -> "[year]=asc"
 							SortOrder.POPULARITY -> "[followedCount]=desc"
 							SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
+							SortOrder.ADDED -> "[createdAt]=desc"
+							SortOrder.ADDED_ASC -> "[createdAt]=asc"
+							SortOrder.RELEVANCE -> "&order[relevance]=desc"
 						},
 					)
 					filter.states.forEach {

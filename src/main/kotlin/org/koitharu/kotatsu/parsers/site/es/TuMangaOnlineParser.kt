@@ -66,6 +66,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 							SortOrder.ALPHABETICAL_DESC -> "alphabetically&order_dir=desc"
 							SortOrder.RATING -> "score&order_dir=desc"
 							SortOrder.RATING_ASC -> "score&order_dir=asc"
+							else -> "release_date&order_dir=desc"
 						},
 					)
 					append("&filter_by=title")
