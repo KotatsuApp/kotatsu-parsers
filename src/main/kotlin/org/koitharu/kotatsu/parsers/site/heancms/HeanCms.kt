@@ -182,10 +182,16 @@ internal abstract class HeanCms(
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
-		val regex = Regex("\"tags\\\\.*?(\\[.+?])")
-		val tags = doc.select("script").firstNotNullOf { script ->
-			regex.find(script.html())?.groupValues?.getOrNull(1)
-		}.unescapeJson()
+		val regex = Regex("\"tags\\\\?\":\\s*\\[(.+?)]\\s*[},]")
+		val tags = doc.select("script").joinToString("") { it.html() }
+			.let { fullHtml ->
+				regex.find(fullHtml)?.groupValues?.getOrNull(1)
+			}
+			?.unescapeJson()
+			?.replace(Regex(""""]\)\s*self\.__next_f\.push\(\[\d+,""""), "")
+			?.let { "[$it]" }
+			?: return emptySet()
+
 		return JSONArray(tags).mapJSON {
 			MangaTag(
 				key = it.getInt("id").toString(),
@@ -194,4 +200,5 @@ internal abstract class HeanCms(
 			)
 		}.toSet()
 	}
+
 }
