@@ -16,7 +16,12 @@ import java.util.*
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YUGENMANGAS, 28) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
-	override val configKeyDomain = ConfigKey.Domain("yugenapp.lat")
+	override val configKeyDomain = ConfigKey.Domain("yugenweb.com")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

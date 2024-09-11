@@ -15,6 +15,11 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
 			SortOrder.UPDATED,
@@ -82,6 +87,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 							SortOrder.UPDATED -> "update"
 							SortOrder.NEWEST -> "new"
 							SortOrder.RATING -> "like"
+							else -> null
 						},
 					)
 

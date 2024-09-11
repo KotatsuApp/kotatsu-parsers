@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
-import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
@@ -17,9 +16,12 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val authUrl: String
 		get() = "https://${getDomain("account")}/login?site=seiga"

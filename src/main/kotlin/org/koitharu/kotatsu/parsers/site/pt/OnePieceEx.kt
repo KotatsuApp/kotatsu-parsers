@@ -17,6 +17,11 @@ class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaP
 
 	override val configKeyDomain = ConfigKey.Domain("onepieceex.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		if (page > 1) return emptyList()
 		return listOf(

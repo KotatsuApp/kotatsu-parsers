@@ -16,6 +16,11 @@ class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override val configKeyDomain = ConfigKey.Domain("mangaonline.biz")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

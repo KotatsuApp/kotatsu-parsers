@@ -7,7 +7,13 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("THUNDERSCANS", "ThunderScans", "ar")
 internal class ThunderScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.THUNDERSCANS, "thunderscans.com", pageSize = 32, searchPageSize = 10) {
+	MangaReaderParser(
+		context,
+		MangaParserSource.THUNDERSCANS,
+		"ar-thunderepic.com",
+		pageSize = 32,
+		searchPageSize = 10,
+	) {
 	override val isTagsExclusionSupported = false
 	override val selectChapter = ".eplister > ul > li"
 }

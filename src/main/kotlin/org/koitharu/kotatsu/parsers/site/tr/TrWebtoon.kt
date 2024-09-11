@@ -17,8 +17,19 @@ class TrWebtoon(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.ALPHABETICAL_DESC, SortOrder.UPDATED)
+		EnumSet.of(
+			SortOrder.POPULARITY,
+			SortOrder.POPULARITY_ASC,
+			SortOrder.ALPHABETICAL,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.UPDATED,
+		)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
@@ -75,6 +86,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 						append("&sort=")
 						when (filter.sortOrder) {
 							SortOrder.POPULARITY -> append("views&short_type=DESC")
+							SortOrder.POPULARITY_ASC -> append("views&short_type=ASC")
 							SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
 							SortOrder.ALPHABETICAL_DESC -> append("name&short_type=DESC")
 							else -> append("views&short_type=DESC")

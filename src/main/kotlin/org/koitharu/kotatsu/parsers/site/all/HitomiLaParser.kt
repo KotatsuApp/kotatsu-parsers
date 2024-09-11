@@ -30,6 +30,11 @@ import kotlin.math.min
 class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HITOMILA) {
 	override val configKeyDomain = ConfigKey.Domain("hitomi.la")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	private val ltnBaseUrl get() = "https://${getDomain("ltn")}"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(

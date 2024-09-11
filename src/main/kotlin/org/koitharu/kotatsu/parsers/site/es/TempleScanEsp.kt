@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.es
 
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -21,11 +20,15 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("templescanesp.net")
 
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isSearchSupported = false
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("VFSCAN", "VfScan", "fr")
 internal class VfScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.VFSCAN, "www.vfscan.cc", pageSize = 18, searchPageSize = 18) {
+	MangaReaderParser(context, MangaParserSource.VFSCAN, "www.vfscan.net", pageSize = 18, searchPageSize = 18) {
 	override val isTagsExclusionSupported = false
 }

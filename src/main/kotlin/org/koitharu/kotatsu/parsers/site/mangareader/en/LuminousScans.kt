@@ -5,12 +5,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("LUMINOUSSCANS", "LuminousScans", "en")
+@MangaSourceParser("LUMINOUSSCANS", "RadiantScans", "en")
 internal class LuminousScans(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.LUMINOUSSCANS,
-		"luminous-scans.com",
+		"radiantscans.com",
 		pageSize = 20,
 		searchPageSize = 10,
 	) {

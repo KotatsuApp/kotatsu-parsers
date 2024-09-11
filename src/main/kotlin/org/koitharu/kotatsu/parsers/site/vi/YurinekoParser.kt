@@ -16,6 +16,11 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 

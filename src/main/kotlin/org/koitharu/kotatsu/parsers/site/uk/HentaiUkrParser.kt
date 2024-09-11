@@ -40,6 +40,11 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)
@@ -56,7 +61,8 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 				MangaChapter(
 					id = generateUid(manga.id),
 					name = manga.title,
-					number = 1,
+					number = 1f,
+					volume = 0,
 					url = manga.url,
 					scanlator = null,
 					uploadDate = date.tryParse(jsonDeferred.await().getString("add_date")),
@@ -69,32 +75,34 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 
 	override suspend fun getList(
 		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
+		filter: MangaListFilter?,
 	): List<Manga> {
 		// Get all manga
 		val json = allManga.get().toMutableList()
 
-		// Search
-		if (!query.isNullOrEmpty()) {
-			json.retainAll { item ->
-				item.getString("name").contains(query, ignoreCase = true) ||
-					item.getStringOrNull("eng_name")?.contains(query, ignoreCase = true) == true ||
-					item.getStringOrNull("orig_name")?.contains(query, ignoreCase = true) == true ||
-					item.getStringOrNull("author")?.contains(query, ignoreCase = true) == true ||
-					item.getStringOrNull("team")?.contains(query, ignoreCase = true) == true
+		when (filter) {
+			is MangaListFilter.Search -> {
+				json.retainAll { item ->
+					item.getString("name").contains(filter.query, ignoreCase = true) ||
+						item.getStringOrNull("eng_name")?.contains(filter.query, ignoreCase = true) == true ||
+						item.getStringOrNull("orig_name")?.contains(filter.query, ignoreCase = true) == true ||
+						item.getStringOrNull("author")?.contains(filter.query, ignoreCase = true) == true ||
+						item.getStringOrNull("team")?.contains(filter.query, ignoreCase = true) == true
+				}
 			}
-		}
 
-		if (!tags.isNullOrEmpty()) {
-			val ids = tags.mapToSet { it.key }
-			json.retainAll { item ->
-				item.getJSONArray("tags")
-					.mapJSON { it.getAsString() }
-					.any { x -> x in ids }
+			is MangaListFilter.Advanced -> {
+				if (filter.tags.isNotEmpty()) {
+					val ids = filter.tags.mapToSet { it.key }
+					json.retainAll { item ->
+						item.getJSONArray("tags")
+							.mapJSON { it.getAsString() }
+							.any { x -> x in ids }
+					}
+				}
 			}
+
+			null -> {}
 		}
 
 		// Return to app

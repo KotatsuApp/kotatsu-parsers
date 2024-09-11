@@ -22,6 +22,11 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain("visortmo.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
@@ -52,11 +57,15 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 					append(
 						when (filter.sortOrder) {
 							SortOrder.POPULARITY -> "likes_count&order_dir=desc"
+							SortOrder.POPULARITY_ASC -> "likes_count&order_dir=asc"
 							SortOrder.UPDATED -> "release_date&order_dir=desc"
+							SortOrder.UPDATED_ASC -> "release_date&order_dir=asc"
 							SortOrder.NEWEST -> "creation&order_dir=desc"
+							SortOrder.NEWEST_ASC -> "creation&order_dir=asc"
 							SortOrder.ALPHABETICAL -> "alphabetically&order_dir=asc"
 							SortOrder.ALPHABETICAL_DESC -> "alphabetically&order_dir=desc"
 							SortOrder.RATING -> "score&order_dir=desc"
+							SortOrder.RATING_ASC -> "score&order_dir=asc"
 						},
 					)
 					append("&filter_by=title")
@@ -86,7 +95,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 			append("&_pg=1&page=")
 			append(page.toString())
 		}
-		val doc = webClient.httpGet(url, headers).parseHtml()
+		val doc = webClient.httpGet(url, getRequestHeaders()).parseHtml()
 		val items = doc.body().select("div.element")
 		return items.mapNotNull { item ->
 			val href =
@@ -176,7 +185,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain), headers).parseHtml()
+		val redirectDoc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain), getRequestHeaders()).parseHtml()
 		var doc = redirectToReadingPage(redirectDoc)
 		val currentUrl = doc.location()
 		val newUrl = if (!currentUrl.contains("cascade")) {
@@ -186,7 +195,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 
 		if (currentUrl != newUrl) {
-			doc = webClient.httpGet(newUrl, headers).parseHtml()
+			doc = webClient.httpGet(newUrl, getRequestHeaders()).parseHtml()
 		}
 
 		return doc.select("div.viewer-container img:not(noscript img)").map {
@@ -278,7 +287,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/library", headers).parseHtml()
+		val doc = webClient.httpGet("https://$domain/library", getRequestHeaders()).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
 		return elements.mapNotNullToSet { element ->
 			MangaTag(

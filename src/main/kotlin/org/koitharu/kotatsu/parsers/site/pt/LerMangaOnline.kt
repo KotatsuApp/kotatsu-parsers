@@ -19,6 +19,11 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 
 	override val configKeyDomain = ConfigKey.Domain("lermangaonline.com.br")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

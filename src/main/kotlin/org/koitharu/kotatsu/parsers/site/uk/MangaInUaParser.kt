@@ -24,6 +24,11 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manga.in.ua")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported: Boolean = false
 
 	private val userHashRegex by lazy {

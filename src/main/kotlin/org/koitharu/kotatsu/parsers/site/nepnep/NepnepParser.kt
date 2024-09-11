@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.nepnep
 
-import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -24,14 +23,17 @@ internal abstract class NepnepParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.UPDATED)
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 	override val isTagsExclusionSupported = true
-
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
 
 	private val searchDoc = SoftSuspendLazy {
 		webClient.httpGet("https://$domain/search/").parseHtml()

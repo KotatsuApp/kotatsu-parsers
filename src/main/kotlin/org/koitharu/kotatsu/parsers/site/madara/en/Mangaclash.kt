@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGACLASH", "MangaClash", "en")
+@MangaSourceParser("MANGACLASH", "ToonClash", "en")
 internal class Mangaclash(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGACLASH, "mangaclash.com", pageSize = 18) {
+	MadaraParser(context, MangaParserSource.MANGACLASH, "toonclash.com", pageSize = 18) {
 	override val datePattern = "MM/dd/yyyy"
 }

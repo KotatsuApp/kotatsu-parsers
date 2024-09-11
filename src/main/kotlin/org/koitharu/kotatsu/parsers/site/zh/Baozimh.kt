@@ -23,6 +23,11 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("www.baozimh.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	private val tagsMap = SuspendLazy(::parseTags)

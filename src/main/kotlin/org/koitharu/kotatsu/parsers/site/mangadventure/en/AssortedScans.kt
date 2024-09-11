@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.mangadventure.MangAdventureParser
 
-@MangaSourceParser("ASSORTEDSCANS", "Assorted Scans", "en")
+@MangaSourceParser("ASSORTEDSCANS", "AssortedScans", "en")
 internal class AssortedScans(context: MangaLoaderContext) :
 	MangAdventureParser(context, MangaParserSource.ASSORTEDSCANS, "assortedscans.com") {
 	// tags that don't have any series and make the tests fail

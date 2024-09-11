@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RIGHTDARKSCAN", "RightDarkScan", "es")
 internal class RightdarkScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RIGHTDARKSCAN, "rightdark-scan.com", 10)
+	MadaraParser(context, MangaParserSource.RIGHTDARKSCAN, "rsdleft.com", 10)

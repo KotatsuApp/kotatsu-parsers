@@ -58,7 +58,7 @@ dependencies {
 	implementation 'com.squareup.okio:okio:3.9.0'
 	api 'org.jsoup:jsoup:1.18.1'
 	implementation 'org.json:json:20240303'
-	implementation 'androidx.collection:collection:1.4.1'
+	implementation 'androidx.collection:collection:1.4.2'
 
 	ksp project(':kotatsu-parsers-ksp')
 

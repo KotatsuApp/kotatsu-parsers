@@ -5,6 +5,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -24,7 +25,28 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	source = MangaParserSource.BATOTO,
 	pageSize = 60,
 	searchPageSize = 20,
-) {
+), MangaParserAuthProvider {
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val authUrl: String
+		get() = "https://${domain}/signin"
+
+	override val isAuthorized: Boolean
+		get() {
+			return context.cookieJar.getCookies(domain).any {
+				it.name.contains("skey")
+			}
+		}
+
+	override suspend fun getUsername(): String {
+		val body = webClient.httpGet("https://${domain}/account/profiles").parseHtml().body()
+		return body.selectFirst("ul.toggleMenu-content:has(.avatar):has(a) div.text-center div")?.text()
+			?: body.parseFailed("Cannot find username")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,

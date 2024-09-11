@@ -24,6 +24,11 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("animeh.to")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,

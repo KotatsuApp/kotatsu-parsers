@@ -25,29 +25,40 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
 	)
 
 	override suspend fun getList(
 		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
+		filter: MangaListFilter?,
 	): List<Manga> {
-		if (!query.isNullOrEmpty()) {
-			return if (offset == 0) {
-				search(query)
-			} else {
-				emptyList()
+		val filters =
+			when (filter) {
+				is MangaListFilter.Search -> {
+					return if (offset == 0) {
+						search(filter.query)
+					} else {
+						emptyList()
+					}
+				}
+
+				is MangaListFilter.Advanced -> {
+					filter.tags.takeUnless { it.isEmpty() }?.joinToString(
+						separator = ",",
+						prefix = "genres: [",
+						postfix = "]",
+					) { "\"${it.key}\"" }.orEmpty()
+				}
+
+				null -> ""
 			}
-		}
-		val filters = tags?.takeUnless { it.isEmpty() }?.joinToString(
-			separator = ",",
-			prefix = "genres: [",
-			postfix = "]",
-		) { "\"${it.key}\"" }.orEmpty()
+
 		val array = apiCall(
 			"""
 			getMediaList(offset: $offset, limit: 20, mediaType: manga, filters: {$filters}) {

@@ -29,6 +29,11 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("asuracomic.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = true
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
@@ -164,7 +169,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div > img[alt=chapter]").map { img ->
+		return doc.select("div > img[alt*=chapter]").map { img ->
 			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(urlPage),

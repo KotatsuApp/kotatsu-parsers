@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -30,9 +29,13 @@ internal class Mangaowl(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("mangaowl.to")
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

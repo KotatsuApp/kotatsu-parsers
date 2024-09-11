@@ -21,9 +21,16 @@ internal abstract class FmreaderParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
 	)
@@ -89,11 +96,13 @@ internal abstract class FmreaderParser(
 
 					append("&sort=")
 					when (filter.sortOrder) {
-						SortOrder.POPULARITY -> append("views")
-						SortOrder.UPDATED -> append("last_update")
+						SortOrder.POPULARITY -> append("views&sort_type=DESC")
+						SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
+						SortOrder.UPDATED -> append("last_update&sort_type=DESC")
+						SortOrder.UPDATED_ASC -> append("last_update&sort_type=ASC")
 						SortOrder.ALPHABETICAL -> append("name&sort_type=ASC")
 						SortOrder.ALPHABETICAL_DESC -> append("name&sort_type=DESC")
-						else -> append("last_update")
+						else -> append("last_update&sort_type=DESC")
 					}
 
 					append("&m_status=")

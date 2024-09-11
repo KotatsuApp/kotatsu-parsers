@@ -22,6 +22,11 @@ internal class Pururin(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("pururin.to")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

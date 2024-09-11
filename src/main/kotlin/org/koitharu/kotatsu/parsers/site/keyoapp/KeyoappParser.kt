@@ -22,8 +22,6 @@ internal abstract class KeyoappParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -205,9 +203,9 @@ internal abstract class KeyoappParser(
 					source = source,
 				)
 			},
-			description = doc.selectFirstOrThrow(selectDesc).html(),
+			description = doc.selectFirst(selectDesc)?.html().orEmpty(),
 			state = when (
-				doc.selectFirstOrThrow(selectState).text().lowercase()
+				doc.selectFirst(selectState)?.text()?.lowercase().orEmpty()
 			) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED

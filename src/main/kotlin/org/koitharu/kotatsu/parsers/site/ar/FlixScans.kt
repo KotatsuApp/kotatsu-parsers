@@ -23,6 +23,11 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 
 		val json = when (filter) {

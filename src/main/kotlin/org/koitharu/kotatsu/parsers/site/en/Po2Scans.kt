@@ -15,6 +15,11 @@ internal class Po2Scans(context: MangaLoaderContext) : MangaParser(context, Mang
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("po2scans.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		if (offset > 0) {
 			return emptyList()

@@ -5,6 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -16,6 +17,11 @@ internal abstract class MangaboxParser(
 	source: MangaParserSource,
 	pageSize: Int = 24,
 ) : PagedMangaParser(context, source, pageSize) {
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

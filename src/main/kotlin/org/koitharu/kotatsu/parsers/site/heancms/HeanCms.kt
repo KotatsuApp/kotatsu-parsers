@@ -1,11 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.heancms
 
+import org.json.JSONArray
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.unescapeJson
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,8 +23,6 @@ internal abstract class HeanCms(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -29,8 +32,11 @@ internal abstract class HeanCms(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
 		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 	)
 
 	override val availableStates: Set<MangaState> =
@@ -40,6 +46,8 @@ internal abstract class HeanCms(
 	protected open val pathManga = "series"
 	protected open val apiPath
 		get() = getDomain("api")
+
+	protected open val paramsUpdated = "latest"
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
@@ -54,7 +62,7 @@ internal abstract class HeanCms(
 				is MangaListFilter.Advanced -> {
 
 					filter.states.oneOrThrowIfMany()?.let {
-						append("&series_status=")
+						append("&status=")
 						append(
 							when (it) {
 								MangaState.ONGOING -> "Ongoing"
@@ -64,18 +72,22 @@ internal abstract class HeanCms(
 								else -> ""
 							},
 						)
-
 					}
+
 					append("&orderBy=")
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> append("total_views&order=desc")
-						SortOrder.UPDATED -> append("latest&order=desc")
+						SortOrder.POPULARITY_ASC -> append("total_views&order=asc")
+						SortOrder.UPDATED -> append("$paramsUpdated&order=desc")
+						SortOrder.UPDATED_ASC -> append("$paramsUpdated&order=asc")
 						SortOrder.NEWEST -> append("created_at&order=desc")
-						SortOrder.ALPHABETICAL -> append("title&order=desc")
-						SortOrder.ALPHABETICAL_DESC -> append("title&order=asc")
+						SortOrder.NEWEST_ASC -> append("created_at&order=asc")
+						SortOrder.ALPHABETICAL -> append("title&order=asc")
+						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")
 					}
-					append("&series_type=Comic&perPage=12")
+
+					append("&series_type=Comic&perPage=20")
 					append("&tags_ids=")
 					append("[".urlEncoded())
 					append(filter.tags.joinToString(",") { it.key })
@@ -83,32 +95,40 @@ internal abstract class HeanCms(
 
 				}
 
-				null -> {}
+				null -> append("&status=All&orderBy=$paramsUpdated&order=desc&series_type=Comic&perPage=20")
 			}
 			append("&page=")
 			append(page.toString())
 		}
-		val json = webClient.httpGet(url).parseJson()
+		return parseMangaList(webClient.httpGet(url).parseJson())
+	}
 
-		return json.getJSONArray("data").mapJSON { j ->
-			val slug = j.getString("series_slug")
-			val urlManga = "https://$domain/$pathManga/$slug"
-			val cover = if (j.getString("thumbnail").contains('/')) {
-				j.getString("thumbnail")
+	protected open val cdn = "api.$domain/"
+
+	private fun parseMangaList(response: JSONObject): List<Manga> {
+		return response.getJSONArray("data").mapJSON { it ->
+			val id = it.getLong("id")
+			val url = "/comic/${it.getString("series_slug")}"
+			val publicUrl = "/series/${it.getString("series_slug")}"
+			val title = it.getString("title")
+			val cover = if (it.getString("thumbnail").startsWith("https://")) {
+				it.getString("thumbnail")
 			} else {
-				"https://api.$domain/${j.getString("thumbnail")}"
+				"https://$cdn${it.getString("thumbnail")}"
 			}
+
 			Manga(
-				id = generateUid(urlManga),
-				title = j.getString("title"),
-				altTitle = null,
-				url = urlManga.toRelativeUrl(domain),
-				publicUrl = urlManga,
-				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				id = id,
+				url = url,
+				title = title,
+				altTitle = it.getString("alternative_names").takeIf { it.isNotBlank() },
+				publicUrl = publicUrl.toAbsoluteUrl(domain),
+				description = it.getString("description"),
+				rating = it.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,
+				isNsfw = isNsfwSource,
 				coverUrl = cover,
-				tags = setOf(),
-				state = when (j.getString("status")) {
+				tags = emptySet(),
+				state = when (it.getString("status")) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					"Dropped" -> MangaState.ABANDONED
@@ -119,41 +139,28 @@ internal abstract class HeanCms(
 				source = source,
 			)
 		}
-
 	}
 
-
 	protected open val datePattern = "yyyy-MM-dd"
+
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val seriesId = manga.id
+		val url = "https://$apiPath/chapter/query?page=1&perPage=9999&series_id=$seriesId"
+		val response = webClient.httpGet(url).parseJson()
+		val data = response.getJSONArray("data").toJSONList()
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
-
-		val slug = manga.url.substringAfterLast('/')
-		val chapter = root.selectFirstOrThrow("script:containsData(chapter_slug)").data()
-			.replace("\\", "")
-			.substringAfter("\"seasons\":")
-			.substringBefore("}]}],\"children\"")
-			.split("chapter_name")
-			.drop(1)
-
 		return manga.copy(
-			altTitle = root.selectFirst("p.text-center.text-gray-400")?.text(),
-			tags = emptySet(),
-			author = root.select("div.flex.flex-col.gap-y-2 p:contains(Autor:) strong").text(),
-			description = root.selectFirst("h5:contains(Desc) + .bg-gray-800")?.html(),
-			chapters = chapter.mapChapters(reversed = true) { i, it ->
-				val slugChapter = it.substringAfter("chapter_slug\":\"").substringBefore("\",\"")
-				val url = "https://$domain/$pathManga/$slug/$slugChapter"
-				val date = it.substringAfter("created_at\":\"").substringBefore("\",\"").substringBefore("T")
-				val name = slugChapter.replace("-", " ")
+			chapters = data.mapChapters(reversed = true) { i, it ->
+				val chapterUrl =
+					"/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
 				MangaChapter(
-					id = generateUid(url),
-					name = name,
+					id = it.getLong("id"),
+					name = it.getString("chapter_name"),
 					number = i + 1f,
 					volume = 0,
-					url = url,
+					url = chapterUrl,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(date),
+					uploadDate = dateFormat.tryParse(it.getString("created_at").substringBefore("T")),
 					branch = null,
 					source = source,
 				)
@@ -161,10 +168,12 @@ internal abstract class HeanCms(
 		)
 	}
 
+	protected open val selectPages = ".flex > img:not([alt])"
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".flex > img:not([alt])").map { img ->
+		return doc.select(selectPages).map { img ->
 			val url = img.src() ?: img.parseFailed("Image src not found")
 			MangaPage(
 				id = generateUid(url),
@@ -177,19 +186,16 @@ internal abstract class HeanCms(
 
 	override suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
-
-		val tags = doc.selectFirstOrThrow("script:containsData(Genres)").data()
-			.replace("\\", "")
-			.substringAfterLast("\"Genres\"")
-			.split("\",{\"")
-			.drop(1)
-
-		return tags.mapNotNullToSet {
+		val regex = Regex("\"tags\\\\.*?(\\[.+?])")
+		val tags = doc.select("script").firstNotNullOf { script ->
+			regex.find(script.html())?.groupValues?.getOrNull(1)
+		}.unescapeJson()
+		return JSONArray(tags).mapJSON {
 			MangaTag(
-				key = it.substringAfter("id\":").substringBefore(",\""),
-				title = it.substringAfter("name\":\"").substringBefore("\"}]").toTitleCase(sourceLocale),
+				key = it.getInt("id").toString(),
+				title = it.getString("name").toTitleCase(sourceLocale),
 				source = source,
 			)
-		}
+		}.toSet()
 	}
 }

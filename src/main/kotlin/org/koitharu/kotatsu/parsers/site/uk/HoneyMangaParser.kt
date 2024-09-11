@@ -39,6 +39,11 @@ class HoneyMangaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("honey-manga.com.ua")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,

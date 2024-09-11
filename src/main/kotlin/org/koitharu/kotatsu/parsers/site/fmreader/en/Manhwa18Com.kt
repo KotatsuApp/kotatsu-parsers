@@ -52,6 +52,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 							SortOrder.UPDATED -> "update"
 							SortOrder.NEWEST -> "new"
 							SortOrder.RATING -> "like"
+							else -> null
 						},
 					)
 

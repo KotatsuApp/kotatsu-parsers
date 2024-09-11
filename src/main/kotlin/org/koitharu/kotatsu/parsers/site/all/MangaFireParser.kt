@@ -9,6 +9,7 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Rect
@@ -26,7 +27,7 @@ internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteLang: String,
-) : PagedMangaParser(context, source, 30), Interceptor {
+) : PagedMangaParser(context, source, 30), Interceptor, MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 
@@ -37,6 +38,27 @@ internal abstract class MangaFireParser(
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
 	)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val authUrl: String
+		get() = "https://${domain}"
+
+	override val isAuthorized: Boolean
+		get() {
+			return context.cookieJar.getCookies(domain).any {
+				it.value.contains("user")
+			}
+		}
+
+	override suspend fun getUsername(): String {
+		val body = webClient.httpGet("https://${domain}/user/profile").parseHtml().body()
+		return body.selectFirst("form.ajax input[name*=username]")?.attr("value")
+			?: body.parseFailed("Cannot find username")
+	}
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 

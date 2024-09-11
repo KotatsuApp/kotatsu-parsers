@@ -74,8 +74,10 @@ abstract class MangaParser @InternalParsersApi constructor(
 	@InternalParsersApi
 	abstract val configKeyDomain: ConfigKey.Domain
 
-	open val headers: Headers = Headers.Builder()
-		.add("User-Agent", context.getDefaultUserAgent())
+	protected open val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	open fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("User-Agent", config[userAgentKey])
 		.build()
 
 	/**

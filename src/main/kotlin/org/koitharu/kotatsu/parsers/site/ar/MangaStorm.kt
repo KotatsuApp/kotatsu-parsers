@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ar
 
-import okhttp3.Headers
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
+@Broken
 @MangaSourceParser("MANGASTORM", "MangaStorm", "ar")
 internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGASTORM, 30) {
 
@@ -17,9 +18,12 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")
 	override val isMultipleTagsSupported = false
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {

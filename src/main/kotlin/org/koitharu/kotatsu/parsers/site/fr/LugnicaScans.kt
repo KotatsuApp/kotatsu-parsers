@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import okhttp3.Headers
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -31,9 +30,12 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("lugnica-scans.com")
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	init {
 		context.cookieJar.insertCookies(

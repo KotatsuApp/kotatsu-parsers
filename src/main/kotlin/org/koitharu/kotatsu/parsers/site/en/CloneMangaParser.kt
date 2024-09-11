@@ -18,6 +18,11 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	@InternalParsersApi
 	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 

@@ -14,10 +14,6 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-/**
- * cc
- */
-
 private const val CHAPTERS_LIMIT = 99999
 
 @MangaSourceParser("COMICK_FUN", "ComicK")
@@ -26,10 +22,18 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("comick.io", "comick.cc")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val isTagsExclusionSupported = true
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 		SortOrder.RATING,
+		SortOrder.NEWEST,
 	)
 
 	override val availableStates: Set<MangaState> =
@@ -57,17 +61,26 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			}
 
 			is MangaListFilter.Advanced -> {
-				filter.tags.forEach { tag ->
-					url.addQueryParameter("genres", tag.key)
+
+				filter.tags.forEach {
+					url.addQueryParameter("genres", it.key)
 				}
+
+				filter.tagsExclude.forEach {
+					url.addQueryParameter("excludes", it.key)
+				}
+
 				url.addQueryParameter(
 					"sort",
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> "view"
+						SortOrder.UPDATED -> "uploaded"
+						SortOrder.NEWEST -> "created_at"
 						SortOrder.RATING -> "rating"
 						else -> "uploaded"
 					},
 				)
+
 				filter.states.oneOrThrowIfMany()?.let {
 					url.addQueryParameter(
 						"status",
@@ -212,40 +225,6 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-
-
-		/*val chaptersBuilder = ChaptersListBuilder(list.size)
-		val branchedChapters = HashMap<String?, HashMap<Pair<String?, String?>, MangaChapter>>()
-		for (jo in list) {
-			val vol = jo.getStringOrNull("vol")
-			val chap = jo.getStringOrNull("chap")
-			val volChap = vol to chap
-			val locale = Locale.forLanguageTag(jo.getString("lang"))
-			val lc = locale.getDisplayName(locale).toTitleCase(locale)
-			val branch = (list.indices).firstNotNullOf { i ->
-				val b = if (i == 0) lc else "$lc ($i)"
-				if (branchedChapters[b]?.get(volChap) == null) b else null
-			}
-			val chapter = MangaChapter(
-				id = generateUid(jo.getLong("id")),
-				name = buildString {
-					vol?.let { append("Vol ").append(it).append(' ') }
-					chap?.let { append("Chap ").append(it) }
-					jo.getStringOrNull("title")?.let { append(": ").append(it) }
-				},
-				number = branchedChapters[branch]?.size?.plus(1) ?: 1,
-				url = jo.getString("hid"),
-				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
-					?.takeUnless { it.isBlank() },
-				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
-				branch = branch,
-				source = source,
-			)
-			if (chaptersBuilder.add(chapter)) {
-				branchedChapters.getOrPut(branch, ::HashMap)[volChap] = chapter
-			}
-		}
-		return chaptersBuilder.toList()*/
 	}
 
 	private fun JSONObject.selectGenres(tags: SparseArrayCompat<MangaTag>): Set<MangaTag> {

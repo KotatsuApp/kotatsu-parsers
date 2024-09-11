@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.vi
 
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
@@ -9,10 +8,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@Broken
 @MangaSourceParser("TRUYENTRANHDAMMYY", "TruyenTranhDamMyy", "vi")
 internal class TruyenTranhDamMyy(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TRUYENTRANHDAMMYY, "truyentranhdammyy.net") {
+	MadaraParser(context, MangaParserSource.TRUYENTRANHDAMMYY, "truyennhameo.com") {
 	override val postReq = true
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")

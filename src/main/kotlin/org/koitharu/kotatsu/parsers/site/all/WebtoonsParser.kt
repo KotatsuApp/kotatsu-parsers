@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.all
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
@@ -49,8 +48,13 @@ internal abstract class WebtoonsParser(
 		//SortOrder.LIKE, // likes
 		SortOrder.UPDATED,
 	)
-	override val headers: Headers
-		get() = Headers.Builder().add("User-Agent", "nApps (Android 12;; linewebtoon; 3.1.0)").build()
+
+	override val userAgentKey = ConfigKey.UserAgent("nApps (Android 12;; linewebtoon; 3.1.0)")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		return page.url.toAbsoluteUrl(staticDomain)

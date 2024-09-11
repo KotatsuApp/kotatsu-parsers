@@ -11,9 +11,11 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import java.util.EnumSet
 
 @MangaSourceParser("MANHWAHENTAI", "ManhwaHentai", "en", ContentType.HENTAI)
 internal class ManhwaHentai(context: MangaLoaderContext) :
@@ -21,6 +23,8 @@ internal class ManhwaHentai(context: MangaLoaderContext) :
 	override val tagPrefix = "webtoon-genre/"
 	override val listUrl = "webtoon/"
 	override val withoutAjax = true
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val postReq = true
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {

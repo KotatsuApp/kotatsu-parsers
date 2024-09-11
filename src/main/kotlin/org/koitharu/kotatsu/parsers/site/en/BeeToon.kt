@@ -17,6 +17,11 @@ internal class BeeToon(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("manhwafull.net")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {

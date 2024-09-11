@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("NOBLESSETRANSLATIONS", "NoblesseTranslations", "es")
 internal class NoblesseTranslations(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.NOBLESSETRANSLATIONS, "www.noblessev1.com")
+	MadaraParser(context, MangaParserSource.NOBLESSETRANSLATIONS, "www.swordalada.org")

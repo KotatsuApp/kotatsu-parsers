@@ -1,10 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.pt
 
-import org.koitharu.kotatsu.parsers.Broken
-import org.koitharu.kotatsu.parsers.ErrorMessages
-import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -18,13 +14,21 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
 			SortOrder.UPDATED,
+			SortOrder.UPDATED_ASC,
 			SortOrder.POPULARITY,
+			SortOrder.POPULARITY_ASC,
 			SortOrder.ALPHABETICAL,
 			SortOrder.ALPHABETICAL_DESC,
 			SortOrder.RATING,
+			SortOrder.RATING_ASC,
 		)
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val isMultipleTagsSupported = false
 	override val isSearchSupported = false
@@ -59,10 +63,13 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 					append(
 						when (filter.sortOrder) {
 							SortOrder.UPDATED -> "modified&order=desc"
+							SortOrder.UPDATED_ASC -> "modified&order=asc"
 							SortOrder.POPULARITY -> "views&order=desc"
+							SortOrder.POPULARITY_ASC -> "views&order=asc"
 							SortOrder.ALPHABETICAL -> "title&order=asc"
 							SortOrder.ALPHABETICAL_DESC -> "title&order=desc"
 							SortOrder.RATING -> "rating&order=desc"
+							SortOrder.RATING_ASC -> "rating&order=asc"
 							else -> "modified&order=desc"
 						},
 					)

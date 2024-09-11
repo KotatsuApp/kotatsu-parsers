@@ -43,12 +43,12 @@ internal abstract class GroupleParser(
 	private var cachedPagesServer: String? = null
 	protected open val defaultIsNsfw = false
 
-	private val userAgentKey = ConfigKey.UserAgent(
+	override val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 
-	override val headers: Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -115,7 +115,9 @@ internal abstract class GroupleParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired()
 		val doc = response.parseHtml()
-		val root = doc.body().requireElementById("mangaBox").selectFirstOrThrow("div.leftContent")
+		val root = doc.body().requireElementById("mangaBox").run {
+			selectFirst("div.leftContent") ?: this
+		}
 		val dateFormat = SimpleDateFormat("dd.MM.yy", Locale.US)
 		val coverImg = root.selectFirst("div.subject-cover")?.selectFirst("img")
 		val translations = if (config[splitTranslationsKey]) {
@@ -308,6 +310,7 @@ internal abstract class GroupleParser(
 		in MintMangaParser.domains -> MangaParserSource.MINTMANGA
 		in ReadmangaParser.domains -> MangaParserSource.READMANGA_RU
 		in SelfMangaParser.domains -> MangaParserSource.SELFMANGA
+		in UsagiParser.domains -> MangaParserSource.USAGI
 		else -> source
 	}
 

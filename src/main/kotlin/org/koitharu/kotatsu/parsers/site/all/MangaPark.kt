@@ -16,7 +16,8 @@ import java.util.*
 internal class MangaPark(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
 
@@ -25,6 +26,11 @@ internal class MangaPark(context: MangaLoaderContext) :
 	override val isTagsExclusionSupported: Boolean = true
 
 	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	private val tagsMap = SuspendLazy(::parseTags)
 

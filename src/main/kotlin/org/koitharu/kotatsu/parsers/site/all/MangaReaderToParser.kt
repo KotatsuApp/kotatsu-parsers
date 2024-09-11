@@ -7,6 +7,7 @@ import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
@@ -21,9 +22,30 @@ import kotlin.math.min
 
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
 class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
-	Interceptor {
+	Interceptor, MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val authUrl: String
+		get() = "https://${domain}/home"
+
+	override val isAuthorized: Boolean
+		get() {
+			return context.cookieJar.getCookies(domain).any {
+				it.name.contains("connect.sid")
+			}
+		}
+
+	// It will be easier to connect to a manga page, as the source redirects to a lot of advertising.
+	override suspend fun getUsername(): String {
+		val body = webClient.httpGet("https://${domain}/user/profile").parseHtml().body()
+		return body.getElementById("pro5-name")?.attr("value") ?: body.parseFailed("Cannot find username")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,

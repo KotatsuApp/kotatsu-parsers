@@ -27,8 +27,6 @@ internal abstract class MadaraParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -60,9 +58,13 @@ internal abstract class MadaraParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.RATING,
 	)
 
@@ -304,15 +306,48 @@ internal abstract class MadaraParser(
 					}
 
 					when (filter.sortOrder) {
-						SortOrder.POPULARITY -> payload["vars[meta_key]"] = "_wp_manga_views"
-						SortOrder.UPDATED -> payload["vars[meta_key]"] = "_latest_update"
-						SortOrder.NEWEST -> payload["vars[meta_key]"] = ""
+						SortOrder.POPULARITY -> {
+							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.POPULARITY_ASC -> {
+							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.UPDATED -> {
+							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.UPDATED_ASC -> {
+							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.NEWEST -> {
+							payload["vars[orderby]"] = "date"
+							payload["vars[order]"] = "desc"
+						}
+
+						SortOrder.NEWEST_ASC -> {
+							payload["vars[orderby]"] = "date"
+							payload["vars[order]"] = "asc"
+						}
+
 						SortOrder.ALPHABETICAL -> {
 							payload["vars[orderby]"] = "post_title"
-							payload["vars[order]"] = "ASC"
+							payload["vars[order]"] = "asc"
+						}
+
+						SortOrder.ALPHABETICAL_DESC -> {
+							payload["vars[orderby]"] = "post_title"
+							payload["vars[order]"] = "desc"
 						}
 
 						SortOrder.RATING -> {}
+
 						else -> payload["vars[meta_key]"] = "_latest_update"
 					}
 
@@ -575,24 +610,31 @@ internal abstract class MadaraParser(
 	}
 
 	protected open val selectBodyPage = "div.main-col-inner div.reading-content"
-	protected open val selectPage = "div.page-break, div.login-required"
+	protected open val selectPage = "div.page-break"
+	protected open val selectRequiredLogin = ".content-blocked, .login-required"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chapterProtector = doc.getElementById("chapter-protector-data")
 		if (chapterProtector == null) {
-			val root = doc.body().selectFirst(selectBodyPage)
-				?: throw ParseException("No image found, try to log in", fullUrl)
-			return root.select(selectPage).map { div ->
-				val img = div.selectFirstOrThrow("img")
-				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
+			throw if (doc.selectFirst(selectRequiredLogin) != null) {
+				AuthRequiredException(source)
+			} else {
+				val root = doc.body().selectFirst(selectBodyPage) ?: throw ParseException(
+					"No image found, try to log in",
+					fullUrl,
 				)
+				return root.select(selectPage).map { div ->
+					val img = div.selectFirstOrThrow("img")
+					val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+					MangaPage(
+						id = generateUid(url),
+						url = url,
+						preview = null,
+						source = source,
+					)
+				}
 			}
 		} else {
 

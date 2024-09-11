@@ -23,11 +23,16 @@ internal abstract class NineMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	init {
 		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
 	}
 
-	override val headers = super.headers.newBuilder()
+	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
 		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
 		.build()
 

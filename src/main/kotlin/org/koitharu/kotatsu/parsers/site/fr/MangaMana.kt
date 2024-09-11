@@ -1,11 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -41,6 +36,11 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
 
 	override val configKeyDomain = ConfigKey.Domain("www.manga-mana.com")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val isMultipleTagsSupported = false
 

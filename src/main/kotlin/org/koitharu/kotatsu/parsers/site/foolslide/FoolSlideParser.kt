@@ -20,6 +20,11 @@ internal abstract class FoolSlideParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	protected open val listUrl = "directory/"

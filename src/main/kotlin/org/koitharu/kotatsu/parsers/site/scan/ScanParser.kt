@@ -19,10 +19,15 @@ internal abstract class ScanParser(
 	domain: String,
 	pageSize: Int = 0,
 ) : PagedMangaParser(context, source, pageSize) {
+	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)
-	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	protected open val listUrl = "/manga"
 

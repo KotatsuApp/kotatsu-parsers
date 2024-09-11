@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -23,11 +22,14 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("furyosociety.com")
 
-	override val isSearchSupported = false
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
-	override val headers: Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val isSearchSupported = false
 
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(

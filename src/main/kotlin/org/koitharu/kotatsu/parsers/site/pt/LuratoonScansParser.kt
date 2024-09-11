@@ -22,10 +22,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(co
 
 	override val configKeyDomain = ConfigKey.Domain("luratoons.com")
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
-	override val headers: Headers
-		get() = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
 	override val isSearchSupported = false
 	override val isTagsExclusionSupported = false

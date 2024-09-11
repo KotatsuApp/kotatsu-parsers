@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FBSQUADS", "FbSquads", "pt", ContentType.HENTAI)
 internal class Fbsquads(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.FBSQUADS, "fbsscan.com") {
+	MadaraParser(context, MangaParserSource.FBSQUADS, "fbsquadx.com") {
 	override val datePattern: String = "dd/MM/yyyy"
 }

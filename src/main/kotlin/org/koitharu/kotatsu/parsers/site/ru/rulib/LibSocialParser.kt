@@ -21,7 +21,14 @@ internal abstract class LibSocialParser(
 	protected val siteId: Int,
 ) : PagedMangaParser(context, source, pageSize = 60) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.allOf(SortOrder::class.java)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.POPULARITY,
+		SortOrder.RATING,
+		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
+	)
 
 	final override val configKeyDomain = ConfigKey.Domain("lib.social")
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
@@ -88,6 +95,8 @@ internal abstract class LibSocialParser(
 				SortOrder.ALPHABETICAL,
 				SortOrder.ALPHABETICAL_DESC,
 				-> "rus_name"
+
+				else -> null
 			},
 		)
 		urlBuilder.addQueryParameter(
@@ -101,6 +110,7 @@ internal abstract class LibSocialParser(
 				-> "desc"
 
 				SortOrder.ALPHABETICAL -> "asc"
+				else -> null
 			},
 		)
 		val json = webClient.httpGet(urlBuilder.build()).parseJson()

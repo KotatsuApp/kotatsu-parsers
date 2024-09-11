@@ -22,6 +22,11 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val end = page * pageSize
 		val start = end - (pageSize - 1)

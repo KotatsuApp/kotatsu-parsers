@@ -30,12 +30,9 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = true
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
-	override val headers: Headers
-		get() = super.headers.newBuilder()
-			.set("User-Agent", config[userAgentKey])
-			.build()
+	override fun getRequestHeaders(): Headers = super.getRequestHeaders().newBuilder()
+		.set("User-Agent", config[userAgentKey])
+		.build()
 
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 

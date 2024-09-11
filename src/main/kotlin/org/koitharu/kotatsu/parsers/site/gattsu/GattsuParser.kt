@@ -16,9 +16,14 @@ internal abstract class GattsuParser(
 	pageSize: Int = 20,
 ) : PagedMangaParser(context, source, pageSize) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val isMultipleTagsSupported = false
 

@@ -25,6 +25,11 @@ internal abstract class ZeistMangaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val isMultipleTagsSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
@@ -159,7 +164,7 @@ internal abstract class ZeistMangaParser(
 					?.replace("""/s.+?-c-rw/""".toRegex(), "/w600/")
 					?.replace("""=s(?!.*=s).+?-c-rw$""".toRegex(), "=w600")
 			} else {
-				Jsoup.parse(j.getJSONObject("content").getString("\$t")).selectFirstOrThrow("img").attr("src")
+				Jsoup.parse(j.getJSONObject("content").getString("\$t")).selectFirst("img")?.attr("src")
 			}
 			Manga(
 				id = generateUid(href),

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -9,12 +10,18 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("LIRESCAN", "LireScan", "fr")
 internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LIRESCAN, 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("lire-scan.me")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val isMultipleTagsSupported = false
 

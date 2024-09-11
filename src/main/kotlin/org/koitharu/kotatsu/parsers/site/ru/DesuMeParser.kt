@@ -25,7 +25,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val headers: Headers = Headers.Builder()
+	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 

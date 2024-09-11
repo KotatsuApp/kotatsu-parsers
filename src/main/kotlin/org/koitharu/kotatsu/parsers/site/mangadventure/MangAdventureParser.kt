@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.mangadventure
 
-import okhttp3.Headers
 import okhttp3.HttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -21,8 +20,12 @@ internal abstract class MangAdventureParser(
 ) : PagedMangaParser(context, source, pageSize) {
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val headers: Headers =
-		Headers.Builder().add("User-Agent", UserAgents.KOTATSU).build()
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val availableStates: Set<MangaState> = EnumSet.of(
 		MangaState.ONGOING,

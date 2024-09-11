@@ -22,6 +22,11 @@ internal class ImHentai(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("imhentai.xxx")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
 		val url = buildString {
 			append("https://")

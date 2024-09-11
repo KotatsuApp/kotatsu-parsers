@@ -5,6 +5,9 @@ import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import okhttp3.Interceptor
+import okhttp3.Response
+import okhttp3.internal.headersContentLength
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -13,9 +16,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
+import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
+import java.util.Collections.emptyList
+import java.util.concurrent.TimeUnit
 import kotlin.math.pow
 
 private const val DOMAIN_UNAUTHORIZED = "e-hentai.org"
@@ -24,7 +30,7 @@ private const val DOMAIN_AUTHORIZED = "exhentai.org"
 @MangaSourceParser("EXHENTAI", "ExHentai", type = ContentType.HENTAI)
 internal class ExHentaiParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
+) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 	override val isTagsExclusionSupported: Boolean = true
@@ -279,8 +285,8 @@ internal class ExHentaiParser(
 
 		val doc = webClient.httpGet("https://${domain}").parseHtml()
 		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
-		root.select("div.cs").mapNotNullToSet { div ->
-			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@mapNotNullToSet null
+		root.select("div.cs").forEach { div ->
+			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@forEach
 			val name = div.text().toTitleCase(Locale.ENGLISH)
 			tagMap[name] = MangaTag(
 				title = "Kind: $name",
@@ -309,6 +315,25 @@ internal class ExHentaiParser(
 		Locale("vi"),
 	)
 
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val response = chain.proceed(chain.request())
+		if (response.headersContentLength() <= 256) {
+			val text = response.peekBody(256).string()
+			if (text.startsWith("Your IP address has been temporarily banned")) {
+				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				val seconds = Regex("([0-9]+) seconds?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				throw TooManyRequestExceptions(
+					url = response.request.url.toString(),
+					retryAfter = TimeUnit.HOURS.toMillis(hours)
+						+ TimeUnit.MINUTES.toMillis(minutes)
+						+ TimeUnit.SECONDS.toMillis(seconds),
+				)
+			}
+		}
+		return response
+	}
+
 	private fun Locale.toLanguagePath() = when (language) {
 		else -> getDisplayLanguage(Locale.ENGLISH).lowercase()
 	}
@@ -329,6 +354,7 @@ internal class ExHentaiParser(
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
 		keys.add(suspiciousContentKey)
 	}
 

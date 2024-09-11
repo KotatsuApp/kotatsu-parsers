@@ -7,4 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("SUSHISCANFR", "SushiScan.fr", "fr")
 internal class SushiScanFR(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.SUSHISCANFR, "sushiscan.fr", pageSize = 36, searchPageSize = 10)
+	MangaReaderParser(context, MangaParserSource.SUSHISCANFR, "sushiscan.fr", pageSize = 36, searchPageSize = 10) {
+	override val listUrl = "/catalogue"
+	override val isTagsExclusionSupported = false
+}

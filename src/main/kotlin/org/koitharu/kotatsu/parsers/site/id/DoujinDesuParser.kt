@@ -17,13 +17,18 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("doujindesu.tv")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
 
-	override val headers: Headers = Headers.Builder()
+	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("X-Requested-With", "XMLHttpRequest")
 		.add("Referer", "https://$domain/")
 		.build()
@@ -76,15 +81,14 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 			.requireElementById("archives")
 			.selectFirstOrThrow("div.entries")
 			.select(".entry")
-			.map {
-				val titleTag = it.selectFirstOrThrow(".metadata > a")
-				val relativeUrl = titleTag.attrAsRelativeUrl("href")
+			.mapNotNull {
+				val href = it.selectFirst(".metadata > a")?.attr("href") ?: return@mapNotNull null
 				Manga(
-					id = generateUid(relativeUrl),
-					title = titleTag.attr("title"),
+					id = generateUid(href),
+					title = it.selectFirst(".metadata > a")?.attr("title").orEmpty(),
 					altTitle = null,
-					url = relativeUrl,
-					publicUrl = relativeUrl.toAbsoluteUrl(domain),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
 					coverUrl = it.selectFirst(".thumbnail > img")?.src().orEmpty(),

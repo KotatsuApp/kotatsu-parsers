@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("YANPFANSUB", "YanpFansub", "pt")
 internal class YanpFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.YANPFANSUB, "yanpfansub.com")
+	MadaraParser(context, MangaParserSource.YANPFANSUB, "trisalyanp.com") {
+	override val datePattern = "d 'de' MMMM 'de' yyyy"
+}

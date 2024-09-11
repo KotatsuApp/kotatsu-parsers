@@ -28,6 +28,11 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
@@ -80,11 +85,15 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 					append(
 						when (filter.sortOrder) {
 							SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
+							SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
 							SortOrder.RATING -> "[rating]=desc"
+							SortOrder.RATING_ASC -> "[rating]=asc"
 							SortOrder.ALPHABETICAL -> "[title]=asc"
 							SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
 							SortOrder.NEWEST -> "[createdAt]=desc"
+							SortOrder.NEWEST_ASC -> "[createdAt]=asc"
 							SortOrder.POPULARITY -> "[followedCount]=desc"
+							SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
 						},
 					)
 					filter.states.forEach {

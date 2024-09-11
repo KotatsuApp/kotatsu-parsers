@@ -31,15 +31,12 @@ internal class RemangaParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
-	private val userAgentKey = ConfigKey.UserAgent(context.getDefaultUserAgent())
-
 	private val baseHeaders: Headers
 		get() = Headers.Builder()
 			.add("User-Agent", config[userAgentKey])
 			.build()
 
-	override val headers
-		get() = getApiHeaders()
+	override fun getRequestHeaders() = getApiHeaders()
 
 	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг")
 
