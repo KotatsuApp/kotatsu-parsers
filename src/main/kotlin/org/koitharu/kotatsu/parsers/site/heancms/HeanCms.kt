@@ -53,7 +53,7 @@ internal abstract class HeanCms(
 		val url = buildString {
 			append("https://")
 			append(apiPath)
-			append("/query?query_string=")
+			append("/query?query_string=&series_type=Comic&perPage=$pageSize")
 			when (filter) {
 				is MangaListFilter.Search -> {
 					append(filter.query.urlEncoded())
@@ -86,16 +86,12 @@ internal abstract class HeanCms(
 						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
 						else -> append("latest&order=desc")
 					}
-
-					append("&series_type=Comic&perPage=20")
 					append("&tags_ids=")
 					append("[".urlEncoded())
 					append(filter.tags.joinToString(",") { it.key })
 					append("]".urlEncoded())
-
 				}
-
-				null -> append("&status=All&orderBy=$paramsUpdated&order=desc&series_type=Comic&perPage=20")
+				null -> append("&status=All&orderBy=$paramsUpdated&order=desc")
 			}
 			append("&page=")
 			append(page.toString())
