@@ -16,6 +16,7 @@ internal class Manhuaplus(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANHUAPLUS, "manhuaplus.com") {
 
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 

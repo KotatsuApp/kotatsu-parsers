@@ -15,6 +15,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 	override val tagPrefix = "hentai-tag/"
 	override val listUrl = ""
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val datePattern = "MMMM dd, yyyy"

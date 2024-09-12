@@ -15,6 +15,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val listUrl = "genre/manhwa"
 	override val selectTestAsync = "ul.box-list-chapter"
 	override val availableStates: Set<MangaState> = emptySet()

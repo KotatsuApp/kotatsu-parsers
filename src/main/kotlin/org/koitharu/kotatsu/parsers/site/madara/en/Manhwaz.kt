@@ -14,6 +14,7 @@ internal class Manhwaz(context: MangaLoaderContext) :
 	override val listUrl = "genre/manhwa"
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val selectTestAsync = "div.list-chapter"
 
 	override val availableStates: Set<MangaState> = emptySet()

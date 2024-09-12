@@ -25,6 +25,7 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 	override val listUrl = "adult-webtoon/"
 	override val postReq = true
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 

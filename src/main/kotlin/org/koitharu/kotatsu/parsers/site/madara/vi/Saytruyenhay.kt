@@ -17,6 +17,7 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val listUrl = "public/genre/manga/"
 	override val availableStates: Set<MangaState> = emptySet()
 	override val availableContentRating: Set<ContentRating> = emptySet()

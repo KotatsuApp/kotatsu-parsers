@@ -12,6 +12,7 @@ import java.util.EnumSet
 internal class Doujinza(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.DOUJINZA, "doujinza.com", 24) {
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val datePattern = "MMMM dd, yyyy"

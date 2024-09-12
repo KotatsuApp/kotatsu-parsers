@@ -14,6 +14,7 @@ internal class MangaEffect(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANGAEFFECT, "mangaeffect.com") {
 	override val datePattern = "dd.MM.yyyy"
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 }
