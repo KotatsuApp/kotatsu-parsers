@@ -23,6 +23,7 @@ internal class HentaiWebtoon(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAIWEBTOON, "hentaiwebtoon.com") {
 	override val postReq = true
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val availableStates: Set<MangaState> = emptySet()

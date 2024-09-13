@@ -23,6 +23,7 @@ internal class ManhwaHentai(context: MangaLoaderContext) :
 	override val tagPrefix = "webtoon-genre/"
 	override val listUrl = "webtoon/"
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val postReq = true

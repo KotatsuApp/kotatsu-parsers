@@ -7,20 +7,14 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
 
 @MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es", ContentType.HENTAI)
 internal class ManhwaLatino(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANHWALATINO, "manhwa-latino.com", 10) {
-
 	override val datePattern = "MM/dd"
-	override val withoutAjax = true
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectPage = "div.page-break img.wp-manga-chapter-img"
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val root2 = doc.body().selectFirstOrThrow("div.content-area")

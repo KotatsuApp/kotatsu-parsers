@@ -15,6 +15,7 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 	override val listUrl = "webtoons/"
 	override val tagPrefix = "webtoon-genre/"
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectTestAsync = "ul.row-content-chapter"

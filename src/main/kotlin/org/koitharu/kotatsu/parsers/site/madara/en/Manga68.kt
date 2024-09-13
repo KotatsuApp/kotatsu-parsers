@@ -13,6 +13,7 @@ import java.util.EnumSet
 internal class Manga68(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANGA68, "manga68.com") {
 	override val withoutAjax = true
+	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 }
