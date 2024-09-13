@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.keyoapp.KeyoappParser
 
-@MangaSourceParser("MAGUSMANGA", "MagusToon", "en")
-internal class MagusToon(context: MangaLoaderContext) :
-	KeyoappParser(context, MangaParserSource.MAGUSMANGA, "magustoon.com")
+@MangaSourceParser("LUASCANS", "luaComic.net", "en")
+internal class LuaScans(context: MangaLoaderContext) :
+	KeyoappParser(context, MangaParserSource.LUASCANS, "luacomic.net")

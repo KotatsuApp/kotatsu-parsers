@@ -8,7 +8,7 @@ import java.util.*
 
 @MangaSourceParser("MANGATALE", "MangaTale", "id")
 internal class MangaTaleParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGATALE, "mangatale.co", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANGATALE, "mangatale.id", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val isTagsExclusionSupported = false
 }
