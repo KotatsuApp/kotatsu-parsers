@@ -46,6 +46,10 @@ internal abstract class MangaReaderParser(
 	override val availableStates: Set<MangaState>
 		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 
+	override val availableType: Set<Type>
+		get() = EnumSet.of(Type.MANGA, Type.MANHWA, Type.MANHUA, Type.COMIC, Type.NOVEL)
+
+
 	override val isTagsExclusionSupported = true
 
 	protected open val listUrl = "/manga"
@@ -108,6 +112,20 @@ internal abstract class MangaReaderParser(
 								else -> append("")
 							}
 						}
+					}
+
+					filter.type.oneOrThrowIfMany()?.let {
+						append("&type=")
+						append(
+							when (it) {
+								Type.MANGA -> "manga"
+								Type.MANHWA -> "manhwa"
+								Type.MANHUA -> "manhua"
+								Type.COMIC -> "comic"
+								Type.NOVEL -> "novel"
+								else -> ""
+							},
+						)
 					}
 
 					append("&page=")

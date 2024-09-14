@@ -37,6 +37,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
 
+	override val availableDemographic: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
+
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
@@ -96,6 +98,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
 						},
 					)
+
 					filter.states.forEach {
 						append("&status[]=")
 						when (it) {
@@ -106,6 +109,20 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							else -> append("")
 						}
 					}
+
+					filter.demographic.forEach {
+						append("&publicationDemographic[]=")
+						append(
+							when (it) {
+								Demographic.SHOUNEN -> "shounen"
+								Demographic.SHOUJO -> "shoujo"
+								Demographic.SEINEN -> "seinen"
+								Demographic.JOSEI -> "josei"
+								Demographic.NONE -> "none"
+							},
+						)
+					}
+
 					filter.locale?.let {
 						append("&availableTranslatedLanguage[]=")
 						append(it.language)

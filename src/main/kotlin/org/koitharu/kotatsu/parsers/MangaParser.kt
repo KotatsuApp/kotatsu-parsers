@@ -34,7 +34,28 @@ abstract class MangaParser @InternalParsersApi constructor(
 		get() = emptySet()
 
 
+	/**
+	 * Supported [ContentRating] variants for filtering. May be empty.
+	 *
+	 * For better performance use [EnumSet] for more than one item.
+	 */
 	open val availableContentRating: Set<ContentRating>
+		get() = emptySet()
+
+	/**
+	 * Supported [Type] variants for filtering. May be empty.
+	 *
+	 * For better performance use [EnumSet] for more than one item.
+	 */
+	open val availableType: Set<Type>
+		get() = emptySet()
+
+	/**
+	 * Supported [Demographic] variants for filtering. May be empty.
+	 *
+	 * For better performance use [EnumSet] for more than one item.
+	 */
+	open val availableDemographic: Set<Demographic>
 		get() = emptySet()
 
 	/**
@@ -163,6 +184,8 @@ abstract class MangaParser @InternalParsersApi constructor(
 				locale = null,
 				states = emptySet(),
 				contentRating = emptySet(),
+				type = emptySet(),
+				demographic = emptySet(),
 			),
 		)
 	}

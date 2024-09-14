@@ -69,6 +69,24 @@ fun Set<MangaState>?.oneOrThrowIfMany(): MangaState? {
 }
 
 @InternalParsersApi
+fun Set<Type>?.oneOrThrowIfMany(): Type? {
+	return when {
+		isNullOrEmpty() -> null
+		size == 1 -> first()
+		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED)
+	}
+}
+
+@InternalParsersApi
+fun Set<Demographic>?.oneOrThrowIfMany(): Demographic? {
+	return when {
+		isNullOrEmpty() -> null
+		size == 1 -> first()
+		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED)
+	}
+}
+
+@InternalParsersApi
 fun Set<ContentRating>?.oneOrThrowIfMany(): ContentRating? {
 	return when {
 		isNullOrEmpty() -> null
