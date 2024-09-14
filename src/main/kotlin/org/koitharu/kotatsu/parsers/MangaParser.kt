@@ -47,7 +47,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
-	open val availableType: Set<Type>
+	open val availableTypes: Set<Type>
 		get() = emptySet()
 
 	/**
