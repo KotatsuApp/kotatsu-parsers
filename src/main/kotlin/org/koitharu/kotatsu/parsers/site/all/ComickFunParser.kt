@@ -29,6 +29,8 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 
 	override val isTagsExclusionSupported = true
 
+	override val isSearchYearRangeSupported = true
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
@@ -92,6 +94,14 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 							else -> ""
 						},
 					)
+				}
+
+				filter.yearFrom?.let {
+					url.addQueryParameter("from", filter.yearFrom.toString() )
+				}
+
+				filter.yearTo?.let {
+					url.addQueryParameter("to", filter.yearTo.toString() )
 				}
 			}
 		}

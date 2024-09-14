@@ -62,6 +62,8 @@ internal class MangaParserTest {
 				contentRating = emptySet(),
 				query = null,
 				year = null,
+				yearFrom = null,
+				yearTo = null,
 			),
 		).minByOrNull {
 			it.title.length
@@ -139,6 +141,8 @@ internal class MangaParserTest {
 			contentRating = setOf(),
 			query = null,
 			year = null,
+			yearFrom = null,
+			yearTo = null,
 		)
 		val list = parser.getList(offset = 0, filter)
 		checkMangaList(list, filter.locale.toString())
