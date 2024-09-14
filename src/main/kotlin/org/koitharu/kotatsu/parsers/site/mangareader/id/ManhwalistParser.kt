@@ -6,8 +6,8 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@MangaSourceParser("MANHWALIST", "ManhwaList.com", "id")
+@MangaSourceParser("MANHWALIST", "ManhwaList.in", "id")
 internal class ManhwalistParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANHWALIST, "manhwalist.com", pageSize = 24, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANHWALIST, "manhwalist.in", pageSize = 24, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

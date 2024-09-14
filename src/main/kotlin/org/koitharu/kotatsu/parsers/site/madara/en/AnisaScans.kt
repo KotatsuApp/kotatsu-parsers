@@ -1,11 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAHALL", "MangaHall", "en", ContentType.HENTAI)
-internal class MangaHall(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGAHALL, "mangageek.org", 24)
+@Broken
+@MangaSourceParser("ANISASCANS", "AnisaScans", "en")
+internal class AnisaScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.ANISASCANS, "anisascans.in", 36) {
+	override val datePattern = "dd MMM, yyyy"
+}

@@ -98,106 +98,96 @@ internal abstract class MadaraParser(
 	@JvmField
 	protected val ongoing = scatterSetOf(
 		"مستمرة",
-		"En curso",
-		"En Curso",
-		"Ongoing",
-		"OnGoing",
-		"On going",
-		"On Going",
-		"Ativo",
-		"En Cours",
-		"En cours",
-		"En cours \uD83D\uDFE2",
-		"En cours de publication",
-		"Activo",
-		"Đang tiến hành",
-		"Em lançamento",
+		"en curso",
+		"ongoing",
+		"on going",
+		"ativo",
+		"en cours",
+		"en cours \uD83D\uDFE2",
+		"en cours de publication",
+		"activo",
+		"đang tiến hành",
 		"em lançamento",
-		"Em Lançamento",
-		"Онгоінг",
-		"Publishing",
-		"Devam Ediyor",
-		"Em Andamento",
-		"Em andamento",
-		"In Corso",
-		"Güncel",
-		"Berjalan",
-		"Продолжается",
-		"Updating",
-		"Lançando",
-		"In Arrivo",
-		"Emision",
-		"En emision",
+		"онгоінг",
+		"publishing",
+		"devam ediyor",
+		"em andamento",
+		"in corso",
+		"güncel",
+		"berjalan",
+		"продолжается",
+		"updating",
+		"lançando",
+		"in arrivo",
+		"emision",
+		"en emision",
 		"مستمر",
-		"Curso",
-		"En marcha",
-		"Publicandose",
-		"Publicando",
+		"curso",
+		"en marcha",
+		"publicandose",
+		"publicando",
 		"连载中",
-		"Devam ediyor",
 	)
 
 	@JvmField
 	protected val finished = scatterSetOf(
-		"Completed",
-		"Complete",
-		"Completo",
-		"Complété",
-		"Fini",
-		"Achevé",
-		"Terminé",
-		"Terminé ⚫",
-		"Tamamlandı",
-		"Đã hoàn thành",
-		"Hoàn Thành",
+		"completed",
+		"complete",
+		"completo",
+		"complété",
+		"fini",
+		"achevé",
+		"terminé",
+		"terminé ⚫",
+		"tamamlandı",
+		"đã hoàn thành",
+		"hoàn thành",
 		"مكتملة",
-		"Завершено",
-		"Завершен",
-		"Finished",
-		"Finalizado",
-		"Completata",
-		"One-Shot",
-		"Bitti",
-		"Tamat",
-		"Completado",
-		"Concluído",
-		"Concluido",
+		"завершено",
+		"завершен",
+		"finished",
+		"finalizado",
+		"completata",
+		"one-shot",
+		"bitti",
+		"tamat",
+		"completado",
+		"concluído",
+		"concluido",
 		"已完结",
-		"Bitmiş",
-		"End",
+		"bitmiş",
+		"end",
 		"منتهية",
 	)
 
 	@JvmField
 	protected val abandoned = scatterSetOf(
-		"Canceled",
-		"Cancelled",
-		"Cancelado",
+		"canceled",
+		"cancelled",
+		"cancelado",
 		"cancellato",
-		"Cancelados",
-		"Dropped",
-		"Discontinued",
+		"cancelados",
+		"dropped",
+		"discontinued",
 		"abandonné",
-		"Abandonné",
 	)
 
 	@JvmField
 	protected val paused = scatterSetOf(
-		"Hiatus",
-		"On Hold",
-		"Pausado",
-		"En espera",
-		"En pause",
-		"En attente",
+		"hiatus",
+		"on hold",
+		"pausado",
+		"en espera",
+		"en pause",
+		"en attente",
 	)
 
 	@JvmField
 	protected val upcoming = scatterSetOf(
-		"Upcoming",
 		"upcoming",
 		"لم تُنشَر بعد",
-		"Prochainement",
-		"À venir",
+		"prochainement",
+		"à venir",
 	)
 
 	// Change these values only if the site does not support manga listings via ajax
@@ -326,23 +316,19 @@ internal abstract class MadaraParser(
 					// }
 
 					if (filter.tags.isNotEmpty()) {
-						var nTag = 0
 						payload["vars[tax_query][0][taxonomy]"] = "wp-manga-genre"
 						payload["vars[tax_query][0][field]"] = "slug"
-						filter.tags.forEach {
-							payload["vars[tax_query][0][terms][$nTag]"] = it.key
-							nTag++
+						filter.tags.forEachIndexed { i, it ->
+							payload["vars[tax_query][0][terms][$i]"] = it.key
 						}
 						payload["vars[tax_query][0][operator]"] = "IN"
 					}
 
 					if (filter.tagsExclude.isNotEmpty()) {
-						var ntagsExclude = 0
 						payload["vars[tax_query][1][taxonomy]"] = "wp-manga-genre"
 						payload["vars[tax_query][1][field]"] = "slug"
-						filter.tagsExclude.forEach {
-							payload["vars[tax_query][1][terms][$ntagsExclude]"] = it.key
-							ntagsExclude++
+						filter.tagsExclude.forEachIndexed { i, it ->
+							payload["vars[tax_query][1][terms][$i]"] = it.key
 						}
 						payload["vars[tax_query][1][operator]"] = "NOT IN"
 					}
@@ -357,7 +343,7 @@ internal abstract class MadaraParser(
 					// Support author
 					//  filter.author.let {
 					//	payload["vars[tax_query][3][taxonomy]"] = "wp-manga-author"
-					//	payload["vars[tax_query][3][field]"] = "slug"
+					//	payload["vars[tax_query][3][field]"] = "name"
 					//	payload["vars[tax_query][3][terms][0]"] = filter.author
 					//	payload["vars[tax_query][3][operator]"] = "IN"
 					//}
@@ -365,10 +351,10 @@ internal abstract class MadaraParser(
 
 					// Support artist
 					//  filter.artist.let {
-					//	payload["vars[tax_query][3][taxonomy]"] = "wp-manga-artist"
-					//	payload["vars[tax_query][3][field]"] = "slug"
-					//	payload["vars[tax_query][3][terms][0]"] = filter.artist
-					//	payload["vars[tax_query][3][operator]"] = "IN"
+					//	payload["vars[tax_query][4][taxonomy]"] = "wp-manga-artist"
+					//	payload["vars[tax_query][4][field]"] = "name"
+					//	payload["vars[tax_query][4][terms][0]"] = filter.artist
+					//	payload["vars[tax_query][4][operator]"] = "IN"
 					//}
 
 					/// for add filter.year need to add || filter.year
@@ -379,21 +365,25 @@ internal abstract class MadaraParser(
 					when (filter.sortOrder) {
 						SortOrder.POPULARITY -> {
 							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[orderby]"] = "meta_value_num"
 							payload["vars[order]"] = "desc"
 						}
 
 						SortOrder.POPULARITY_ASC -> {
 							payload["vars[meta_key]"] = "_wp_manga_views"
+							payload["vars[orderby]"] = "meta_value_num"
 							payload["vars[order]"] = "asc"
 						}
 
 						SortOrder.UPDATED -> {
 							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[orderby]"] = "meta_value_num"
 							payload["vars[order]"] = "desc"
 						}
 
 						SortOrder.UPDATED_ASC -> {
 							payload["vars[meta_key]"] = "_latest_update"
+							payload["vars[orderby]"] = "meta_value_num"
 							payload["vars[order]"] = "asc"
 						}
 
@@ -504,7 +494,7 @@ internal abstract class MadaraParser(
 				state = when (
 					summary?.selectFirst(".mg_status")
 						?.selectFirst(".summary-content")
-						?.ownText()
+						?.ownText()?.lowercase()
 						.orEmpty()
 				) {
 					in ongoing -> MangaState.ONGOING
@@ -575,7 +565,7 @@ internal abstract class MadaraParser(
 		val stateDiv = doc.selectFirst(selectState)?.selectLast("div.summary-content")
 
 		val state = stateDiv?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				in abandoned -> MangaState.ABANDONED
@@ -598,6 +588,7 @@ internal abstract class MadaraParser(
 			altTitle = alt,
 			state = state,
 			chapters = chaptersDeferred.await(),
+			isNsfw = doc.selectFirst(".adult-confirm") != null,
 		)
 	}
 
@@ -811,76 +802,30 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	// Parses dates in this form:
-	// 21 hours ago
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 
 		return when {
-			WordSet(
-				"hari",
-				"gün",
-				"jour",
-				"día",
-				"dia",
-				"day",
-				"days",
-				"d",
-				"день",
-			).anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet(
-				"jam",
-				"saat",
-				"heure",
-				"hora",
-				"horas",
-				"hour",
-				"hours",
-				"h",
-				"ساعات",
-				"ساعة",
-			).anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.HOUR,
-					-number,
-				)
-			}.timeInMillis
+			WordSet("detik", "segundo", "second", "ثوان")
+				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
 
-			WordSet(
-				"menit",
-				"dakika",
-				"min",
-				"minute",
-				"minutes",
-				"minuto",
-				"mins",
-				"phút",
-				"минут",
-				"دقيقة",
-			).anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MINUTE,
-					-number,
-				)
-			}.timeInMillis
+			WordSet("menit", "dakika", "min", "minute", "minutes", "minuto", "mins", "phút", "минут", "دقيقة")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
 
-			WordSet("detik", "segundo", "second", "ثوان").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.SECOND,
-					-number,
-				)
-			}.timeInMillis
+			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "ساعات", "ساعة")
+				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
 
-			WordSet("month", "months", "أشهر", "mois").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MONTH,
-					-number,
-				)
-			}.timeInMillis
+			WordSet("hari", "gün", "jour", "día", "dia", "day", "days", "d", "день")
+				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("month", "months", "أشهر", "mois")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
+			WordSet("year")
+				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}

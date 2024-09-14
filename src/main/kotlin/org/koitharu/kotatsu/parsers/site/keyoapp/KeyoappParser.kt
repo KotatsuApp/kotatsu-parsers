@@ -241,15 +241,32 @@ internal abstract class KeyoappParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(selectPage).map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		val cdnUrl = doc.selectFirstOrThrow("script:containsData(primaryUrl)").data().substringAfter("https://cdn.")
+			.substringBefore("\${uid}")
+
+		if (cdnUrl.isNotEmpty()) {
+			return doc.select(selectPage).map { img ->
+				val uid = img.attr("uid") ?: img.parseFailed("Image src not found")
+				val url = "https://cdn.$cdnUrl$uid"
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
+		} else {
+			return doc.select(selectPage).map { img ->
+				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
 		}
+
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {

@@ -5,6 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
-@MangaSourceParser("ICHIROMANGA", "IchiroManga", "id")
-internal class IchiroManga(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaParserSource.ICHIROMANGA, "ichiromanga.my.id")
+@MangaSourceParser("ULASCOMIC", "UlasComic", "id")
+internal class UlasComic(context: MangaLoaderContext) :
+	ZeistMangaParser(context, MangaParserSource.ULASCOMIC, "www.ulascomic.xyz")

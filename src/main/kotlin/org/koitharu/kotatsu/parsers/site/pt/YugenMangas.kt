@@ -16,7 +16,7 @@ import java.util.*
 class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YUGENMANGAS, 28) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
-	override val configKeyDomain = ConfigKey.Domain("yugenweb.com")
+	override val configKeyDomain = ConfigKey.Domain("yugenmangasbr.voblog.xyz")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

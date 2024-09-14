@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.iken.IkenParser
 
-@MangaSourceParser("VORTEXSCANS", "VortexScans", "en")
-internal class VortexScans(context: MangaLoaderContext) :
-	IkenParser(context, MangaParserSource.VORTEXSCANS, "vortextoon.com") {
+@MangaSourceParser("PHILIASCANS", "PhiliaScans", "en")
+internal class PhiliaScans(context: MangaLoaderContext) :
+	IkenParser(context, MangaParserSource.PHILIASCANS, "vortextoon.com") {
 	override val selectPages = "main section img"
 }

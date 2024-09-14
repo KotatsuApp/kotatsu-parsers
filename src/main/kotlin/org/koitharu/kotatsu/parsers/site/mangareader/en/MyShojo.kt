@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("LUASCANS", "luaComic.net", "en")
-internal class LuaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.LUASCANS, "luacomic.net", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("MYSHOJO", "MyShojo", "en")
+internal class MyShojo(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.MYSHOJO, "myshojo.com", pageSize = 20, searchPageSize = 10) {
 	override val isTagsExclusionSupported = false
 }
