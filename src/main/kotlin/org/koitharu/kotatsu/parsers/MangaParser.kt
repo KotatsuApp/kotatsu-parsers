@@ -64,6 +64,12 @@ abstract class MangaParser @InternalParsersApi constructor(
 	open val isSearchYearSupported: Boolean = false
 
 	/**
+	 * Whether parser supports searching by year range
+	 */
+
+	open val isSearchYearRangeSupported: Boolean = false
+
+	/**
 	 * Whether parser supports searching Original Languages
 	 */
 	open val isSearchOriginalLanguages: Boolean = false
@@ -183,6 +189,8 @@ abstract class MangaParser @InternalParsersApi constructor(
 				contentRating = emptySet(),
 				query = null,
 				year = null,
+				yearFrom = null,
+				yearTo = null,
 			),
 		)
 	}

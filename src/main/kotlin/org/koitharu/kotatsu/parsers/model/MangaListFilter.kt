@@ -15,8 +15,8 @@ sealed interface MangaListFilter {
 			(tagsExclude.isEmpty() || parser.isTagsExclusionSupported) &&
 			(contentRating.isEmpty() || parser.availableContentRating.containsAll(contentRating)) &&
 			(states.isEmpty() || parser.availableStates.containsAll(states) &&
-			(parser.searchSupportedWithMultipleFilters) &&
-			(parser.isSearchYearSupported) && (parser.isSearchOriginalLanguages))
+			(parser.searchSupportedWithMultipleFilters) &&(parser.isSearchOriginalLanguages) &&
+			(parser.isSearchYearSupported) && (parser.isSearchYearRangeSupported))
 
 		is Search -> parser.isSearchSupported
 	}
@@ -40,10 +40,12 @@ sealed interface MangaListFilter {
 		@JvmField val contentRating: Set<ContentRating>,
 		@JvmField val query: String?,
 		@JvmField val year: Int?,
+		@JvmField val yearFrom: Int?,
+		@JvmField val yearTo: Int?,
 	) : MangaListFilter {
 
 		override fun isEmpty(): Boolean =
-			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && localeMangas == null && states.isEmpty() && contentRating.isEmpty() && query == null && year == null
+			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && localeMangas == null && states.isEmpty() && contentRating.isEmpty() && query == null && year == null && yearFrom == null && yearTo == null
 
 		fun newBuilder() = Builder(sortOrder)
 			.tags(tags)
@@ -54,6 +56,8 @@ sealed interface MangaListFilter {
 			.contentRatings(contentRating)
 			.query(query)
 			.year(year)
+			.yearFrom(yearFrom)
+			.yearTo(yearTo)
 
 		class Builder(sortOrder: SortOrder) {
 
@@ -66,6 +70,8 @@ sealed interface MangaListFilter {
 			private var _contentRating: Set<ContentRating>? = null
 			private var _query: String? = null
 			private var _year: Int? = null
+			private var _yearFrom: Int? = null
+			private var _yearTo: Int? = null
 
 			fun sortOrder(order: SortOrder) = apply {
 				_sortOrder = order
@@ -103,6 +109,14 @@ sealed interface MangaListFilter {
 				_year = year
 			}
 
+			fun yearFrom(yearFrom: Int?) = apply {
+				_yearFrom = yearFrom
+			}
+
+			fun yearTo(yearTo: Int?) = apply {
+				_yearTo = yearTo
+			}
+
 
 
 			fun build() = Advanced(
@@ -115,7 +129,9 @@ sealed interface MangaListFilter {
 				contentRating = _contentRating.orEmpty(),
 				query = _query,
 				year = _year,
-			)
+				yearFrom = _yearFrom,
+				yearTo = _yearTo,
+				)
 		}
 	}
 }
