@@ -22,11 +22,21 @@ private const val CHAPTERS_MAX_PAGE_SIZE = 500
 private const val CHAPTERS_PARALLELISM = 3
 private const val CHAPTERS_MAX_COUNT = 10_000 // strange api behavior, looks like a bug
 private const val LOCALE_FALLBACK = "en"
+private const val SERVER_DATA = "data"
+private const val SERVER_DATA_SAVER = "data-saver"
 
 @MangaSourceParser("MANGADEX", "MangaDex")
 internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.MANGADEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
+
+	private val preferredServerKey = ConfigKey.PreferredImageServer(
+		presetValues = mapOf(
+			SERVER_DATA to "Original quality",
+			SERVER_DATA_SAVER to "Compressed quality",
+		),
+		defaultValue = SERVER_DATA,
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -188,12 +198,15 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val domain = domain
-		val chapterJson = webClient.httpGet("https://api.$domain/at-home/server/${chapter.url}?forcePort443=false")
-			.parseJson()
-			.getJSONObject("chapter")
-		val pages = chapterJson.getJSONArray("data")
-		val prefix = "https://uploads.$domain/data/${chapterJson.getString("hash")}/"
+		val json = webClient.httpGet(
+			"https://api.$domain/at-home/server/${chapter.url}?forcePort443=false",
+		).parseJson()
+		val chapterJson = json.getJSONObject("chapter")
+		val server = config[preferredServerKey] ?: SERVER_DATA
+		val pages = chapterJson.getJSONArray(
+			if (server == SERVER_DATA_SAVER) "dataSaver" else "data",
+		)
+		val prefix = "${json.getString("baseUrl")}/$server/${chapterJson.getString("hash")}/"
 		return List(pages.length()) { i ->
 			val url = prefix + pages.getString(i)
 			MangaPage(
