@@ -41,6 +41,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
+		keys.add(preferredServerKey)
 	}
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
