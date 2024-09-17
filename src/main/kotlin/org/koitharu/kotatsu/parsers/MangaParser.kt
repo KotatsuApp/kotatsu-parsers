@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
 import androidx.annotation.VisibleForTesting
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -300,6 +302,27 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 * Fetch available tags (genres) for source
 	 */
 	abstract suspend fun getAvailableTags(): Set<MangaTag>
+
+	open suspend fun getListFilterCapabilities(): MangaListFilterCapabilities = coroutineScope {
+		val tagsDeferred = async { getAvailableTags() }
+		val localesDeferred = async { getAvailableLocales() }
+		MangaListFilterCapabilities(
+			availableSortOrders = availableSortOrders,
+			availableTags = tagsDeferred.await(),
+			availableStates = availableStates,
+			availableContentRating = availableContentRating,
+			availableContentTypes = availableContentTypes,
+			availableDemographics = availableDemographics,
+			availableLocales = localesDeferred.await(),
+			isMultipleTagsSupported = isMultipleTagsSupported,
+			isTagsExclusionSupported = isTagsExclusionSupported,
+			isSearchSupported = isSearchSupported,
+			searchSupportedWithMultipleFilters = searchSupportedWithMultipleFilters,
+			isSearchYearSupported = isSearchYearSupported,
+			isSearchYearRangeSupported = isSearchYearRangeSupported,
+			isSearchOriginalLanguages = isSearchOriginalLanguages,
+		)
+	}
 
 	/**
 	 * Fetch available locales for multilingual sources
