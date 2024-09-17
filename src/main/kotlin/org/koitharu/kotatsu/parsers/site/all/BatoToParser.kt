@@ -53,6 +53,11 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
+		SortOrder.POPULARITY_YEAR,
+		SortOrder.POPULARITY_MONTH,
+		SortOrder.POPULARITY_WEEK,
+		SortOrder.POPULARITY_TODAY,
+		SortOrder.POPULARITY_HOUR,
 	)
 
 	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
@@ -108,6 +113,11 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 						SortOrder.POPULARITY -> append("views_a.za")
 						SortOrder.NEWEST -> append("create.za")
 						SortOrder.ALPHABETICAL -> append("title.az")
+						SortOrder.POPULARITY_YEAR -> append("views_y.za")
+						SortOrder.POPULARITY_MONTH -> append("views_m.za")
+						SortOrder.POPULARITY_WEEK -> append("views_w.za")
+						SortOrder.POPULARITY_TODAY -> append("views_d.za")
+						SortOrder.POPULARITY_HOUR -> append("views_h.za")
 						else -> append("update.za")
 					}
 

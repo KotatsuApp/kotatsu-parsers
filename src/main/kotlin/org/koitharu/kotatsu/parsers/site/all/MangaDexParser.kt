@@ -108,6 +108,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 							SortOrder.ADDED -> "[createdAt]=desc"
 							SortOrder.ADDED_ASC -> "[createdAt]=asc"
 							SortOrder.RELEVANCE -> "&order[relevance]=desc"
+							else -> "[latestUploadedChapter]=desc"
 						},
 					)
 
