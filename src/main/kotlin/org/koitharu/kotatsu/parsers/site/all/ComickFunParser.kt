@@ -36,14 +36,14 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
-	override val availableType: Set<Type> = EnumSet.of(
-		Type.MANGA,
-		Type.MANHWA,
-		Type.MANHUA,
-		Type.OTHERS,
+	override val availableContentTypes: Set<ContentType> = EnumSet.of(
+		ContentType.MANGA,
+		ContentType.MANHWA,
+		ContentType.MANHUA,
+		ContentType.OTHER,
 	)
 
-	override val availableDemographic: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
+	override val availableDemographics: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
 
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
@@ -99,20 +99,20 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					)
 				}
 
-				filter.type.forEach {
+				filter.types.forEach {
 					url.addQueryParameter(
 						"country",
 						when (it) {
-							Type.MANGA -> "jp"
-							Type.MANHWA -> "kr"
-							Type.MANHUA -> "cn"
-							Type.OTHERS -> "others"
+							ContentType.MANGA -> "jp"
+							ContentType.MANHWA -> "kr"
+							ContentType.MANHUA -> "cn"
+							ContentType.OTHER -> "others"
 							else -> ""
 						},
 					)
 				}
 
-				filter.demographic.forEach {
+				filter.demographics.forEach {
 					url.addQueryParameter(
 						"demographic",
 						when (it) {

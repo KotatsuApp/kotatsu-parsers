@@ -37,7 +37,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
 
-	override val availableDemographic: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
+	override val availableDemographics: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
 
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
@@ -110,7 +110,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 						}
 					}
 
-					filter.demographic.forEach {
+					filter.demographics.forEach {
 						append("&publicationDemographic[]=")
 						append(
 							when (it) {

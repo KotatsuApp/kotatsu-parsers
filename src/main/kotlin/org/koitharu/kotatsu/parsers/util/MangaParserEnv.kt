@@ -51,48 +51,34 @@ fun Element.parseFailed(message: String? = null): Nothing {
 }
 
 @InternalParsersApi
-fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? {
-	return when {
-		isNullOrEmpty() -> null
-		size == 1 -> first()
-		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
-	}
-}
+fun Set<MangaTag>?.oneOrThrowIfMany(): MangaTag? = oneOrThrowIfMany(
+	ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED,
+)
 
 @InternalParsersApi
-fun Set<MangaState>?.oneOrThrowIfMany(): MangaState? {
-	return when {
-		isNullOrEmpty() -> null
-		size == 1 -> first()
-		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED)
-	}
-}
+fun Set<MangaState>?.oneOrThrowIfMany(): MangaState? = oneOrThrowIfMany(
+	ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED,
+)
 
 @InternalParsersApi
-fun Set<Type>?.oneOrThrowIfMany(): Type? {
-	return when {
-		isNullOrEmpty() -> null
-		size == 1 -> first()
-		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED)
-	}
-}
+fun Set<ContentType>?.oneOrThrowIfMany(): ContentType? = oneOrThrowIfMany(
+	ErrorMessages.FILTER_MULTIPLE_CONTENT_TYPES_NOT_SUPPORTED,
+)
 
 @InternalParsersApi
-fun Set<Demographic>?.oneOrThrowIfMany(): Demographic? {
-	return when {
-		isNullOrEmpty() -> null
-		size == 1 -> first()
-		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED)
-	}
-}
+fun Set<Demographic>?.oneOrThrowIfMany(): Demographic? = oneOrThrowIfMany(
+	ErrorMessages.FILTER_MULTIPLE_DEMOGRAPHICS_NOT_SUPPORTED,
+)
 
 @InternalParsersApi
-fun Set<ContentRating>?.oneOrThrowIfMany(): ContentRating? {
-	return when {
-		isNullOrEmpty() -> null
-		size == 1 -> first()
-		else -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_CONTENT_RATING_NOT_SUPPORTED)
-	}
+fun Set<ContentRating>?.oneOrThrowIfMany(): ContentRating? = oneOrThrowIfMany(
+	ErrorMessages.FILTER_MULTIPLE_CONTENT_RATING_NOT_SUPPORTED,
+)
+
+private fun <T> Set<T>?.oneOrThrowIfMany(msg: String): T? = when {
+	isNullOrEmpty() -> null
+	size == 1 -> first()
+	else -> throw IllegalArgumentException(msg)
 }
 
 val MangaParser.domain: String
