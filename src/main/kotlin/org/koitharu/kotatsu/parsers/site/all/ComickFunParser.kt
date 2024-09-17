@@ -38,6 +38,15 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
+	override val availableContentTypes: Set<ContentType> = EnumSet.of(
+		ContentType.MANGA,
+		ContentType.MANHWA,
+		ContentType.MANHUA,
+		ContentType.OTHER,
+	)
+
+	override val availableDemographics: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
+
 	override val availableStates: Set<MangaState> =
 		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
 
@@ -56,10 +65,6 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		when (filter) {
 			is MangaListFilter.Search -> {
 				url.addQueryParameter("q", filter.query)
-			}
-
-			null -> {
-				url.addQueryParameter("sort", "view")
 			}
 
 			is MangaListFilter.Advanced -> {
@@ -97,12 +102,42 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				}
 
 				filter.yearFrom?.let {
-					url.addQueryParameter("from", filter.yearFrom.toString() )
+					url.addQueryParameter("from", filter.yearFrom.toString())
 				}
 
 				filter.yearTo?.let {
-					url.addQueryParameter("to", filter.yearTo.toString() )
+					url.addQueryParameter("to", filter.yearTo.toString())
 				}
+
+				filter.types.forEach {
+					url.addQueryParameter(
+						"country",
+						when (it) {
+							ContentType.MANGA -> "jp"
+							ContentType.MANHWA -> "kr"
+							ContentType.MANHUA -> "cn"
+							ContentType.OTHER -> "others"
+							else -> ""
+						},
+					)
+				}
+
+				filter.demographics.forEach {
+					url.addQueryParameter(
+						"demographic",
+						when (it) {
+							Demographic.SHOUNEN -> "1"
+							Demographic.SHOUJO -> "2"
+							Demographic.SEINEN -> "3"
+							Demographic.JOSEI -> "4"
+							Demographic.NONE -> "5"
+						},
+					)
+				}
+			}
+
+			null -> {
+				url.addQueryParameter("sort", "uploaded")
 			}
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()

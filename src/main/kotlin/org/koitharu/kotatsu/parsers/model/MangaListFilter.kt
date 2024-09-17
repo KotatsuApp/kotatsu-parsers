@@ -15,8 +15,10 @@ sealed interface MangaListFilter {
 			(tagsExclude.isEmpty() || parser.isTagsExclusionSupported) &&
 			(contentRating.isEmpty() || parser.availableContentRating.containsAll(contentRating)) &&
 			(states.isEmpty() || parser.availableStates.containsAll(states) &&
-			(parser.searchSupportedWithMultipleFilters) &&(parser.isSearchOriginalLanguages) &&
-			(parser.isSearchYearSupported) && (parser.isSearchYearRangeSupported))
+				(parser.searchSupportedWithMultipleFilters) && (parser.isSearchOriginalLanguages) &&
+				(parser.isSearchYearSupported) && (parser.isSearchYearRangeSupported)) &&
+			(types.isEmpty() || parser.availableContentTypes.containsAll(types)) &&
+			(demographics.isEmpty() || parser.availableDemographics.containsAll(demographics))
 
 		is Search -> parser.isSearchSupported
 	}
@@ -42,10 +44,12 @@ sealed interface MangaListFilter {
 		@JvmField val year: Int?,
 		@JvmField val yearFrom: Int?,
 		@JvmField val yearTo: Int?,
+		@JvmField val types: Set<ContentType>,
+		@JvmField val demographics: Set<Demographic>,
 	) : MangaListFilter {
 
 		override fun isEmpty(): Boolean =
-			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && localeMangas == null && states.isEmpty() && contentRating.isEmpty() && query == null && year == null && yearFrom == null && yearTo == null
+			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && localeMangas == null && states.isEmpty() && contentRating.isEmpty() && query == null && year == null && yearFrom == null && yearTo == null && types.isEmpty() && demographics.isEmpty()
 
 		fun newBuilder() = Builder(sortOrder)
 			.tags(tags)
@@ -58,6 +62,8 @@ sealed interface MangaListFilter {
 			.year(year)
 			.yearFrom(yearFrom)
 			.yearTo(yearTo)
+			.type(types)
+			.demographic(demographics)
 
 		class Builder(sortOrder: SortOrder) {
 
@@ -72,6 +78,8 @@ sealed interface MangaListFilter {
 			private var _year: Int? = null
 			private var _yearFrom: Int? = null
 			private var _yearTo: Int? = null
+			private var _types: Set<ContentType>? = null
+			private var _demographic: Set<Demographic>? = null
 
 			fun sortOrder(order: SortOrder) = apply {
 				_sortOrder = order
@@ -117,7 +125,13 @@ sealed interface MangaListFilter {
 				_yearTo = yearTo
 			}
 
+			fun type(type: Set<ContentType>?) = apply {
+				_types = type
+			}
 
+			fun demographic(demographic: Set<Demographic>?) = apply {
+				_demographic = demographic
+			}
 
 			fun build() = Advanced(
 				sortOrder = _sortOrder,
@@ -131,7 +145,9 @@ sealed interface MangaListFilter {
 				year = _year,
 				yearFrom = _yearFrom,
 				yearTo = _yearTo,
-				)
+				types = _types.orEmpty(),
+				demographics = _demographic.orEmpty(),
+			)
 		}
 	}
 }

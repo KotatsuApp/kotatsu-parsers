@@ -46,6 +46,16 @@ internal abstract class MangaReaderParser(
 	override val availableStates: Set<MangaState>
 		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
 
+	override val availableContentTypes: Set<ContentType>
+		get() = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+			ContentType.NOVEL,
+		)
+
+
 	override val isTagsExclusionSupported = true
 
 	protected open val listUrl = "/manga"
@@ -108,6 +118,20 @@ internal abstract class MangaReaderParser(
 								else -> append("")
 							}
 						}
+					}
+
+					filter.types.oneOrThrowIfMany()?.let {
+						append("&type=")
+						append(
+							when (it) {
+								ContentType.MANGA -> "manga"
+								ContentType.MANHWA -> "manhwa"
+								ContentType.MANHUA -> "manhua"
+								ContentType.COMICS -> "comic"
+								ContentType.NOVEL -> "novel"
+								else -> ""
+							},
+						)
 					}
 
 					append("&page=")
@@ -223,18 +247,18 @@ internal abstract class MangaReaderParser(
 				"En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
 				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating", "Lançando", "In Arrivo", "Emision",
 				"En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中", "Devam ediyor", "Devam Etmekte",
-				-> MangaState.ONGOING
+					-> MangaState.ONGOING
 
 				"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành",
 				"مكتملة", "Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído",
 				"Concluido", "已完结", "Bitmiş",
-				-> MangaState.FINISHED
+					-> MangaState.FINISHED
 
 				"Canceled", "Cancelled", "Cancelado", "cancellato", "Cancelados", "Dropped", "Discontinued", "abandonné", "Abandonné",
-				-> MangaState.ABANDONED
+					-> MangaState.ABANDONED
 
 				"Hiatus", "On Hold", "Pausado", "En espera", "En pause", "En Pause", "En attente",
-				-> MangaState.PAUSED
+					-> MangaState.PAUSED
 
 				else -> null
 			}

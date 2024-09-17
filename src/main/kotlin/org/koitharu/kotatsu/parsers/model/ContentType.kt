@@ -7,6 +7,10 @@ enum class ContentType {
 	 */
 	MANGA,
 
+	MANHWA,
+
+	MANHUA,
+
 	/**
 	 * Use this if the source provides mostly nsfw content.
 	 */
@@ -16,6 +20,8 @@ enum class ContentType {
 	 * Western comics
 	 */
 	COMICS,
+
+	NOVEL,
 
 	/**
 	 * Use this type if no other suits your needs. For example, for an indie manga
