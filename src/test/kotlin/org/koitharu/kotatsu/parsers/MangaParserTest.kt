@@ -52,27 +52,14 @@ internal class MangaParserTest {
 		val parser = context.newParserInstance(source)
 		val subject = parser.getList(
 			offset = 0,
-			filter = MangaListFilter.Advanced(
-				sortOrder = SortOrder.POPULARITY,
-				tags = emptySet(),
-				locale = null,
-				localeMangas = null,
-				states = emptySet(),
-				tagsExclude = emptySet(),
-				contentRating = emptySet(),
-				query = null,
-				year = null,
-				yearFrom = null,
-				yearTo = null,
-				types = emptySet(),
-				demographics = emptySet(),
-			),
+			order = SortOrder.POPULARITY,
+			filter = MangaListFilterV2.EMPTY,
 		).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
-		val list = parser.getList(0, MangaListFilter.Search(query))
+		val list = parser.getList(0, SortOrder.RELEVANCE, MangaListFilterV2(query = query))
 		assert(list.isNotEmpty()) { "Empty search results by \"$query\"" }
 		assert(list.singleOrNull { it.url == subject.url && it.id == subject.id } != null) {
 			"Single subject '${subject.title} (${subject.publicUrl})' not found in search results"
@@ -102,9 +89,8 @@ internal class MangaParserTest {
 		val tag = tags.last()
 		val list = parser.getList(
 			offset = 0,
-			MangaListFilter.Advanced.Builder(parser.defaultSortOrder)
-				.tags(setOf(tag))
-				.build(),
+			order = parser.defaultSortOrder,
+			filter = MangaListFilterV2(tags = setOf(tag)),
 		)
 		checkMangaList(list, "${tag.title} (${tag.key})")
 		assert(list.all { it.source == source })
@@ -117,10 +103,8 @@ internal class MangaParserTest {
 		if (!parser.isMultipleTagsSupported) return@runTest
 		val tags = parser.getAvailableTags().shuffled().take(2).toSet()
 
-		val filter = MangaListFilter.Advanced.Builder(parser.availableSortOrders.first())
-			.tags(tags)
-			.build()
-		val list = parser.getList(0, filter)
+		val filter = MangaListFilterV2(tags = tags)
+		val list = parser.getList(0, parser.defaultSortOrder, filter)
 		checkMangaList(list, "${tags.joinToString { it.title }} (${tags.joinToString { it.key }})")
 		assert(list.all { it.source == source })
 	}
@@ -133,22 +117,11 @@ internal class MangaParserTest {
 		if (locales.isEmpty()) {
 			return@runTest
 		}
-		val filter = MangaListFilter.Advanced(
-			sortOrder = parser.availableSortOrders.first(),
-			tags = setOf(),
-			tagsExclude = setOf(),
+		val filter = MangaListFilterV2(
 			locale = locales.random(),
-			localeMangas = locales.random(),
-			states = setOf(),
-			contentRating = setOf(),
-			query = null,
-			year = null,
-			yearFrom = null,
-			yearTo = null,
-			types = emptySet(),
-			demographics = emptySet(),
+			sourceLocale = locales.random(),
 		)
-		val list = parser.getList(offset = 0, filter)
+		val list = parser.getList(offset = 0, order = parser.defaultSortOrder, filter)
 		checkMangaList(list, filter.locale.toString())
 		assert(list.all { it.source == source })
 	}

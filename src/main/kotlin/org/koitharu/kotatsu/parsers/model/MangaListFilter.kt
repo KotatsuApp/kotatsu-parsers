@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.model
 import org.koitharu.kotatsu.parsers.MangaParser
 import java.util.*
 
+@Deprecated("Use MangaListFilterV2 instead")
 sealed interface MangaListFilter {
 
 	fun isEmpty(): Boolean

@@ -169,7 +169,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	@Deprecated(
 		"Use getList with filter instead",
 		ReplaceWith(
-			"getList(offset, MangaListFilter.Search(query))",
+			"getList(offset, SortOrder.RELEVANCE, MangaListFilterV2(query = query))",
 			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
 		),
 	)
@@ -188,7 +188,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	@Deprecated(
 		"Use getList with filter instead",
 		ReplaceWith(
-			"getList(offset, MangaListFilter.Advanced(sortOrder, tags, null, emptySet()))",
+			"getList(offset, sortOrder, MangaListFilterV2(tags = tags))",
 			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
 		),
 	)
@@ -218,7 +218,13 @@ abstract class MangaParser @InternalParsersApi constructor(
 		)
 	}
 
-	@Suppress("DEPRECATION")
+	@Deprecated(
+		"Use getList with filter instead",
+		ReplaceWith(
+			"getList(offset, filter.sortOrder, filter)",
+			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
+		),
+	)
 	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
 		return when (filter) {
 			is MangaListFilter.Advanced -> getList(
@@ -246,6 +252,31 @@ abstract class MangaParser @InternalParsersApi constructor(
 			)
 		}
 	}
+
+	open suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2) = getList(
+		offset = offset,
+		filter = when {
+			filter.query.isNullOrEmpty() -> MangaListFilter.Advanced(
+				sortOrder = order,
+				tags = filter.tags,
+				tagsExclude = filter.tagsExclude,
+				locale = filter.locale,
+				localeMangas = filter.sourceLocale,
+				states = filter.states,
+				contentRating = filter.contentRating,
+				query = filter.query,
+				year = filter.year,
+				yearFrom = filter.yearFrom,
+				yearTo = filter.yearTo,
+				types = filter.types,
+				demographics = filter.demographics,
+			)
+
+			else -> MangaListFilter.Search(
+				query = filter.query,
+			)
+		},
+	)
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.
