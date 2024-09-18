@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("HENTAICUBE", "HentaiCube", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicb.mom") {
+	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicb.lol") {
 
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "the-loai/"
