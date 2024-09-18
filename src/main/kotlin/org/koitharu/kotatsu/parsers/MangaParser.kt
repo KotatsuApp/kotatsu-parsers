@@ -32,103 +32,35 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 * For better performance use [EnumSet] for more than one item.
 	 */
 	@Deprecated("")
-	open val availableStates: Set<MangaState>
+	internal open val availableStates: Set<MangaState>
 		get() = emptySet()
 
 	open val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = isMultipleTagsSupported,
 			isTagsExclusionSupported = isTagsExclusionSupported,
-			isSearchSupported = isSearchSupported,
-			isSearchWithFiltersSupported = searchSupportedWithMultipleFilters,
-			isYearSupported = isSearchYearSupported,
-			isYearRangeSupported = isSearchYearRangeSupported,
-			isSourceLocaleSupported = isSearchOriginalLanguages,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
 		)
-
-	/**
-	 * Supported [ContentRating] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val availableContentRating: Set<ContentRating>
-		get() = emptySet()
-
-	/**
-	 * Supported [ContentType] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val availableContentTypes: Set<ContentType>
-		get() = emptySet()
-
-	/**
-	 * Supported [Demographic] variants for filtering. May be empty.
-	 *
-	 * For better performance use [EnumSet] for more than one item.
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val availableDemographics: Set<Demographic>
-		get() = emptySet()
 
 	/**
 	 * Whether parser supports filtering by more than one tag
 	 */
 	@Deprecated("Use getListFilterCapabilities instead")
-	open val isMultipleTagsSupported: Boolean = true
+	internal open val isMultipleTagsSupported: Boolean = true
 
 	/**
 	 * Whether parser supports tagsExclude field in filter
 	 */
 	@Deprecated("Use getListFilterCapabilities instead")
-	open val isTagsExclusionSupported: Boolean = false
-
-	/**
-	 * Whether parser supports searching by string query using [MangaListFilter.Search]
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val isSearchSupported: Boolean = true
-
-	/**
-	 * Whether parser supports searching by string query using [MangaListFilter.Advanced]
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val searchSupportedWithMultipleFilters: Boolean = false
-
-	/**
-	 * Whether parser supports searching by year
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val isSearchYearSupported: Boolean = false
-
-	/**
-	 * Whether parser supports searching by year range
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val isSearchYearRangeSupported: Boolean = false
-
-	/**
-	 * Whether parser supports searching Original Languages
-	 */
-	@Deprecated("Use getListFilterCapabilities instead")
-	open val isSearchOriginalLanguages: Boolean = false
-
-
-	@Deprecated(
-		message = "Use availableSortOrders instead",
-		replaceWith = ReplaceWith("availableSortOrders"),
-	)
-	open val sortOrders: Set<SortOrder>
-		get() = availableSortOrders
+	internal open val isTagsExclusionSupported: Boolean = false
 
 	val config by lazy { context.getConfig(source) }
 
 	open val sourceLocale: Locale
 		get() = if (source.locale.isEmpty()) Locale.ROOT else Locale(source.locale)
 
-	val isNsfwSource = source.contentType == ContentType.HENTAI
+	protected val isNsfwSource = source.contentType == ContentType.HENTAI
 
 	/**
 	 * Provide default domain and available alternatives, if any.
@@ -145,7 +77,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 		.build()
 
 	/**
-	 * Used as fallback if value of `sortOrder` passed to [getList] is null
+	 * Used as fallback if value of `order` passed to [getList] is null
 	 */
 	open val defaultSortOrder: SortOrder
 		get() {
@@ -161,7 +93,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * @param offset starting from 0 and used for pagination.
 	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
-	 * @param order one of [availableSortOrders] or null for default value
+	 * @param order one of [availableSortOrders] or [defaultSortOrder] for default value
 	 * @param filter is a set of filter rules
 	 */
 	abstract suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga>
@@ -182,38 +114,23 @@ abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Fetch direct link to the page image.
 	 */
-	open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(domain)
+	internal open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(domain)
 
 	/**
 	 * Fetch available tags (genres) for source
 	 */
 	@Deprecated("Use getListFilterDatasets instead")
-	open suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+	internal open suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	open suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
 		val tagsDeferred = async { getAvailableTags() }
-		val localesDeferred = async { getAvailableLocales() }
 		MangaListFilterOptions(
 			availableTags = tagsDeferred.await(),
 			availableStates = availableStates,
-			availableContentRating = availableContentRating,
-			availableContentTypes = availableContentTypes,
-			availableDemographics = availableDemographics,
-			availableLocales = localesDeferred.await(),
+			availableContentRating = emptySet(),
+			availableLocales = emptySet(),
 		)
 	}
-
-	/**
-	 * Fetch available locales for multilingual sources
-	 */
-	@Deprecated("Use getListFilterDatasets instead")
-	open suspend fun getAvailableLocales(): Set<Locale> = emptySet()
-
-	@Deprecated(
-		message = "Use getAvailableTags instead",
-		replaceWith = ReplaceWith("getAvailableTags()"),
-	)
-	suspend fun getTags(): Set<MangaTag> = getAvailableTags()
 
 	/**
 	 * Parse favicons from the main page of the source`s website
@@ -229,11 +146,5 @@ abstract class MangaParser @InternalParsersApi constructor(
 
 	open suspend fun getRelatedManga(seed: Manga): List<Manga> {
 		return RelatedMangaFinder(listOf(this)).invoke(seed)
-	}
-
-	protected fun getParser(source: MangaParserSource) = if (this.source == source) {
-		this
-	} else {
-		context.newParserInstance(source)
 	}
 }

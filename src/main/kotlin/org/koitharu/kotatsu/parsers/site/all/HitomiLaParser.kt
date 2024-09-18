@@ -70,14 +70,27 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 		Locale.JAPANESE to "japanese",
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableLocales = localeMap.keys,
+	)
+
 	private fun Locale?.getSiteLang(): String = when (this) {
 		null -> "all"
 		else -> localeMap[this] ?: "all"
 	}
 
-	override suspend fun getAvailableLocales(): Set<Locale> = localeMap.keys
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = coroutineScope {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> = coroutineScope {
 		('a'..'z').map { alphabet ->
 			async {
 				val doc = webClient.httpGet("https://$domain/alltags-$alphabet.html").parseHtml()

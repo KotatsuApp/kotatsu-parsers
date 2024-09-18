@@ -32,7 +32,7 @@ internal class AComics(context: MangaLoaderContext) :
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	init {

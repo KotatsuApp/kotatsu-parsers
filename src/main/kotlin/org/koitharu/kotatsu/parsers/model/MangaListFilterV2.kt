@@ -7,7 +7,7 @@ data class MangaListFilterV2(
 	@JvmField val tags: Set<MangaTag> = emptySet(),
 	@JvmField val tagsExclude: Set<MangaTag> = emptySet(),
 	@JvmField val locale: Locale? = null,
-	@JvmField val sourceLocale: Locale? = null,
+	@JvmField val originalLocale: Locale? = null,
 	@JvmField val states: Set<MangaState> = emptySet(),
 	@JvmField val contentRating: Set<ContentRating> = emptySet(),
 	@JvmField val types: Set<ContentType> = emptySet(),
@@ -20,7 +20,7 @@ data class MangaListFilterV2(
 	fun isEmpty(): Boolean = tags.isEmpty() &&
 		tagsExclude.isEmpty() &&
 		locale == null &&
-		sourceLocale == null &&
+		originalLocale == null &&
 		states.isEmpty() &&
 		contentRating.isEmpty() &&
 		query == null &&

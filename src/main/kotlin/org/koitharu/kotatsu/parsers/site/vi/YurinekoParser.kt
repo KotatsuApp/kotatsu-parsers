@@ -35,7 +35,7 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

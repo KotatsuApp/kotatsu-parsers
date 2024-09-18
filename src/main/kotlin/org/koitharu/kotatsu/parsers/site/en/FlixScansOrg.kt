@@ -20,16 +20,26 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.FLIXSCANSORG, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.ADULT)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.org")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = EnumSet.of(ContentRating.ADULT),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isSearchSupported = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val json = when {
@@ -101,7 +111,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search/advance").parseHtml()
 		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
 		val tagsList = json.getJSONArray(3).toString().replace("[", "").replace("]", "").split(",")

@@ -44,7 +44,7 @@ internal abstract class MangAdventureParser(
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

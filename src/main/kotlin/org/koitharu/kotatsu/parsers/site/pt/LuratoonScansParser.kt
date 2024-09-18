@@ -25,9 +25,19 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 
 	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 
-	override val isSearchSupported = false
-	override val isTagsExclusionSupported = false
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		require(filter.query.isNullOrEmpty()) { ErrorMessages.SEARCH_NOT_SUPPORTED }
@@ -123,8 +133,6 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 			)
 		}
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())

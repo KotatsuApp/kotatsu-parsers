@@ -29,8 +29,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
@@ -38,6 +36,20 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 		SortOrder.RATING,
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
@@ -283,7 +295,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	}
 
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library", getRequestHeaders()).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
 		return elements.mapNotNullToSet { element ->

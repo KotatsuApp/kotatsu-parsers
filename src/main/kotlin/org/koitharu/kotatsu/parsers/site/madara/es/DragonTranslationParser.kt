@@ -10,15 +10,19 @@ import java.util.*
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
+
 	override val selectPage = "div#chapter_imgs img"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

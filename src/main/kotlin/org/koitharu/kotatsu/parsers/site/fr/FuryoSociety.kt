@@ -5,7 +5,6 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -25,12 +24,24 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isSearchSupported = false
 
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(
@@ -80,10 +91,6 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		}
 	}
 
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
-
-
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -94,7 +101,6 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 			isNsfw = doc.selectFirst(".adult-text") != null,
 		)
 	}
-
 
 	private fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select("div.list.fs-chapter-list div.element").mapChapters(reversed = true) { i, div ->

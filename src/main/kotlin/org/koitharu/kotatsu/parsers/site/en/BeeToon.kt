@@ -30,7 +30,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

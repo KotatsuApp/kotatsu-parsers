@@ -14,12 +14,12 @@ internal class Manhwaz(context: MangaLoaderContext) :
 	override val listUrl = "genre/manhwa"
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
 	override val selectTestAsync = "div.list-chapter"
 
-	override val availableStates: Set<MangaState> = emptySet()
-
-	override val availableContentRating: Set<ContentRating> = emptySet()
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -32,6 +32,11 @@ internal class Manhwaz(context: MangaLoaderContext) :
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

@@ -75,7 +75,7 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

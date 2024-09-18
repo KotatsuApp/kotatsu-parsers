@@ -20,8 +20,12 @@ internal class RevolutionScantrad(context: MangaLoaderContext) :
 	) {
 	override val listUrl = "/series.html"
 	override val datePattern = "yyyy"
-	override val isTagsExclusionSupported = false
-	override val isSearchSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		if (page > 1) {

@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.en
 
+import androidx.collection.ArrayMap
+import kotlinx.coroutines.sync.withLock
 import okhttp3.FormBody
 import okhttp3.Request
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -25,11 +27,13 @@ internal class RizzComic(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL_DESC,
 	)
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
-	override val isMultipleTagsSupported = true
-	override val isSearchSupported = true
-	override val isTagsExclusionSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isTagsExclusionSupported = false,
+		)
 
 	private val filterUrl = "/Index/filter_series"
 	private val searchUrl = "/Index/live_search"
@@ -54,6 +58,10 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 		return randomPartRegex.find(slug)?.groupValues?.get(1) ?: ""
 	}
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		if (page > 1) {
@@ -149,13 +157,14 @@ internal class RizzComic(context: MangaLoaderContext) :
 		else -> "all"
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
 		val url = "https://$domain/series"
 		val doc = webClient.httpGet(url).parseHtml()
 
 		val genreElements = doc.select("input.genre-item")
 
-		return genreElements.mapNotNullToSet { element ->
+		val genres = genreElements.mapNotNull { element ->
 			val id = element.attr("value")
 			val name = element.nextElementSibling()?.text()
 
@@ -169,5 +178,6 @@ internal class RizzComic(context: MangaLoaderContext) :
 				null
 			}
 		}
+		genres.associateByTo(ArrayMap(genres.size)) { it.title }.also { tagCache = it }
 	}
 }

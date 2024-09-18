@@ -35,15 +35,17 @@ internal abstract class HotComicsParser(
 
 	protected open val onePage = false
 
+	protected open val isSearchSupported: Boolean = true
+
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = false,
 			isTagsExclusionSupported = false,
-			isSearchSupported = true,
+			isSearchSupported = isSearchSupported,
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

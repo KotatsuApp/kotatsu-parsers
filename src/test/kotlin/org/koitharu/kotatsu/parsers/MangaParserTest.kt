@@ -122,7 +122,7 @@ internal class MangaParserTest {
 		}
 		val filter = MangaListFilterV2(
 			locale = locales.random(),
-			sourceLocale = locales.random(),
+			originalLocale = locales.random(),
 		)
 		val list = parser.getList(offset = 0, order = parser.defaultSortOrder, filter)
 		checkMangaList(list, filter.locale.toString())

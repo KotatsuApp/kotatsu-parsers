@@ -58,7 +58,7 @@ internal class ExHentaiParser(
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override val isAuthorized: Boolean

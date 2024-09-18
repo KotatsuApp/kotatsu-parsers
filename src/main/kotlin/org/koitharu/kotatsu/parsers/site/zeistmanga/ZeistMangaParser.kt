@@ -42,7 +42,7 @@ internal abstract class ZeistMangaParser(
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	@JvmField

@@ -28,10 +28,16 @@ internal abstract class HeanCmsAlt(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val isSearchSupported = false
-
 	protected open val listUrl = "/comics"
 	protected open val datePattern = "MMMM d, yyyy"
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+		)
 
 	init {
 		paginator.firstPage = 1
@@ -40,6 +46,12 @@ internal abstract class HeanCmsAlt(
 
 	protected open val selectManga = "div.grid.grid-cols-2 div:not([class]):contains(M)"
 	protected open val selectMangaTitle = "h5"
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -74,8 +86,6 @@ internal abstract class HeanCmsAlt(
 			)
 		}
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	protected open val selectDesc = "div.description-container"
 	protected open val selectAlt = "div.series-alternative-names"

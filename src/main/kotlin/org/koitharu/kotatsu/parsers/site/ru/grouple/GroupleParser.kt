@@ -74,7 +74,7 @@ internal abstract class GroupleParser(
 			isSearchWithFiltersSupported = true,
 			isYearSupported = false,
 			isYearRangeSupported = true,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

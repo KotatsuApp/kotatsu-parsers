@@ -23,14 +23,15 @@ internal class MangaDass(context: MangaLoaderContext) :
 	override val selectChapter = "li.a-h"
 	override val selectDesc = "div.ss-manga"
 
-	override val availableStates: Set<MangaState> get() = emptySet()
-
-	override val availableContentRating: Set<ContentRating> = emptySet()
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

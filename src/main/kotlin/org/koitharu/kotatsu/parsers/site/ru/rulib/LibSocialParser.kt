@@ -40,7 +40,7 @@ internal abstract class LibSocialParser(
 			isSearchWithFiltersSupported = true,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

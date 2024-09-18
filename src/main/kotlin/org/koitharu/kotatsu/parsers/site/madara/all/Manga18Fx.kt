@@ -25,9 +25,10 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override val availableContentRating: Set<ContentRating> = emptySet()
-
-	override val availableStates: Set<MangaState> get() = emptySet()
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

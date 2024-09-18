@@ -25,7 +25,7 @@ class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, M
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

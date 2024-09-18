@@ -41,7 +41,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
 			isYearRangeSupported = true,
-			isSourceLocaleSupported = true,
+			isOriginalLocaleSupported = true,
 		)
 
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
@@ -150,7 +150,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				append(it.language)
 			}
 
-			filter.sourceLocale?.let {
+			filter.originalLocale?.let {
 				append("&originalLanguage[]=")
 				append(it.language)
 			}

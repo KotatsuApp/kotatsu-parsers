@@ -20,13 +20,16 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
 	)
-	override val availableContentRating: Set<ContentRating> = emptySet()
-	override val availableStates: Set<MangaState> = emptySet()
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

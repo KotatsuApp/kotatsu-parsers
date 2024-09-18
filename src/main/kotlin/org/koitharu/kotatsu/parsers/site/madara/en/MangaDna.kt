@@ -17,13 +17,20 @@ internal class MangaDna(context: MangaLoaderContext) :
 
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectDesc = "div.dsct"
 	override val selectChapter = "li.a-h"
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

@@ -29,7 +29,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = false,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

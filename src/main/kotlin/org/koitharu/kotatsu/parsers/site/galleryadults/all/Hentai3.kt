@@ -23,18 +23,23 @@ internal class Hentai3(context: MangaLoaderContext) :
 	override val selectUrlChapter = "#main-cover a"
 	override val idImg = ".js-main-img"
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale.ITALIAN,
-		Locale("pt"),
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale("es"),
+			Locale("ru"),
+			Locale.ITALIAN,
+			Locale("pt"),
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {

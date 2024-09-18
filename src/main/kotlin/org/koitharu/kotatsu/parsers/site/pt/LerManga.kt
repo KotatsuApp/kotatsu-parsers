@@ -25,13 +25,24 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isMultipleTagsSupported = false
-	override val isSearchSupported = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -97,7 +108,7 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml().requireElementById("menu-header")
 		return doc.select("#menu-item:contains(GÊNERO) ul li a").mapNotNullToSet { a ->
 			MangaTag(

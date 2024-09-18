@@ -24,6 +24,20 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale.CHINESE,
+			Locale("es"),
+			Locale("ru"),
+			Locale("ko"),
+			Locale.GERMAN,
+			Locale("pt"),
+		),
+	)
+
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
@@ -63,16 +77,4 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale("ko"),
-		Locale.GERMAN,
-		Locale("pt"),
-	)
 }

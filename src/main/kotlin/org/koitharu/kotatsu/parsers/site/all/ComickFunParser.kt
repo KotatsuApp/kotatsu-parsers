@@ -44,7 +44,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			isSearchWithFiltersSupported = false,
 			isYearSupported = false,
 			isYearRangeSupported = true,
-			isSourceLocaleSupported = false,
+			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

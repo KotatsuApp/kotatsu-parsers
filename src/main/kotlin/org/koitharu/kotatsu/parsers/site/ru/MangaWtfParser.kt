@@ -19,6 +19,7 @@ import java.util.*
 class MangaWtfParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
 			SortOrder.POPULARITY,
@@ -30,17 +31,24 @@ class MangaWtfParser(
 	@InternalParsersApi
 	override val configKeyDomain = ConfigKey.Domain("manga.wtf")
 
-	override val isTagsExclusionSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
 			MangaState.UPCOMING,
 			MangaState.PAUSED,
 			MangaState.ONGOING,
 			MangaState.FINISHED,
-		)
-
-	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
+		),
+		availableContentRating = EnumSet.allOf(ContentRating::class.java),
+	)
 
 	init {
 		paginator.firstPage = 0
@@ -161,10 +169,8 @@ class MangaWtfParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("label")
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+		val url = urlBuilder("api").addPathSegment("label")
 		val json = webClient.httpGet(url.build()).parseJson()
 		return json.getJSONArray("content").mapJSONToSet { jo ->
 			MangaTag(

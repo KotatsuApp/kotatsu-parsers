@@ -21,25 +21,32 @@ internal class HentaiForce(context: MangaLoaderContext) :
 	override val selectLanguageChapter = "div.tag-container:contains(Languages:) a"
 	override val idImg = ".gallery-reader-img-wrapper img"
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale("ko"),
-		Locale.GERMAN,
-		Locale("id"),
-		Locale.ITALIAN,
-		Locale("pt"),
-		Locale("th"),
-		Locale("vi"),
-	)
+	override suspend fun getFilterOptions(): MangaListFilterOptions {
+		return super.getFilterOptions().copy(
+			availableLocales = setOf(
+				Locale.ENGLISH,
+				Locale.FRENCH,
+				Locale.JAPANESE,
+				Locale.CHINESE,
+				Locale("es"),
+				Locale("ru"),
+				Locale("ko"),
+				Locale.GERMAN,
+				Locale("id"),
+				Locale.ITALIAN,
+				Locale("pt"),
+				Locale("th"),
+				Locale("vi"),
+			),
+		)
+	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
