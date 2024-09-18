@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterV2
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
@@ -33,10 +34,10 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val response =
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -56,7 +57,7 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 					result.getOrThrow()
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -93,7 +94,7 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 
 						append("&sort=")
 						append(
-							when (filter.sortOrder) {
+							when (order) {
 								SortOrder.UPDATED -> "latest-updated"
 								SortOrder.POPULARITY -> "views"
 								SortOrder.NEWEST -> "new"
@@ -105,19 +106,6 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 						)
 					}
 
-					webClient.httpGet(url)
-				}
-
-				null -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append(listUrl)
-						append('/')
-						append(page.toString())
-						append('/')
-						append("?genres=&notGenres=&sex=All&status=&chapter_count=0&sort=latest-updated")
-					}
 					webClient.httpGet(url)
 				}
 			}

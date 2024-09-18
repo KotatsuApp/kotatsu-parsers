@@ -25,22 +25,22 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 	override val isMultipleTagsSupported = false
 	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					append(filter.query.urlEncoded())
 					append("?page=")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("?type=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("topview")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("newest")
@@ -65,11 +65,6 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-				}
-
-				null -> {
-					append(listUrl)
-					append("?type=latest&page=")
 				}
 			}
 			append(page.toString())

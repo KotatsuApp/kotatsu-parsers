@@ -20,25 +20,25 @@ internal class KomikSan(context: MangaLoaderContext) :
 	override val datePattern = "MMM d, yyyy"
 	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?search=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 
 					append("/?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "title"
 							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
@@ -67,12 +67,6 @@ internal class KomikSan(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?order=update&page=")
 					append(page.toString())
 				}
 			}

@@ -24,13 +24,13 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					val regex = Regex("[^A-Za-z0-9 ]")
 					val q = regex.replace(filter.query, "")
@@ -38,10 +38,10 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 					append("?page=")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("?type=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("topview")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("newest")
@@ -66,11 +66,6 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-				}
-
-				null -> {
-					append(listUrl)
-					append("?type=latest&page=")
 				}
 			}
 			append(page.toString())

@@ -39,23 +39,20 @@ abstract class MangaWorldParser(
 
 	override val isMultipleTagsSupported = true
 
-	override suspend fun getListPage(
-		page: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url =
 			buildString {
 				append("https://")
 				append(domain)
 				append("/archive?")
-				when (filter) {
-					is MangaListFilter.Search -> {
+				when {
+					!filter.query.isNullOrEmpty() -> {
 						append("keyword=")
 						append(filter.query.urlEncoded())
 					}
 
-					is MangaListFilter.Advanced -> {
-						if (filter.tags.isEmpty() && filter.states.isEmpty() && filter.sortOrder == SortOrder.UPDATED) return parseMangaList(
+					else -> {
+						if (filter.tags.isEmpty() && filter.states.isEmpty() && order == SortOrder.UPDATED) return parseMangaList(
 							webClient.httpGet("https://$domain/?page=$page").parseHtml(),
 						)
 
@@ -63,7 +60,7 @@ abstract class MangaWorldParser(
 							filter.tags.joinTo(this, "&") { it.key.substringAfter("archive?") }
 						}
 
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("&sort=most_read")
 							SortOrder.ALPHABETICAL -> append("&sort=a-z")
 							SortOrder.NEWEST -> append("&sort=newest")
@@ -78,8 +75,6 @@ abstract class MangaWorldParser(
 							else -> Unit
 						}
 					}
-
-					null -> Unit
 				}
 				append("&page=$page")
 			}
@@ -103,13 +98,13 @@ abstract class MangaWorldParser(
 				tags = tags,
 				author = div.selectFirst(".author a")?.text(),
 				state =
-				when (div.selectFirst(".status a")?.text()) {
-					"In corso" -> MangaState.ONGOING
-					"Finito" -> MangaState.FINISHED
-					"Droppato" -> MangaState.ABANDONED
-					"In pausa" -> MangaState.PAUSED
-					else -> null
-				},
+					when (div.selectFirst(".status a")?.text()) {
+						"In corso" -> MangaState.ONGOING
+						"Finito" -> MangaState.FINISHED
+						"Droppato" -> MangaState.ABANDONED
+						"In pausa" -> MangaState.PAUSED
+						else -> null
+					},
 				source = source,
 				isNsfw = isNsfwSource,
 			)
@@ -142,30 +137,30 @@ abstract class MangaWorldParser(
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
 			altTitle =
-			doc.selectFirst(".meta-data .font-weight-bold:contains(Titoli alternativi:)")
-				?.parent()
-				?.ownText()
-				?.substringAfter(": ")
-				?.trim(),
+				doc.selectFirst(".meta-data .font-weight-bold:contains(Titoli alternativi:)")
+					?.parent()
+					?.ownText()
+					?.substringAfter(": ")
+					?.trim(),
 			description = doc.getElementById("noidungm")?.text().orEmpty(),
 			chapters =
-			doc.select(".chapters-wrapper .chapter a").mapChapters(reversed = true) { i, a ->
-				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
-				MangaChapter(
-					id = generateUid(url),
-					name = a.selectFirstOrThrow("span.d-inline-block").text(),
-					number = i + 1f,
-					volume = 0,
-					url = "$url?style=list",
-					scanlator = null,
-					uploadDate =
-					SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
-						a.selectFirst(".chap-date")?.text(),
-					),
-					branch = null,
-					source = source,
-				)
-			},
+				doc.select(".chapters-wrapper .chapter a").mapChapters(reversed = true) { i, a ->
+					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
+					MangaChapter(
+						id = generateUid(url),
+						name = a.selectFirstOrThrow("span.d-inline-block").text(),
+						number = i + 1f,
+						volume = 0,
+						url = "$url?style=list",
+						scanlator = null,
+						uploadDate =
+							SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
+								a.selectFirst(".chap-date")?.text(),
+							),
+						branch = null,
+						source = source,
+					)
+				},
 		)
 	}
 

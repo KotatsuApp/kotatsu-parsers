@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.es
 
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -27,32 +26,36 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isSearchSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = false,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
-					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
-				}
-
-				is MangaListFilter.Advanced -> {
-					if (filter.sortOrder == SortOrder.NEWEST) {
-						append("/comics?page=")
-						append(page.toString())
-					} else {
-						if (page > 1) {
-							return emptyList()
-						}
-					}
-				}
-
-				null -> {
-					append("/comics?page=")
-					append(page.toString())
+			if (order == SortOrder.NEWEST) {
+				append("/comics?page=")
+				append(page)
+			} else {
+				if (page > 1) {
+					return emptyList()
 				}
 			}
 		}
@@ -78,8 +81,6 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 			)
 		}
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

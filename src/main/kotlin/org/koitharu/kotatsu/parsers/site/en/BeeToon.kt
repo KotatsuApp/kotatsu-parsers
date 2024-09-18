@@ -22,14 +22,32 @@ internal class BeeToon(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						return emptyList()
 					}
@@ -37,7 +55,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						val tag = filter.tags.oneOrThrowIfMany()
@@ -47,7 +65,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 						append(page)
 						append("/")
 					} else {
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> append("/latest-update/")
 							SortOrder.POPULARITY -> append("/popular-manga/")
 							else -> append("/latest-update/")
@@ -57,8 +75,6 @@ internal class BeeToon(context: MangaLoaderContext) :
 						append("/")
 					}
 				}
-
-				null -> append("/latest-update/page-$page/")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -85,7 +101,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.requireElementById("menu-item-3").select("ul.sub-menu li a").mapNotNullToSet {
 			MangaTag(

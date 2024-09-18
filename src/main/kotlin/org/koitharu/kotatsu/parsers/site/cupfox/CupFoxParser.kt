@@ -27,26 +27,42 @@ internal abstract class CupFoxParser(
 		SortOrder.UPDATED,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override val isMultipleTagsSupported = false
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/")
 					append(filter.query.urlEncoded())
 					append('/')
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("/category/")
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("order/hits/")
 						SortOrder.UPDATED -> append("order/addtime/")
 						else -> append("order/addtime/")
@@ -71,11 +87,6 @@ internal abstract class CupFoxParser(
 					}
 
 					append("page/")
-					append(page)
-				}
-
-				null -> {
-					append("/category/order/addtime/page/")
 					append(page)
 				}
 			}
@@ -193,7 +204,8 @@ internal abstract class CupFoxParser(
 	}
 
 	protected open val selectAvailableTags = "div.swiper-wrapper a[href*=tags], ul.stui-screen__list li a[href*=tags]"
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/category/").parseHtml()
 		return doc.select(selectAvailableTags)
 			.mapNotNullToSet { a ->

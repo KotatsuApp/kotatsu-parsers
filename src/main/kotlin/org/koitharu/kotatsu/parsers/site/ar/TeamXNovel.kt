@@ -17,8 +17,6 @@ import java.util.*
 internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TEAMXNOVEL, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
 
 	override val configKeyDomain = ConfigKey.Domain("teamoney.site")
 
@@ -27,16 +25,33 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/?search=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
@@ -45,7 +60,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						val tag = filter.tags.oneOrThrowIfMany()
 						append("/series?genre=")
@@ -56,7 +71,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 						}
 						append("&")
 					} else {
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("/series")
 							SortOrder.UPDATED -> append("/")
 							else -> append("/")
@@ -70,7 +85,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 						}
 					}
 
-					if (filter.sortOrder == SortOrder.POPULARITY || filter.tags.isNotEmpty()) {
+					if (order == SortOrder.POPULARITY || filter.tags.isNotEmpty()) {
 						filter.states.oneOrThrowIfMany()?.let {
 							append("status=")
 							append(
@@ -84,8 +99,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 						}
 					}
 				}
-
-				null -> append("/?page=$page")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -115,7 +128,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/series").parseHtml()
 		return doc.requireElementById("select_genre").select("option").mapNotNullToSet {
 			MangaTag(

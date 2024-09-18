@@ -1,16 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("CLONEMANGA", "CloneManga", "en")
-internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.CLONEMANGA) {
+internal class CloneMangaParser(context: MangaLoaderContext) :
+	SinglePageMangaParser(context, MangaParserSource.CLONEMANGA) {
 
 	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
@@ -23,27 +23,11 @@ internal class CloneMangaParser(context: MangaLoaderContext) : MangaParser(conte
 		keys.add(userAgentKey)
 	}
 
-	@InternalParsersApi
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-
-		val link = when (filter) {
-			is MangaListFilter.Search -> {
-				return emptyList()
-			}
-
-			is MangaListFilter.Advanced -> {
-				if (offset > 0) {
-					return emptyList()
-				}
-
-				"https://$domain/viewer_landing.php"
-			}
-
-			null -> "https://$domain/viewer_landing.php"
-
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		if (!filter.query.isNullOrEmpty()) {
+			return emptyList()
 		}
-
-		val doc = webClient.httpGet(link).parseHtml()
+		val doc = webClient.httpGet("https://$domain/viewer_landing.php").parseHtml()
 		val mangas = doc.getElementsByClass("comicPreviewContainer")
 		return mangas.mapNotNull { item ->
 			val background = item.selectFirstOrThrow(".comicPreview").styleValueOrNull("background")

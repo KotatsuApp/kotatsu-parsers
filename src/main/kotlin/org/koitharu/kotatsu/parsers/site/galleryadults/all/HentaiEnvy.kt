@@ -24,18 +24,18 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/?s_key=")
 					append(filter.query.urlEncoded())
 					append("&")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						if (filter.locale != null) {
 							throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_LOCALE_GENRES_NOT_SUPPORTED)
@@ -43,7 +43,7 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/tag/")
 							append(it.key)
-							if (filter.sortOrder == SortOrder.POPULARITY) {
+							if (order == SortOrder.POPULARITY) {
 								append("/popular")
 							}
 							append("/?")
@@ -56,8 +56,6 @@ internal class HentaiEnvy(context: MangaLoaderContext) :
 						append("/?")
 					}
 				}
-
-				null -> append("/?")
 			}
 			append("page=")
 			append(page)

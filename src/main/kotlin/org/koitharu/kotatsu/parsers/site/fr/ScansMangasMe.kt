@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("SCANS_MANGAS_ME", "ScansMangas.me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.SCANS_MANGAS_ME, 0) {
+	SinglePageMangaParser(context, MangaParserSource.SCANS_MANGAS_ME) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -27,28 +27,43 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if (page > 1) {
-			return emptyList()
-		}
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/?s=")
 					append(filter.query.urlEncoded())
 					append("&post_type=manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						append("/genres/")
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -56,7 +71,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 						}
 					} else {
 						append("/tous-nos-mangas/?order=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("popular")
 							SortOrder.UPDATED -> append("update")
 							SortOrder.ALPHABETICAL -> append("title")
@@ -65,8 +80,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 						}
 					}
 				}
-
-				null -> append("/tous-nos-mangas/?order=update")
 			}
 		}
 
@@ -91,7 +104,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tous-nos-mangas/").parseHtml()
 		return doc.select("ul.genre li").mapNotNullToSet { li ->
 			val key = li.selectFirstOrThrow("a").attr("href").removeSuffix('/').substringAfterLast('/')

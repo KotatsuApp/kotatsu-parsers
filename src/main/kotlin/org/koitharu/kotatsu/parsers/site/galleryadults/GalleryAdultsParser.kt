@@ -30,20 +30,57 @@ internal abstract class GalleryAdultsParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale.CHINESE,
+			Locale("es"),
+			Locale("ru"),
+			Locale("ko"),
+			Locale.GERMAN,
+			Locale("id"),
+			Locale.ITALIAN,
+			Locale("pt"),
+			Locale("tr"),
+			Locale("th"),
+			Locale("vi"),
+		),
+	)
+
+	override suspend fun getListPage(
+		page: Int,
+		order: SortOrder,
+		filter: MangaListFilterV2,
+	): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/?q=")
 					append(filter.query.urlEncoded())
 					append("&")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					val tag = filter.tags.oneOrThrowIfMany()
 					val lang = filter.locale
 					if (tag != null && lang != null) {
@@ -61,8 +98,6 @@ internal abstract class GalleryAdultsParser(
 						append("/?")
 					}
 				}
-
-				null -> append("/?")
 			}
 			append("page=")
 			append(page)
@@ -102,30 +137,13 @@ internal abstract class GalleryAdultsParser(
 
 	//Tags are deliberately reduced because there are too many and this slows down the application.
 	//only the most popular ones are taken.
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..3).map { page ->
 				async { getTags(page) }
 			}
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale("ko"),
-		Locale.GERMAN,
-		Locale("id"),
-		Locale.ITALIAN,
-		Locale("pt"),
-		Locale("tr"),
-		Locale("th"),
-		Locale("vi"),
-	)
 
 	protected open val pathTagUrl = "/tags/popular/?page="
 	protected open val selectTags = ".tags_page ul.tags li"

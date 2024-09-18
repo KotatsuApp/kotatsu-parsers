@@ -31,14 +31,13 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 
 	override val isSearchSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		val json = when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		val json = when {
+			!filter.query.isNullOrEmpty() -> {
 				throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				val url = buildString {
 					append("https://api.")
@@ -73,11 +72,6 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 					}
 					append("&serie_type=webtoon")
 				}
-				webClient.httpGet(url).parseJson().getJSONArray("data")
-			}
-
-			null -> {
-				val url = "https://api.$domain/api/v1/search/advance?=&serie_type=webtoon&page=$page"
 				webClient.httpGet(url).parseJson().getJSONArray("data")
 			}
 		}

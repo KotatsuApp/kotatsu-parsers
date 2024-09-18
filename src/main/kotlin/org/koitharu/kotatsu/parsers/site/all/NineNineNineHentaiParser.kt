@@ -34,13 +34,29 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override suspend fun getAvailableLocales() = setOf(
-		Locale.ENGLISH,
-		Locale.CHINESE,
-		Locale.JAPANESE,
-		Locale("es"),
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.CHINESE,
+			Locale.JAPANESE,
+			Locale("es"),
+		),
 	)
 
 	private fun Locale?.getSiteLang(): String {
@@ -75,7 +91,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		return cdn?.toHttpUrlOrNull()?.host ?: "edge.fast4speed.rsvp"
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val query = """
 			queryTags(
 				search: {format:"tagchapter",sortBy:Popular}
@@ -102,23 +118,15 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		return when (filter) {
-			is MangaListFilter.Advanced -> {
-				if (filter.tags.isEmpty() && filter.sortOrder == SortOrder.POPULARITY) {
-					getPopularList(page, filter.locale)
-				} else {
-					getSearchList(page, null, filter.locale, filter.tags, filter.sortOrder)
-				}
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		return if (filter.query.isNullOrEmpty()) {
+			if (filter.tags.isEmpty() && order == SortOrder.POPULARITY) {
+				getPopularList(page, filter.locale)
+			} else {
+				getSearchList(page, null, filter.locale, filter.tags, order)
 			}
-
-			is MangaListFilter.Search -> {
-				getSearchList(page, filter.query, null, null, filter.sortOrder)
-			}
-
-			else -> {
-				getPopularList(page, null)
-			}
+		} else {
+			getSearchList(page, filter.query, null, null, order)
 		}
 	}
 

@@ -36,20 +36,19 @@ class VyManga(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?search_po=0&q=")
 					append(filter.query.urlEncoded())
 					append("&author_po=0&author=&completed=2&sort=updated_at&sort_type=desc&page=")
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isEmpty()) {
 
@@ -84,7 +83,7 @@ class VyManga(context: MangaLoaderContext) :
 					}
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("viewed&sort_type=desc")
 						SortOrder.POPULARITY_ASC -> append("viewed&sort_type=asc")
 						SortOrder.RATING -> append("scored&sort_type=desc")
@@ -97,11 +96,6 @@ class VyManga(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page)
-				}
-
-				null -> {
-					append("/search?search_po=0&q=&author_po=0&author=&completed=2&sort=updated_at&sort_type=desc&page=")
 					append(page)
 				}
 			}

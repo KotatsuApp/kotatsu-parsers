@@ -38,10 +38,6 @@ internal abstract class WpComicsParser(
 		SortOrder.RATING,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
-	override val isMultipleTagsSupported = false
-
 	protected open val listUrl = "/tim-truyen"
 	protected open val datePattern = "dd/MM/yy"
 
@@ -68,10 +64,30 @@ internal abstract class WpComicsParser(
 		"完結済み",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val response =
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -90,7 +106,7 @@ internal abstract class WpComicsParser(
 					result.getOrThrow()
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -103,12 +119,12 @@ internal abstract class WpComicsParser(
 						}
 						append("?sort=")
 						append(
-							when (filter.sortOrder) {
+							when (order) {
 								SortOrder.UPDATED -> 0
 								SortOrder.POPULARITY -> 10
 								SortOrder.NEWEST -> 15
 								SortOrder.RATING -> 20
-								else -> throw IllegalArgumentException("Sort order ${filter.sortOrder.name} not supported")
+								else -> throw IllegalArgumentException("Sort order ${order.name} not supported")
 							},
 						)
 						filter.states.oneOrThrowIfMany()?.let {
@@ -125,17 +141,6 @@ internal abstract class WpComicsParser(
 						append(page.toString())
 					}
 
-					webClient.httpGet(url)
-				}
-
-				null -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append(listUrl)
-						append("?sort=0&status=-1&page=")
-						append(page.toString())
-					}
 					webClient.httpGet(url)
 				}
 			}
@@ -178,7 +183,7 @@ internal abstract class WpComicsParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val map = getOrCreateTagMap()
 		val tagSet = ArraySet<MangaTag>(map.size)
 		for (entry in map) {
@@ -288,7 +293,7 @@ internal abstract class WpComicsParser(
 		return when {
 			d.endsWith(" ago") ||
 				d.endsWith(" trước")
-			-> parseRelativeDate(date)
+				-> parseRelativeDate(date)
 
 			d.startsWith("year") -> Calendar.getInstance().apply {
 				add(Calendar.DAY_OF_MONTH, -1)

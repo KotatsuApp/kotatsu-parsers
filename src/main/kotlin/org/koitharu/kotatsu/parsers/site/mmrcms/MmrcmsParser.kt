@@ -62,15 +62,31 @@ internal abstract class MmrcmsParser(
 		"مكتملة",
 	)
 
-	override val isMultipleTagsSupported = false
-
 	protected open val imgUpdated = "/cover/cover_250x350.jpg"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-		when (filter) {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				val url = buildString {
 					append("https://")
 					append(domain)
@@ -85,9 +101,9 @@ internal abstract class MmrcmsParser(
 				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
-				if (filter.sortOrder == SortOrder.UPDATED) {
+				if (order == SortOrder.UPDATED) {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -109,7 +125,7 @@ internal abstract class MmrcmsParser(
 							append(it.key)
 						}
 						append("&sortBy=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("views&asc=false")
 							SortOrder.POPULARITY_ASC -> append("views&asc=true")
 							SortOrder.ALPHABETICAL -> append("name&asc=true")
@@ -119,16 +135,6 @@ internal abstract class MmrcmsParser(
 					}
 					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/latest-release?page=")
-					append(page.toString())
-				}
-				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 		}
 	}
@@ -174,7 +180,7 @@ internal abstract class MmrcmsParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$tagUrl/").parseHtml()
 		return doc.select("ul.list-category li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

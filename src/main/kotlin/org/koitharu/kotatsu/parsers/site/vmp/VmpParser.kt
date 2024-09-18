@@ -34,15 +34,14 @@ internal abstract class VmpParser(
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append("/page/")
 					append(page.toString())
@@ -50,7 +49,7 @@ internal abstract class VmpParser(
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -64,12 +63,6 @@ internal abstract class VmpParser(
 						append("/page/")
 						append(page.toString())
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append("/page/")
-					append(page.toString())
 				}
 			}
 		}

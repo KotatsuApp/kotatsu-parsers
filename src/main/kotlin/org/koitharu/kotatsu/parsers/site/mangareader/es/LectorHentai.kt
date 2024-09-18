@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterV2
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
@@ -20,14 +21,14 @@ internal class LectorHentai(context: MangaLoaderContext) :
 	override val listUrl = "/tipo/all"
 	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append("?s=")
 					append(filter.query.urlEncoded())
@@ -35,11 +36,11 @@ internal class LectorHentai(context: MangaLoaderContext) :
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "title"
 							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
@@ -69,12 +70,6 @@ internal class LectorHentai(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?order=update&page=")
 					append(page.toString())
 				}
 			}

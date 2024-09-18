@@ -25,22 +25,27 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 	override val listUrl = "adult-webtoon/"
 	override val postReq = true
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 
-	override val availableStates: Set<MangaState> = emptySet()
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
-	override val availableContentRating: Set<ContentRating> = emptySet()
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val pages = page + 1
 
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (pages > 1) {
 						append("/page/")
 						append(pages.toString())
@@ -50,7 +55,7 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 					append("&post_type=wp-manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -71,23 +76,13 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 					}
 
 					append("?m_orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
-					}
-				}
-
-				null -> {
-					append('/')
-					append(listUrl)
-					if (pages > 1) {
-						append("page/")
-						append(pages)
-						append("/?m_orderby=latest")
 					}
 				}
 			}

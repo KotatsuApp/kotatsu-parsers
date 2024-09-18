@@ -28,21 +28,24 @@ class ManhwasMen(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(
+		page: Int,
+		order: SortOrder,
+		filter: MangaListFilterV2,
+	): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/manga-list")
 			append("?page=")
 			append(page.toString())
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&search=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&genero=")
@@ -60,8 +63,6 @@ class ManhwasMen(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> {}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

@@ -109,13 +109,10 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 
 	private var cachedSearchIds: List<Int> = emptyList()
 
-	override suspend fun getList(
-		offset: Int,
-		filter: MangaListFilter?,
-	): List<Manga> = when (filter) {
-		is MangaListFilter.Advanced -> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> = when {
+		filter.query.isNullOrEmpty() -> {
 			if (filter.tags.isEmpty()) {
-				when (filter.sortOrder) {
+				when (order) {
 					SortOrder.POPULARITY -> {
 						getGalleryIDsFromNozomi(
 							"popular",
@@ -134,7 +131,7 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 					cachedSearchIds =
 						hitomiSearch(
 							filter.tags.joinToString(" ") { it.key },
-							filter.sortOrder == SortOrder.POPULARITY,
+							order == SortOrder.POPULARITY,
 							filter.locale.getSiteLang(),
 						).toList()
 				}
@@ -142,14 +139,12 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 			}
 		}
 
-		is MangaListFilter.Search -> {
+		else -> {
 			if (offset == 0) {
-				cachedSearchIds = hitomiSearch(filter.query, filter.sortOrder == SortOrder.POPULARITY).toList()
+				cachedSearchIds = hitomiSearch(filter.query, order == SortOrder.POPULARITY).toList()
 			}
 			cachedSearchIds.subList(offset, min(offset + 25, cachedSearchIds.size))
 		}
-
-		else -> getGalleryIDsFromNozomi(null, "popular", "all", offset.nextOffsetRange())
 	}.toMangaList()
 
 	private fun Int.nextOffsetRange(): LongRange {
@@ -478,14 +473,14 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 						title = doc.selectFirstOrThrow("h1").text(),
 						url = id.toString(),
 						coverUrl =
-						"https:" +
-							doc.selectFirstOrThrow("picture > source")
-								.attr("data-srcset")
-								.substringBefore(" "),
+							"https:" +
+								doc.selectFirstOrThrow("picture > source")
+									.attr("data-srcset")
+									.substringBefore(" "),
 						publicUrl =
-						doc.selectFirstOrThrow("h1 > a")
-							.attrAsRelativeUrl("href")
-							.toAbsoluteUrl(domain),
+							doc.selectFirstOrThrow("h1 > a")
+								.attrAsRelativeUrl("href")
+								.toAbsoluteUrl(domain),
 						author = null,
 						tags = emptySet(),
 						isNsfw = true,
@@ -508,37 +503,37 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 		return manga.copy(
 			title = json.getString("title"),
 			largeCoverUrl =
-			json.getJSONArray("files").getJSONObject(0).let {
-				val hash = it.getString("hash")
-				val commonId = commonImageId()
-				val imageId = imageIdFromHash(hash)
-				val subDomain = 'a' + subdomainOffset(imageId)
+				json.getJSONArray("files").getJSONObject(0).let {
+					val hash = it.getString("hash")
+					val commonId = commonImageId()
+					val imageId = imageIdFromHash(hash)
+					val subDomain = 'a' + subdomainOffset(imageId)
 
-				"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
-			},
+					"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
+				},
 			author =
-			json.optJSONArray("artists")
-				?.mapJSON { it.getString("artist").toCamelCase() }
-				?.joinToString(),
+				json.optJSONArray("artists")
+					?.mapJSON { it.getString("artist").toCamelCase() }
+					?.joinToString(),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
 			tags =
-			buildSet {
-				json.optJSONArray("characters")
-					?.mapToTags("character")
-					?.let(::addAll)
-				json.optJSONArray("tags")
-					?.mapToTags("tag")
-					?.let(::addAll)
-				json.optJSONArray("artists")
-					?.mapToTags("artist")
-					?.let(::addAll)
-				json.optJSONArray("parodys")
-					?.mapToTags("parody")
-					?.let(::addAll)
-				json.optJSONArray("groups")
-					?.mapToTags("group")
-					?.let(::addAll)
-			},
+				buildSet {
+					json.optJSONArray("characters")
+						?.mapToTags("character")
+						?.let(::addAll)
+					json.optJSONArray("tags")
+						?.mapToTags("tag")
+						?.let(::addAll)
+					json.optJSONArray("artists")
+						?.mapToTags("artist")
+						?.let(::addAll)
+					json.optJSONArray("parodys")
+						?.mapToTags("parody")
+						?.let(::addAll)
+					json.optJSONArray("groups")
+						?.mapToTags("group")
+						?.let(::addAll)
+				},
 			chapters = listOf(
 				MangaChapter(
 					id = generateUid(manga.url),
@@ -562,15 +557,15 @@ class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 		mapJSON {
 			MangaTag(
 				title =
-				it.getString(key).toCamelCase().let { title ->
-					if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
-						"$title ♀"
-					} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
-						"$title ♂"
-					} else {
-						title
-					}
-				},
+					it.getString(key).toCamelCase().let { title ->
+						if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
+							"$title ♀"
+						} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
+							"$title ♂"
+						} else {
+							title
+						}
+					},
 				key = it.getString("url").tagUrlToTag(),
 				source = source,
 			).let(tags::add)

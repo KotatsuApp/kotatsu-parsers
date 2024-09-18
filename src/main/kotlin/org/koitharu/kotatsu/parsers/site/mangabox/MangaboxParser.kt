@@ -55,20 +55,20 @@ internal abstract class MangaboxParser(
 		"completed",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("/?s=all")
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("&keyw=")
 					append(filter.query.replace(" ", "_").urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						append("&g_i=")
@@ -100,7 +100,7 @@ internal abstract class MangaboxParser(
 					}
 
 					append("&orby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("topview")
 						SortOrder.UPDATED -> append("")
 						SortOrder.NEWEST -> append("newest")
@@ -108,8 +108,6 @@ internal abstract class MangaboxParser(
 						else -> append("")
 					}
 				}
-
-				null -> {}
 			}
 
 			append("&page=")

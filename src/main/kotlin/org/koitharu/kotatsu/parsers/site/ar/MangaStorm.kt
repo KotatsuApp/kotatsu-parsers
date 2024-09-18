@@ -25,19 +25,19 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/mangas?page=")
 					append(page)
 					append("&query=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						val tag = filter.tags.oneOrThrowIfMany()
@@ -46,7 +46,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 						append("?page=")
 						append(page)
 					} else {
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("/mangas?page=")
 							append(page)
 						} else {
@@ -55,11 +55,6 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 							}
 						}
 					}
-				}
-
-				null -> {
-					append("/mangas?page=")
-					append(page)
 				}
 			}
 		}

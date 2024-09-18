@@ -35,9 +35,9 @@ class TrWebtoon(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				val url = buildString {
 					append("https://")
 					append(domain)
@@ -50,9 +50,9 @@ class TrWebtoon(context: MangaLoaderContext) :
 				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
-				if (filter.sortOrder == SortOrder.UPDATED) {
+				if (order == SortOrder.UPDATED) {
 					if (filter.tags.isNotEmpty()) {
 						throw IllegalArgumentException("Sort order updated + Tags or States is not supported by this source")
 					}
@@ -84,7 +84,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 							)
 						}
 						append("&sort=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("views&short_type=DESC")
 							SortOrder.POPULARITY_ASC -> append("views&short_type=ASC")
 							SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
@@ -96,16 +96,6 @@ class TrWebtoon(context: MangaLoaderContext) :
 					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
 
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/son-eklenenler?page=")
-					append(page.toString())
-				}
-				return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
 			}
 		}
 	}

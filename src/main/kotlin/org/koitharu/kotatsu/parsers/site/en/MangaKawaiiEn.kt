@@ -31,26 +31,25 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?query=")
 					append(filter.query.urlEncoded())
 					append("&search_type=manga&page=")
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
-					if (filter.sortOrder == SortOrder.UPDATED && filter.tags.isNotEmpty()) {
+					if (order == SortOrder.UPDATED && filter.tags.isNotEmpty()) {
 						throw IllegalArgumentException("Filter part tag is not available with sort not updated")
 					}
 
-					if (filter.sortOrder == SortOrder.ALPHABETICAL) {
+					if (order == SortOrder.ALPHABETICAL) {
 						append("/manga-list")
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/category/")
@@ -58,12 +57,6 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 						}
 					}
 
-					if (page > 1) {
-						return emptyList()
-					}
-				}
-
-				null -> {
 					if (page > 1) {
 						return emptyList()
 					}

@@ -50,14 +50,13 @@ internal abstract class SinmhParser(
 		"已完结",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					append("?keywords=")
 					append(filter.query.urlEncoded())
@@ -65,7 +64,7 @@ internal abstract class SinmhParser(
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					filter.tags.oneOrThrowIfMany()?.let {
 						append(it.key)
@@ -85,18 +84,11 @@ internal abstract class SinmhParser(
 						append('/')
 					}
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("click/")
 						SortOrder.UPDATED -> append("update/")
 						else -> append("/")
 					}
-					append(page.toString())
-					append('/')
-				}
-
-				null -> {
-					append(listUrl)
-					append("update/")
 					append(page.toString())
 					append('/')
 				}

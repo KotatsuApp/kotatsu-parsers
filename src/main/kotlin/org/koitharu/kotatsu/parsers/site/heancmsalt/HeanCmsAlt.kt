@@ -41,20 +41,13 @@ internal abstract class HeanCmsAlt(
 	protected open val selectManga = "div.grid.grid-cols-2 div:not([class]):contains(M)"
 	protected open val selectMangaTitle = "h5"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
-			when (filter) {
-				is MangaListFilter.Search -> {
-					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
-				}
-
-				is MangaListFilter.Advanced -> {
-				}
-
-				null -> {}
+			if (!filter.query.isNullOrEmpty()) {
+				throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 			}
 			if (page > 1) {
 				append("?page=")

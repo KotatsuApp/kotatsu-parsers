@@ -22,20 +22,19 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) return emptyList()
 					append("/buscar-manga/?q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("/mangas")
 
 					filter.tags.oneOrThrowIfMany()?.let {
@@ -44,12 +43,6 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					}
 
 					append('/')
-					append(page.toString())
-					append('/')
-				}
-
-				null -> {
-					append("/mangas/")
 					append(page.toString())
 					append('/')
 				}

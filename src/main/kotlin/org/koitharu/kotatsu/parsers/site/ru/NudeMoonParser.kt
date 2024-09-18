@@ -45,42 +45,37 @@ internal class NudeMoonParser(
 		)
 	}
 
-	override suspend fun getList(
-		offset: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val domain = domain
 
-		val url =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					if (!isAuthorized) {
-						throw AuthRequiredException(source)
-					}
-					"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
+		val url = when {
+			!filter.query.isNullOrEmpty() -> {
+				if (!isAuthorized) {
+					throw AuthRequiredException(source)
 				}
-
-				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.joinToString(
-							separator = "_",
-							prefix = "https://$domain/tags/",
-							postfix = "&rowstart=$offset",
-							transform = { it.key.urlEncoded() },
-						)
-					} else {
-						val order = when (filter.sortOrder) {
-							SortOrder.POPULARITY -> "views"
-							SortOrder.NEWEST -> "date"
-							SortOrder.RATING -> "like"
-							else -> "like"
-						}
-						"https://$domain/all_manga?$order&rowstart=$offset"
-					}
-				}
-
-				null -> "https://$domain/all_manga?views&rowstart=$offset"
+				"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
 			}
+
+			else -> {
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.joinToString(
+						separator = "_",
+						prefix = "https://$domain/tags/",
+						postfix = "&rowstart=$offset",
+						transform = { it.key.urlEncoded() },
+					)
+				} else {
+					val order = when (order) {
+						SortOrder.POPULARITY -> "views"
+						SortOrder.NEWEST -> "date"
+						SortOrder.RATING -> "like"
+						else -> "like"
+					}
+					"https://$domain/all_manga?$order&rowstart=$offset"
+				}
+			}
+
+		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.body().select("table.news_pic2").mapNotNull { row ->

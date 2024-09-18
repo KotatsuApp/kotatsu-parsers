@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.guya
 
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -12,10 +12,29 @@ internal abstract class GuyaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-	pageSize: Int = 0,
-) : PagedMangaParser(context, source, pageSize) {
+) : SinglePageMangaParser(context, source) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -24,25 +43,17 @@ internal abstract class GuyaParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if (page > 1) return emptyList()
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/api/get_all_series/")
 		}
-		when (filter) {
-
-			is MangaListFilter.Search -> {
-				return parseMangaList(webClient.httpGet(url).parseJson(), filter.query)
-			}
-
-			is MangaListFilter.Advanced -> {}
-
-			null -> {}
+		return if (!filter.query.isNullOrEmpty()) {
+			parseMangaList(webClient.httpGet(url).parseJson(), filter.query)
+		} else {
+			parseMangaList(webClient.httpGet(url).parseJson(), "")
 		}
-
-		return parseMangaList(webClient.httpGet(url).parseJson(), "")
 	}
 
 	protected open fun parseMangaList(json: JSONObject, query: String): List<Manga> {
@@ -78,8 +89,6 @@ internal abstract class GuyaParser(
 			source = source,
 		)
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val json = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseJson().getJSONObject("chapters")

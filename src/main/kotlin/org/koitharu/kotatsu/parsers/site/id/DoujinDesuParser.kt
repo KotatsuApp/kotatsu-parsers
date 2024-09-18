@@ -33,22 +33,22 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 		.add("Referer", "https://$domain/")
 		.build()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = urlBuilder().apply {
 			addPathSegment("manga")
 			addPathSegment("page")
 			addPathSegment("$page/")
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					addQueryParameter("title", filter.query)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					addQueryParameter("title", "")
 					addQueryParameter(
 						"order",
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> "update"
 							SortOrder.POPULARITY -> "popular"
 							SortOrder.ALPHABETICAL -> "title"
@@ -72,8 +72,6 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> addQueryParameter("order", "update")
 			}
 		}.build()
 

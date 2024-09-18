@@ -15,7 +15,8 @@ import java.util.zip.ZipInputStream
 
 @Broken // Not dead but totally changed structure
 @MangaSourceParser("RANDOMSCANS", "LuratoonScan", "pt")
-internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.RANDOMSCANS),
+internal class LuratoonScansParser(context: MangaLoaderContext) :
+	SinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),
 	Interceptor {
 
 	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)
@@ -28,13 +29,10 @@ internal class LuratoonScansParser(context: MangaLoaderContext) : MangaParser(co
 	override val isTagsExclusionSupported = false
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
-		require(filter !is MangaListFilter.Search) { ErrorMessages.SEARCH_NOT_SUPPORTED }
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		require(filter.query.isNullOrEmpty()) { ErrorMessages.SEARCH_NOT_SUPPORTED }
 		val url = urlBuilder()
-		val tag = (filter as? MangaListFilter.Advanced)?.tags?.oneOrThrowIfMany()
+		val tag = filter.tags.oneOrThrowIfMany()
 		if (tag == null) {
 			url.addPathSegment("todas-as-obras")
 		} else {

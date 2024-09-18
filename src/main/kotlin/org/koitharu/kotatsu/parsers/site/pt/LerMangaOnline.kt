@@ -26,14 +26,13 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						append("page/")
 						append(page.toString())
@@ -43,20 +42,12 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					filter.tags.oneOrThrowIfMany()?.let {
 						append(it.key)
 						append('/')
 					}
 
-					if (page > 1) {
-						append("page/")
-						append(page.toString())
-						append('/')
-					}
-				}
-
-				null -> {
 					if (page > 1) {
 						append("page/")
 						append(page.toString())

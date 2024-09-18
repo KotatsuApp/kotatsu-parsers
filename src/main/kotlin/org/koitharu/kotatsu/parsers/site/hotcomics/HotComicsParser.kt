@@ -31,17 +31,35 @@ internal abstract class HotComicsParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
 
-	override val isMultipleTagsSupported = false
-
 	protected open val mangasUrl = "/genres"
 
 	protected open val onePage = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		if (onePage && page > 1) {
 			return emptyList()
 		}
@@ -49,16 +67,16 @@ internal abstract class HotComicsParser(
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?keyword=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(mangasUrl)
 					filter.tags.oneOrThrowIfMany()?.let {
 						append('/')
@@ -69,11 +87,6 @@ internal abstract class HotComicsParser(
 						append("?page=")
 						append(page)
 					}
-				}
-
-				null -> {
-					append("/genres?page=")
-					append(page)
 				}
 			}
 		}
@@ -174,7 +187,7 @@ internal abstract class HotComicsParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val map = getOrCreateTagMap()
 		val tagSet = ArraySet<MangaTag>(map.size)
 		for (entry in map) {

@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.CallSuper
-import androidx.annotation.VisibleForTesting
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
@@ -32,15 +31,27 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
+	@Deprecated("")
 	open val availableStates: Set<MangaState>
 		get() = emptySet()
 
+	open val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = isMultipleTagsSupported,
+			isTagsExclusionSupported = isTagsExclusionSupported,
+			isSearchSupported = isSearchSupported,
+			isSearchWithFiltersSupported = searchSupportedWithMultipleFilters,
+			isYearSupported = isSearchYearSupported,
+			isYearRangeSupported = isSearchYearRangeSupported,
+			isSourceLocaleSupported = isSearchOriginalLanguages,
+		)
 
 	/**
 	 * Supported [ContentRating] variants for filtering. May be empty.
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val availableContentRating: Set<ContentRating>
 		get() = emptySet()
 
@@ -49,6 +60,7 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val availableContentTypes: Set<ContentType>
 		get() = emptySet()
 
@@ -57,44 +69,50 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * For better performance use [EnumSet] for more than one item.
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val availableDemographics: Set<Demographic>
 		get() = emptySet()
 
 	/**
 	 * Whether parser supports filtering by more than one tag
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isMultipleTagsSupported: Boolean = true
 
 	/**
 	 * Whether parser supports tagsExclude field in filter
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isTagsExclusionSupported: Boolean = false
 
 	/**
 	 * Whether parser supports searching by string query using [MangaListFilter.Search]
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isSearchSupported: Boolean = true
 
 	/**
 	 * Whether parser supports searching by string query using [MangaListFilter.Advanced]
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val searchSupportedWithMultipleFilters: Boolean = false
 
 	/**
 	 * Whether parser supports searching by year
 	 */
-
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isSearchYearSupported: Boolean = false
 
 	/**
 	 * Whether parser supports searching by year range
 	 */
-
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isSearchYearRangeSupported: Boolean = false
 
 	/**
 	 * Whether parser supports searching Original Languages
 	 */
+	@Deprecated("Use getListFilterCapabilities instead")
 	open val isSearchOriginalLanguages: Boolean = false
 
 
@@ -129,7 +147,6 @@ abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Used as fallback if value of `sortOrder` passed to [getList] is null
 	 */
-	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED)
 	open val defaultSortOrder: SortOrder
 		get() {
 			val supported = availableSortOrders
@@ -144,141 +161,10 @@ abstract class MangaParser @InternalParsersApi constructor(
 	 *
 	 * @param offset starting from 0 and used for pagination.
 	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
-	 * @param query search query, may be null or empty if no search needed
-	 * @param tags genres for filtering, values from [getAvailableTags] and [Manga.tags]. May be null or empty
-	 * @param sortOrder one of [availableSortOrders] or null for default value
+	 * @param order one of [availableSortOrders] or null for default value
+	 * @param filter is a set of filter rules
 	 */
-	@JvmSynthetic
-	@InternalParsersApi
-	@Deprecated(
-		"Use getList with filter instead",
-		replaceWith = ReplaceWith("getList(offset, filter)"),
-	)
-	open suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> = throw NotImplementedError("Please implement getList(offset, filter) instead")
-
-	/**
-	 * Parse list of manga with search by text query
-	 *
-	 * @param offset starting from 0 and used for pagination.
-	 * @param query search query
-	 */
-	@Deprecated(
-		"Use getList with filter instead",
-		ReplaceWith(
-			"getList(offset, SortOrder.RELEVANCE, MangaListFilterV2(query = query))",
-			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
-		),
-	)
-	open suspend fun getList(offset: Int, query: String): List<Manga> {
-		return getList(offset, MangaListFilter.Search(query))
-	}
-
-	/**
-	 * Parse list of manga by specified criteria
-	 *
-	 * @param offset starting from 0 and used for pagination.
-	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
-	 * @param tags genres for filtering, values from [getAvailableTags] and [Manga.tags]. May be null or empty
-	 * @param sortOrder one of [availableSortOrders] or null for default value
-	 */
-	@Deprecated(
-		"Use getList with filter instead",
-		ReplaceWith(
-			"getList(offset, sortOrder, MangaListFilterV2(tags = tags))",
-			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
-		),
-	)
-	open suspend fun getList(
-		offset: Int,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder?,
-	): List<Manga> {
-		return getList(
-			offset,
-			MangaListFilter.Advanced(
-				sortOrder = sortOrder ?: defaultSortOrder,
-				tags = tags.orEmpty(),
-				tagsExclude = tagsExclude.orEmpty(),
-				locale = null,
-				localeMangas = null,
-				states = emptySet(),
-				contentRating = emptySet(),
-				query = null,
-				year = null,
-				yearFrom = null,
-				yearTo = null,
-				types = emptySet(),
-				demographics = emptySet(),
-			),
-		)
-	}
-
-	@Deprecated(
-		"Use getList with filter instead",
-		ReplaceWith(
-			"getList(offset, filter.sortOrder, filter)",
-			"org.koitharu.kotatsu.parsers.model.MangaListFilter",
-		),
-	)
-	open suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		return when (filter) {
-			is MangaListFilter.Advanced -> getList(
-				offset = offset,
-				query = null,
-				tags = filter.tags,
-				tagsExclude = filter.tagsExclude,
-				sortOrder = filter.sortOrder,
-			)
-
-			is MangaListFilter.Search -> getList(
-				offset = offset,
-				query = filter.query,
-				tags = null,
-				tagsExclude = null,
-				sortOrder = defaultSortOrder,
-			)
-
-			null -> getList(
-				offset = offset,
-				query = null,
-				tags = null,
-				tagsExclude = null,
-				sortOrder = defaultSortOrder,
-			)
-		}
-	}
-
-	open suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2) = getList(
-		offset = offset,
-		filter = when {
-			filter.query.isNullOrEmpty() -> MangaListFilter.Advanced(
-				sortOrder = order,
-				tags = filter.tags,
-				tagsExclude = filter.tagsExclude,
-				locale = filter.locale,
-				localeMangas = filter.sourceLocale,
-				states = filter.states,
-				contentRating = filter.contentRating,
-				query = filter.query,
-				year = filter.year,
-				yearFrom = filter.yearFrom,
-				yearTo = filter.yearTo,
-				types = filter.types,
-				demographics = filter.demographics,
-			)
-
-			else -> MangaListFilter.Search(
-				query = filter.query,
-			)
-		},
-	)
+	abstract suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga>
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.
@@ -301,32 +187,26 @@ abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Fetch available tags (genres) for source
 	 */
-	abstract suspend fun getAvailableTags(): Set<MangaTag>
+	@Deprecated("Use getListFilterDatasets instead")
+	open suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
-	open suspend fun getListFilterCapabilities(): MangaListFilterCapabilities = coroutineScope {
+	open suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
 		val tagsDeferred = async { getAvailableTags() }
 		val localesDeferred = async { getAvailableLocales() }
-		MangaListFilterCapabilities(
-			availableSortOrders = availableSortOrders,
+		MangaListFilterOptions(
 			availableTags = tagsDeferred.await(),
 			availableStates = availableStates,
 			availableContentRating = availableContentRating,
 			availableContentTypes = availableContentTypes,
 			availableDemographics = availableDemographics,
 			availableLocales = localesDeferred.await(),
-			isMultipleTagsSupported = isMultipleTagsSupported,
-			isTagsExclusionSupported = isTagsExclusionSupported,
-			isSearchSupported = isSearchSupported,
-			searchSupportedWithMultipleFilters = searchSupportedWithMultipleFilters,
-			isSearchYearSupported = isSearchYearSupported,
-			isSearchYearRangeSupported = isSearchYearRangeSupported,
-			isSearchOriginalLanguages = isSearchOriginalLanguages,
 		)
 	}
 
 	/**
 	 * Fetch available locales for multilingual sources
 	 */
+	@Deprecated("Use getListFilterDatasets instead")
 	open suspend fun getAvailableLocales(): Set<Locale> = emptySet()
 
 	@Deprecated(

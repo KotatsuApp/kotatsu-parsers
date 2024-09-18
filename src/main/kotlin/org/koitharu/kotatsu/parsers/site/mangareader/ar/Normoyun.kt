@@ -18,24 +18,23 @@ internal class Normoyun(context: MangaLoaderContext) :
 	override val isNetShieldProtected = true
 	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 
 					append("/?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "a-z"
 							SortOrder.ALPHABETICAL_DESC -> "z-a"
 							SortOrder.NEWEST -> "added"
@@ -62,11 +61,6 @@ internal class Normoyun(context: MangaLoaderContext) :
 							}
 						}
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?order=update")
 				}
 			}
 			append("&page=")

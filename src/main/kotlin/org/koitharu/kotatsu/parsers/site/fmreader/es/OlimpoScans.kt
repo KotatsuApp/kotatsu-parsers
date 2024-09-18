@@ -17,12 +17,12 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 	override val isMultipleTagsSupported = false
 	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append("?page=")
 					append(page.toString())
@@ -30,7 +30,7 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/lista-de-comics-genero-")
@@ -42,7 +42,7 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 						append("?page=")
 						append(page.toString())
 						append("&sort=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("views&sort_type=DESC")
 							SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
 							SortOrder.UPDATED -> append("last_update&sort_type=DESC")
@@ -64,13 +64,6 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 							},
 						)
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append("?page=")
-					append(page.toString())
-					append("&sort=last_update")
 				}
 			}
 		}

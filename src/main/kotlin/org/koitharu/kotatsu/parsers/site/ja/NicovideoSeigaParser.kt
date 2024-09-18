@@ -45,32 +45,28 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
 
-	@InternalParsersApi
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val page = (offset / 20f).toIntUp().inc()
 		val domain = getDomain("seiga")
-		val url =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					return if (offset == 0) getSearchList(filter.query, page) else emptyList()
-				}
+		val url = when {
+			!filter.query.isNullOrEmpty() -> {
+				return if (offset == 0) getSearchList(filter.query, page) else emptyList()
+			}
 
-				is MangaListFilter.Advanced -> {
+			else -> {
 
 
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany().let {
-							"https://$domain/manga/list?category=${it?.key}&page=$page&sort=${getSortKey(filter.sortOrder)}"
-						}
-
-					} else {
-						"https://$domain/manga/list?page=$page&sort=${getSortKey(filter.sortOrder)}"
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.oneOrThrowIfMany().let {
+						"https://$domain/manga/list?category=${it?.key}&page=$page&sort=${getSortKey(order)}"
 					}
 
+				} else {
+					"https://$domain/manga/list?page=$page&sort=${getSortKey(order)}"
 				}
 
-				null -> "https://$domain/manga/list?page=$page"
 			}
+		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 		val comicList = doc.body().select("#comic_list > ul > li") ?: doc.parseFailed("Container not found")

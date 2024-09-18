@@ -20,19 +20,19 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/mangas?buscar=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("/mangas?page=")
 					append(page.toString())
@@ -42,11 +42,6 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 						append("&tag=")
 						append(tag?.key.orEmpty())
 					}
-				}
-
-				null -> {
-					append("/mangas?page=")
-					append(page.toString())
 				}
 			}
 		}

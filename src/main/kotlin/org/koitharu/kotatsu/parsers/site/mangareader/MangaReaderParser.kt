@@ -43,20 +43,31 @@ internal abstract class MangaReaderParser(
 			SortOrder.NEWEST,
 		)
 
-	override val availableStates: Set<MangaState>
-		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override val availableContentTypes: Set<ContentType>
-		get() = EnumSet.of(
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
+		availableContentRating = emptySet(),
+		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
 			ContentType.MANHUA,
 			ContentType.COMICS,
 			ContentType.NOVEL,
-		)
-
-
-	override val isTagsExclusionSupported = true
+		),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
 	protected open val listUrl = "/manga"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -65,26 +76,26 @@ internal abstract class MangaReaderParser(
 	protected var tagCache: ArrayMap<String, MangaTag>? = null
 	protected val mutex = Mutex()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 
 					append("/?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "title"
 							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
@@ -135,12 +146,6 @@ internal abstract class MangaReaderParser(
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?order=update&page=")
 					append(page.toString())
 				}
 			}
@@ -346,10 +351,6 @@ internal abstract class MangaReaderParser(
 			}
 			return pages
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
 	}
 
 	protected open suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {

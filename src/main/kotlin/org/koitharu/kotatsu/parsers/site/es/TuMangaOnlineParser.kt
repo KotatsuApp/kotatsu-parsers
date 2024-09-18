@@ -40,22 +40,22 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.RATING,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/library")
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("?title=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("?order_item=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> "likes_count&order_dir=desc"
 							SortOrder.POPULARITY_ASC -> "likes_count&order_dir=asc"
 							SortOrder.UPDATED -> "release_date&order_dir=desc"
@@ -87,10 +87,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 							},
 						)
 					}
-				}
-
-				null -> {
-					append("?order_item=release_date&order_dir=desc&filter_by=title")
 				}
 			}
 			append("&_pg=1&page=")

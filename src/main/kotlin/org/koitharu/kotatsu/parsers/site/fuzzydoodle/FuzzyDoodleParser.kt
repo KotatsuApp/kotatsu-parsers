@@ -73,21 +73,21 @@ internal abstract class FuzzyDoodleParser(
 	protected open val pausedValue = "haitus"
 	protected open val abandonedValue = "dropped"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/manga?page=")
 			append(page)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("&title=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("&type=")
 
 					append("&status=")
@@ -110,8 +110,6 @@ internal abstract class FuzzyDoodleParser(
 						append(it.key)
 					}
 				}
-
-				null -> {}
 			}
 		}
 

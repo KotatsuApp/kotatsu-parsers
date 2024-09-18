@@ -46,22 +46,22 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search?q=")
 						append(buildQuery(filter.tags, filter.locale))
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("&sort=popular")
 						}
 						append("&page=")
@@ -72,7 +72,7 @@ internal class HentaiForce(context: MangaLoaderContext) :
 						}
 						append("/")
 
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 						append("?")
@@ -81,7 +81,7 @@ internal class HentaiForce(context: MangaLoaderContext) :
 						append(filter.locale.toLanguagePath())
 						append("/")
 
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 						append("?")
@@ -89,8 +89,6 @@ internal class HentaiForce(context: MangaLoaderContext) :
 						append("/page/")
 					}
 				}
-
-				null -> append("/page/")
 			}
 			append(page.toString())
 		}

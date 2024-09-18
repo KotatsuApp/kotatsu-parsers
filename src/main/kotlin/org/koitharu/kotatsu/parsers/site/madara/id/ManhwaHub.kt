@@ -15,31 +15,38 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 	override val datePattern = "MMMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
 	override val listUrl = "genre/manhwa"
 	override val selectTestAsync = "ul.box-list-chapter"
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?s=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -54,11 +61,6 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 					}
 
 
-				}
-
-				null -> {
-					append("/?page=")
-					append(page.toString())
 				}
 			}
 		}
@@ -98,7 +100,7 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select("div.genres li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

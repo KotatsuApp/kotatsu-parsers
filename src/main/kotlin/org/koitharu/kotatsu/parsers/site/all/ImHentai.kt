@@ -27,19 +27,23 @@ internal class ImHentai(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(
+		page: Int,
+		order: SortOrder,
+		filter: MangaListFilterV2,
+	): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/search/?page=")
 			append(page.toString())
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&key=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						append("&key=")
@@ -53,16 +57,12 @@ internal class ImHentai(context: MangaLoaderContext) :
 					}
 					append(lang)
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> append("&lt=1&pp=0")
 						SortOrder.POPULARITY -> append("&lt=0&pp=1")
 						SortOrder.RATING -> append("&lt=0&pp=0")
 						else -> append("&lt=1&pp=0")
 					}
-				}
-
-				null -> {
-					append("&lt=1&pp=0")
 				}
 			}
 

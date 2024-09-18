@@ -37,25 +37,25 @@ internal abstract class LikeMangaParser(
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/?act=search")
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&f")
 					append("[keyword]".urlEncoded())
 					append("=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("&f")
 					append("[sortby]".urlEncoded())
 					append("=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("hot")
 						SortOrder.UPDATED -> append("lastest-chap")
 						SortOrder.NEWEST -> append("lastest-manga")
@@ -84,12 +84,6 @@ internal abstract class LikeMangaParser(
 							},
 						)
 					}
-				}
-
-				null -> {
-					append("&f")
-					append("[sortby]".urlEncoded())
-					append("=lastest-chap")
 				}
 			}
 

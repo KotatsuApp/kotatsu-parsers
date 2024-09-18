@@ -54,14 +54,14 @@ internal abstract class Manga18Parser(
 		"Completed",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append(page.toString())
 					append("?search=")
@@ -69,7 +69,7 @@ internal abstract class Manga18Parser(
 					append("&order_by=latest")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append(tagUrl)
@@ -82,18 +82,12 @@ internal abstract class Manga18Parser(
 
 					append(page.toString())
 					append("?order_by=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("lastest")
 						SortOrder.ALPHABETICAL -> append("name")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append(page.toString())
-					append("?order_by=latest")
 				}
 			}
 		}

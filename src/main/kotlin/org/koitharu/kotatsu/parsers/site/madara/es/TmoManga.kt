@@ -26,12 +26,12 @@ internal class TmoManga(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/$listUrl")
 					append("?search=")
 					append(filter.query.urlEncoded())
@@ -41,7 +41,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -57,14 +57,6 @@ internal class TmoManga(context: MangaLoaderContext) :
 							append("?page=")
 							append(page)
 						}
-					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					if (page > 1) {
-						append("?page=")
-						append(page)
 					}
 				}
 			}

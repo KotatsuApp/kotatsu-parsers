@@ -45,7 +45,7 @@ internal abstract class NepnepParser(
 		val views: String,
 	)
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val doc = searchDoc.get()
 		val json = JSONArray(
 			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()
@@ -65,9 +65,8 @@ internal abstract class NepnepParser(
 			val views = m.getString("v")
 			//val viewMonth = m.getString("vm")
 
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (m.getString("s").contains(filter.query, ignoreCase = true) || (m.getJSONArray("al")
 							.length() > 0 && m.getJSONArray("al").getString(0)
 							.contains(filter.query, ignoreCase = true))
@@ -78,7 +77,7 @@ internal abstract class NepnepParser(
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					val tags = filter.tags
 					val tagsExcluded = filter.tagsExclude
 					val tagsJson = m.getJSONArray("g").toString()
@@ -111,22 +110,14 @@ internal abstract class NepnepParser(
 					}
 					sort = true
 				}
-
-				null -> {
-					mangaWithLastUpdateList.add(
-						MangaWithLastUpdate(addManga(href, imgUrl, m), lastUpdate, views),
-					)
-				}
 			}
 		}
 		if (sort) {
-			when (filter?.sortOrder) {
+			when (order) {
 				SortOrder.POPULARITY -> mangaWithLastUpdateList.sortByDescending { it.views }
 				SortOrder.UPDATED -> mangaWithLastUpdateList.sortByDescending { it.lastUpdate }
 				SortOrder.ALPHABETICAL -> {}
-				else -> if (filter != null) {
-					throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
-				}
+				else -> throw IllegalArgumentException("Unsupported sort order: $order")
 			}
 		}
 		return mangaWithLastUpdateList.map { it.manga }
@@ -186,17 +177,17 @@ internal abstract class NepnepParser(
 			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
 				"Ongoing (Scan)", "Ongoing (Publish)",
-				-> MangaState.ONGOING
+					-> MangaState.ONGOING
 
 				"Complete (Scan)", "Complete (Publish)",
-				-> MangaState.FINISHED
+					-> MangaState.FINISHED
 
 				"Cancelled (Scan)", "Cancelled (Publish)",
 				"Discontinued (Scan)", "Discontinued (Publish)",
-				-> MangaState.ABANDONED
+					-> MangaState.ABANDONED
 
 				"Hiatus (Scan)", "Hiatus (Publish)",
-				-> MangaState.PAUSED
+					-> MangaState.PAUSED
 
 				else -> null
 			},

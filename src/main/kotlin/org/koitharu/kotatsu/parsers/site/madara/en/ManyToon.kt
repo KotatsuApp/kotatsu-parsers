@@ -32,14 +32,14 @@ internal class ManyToon(context: MangaLoaderContext) :
 
 	override val availableContentRating: Set<ContentRating> = emptySet()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val pages = page + 1
 
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (pages > 1) {
 						append("/page/")
 						append(pages.toString())
@@ -49,7 +49,7 @@ internal class ManyToon(context: MangaLoaderContext) :
 					append("&post_type=wp-manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -70,23 +70,13 @@ internal class ManyToon(context: MangaLoaderContext) :
 					}
 
 					append("?m_orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
-					}
-				}
-
-				null -> {
-					append('/')
-					append(listUrl)
-					if (pages > 1) {
-						append("page/")
-						append(pages)
-						append("/?m_orderby=latest")
 					}
 				}
 			}

@@ -22,20 +22,20 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override val selectPage = "div#chapter-content img"
 	override val selectBodyTag = "div.advanced-wrapper .genre_label"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/tim-kiem?page=")
 			append(page.toString())
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("&accept_genres=")
 					append(filter.tags.joinToString(",") { it.key })
@@ -45,7 +45,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 
 					append("&sort=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "az"
 							SortOrder.ALPHABETICAL_DESC -> "za"
 							SortOrder.POPULARITY -> "top"
@@ -68,8 +68,6 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> append("&sort=update")
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())

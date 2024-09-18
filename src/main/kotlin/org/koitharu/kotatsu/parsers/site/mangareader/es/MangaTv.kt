@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterV2
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
@@ -27,26 +28,26 @@ internal class MangaTv(context: MangaLoaderContext) :
 	override val isTagsExclusionSupported = false
 	override val datePattern = "yyyy-MM-dd"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/lista?s=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 
 					append("/?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "title"
 							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
@@ -83,12 +84,6 @@ internal class MangaTv(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?order=update&page=")
 					append(page.toString())
 				}
 			}

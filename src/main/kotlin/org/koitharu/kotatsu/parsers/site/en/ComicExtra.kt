@@ -30,14 +30,13 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val isMultipleTagsSupported = false
 
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/")
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("search?keyword=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
@@ -46,7 +45,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append(it.key)
@@ -65,7 +64,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 					} else if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
 						throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED)
 					} else {
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("popular-comic")
 							SortOrder.UPDATED -> append("new-comic")
 							SortOrder.NEWEST -> append("recent-comic")
@@ -78,15 +77,6 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 						append(page.toString())
 					}
 				}
-
-				null -> {
-					append("popular-comic")
-					if (page > 1) {
-						append("/")
-						append(page.toString())
-					}
-				}
-
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

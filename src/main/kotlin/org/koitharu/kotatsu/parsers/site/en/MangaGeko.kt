@@ -26,13 +26,12 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						return emptyList()
 					}
@@ -40,13 +39,13 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("/browse-comics/?results=")
 					append(page)
 
 					append("&filter=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("Updated")
 						SortOrder.NEWEST -> append("New")
@@ -59,12 +58,6 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 							append(it.key)
 						}
 					}
-				}
-
-				null -> {
-					append("/browse-comics/?results=")
-					append(page)
-					append("&filter=Updated")
 				}
 			}
 		}

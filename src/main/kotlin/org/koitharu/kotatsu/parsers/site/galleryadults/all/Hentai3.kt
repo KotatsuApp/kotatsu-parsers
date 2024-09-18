@@ -37,24 +37,24 @@ internal class Hentai3(context: MangaLoaderContext) :
 		Locale("pt"),
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search?q=")
 						append(buildQuery(filter.tags, filter.locale))
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("&sort=popular")
 						}
 						append("&page=")
@@ -64,7 +64,7 @@ internal class Hentai3(context: MangaLoaderContext) :
 						append(filter.locale.toLanguagePath())
 						append("/")
 						append(page.toString())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("?sort=popular")
 						}
 					} else if (filter.tags.isNotEmpty()) {
@@ -74,18 +74,13 @@ internal class Hentai3(context: MangaLoaderContext) :
 						}
 						append("/")
 						append(page.toString())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("?sort=popular")
 						}
 					} else {
 						append("/")
 						append(page)
 					}
-				}
-
-				null -> {
-					append("/")
-					append(page)
 				}
 			}
 		}

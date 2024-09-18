@@ -22,12 +22,12 @@ internal class HentaiFox(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/?q=")
 					append(filter.query.urlEncoded())
 					if (page > 1) {
@@ -36,7 +36,7 @@ internal class HentaiFox(context: MangaLoaderContext) :
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search/?q=")
 						append(buildQuery(filter.tags, filter.locale))
@@ -45,7 +45,7 @@ internal class HentaiFox(context: MangaLoaderContext) :
 							append(page.toString())
 						}
 
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("&sort=popular")
 						}
 					} else if (filter.tags.isNotEmpty()) {
@@ -54,7 +54,7 @@ internal class HentaiFox(context: MangaLoaderContext) :
 							append(it.key)
 						}
 						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 
@@ -67,7 +67,7 @@ internal class HentaiFox(context: MangaLoaderContext) :
 						append("/language/")
 						append(filter.locale.toLanguagePath())
 						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 
@@ -86,18 +86,6 @@ internal class HentaiFox(context: MangaLoaderContext) :
 							append(page.toString())
 							append("/")
 						}
-					}
-				}
-
-				null -> {
-					if (page > 2) {
-						append("/pag/")
-						append(page.toString())
-						append("/")
-					} else if (page > 1) {
-						append("/page/")
-						append(page.toString())
-						append("/")
 					}
 				}
 			}

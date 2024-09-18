@@ -24,20 +24,19 @@ internal class PixHentai(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page)
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("/genre/")
@@ -45,12 +44,6 @@ internal class PixHentai(context: MangaLoaderContext) :
 						append('/')
 					}
 
-					append("/page/")
-					append(page)
-					append('/')
-				}
-
-				null -> {
 					append("/page/")
 					append(page)
 					append('/')

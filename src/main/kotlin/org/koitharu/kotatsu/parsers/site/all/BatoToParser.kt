@@ -60,11 +60,39 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.POPULARITY_HOUR,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override val isTagsExclusionSupported: Boolean = true
-
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE)
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = EnumSet.of(ContentRating.SAFE),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = setOf(
+			Locale.CHINESE, Locale.ENGLISH, Locale.US, Locale.FRENCH, Locale.GERMAN, Locale.ITALIAN, Locale.JAPANESE,
+			Locale("af"), Locale("ar"), Locale("az"), Locale("eu"), Locale("be"),
+			Locale("bn"), Locale("bs"), Locale("bg"), Locale("my"), Locale("km"),
+			Locale("ceb"), Locale("zh_hk"), Locale("zh_tw"), Locale("hr"), Locale("cs"),
+			Locale("da"), Locale("nl"), Locale("eo"), Locale("et"), Locale("fil"),
+			Locale("fi"), Locale("ka"), Locale("el"), Locale("ht"), Locale("he"),
+			Locale("hi"), Locale("hu"), Locale("id"), Locale("kk"), Locale("ko"),
+			Locale("lv"), Locale("ms"), Locale("ml"), Locale("mo"), Locale("mn"),
+			Locale("ne"), Locale("no"), Locale("fa"), Locale("pl"), Locale("pt"),
+			Locale("pt_br"), Locale("pt_pt"), Locale("ro"), Locale("ru"), Locale("sr"),
+			Locale("si"), Locale("sk"), Locale("es"), Locale("es_419"), Locale("ta"),
+			Locale("te"), Locale("th"), Locale("ti"), Locale("tr"), Locale("uk"),
+			Locale("vi"), Locale("zu"),
+		),
+	)
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"bato.to",
@@ -94,21 +122,20 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		"zbato.org",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				return search(page, filter.query)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				val url = buildString {
 					append("https://")
 					append(domain)
 
 					append("/browse?sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> append("update.za")
 						SortOrder.POPULARITY -> append("views_a.za")
 						SortOrder.NEWEST -> append("create.za")
@@ -169,17 +196,6 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 					append(page.toString())
 				}
 
-				return parseList(url, page)
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/browse?sort=update.za")
-					append("&page=")
-					append(page.toString())
-				}
 				return parseList(url, page)
 			}
 		}
@@ -252,7 +268,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		throw ParseException("Cannot find images list", fullUrl)
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val scripts = webClient.httpGet(
 			"https://${domain}/browse",
 		).parseHtml().selectOrThrow("script")
@@ -272,22 +288,6 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 		throw ParseException("Cannot find gernes list", scripts[0].baseUri())
 	}
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.CHINESE, Locale.ENGLISH, Locale.US, Locale.FRENCH, Locale.GERMAN, Locale.ITALIAN, Locale.JAPANESE,
-		Locale("af"), Locale("ar"), Locale("az"), Locale("eu"), Locale("be"),
-		Locale("bn"), Locale("bs"), Locale("bg"), Locale("my"), Locale("km"),
-		Locale("ceb"), Locale("zh_hk"), Locale("zh_tw"), Locale("hr"), Locale("cs"),
-		Locale("da"), Locale("nl"), Locale("eo"), Locale("et"), Locale("fil"),
-		Locale("fi"), Locale("ka"), Locale("el"), Locale("ht"), Locale("he"),
-		Locale("hi"), Locale("hu"), Locale("id"), Locale("kk"), Locale("ko"),
-		Locale("lv"), Locale("ms"), Locale("ml"), Locale("mo"), Locale("mn"),
-		Locale("ne"), Locale("no"), Locale("fa"), Locale("pl"), Locale("pt"),
-		Locale("pt_br"), Locale("pt_pt"), Locale("ro"), Locale("ru"), Locale("sr"),
-		Locale("si"), Locale("sk"), Locale("es"), Locale("es_419"), Locale("ta"),
-		Locale("te"), Locale("th"), Locale("ti"), Locale("tr"), Locale("uk"),
-		Locale("vi"), Locale("zu"),
-	)
 
 	private suspend fun search(page: Int, query: String): List<Manga> {
 		val url = buildString {

@@ -27,10 +27,9 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {
 					return emptyList()
 				}
@@ -42,7 +41,7 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 				)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				if (filter.tags.isNotEmpty()) {
 					filter.tags.oneOrThrowIfMany()?.let {
@@ -69,19 +68,6 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
 
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/seriler")
-					if (page > 1) {
-						append("/")
-						append(page)
-					}
-				}
-				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 		}
 

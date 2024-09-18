@@ -33,8 +33,7 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 	override val isMultipleTagsSupported = false
 	override val isSearchSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -45,13 +44,13 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 				append(page.toString())
 			}
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/genero/")
@@ -61,7 +60,7 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 
 					append("/?orderby=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> "modified&order=desc"
 							SortOrder.UPDATED_ASC -> "modified&order=asc"
 							SortOrder.POPULARITY -> "views&order=desc"
@@ -74,8 +73,6 @@ class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 						},
 					)
 				}
-
-				null -> append("/?orderby=modified&order=desc")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()

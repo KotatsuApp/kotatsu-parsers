@@ -32,9 +32,9 @@ internal class DynastyScans(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				val url = buildString {
 					append("https://")
 					append(domain)
@@ -47,7 +47,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 				return parseMangaListQuery(webClient.httpGet(url).parseHtml())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				val url = buildString {
 					append("https://")
@@ -64,16 +64,6 @@ internal class DynastyScans(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-				return parseMangaList(webClient.httpGet(url).parseHtml())
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/series?view=cover&page=")
 					append(page.toString())
 				}
 				return parseMangaList(webClient.httpGet(url).parseHtml())

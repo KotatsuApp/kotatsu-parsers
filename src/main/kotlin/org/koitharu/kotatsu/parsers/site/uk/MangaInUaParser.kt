@@ -35,21 +35,15 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		Regex("site_login_hash\\s*=\\s*\'([^\']+)\'", RegexOption.IGNORE_CASE)
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = when {
-			!query.isNullOrEmpty() -> ("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=$query&titleonly=3").toAbsoluteUrl(
+			!filter.query.isNullOrEmpty() -> ("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=${filter.query}&titleonly=3").toAbsoluteUrl(
 				domain,
 			)
 
-			tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
-			tags.size == 1 -> "${tags.first().key}/page/$page"
-			tags.size > 1 -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
+			filter.tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
+			filter.tags.size == 1 -> "${filter.tags.first().key}/page/$page"
+			filter.tags.size > 1 -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
 			else -> "/mangas/page/$page".toAbsoluteUrl(domain)
 		}
 		val doc = webClient.httpGet(url).parseHtml()

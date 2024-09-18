@@ -32,20 +32,19 @@ internal class MangaDass(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -62,7 +61,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 					}
 
 					append("orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
@@ -70,13 +69,6 @@ internal class MangaDass(context: MangaLoaderContext) :
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					append("/")
-					append(page.toString())
-					append("?orderby=latest")
 				}
 			}
 		}

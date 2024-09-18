@@ -33,19 +33,36 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		keys.add(userAgentKey)
 	}
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearSupported = true,
+			isYearRangeSupported = true,
+			isSourceLocaleSupported = true,
+		)
+
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
-	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
-
-	override val availableDemographics: Set<Demographic> = EnumSet.allOf(Demographic::class.java)
-
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-	override val isTagsExclusionSupported: Boolean = true
-	override val searchSupportedWithMultipleFilters: Boolean = true
-	override val isSearchYearSupported: Boolean = true
-	override val isSearchOriginalLanguages: Boolean = true
+	override suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
+		val localesDeferred = async { fetchAvailableLocales() }
+		val tagsDeferred = async { fetchAvailableTags() }
+		MangaListFilterOptions(
+			availableTags = tagsDeferred.await(),
+			availableStates = EnumSet.of(
+				MangaState.ONGOING,
+				MangaState.FINISHED,
+				MangaState.PAUSED,
+				MangaState.ABANDONED,
+			),
+			availableContentRating = EnumSet.allOf(ContentRating::class.java),
+			availableContentTypes = emptySet(),
+			availableDemographics = EnumSet.allOf(Demographic::class.java),
+			availableLocales = localesDeferred.await(),
+		)
+	}
 
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val domain = domain
@@ -231,7 +248,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://api.${domain}/manga/tag").parseJson()
 			.getJSONArray("data")
 		return tags.mapJSONToSet { jo ->
@@ -245,7 +262,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun getAvailableLocales(): Set<Locale> {
+	private suspend fun fetchAvailableLocales(): Set<Locale> {
 		val head = webClient.httpGet("https://$domain/").parseHtml().head()
 		return head.getElementsByAttributeValue("property", "og:locale:alternate")
 			.mapNotNullToSet { meta ->

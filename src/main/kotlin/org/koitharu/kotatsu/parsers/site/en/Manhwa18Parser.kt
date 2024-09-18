@@ -48,21 +48,20 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/tim-kiem?page=")
 			append(page.toString())
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("&accept_genres=")
 					if (filter.tags.isNotEmpty()) {
@@ -80,7 +79,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 
 					append("&sort=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "az"
 							SortOrder.ALPHABETICAL_DESC -> "za"
 							SortOrder.POPULARITY -> "top"
@@ -103,8 +102,6 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> append("&sort=update")
 			}
 		}
 

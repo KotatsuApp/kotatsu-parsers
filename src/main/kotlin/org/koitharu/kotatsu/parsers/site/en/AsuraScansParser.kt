@@ -25,31 +25,47 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-
 	override val configKeyDomain = ConfigKey.Domain("asuracomic.net")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = true
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/series?page=")
 			append(page)
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&name=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						append("&genres=")
@@ -70,7 +86,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 					}
 
 					append("&types=-1&order=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.RATING -> append("rating")
 						SortOrder.UPDATED -> append("update")
 						SortOrder.NEWEST -> append("latest")
@@ -79,8 +95,6 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 						else -> append("update")
 					}
 				}
-
-				null -> append("&genres=&status=-1&order=update&types=-1")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -112,10 +126,6 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

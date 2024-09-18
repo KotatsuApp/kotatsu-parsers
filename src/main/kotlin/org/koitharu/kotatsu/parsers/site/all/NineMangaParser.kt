@@ -40,12 +40,28 @@ internal abstract class NineMangaParser(
 		SortOrder.POPULARITY,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(
-		MangaState.ONGOING,
-		MangaState.FINISHED,
-	)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override val isTagsExclusionSupported: Boolean = true
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+		),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
@@ -57,12 +73,12 @@ internal abstract class NineMangaParser(
 		return chain.proceed(newRequest)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/?name_sel=&wd=")
 					append(filter.query.urlEncoded())
 					append("&page=")
@@ -70,7 +86,7 @@ internal abstract class NineMangaParser(
 					append(".html")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty() || filter.tagsExclude.isNotEmpty() || filter.states.isNotEmpty()) {
 						append("/search/?category_id=")
@@ -92,12 +108,6 @@ internal abstract class NineMangaParser(
 						append("/category/index_")
 					}
 					append(page.toString())
-					append(".html")
-				}
-
-				null -> {
-					append("/category/index_")
-					append(page)
 					append(".html")
 				}
 			}
@@ -183,10 +193,6 @@ internal abstract class NineMangaParser(
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

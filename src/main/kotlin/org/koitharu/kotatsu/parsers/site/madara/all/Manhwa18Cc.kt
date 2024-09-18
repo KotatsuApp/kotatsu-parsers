@@ -32,20 +32,20 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> get() = emptySet()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -60,17 +60,13 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 					}
 
 					append("?orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("trending")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("?s&post_type=wp-manga&m_orderby=latest")
 				}
 			}
 		}

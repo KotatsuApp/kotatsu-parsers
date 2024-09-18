@@ -24,20 +24,20 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search-comic?keyword=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -63,7 +63,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 						append(listUrl)
 					}
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("/popular")
 						SortOrder.UPDATED -> append("/latest")
 						SortOrder.NEWEST -> append("/newest")
@@ -71,12 +71,6 @@ internal class XoxoComics(context: MangaLoaderContext) :
 						else -> append("/latest")
 					}
 					append("?page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("/?page=")
 					append(page.toString())
 				}
 			}
@@ -102,7 +96,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("div.genres ul li:not(.active)").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

@@ -32,10 +32,9 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	private val tagsMap = SuspendLazy(::parseTags)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) return emptyList()
 				val url = buildString {
 					append("https://")
@@ -46,7 +45,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				return parseMangaListSearch(webClient.httpGet(url).parseHtml())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val url = buildString {
 					append("https://")
 					append(domain)
@@ -80,16 +79,6 @@ internal class Baozimh(context: MangaLoaderContext) :
 					append(page.toString())
 				}
 
-				return parseMangaList(webClient.httpGet(url).parseJson().getJSONArray("items"))
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/api/bzmhq/amp_comic_list?filter=*&region=all&type=all&state=all&limit=36&page=")
-					append(page.toString())
-				}
 				return parseMangaList(webClient.httpGet(url).parseJson().getJSONArray("items"))
 			}
 		}

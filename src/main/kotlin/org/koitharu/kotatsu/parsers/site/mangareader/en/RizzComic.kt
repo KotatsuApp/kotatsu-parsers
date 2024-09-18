@@ -55,14 +55,14 @@ internal class RizzComic(context: MangaLoaderContext) :
 		return randomPartRegex.find(slug)?.groupValues?.get(1) ?: ""
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}
 		var url = "https://$domain$filterUrl"
 
-		val payload = when (filter) {
-			is MangaListFilter.Search -> {
+		val payload = when {
+			!filter.query.isNullOrEmpty() -> {
 				url = "https://$domain$searchUrl"
 				if (filter.query != "") {
 					FormBody.Builder()
@@ -73,7 +73,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				}
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val state = filter.states.oneOrThrowIfMany()?.toPayloadValue() ?: "all"
 
 				val genres = filter.tags.map { it.key }
@@ -81,20 +81,12 @@ internal class RizzComic(context: MangaLoaderContext) :
 				val formBuilder = FormBody.Builder()
 					.add("StatusValue", state)
 					.add("TypeValue", "all")
-					.add("OrderValue", filter.sortOrder.toPayloadValue())
+					.add("OrderValue", order.toPayloadValue())
 
 				genres.forEach { genre ->
 					formBuilder.add("genres_checked[]", genre)
 				}
 				formBuilder.build()
-			}
-
-			else -> {
-				FormBody.Builder()
-					.add("StatusValue", "all")
-					.add("TypeValue", "all")
-					.add("OrderValue", "all")
-					.build()
 			}
 		}
 		val request = Request.Builder()

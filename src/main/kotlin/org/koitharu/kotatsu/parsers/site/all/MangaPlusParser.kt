@@ -9,8 +9,8 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -24,7 +24,7 @@ internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val sourceLang: String,
-) : MangaParser(context, source), Interceptor {
+) : SinglePageMangaParser(context, source), Interceptor {
 
 	private val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
@@ -45,22 +45,17 @@ internal abstract class MangaPlusParser(
 	// no tags or tag search available
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
-
-		return when (filter) {
-			is MangaListFilter.Advanced -> {
-				when (filter.sortOrder) {
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+		return when {
+			filter.query.isNullOrEmpty() -> {
+				when (order) {
 					SortOrder.POPULARITY -> getPopularList()
 					SortOrder.UPDATED -> getLatestList()
 					else -> getAllTitleList()
 				}
 			}
 
-			is MangaListFilter.Search -> getAllTitleList(filter.query)
-			else -> getAllTitleList()
+			else -> getAllTitleList(filter.query)
 		}
 	}
 

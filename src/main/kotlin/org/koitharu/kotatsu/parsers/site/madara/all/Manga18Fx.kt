@@ -29,20 +29,19 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 
 	override val availableStates: Set<MangaState> get() = emptySet()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -57,13 +56,6 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 							append("/page/")
 							append(page)
 						}
-					}
-				}
-
-				null -> {
-					if (page > 1) {
-						append("/page/")
-						append(page)
 					}
 				}
 			}

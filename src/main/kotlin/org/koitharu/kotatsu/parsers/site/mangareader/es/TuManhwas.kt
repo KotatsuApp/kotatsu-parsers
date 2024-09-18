@@ -22,28 +22,25 @@ internal class TuManhwas(context: MangaLoaderContext) :
 
 	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("?page=")
 			append(page.toString())
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&search=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&genero=")
 						append(it.key)
 					}
 				}
-
-				null -> {}
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())

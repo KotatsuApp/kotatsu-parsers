@@ -33,14 +33,14 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					val skey = "filter[name]=".urlEncoded()
 					append("/tim-kiem?$skey")
 					append(filter.query.urlEncoded())
@@ -48,7 +48,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/the-loai/")
@@ -74,7 +74,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					}
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("-views")
 						SortOrder.UPDATED -> append("-updated_at")
 						SortOrder.NEWEST -> append("-created_at")
@@ -82,11 +82,6 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 						SortOrder.ALPHABETICAL_DESC -> append("-name")
 						else -> append("-updated_at")
 					}
-				}
-
-				null -> {
-					append("/danh-sach?sort=-updated_at&page=")
-					append(page.toString())
 				}
 			}
 

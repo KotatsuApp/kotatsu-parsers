@@ -33,7 +33,6 @@ internal class ExHentaiParser(
 ) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
-	override val isTagsExclusionSupported: Boolean = true
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain(
@@ -50,6 +49,17 @@ internal class ExHentaiParser(
 	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
 	private val tagsMap = SuspendLazy(::fetchTags)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
 	override val isAuthorized: Boolean
 		get() {
@@ -75,7 +85,32 @@ internal class ExHentaiParser(
 		searchPaginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tagsMap.get().values.toSet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = setOf(
+			Locale.JAPANESE,
+			Locale.ENGLISH,
+			Locale.CHINESE,
+			Locale("nl"),
+			Locale.FRENCH,
+			Locale.GERMAN,
+			Locale("hu"),
+			Locale.ITALIAN,
+			Locale("kr"),
+			Locale("pl"),
+			Locale("pt"),
+			Locale("ru"),
+			Locale("es"),
+			Locale("th"),
+			Locale("vi"),
+		),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val next = nextPages.get(page, 0L)
 
 		if (page > 0 && next == 0L) {
@@ -90,15 +125,15 @@ internal class ExHentaiParser(
 			append(domain)
 			append("/?next=")
 			append(next)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					search += filter.query.urlEncoded()
 					append("&f_search=")
 					append(search.trim().replace(' ', '+'))
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.toSearchQuery()?.let { sq ->
 						append("&f_search=")
@@ -121,8 +156,6 @@ internal class ExHentaiParser(
 						append(fCats)
 					}
 				}
-
-				null -> {}
 			}
 			// by unknown reason cookie "sl=dm_2" is ignored, so, we should request it again
 			if (updateDm) {
@@ -141,7 +174,7 @@ internal class ExHentaiParser(
 				body.parseFailed("Cannot find root")
 			} else {
 				updateDm = true
-				return getListPage(page, filter)
+				return getListPage(page, order, filter)
 			}
 		updateDm = false
 		nextPages[page + 1] = getNextTimestamp(body)
@@ -267,10 +300,6 @@ internal class ExHentaiParser(
 			"unusual pupils,urination,vore,vtuber,widow,wings,witch,wolf girl,x-ray,yuri,zombie,sole male,males only,yaoi," +
 			"tomgirl,tall man,oni,shotacon,prostate massage,policeman,males only,huge penis,fox boy,feminization,dog boy,dickgirl on male,big penis"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tagsMap.get().values.toSet()
-	}
-
 	private suspend fun fetchTags(): Map<String, MangaTag> {
 		val tagMap = ArrayMap<String, MangaTag>()
 		val tagElements = tags.split(",")
@@ -296,24 +325,6 @@ internal class ExHentaiParser(
 		}
 		return tagMap
 	}
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.JAPANESE,
-		Locale.ENGLISH,
-		Locale.CHINESE,
-		Locale("nl"),
-		Locale.FRENCH,
-		Locale.GERMAN,
-		Locale("hu"),
-		Locale.ITALIAN,
-		Locale("kr"),
-		Locale("pl"),
-		Locale("pt"),
-		Locale("ru"),
-		Locale("es"),
-		Locale("th"),
-		Locale("vi"),
-	)
 
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
@@ -420,7 +431,7 @@ internal class ExHentaiParser(
 			?.toLongOrNull() ?: 1
 	}
 
-	private fun MangaListFilter.Advanced.toSearchQuery(): String? {
+	private fun MangaListFilterV2.toSearchQuery(): String? {
 		val joiner = StringUtil.StringJoiner(" ")
 		for (tag in tags) {
 			if (tag.key.isNumeric()) {

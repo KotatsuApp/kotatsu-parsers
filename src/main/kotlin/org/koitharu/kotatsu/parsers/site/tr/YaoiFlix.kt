@@ -21,14 +21,32 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						append("/page/")
 						append(page.toString())
@@ -37,7 +55,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/dizi-kategori/")
@@ -56,15 +74,6 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 							append(page.toString())
 							append('/')
 						}
-					}
-				}
-
-				null -> {
-					append("/tum-seriler/")
-					if (page > 1) {
-						append("page/")
-						append(page.toString())
-						append('/')
 					}
 				}
 			}
@@ -91,7 +100,7 @@ class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaPar
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select(".tags .cat-item a").mapNotNullToSet { a ->
 			MangaTag(

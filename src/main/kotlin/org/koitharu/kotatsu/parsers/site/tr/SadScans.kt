@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.tr
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -10,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("SADSCANS", "SadScans", "tr")
-internal class SadScans(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.SADSCANS) {
+internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.SADSCANS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("sadscans.com")
@@ -20,23 +21,14 @@ internal class SadScans(context: MangaLoaderContext) : MangaParser(context, Mang
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
-
+	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/series")
-			when (filter) {
-				is MangaListFilter.Search -> {
-					append("?search=")
-					append(filter.query.urlEncoded())
-				}
-
-				is MangaListFilter.Advanced -> {}
-				null -> {}
+			if (!filter.query.isNullOrEmpty()) {
+				append("?search=")
+				append(filter.query.urlEncoded())
 			}
 		}
 

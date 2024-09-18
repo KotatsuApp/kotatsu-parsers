@@ -29,19 +29,19 @@ internal class Pururin(context: MangaLoaderContext) :
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("/browse")
 
 					filter.tags.oneOrThrowIfMany()?.let {
@@ -54,18 +54,13 @@ internal class Pururin(context: MangaLoaderContext) :
 					append(page)
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> append("")
 						SortOrder.POPULARITY -> append("most-viewed")
 						SortOrder.RATING -> append("highest-rated")
 						SortOrder.ALPHABETICAL -> append("title")
 						else -> append("")
 					}
-				}
-
-				null -> {
-					append("/browse?page=")
-					append(page)
 				}
 			}
 		}

@@ -25,8 +25,6 @@ internal abstract class AnimeBootstrapParser(
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -37,13 +35,32 @@ internal abstract class AnimeBootstrapParser(
 	protected open val listUrl = "/manga"
 	protected open val datePattern = "dd MMM. yyyy"
 
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+			isYearSupported = false,
+			isYearRangeSupported = false,
+			isSourceLocaleSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -52,13 +69,13 @@ internal abstract class AnimeBootstrapParser(
 			append(page.toString())
 			append("&type=all")
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&search=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&categorie=")
@@ -66,7 +83,7 @@ internal abstract class AnimeBootstrapParser(
 					}
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("view")
 						SortOrder.UPDATED -> append("updated")
 						SortOrder.ALPHABETICAL -> append("default")
@@ -75,8 +92,6 @@ internal abstract class AnimeBootstrapParser(
 					}
 
 				}
-
-				null -> append("&sort=updated")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -100,7 +115,7 @@ internal abstract class AnimeBootstrapParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("div.product__page__filter div:contains(Genre:) option ").mapNotNullToSet { option ->
 			val key = option.attr("value") ?: return@mapNotNullToSet null

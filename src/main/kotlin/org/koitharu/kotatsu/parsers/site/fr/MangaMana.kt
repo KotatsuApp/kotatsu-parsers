@@ -44,13 +44,12 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val isMultipleTagsSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val postData = buildString {
 			append("page=")
 			append(page)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						return emptyList()
 					}
@@ -88,9 +87,9 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
-					if (filter.sortOrder == SortOrder.UPDATED) {
+					if (order == SortOrder.UPDATED) {
 
 						if (filter.tags.isNotEmpty() or filter.states.isNotEmpty()) {
 							throw IllegalArgumentException("Le filtrage par « tri par : mis à jour » avec les genres ou les statuts n'est pas pris en charge par cette source.")
@@ -140,7 +139,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						}
 
 						append("&sort_by=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.RATING -> append("score&sort_dir=desc")
 							SortOrder.NEWEST -> append("updated_at&sort_dir=desc")
 							SortOrder.ALPHABETICAL -> append("name&sort_dir=asc")
@@ -149,8 +148,6 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						}
 					}
 				}
-
-				null -> append("&sort_by=updated_at&sort_dir=desc")
 			}
 		}
 
