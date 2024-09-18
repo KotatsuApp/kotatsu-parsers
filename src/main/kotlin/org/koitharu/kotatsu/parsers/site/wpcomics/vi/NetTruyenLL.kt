@@ -14,7 +14,9 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("NETTRUYENLL", "NetTruyenLL", "vi")
 internal class NetTruyenLL(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENLL, "nettruyenll.com", 20) {
