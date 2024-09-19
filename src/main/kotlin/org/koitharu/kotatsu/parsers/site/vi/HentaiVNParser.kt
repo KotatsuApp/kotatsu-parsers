@@ -21,7 +21,7 @@ private const val SEARCH_PAGE_SIZE = 10
 @MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
 internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIVN) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiayame.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiayame.net")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
