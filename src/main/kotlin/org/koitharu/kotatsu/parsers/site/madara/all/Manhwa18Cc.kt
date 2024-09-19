@@ -15,17 +15,10 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 	override val listUrl = "webtoons/"
 	override val tagPrefix = "webtoon-genre/"
 	override val withoutAjax = true
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectTestAsync = "ul.row-content-chapter"
 	override val selectDate = "span.chapter-time"
 	override val selectChapter = "li.a-h"
 	override val selectBodyPage = "div.read-content"
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
 
 	init {
 		paginator.firstPage = 1

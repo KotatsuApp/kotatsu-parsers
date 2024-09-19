@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @Broken
 @MangaSourceParser("SAYTRUYENHAY", "PheTruyen", "vi")
@@ -18,13 +17,6 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
 	override val listUrl = "public/genre/manga/"
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.RATING, SortOrder.NEWEST)
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
 
 	init {
 		paginator.firstPage = 1

@@ -27,10 +27,18 @@ internal abstract class MadaraParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	// Change these values only if the site does not support manga listings via ajax
+	protected open val withoutAjax = false
+
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = true,
+			isTagsExclusionSupported = !withoutAjax,
 			isSearchSupported = true,
 		)
 
@@ -40,9 +48,27 @@ internal abstract class MadaraParser(
 		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
 	)
 
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
+	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
+
+	private fun setupAvailableSortOrders(): Set<SortOrder> {
+		return if(!withoutAjax)
+		{
+			EnumSet.of(
+				SortOrder.UPDATED,
+				SortOrder.UPDATED_ASC,
+				SortOrder.POPULARITY,
+				SortOrder.POPULARITY_ASC,
+				SortOrder.NEWEST,
+				SortOrder.NEWEST_ASC,
+				SortOrder.ALPHABETICAL,
+				SortOrder.ALPHABETICAL_DESC,
+				SortOrder.RATING,
+				SortOrder.RATING_ASC,
+			)
+		}else
+		{
+			EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
+		}
 	}
 
 	override val authUrl: String
@@ -66,19 +92,6 @@ internal abstract class MadaraParser(
 				}
 			}
 	}
-
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.UPDATED_ASC,
-		SortOrder.POPULARITY,
-		SortOrder.POPULARITY_ASC,
-		SortOrder.NEWEST,
-		SortOrder.NEWEST_ASC,
-		SortOrder.ALPHABETICAL,
-		SortOrder.ALPHABETICAL_DESC,
-		SortOrder.RATING,
-		SortOrder.RATING_ASC,
-	)
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -194,9 +207,6 @@ internal abstract class MadaraParser(
 		"prochainement",
 		"à venir",
 	)
-
-	// Change these values only if the site does not support manga listings via ajax
-	protected open val withoutAjax = false
 
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"

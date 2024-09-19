@@ -19,11 +19,6 @@ internal class ManhwaHub(context: MangaLoaderContext) :
 	override val selectTestAsync = "ul.box-list-chapter"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1

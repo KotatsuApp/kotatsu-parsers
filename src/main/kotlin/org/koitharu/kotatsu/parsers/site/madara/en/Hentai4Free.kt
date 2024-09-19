@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en", ContentType.HENTAI)
 internal class Hentai4Free(context: MangaLoaderContext) :
@@ -15,13 +14,6 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 	override val tagPrefix = "hentai-tag/"
 	override val listUrl = ""
 	override val withoutAjax = true
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectGenre = "div.tags-content a"
 

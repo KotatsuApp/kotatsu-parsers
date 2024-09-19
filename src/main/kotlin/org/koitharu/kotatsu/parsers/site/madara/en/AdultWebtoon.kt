@@ -12,7 +12,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 @MangaSourceParser("ADULT_WEBTOON", "AdultWebtoon", "en", ContentType.HENTAI)
 internal class AdultWebtoon(context: MangaLoaderContext) :
@@ -21,13 +20,6 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
     override val listUrl = "adult-webtoon/"
     override val postReq = true
     override val withoutAjax = true
-    override val availableSortOrders: Set<SortOrder> =
-        EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
-
-    override val filterCapabilities: MangaListFilterCapabilities
-        get() = super.filterCapabilities.copy(
-            isTagsExclusionSupported = false,
-        )
 
     override suspend fun getFilterOptions() = super.getFilterOptions().copy(
         availableStates = emptySet(),

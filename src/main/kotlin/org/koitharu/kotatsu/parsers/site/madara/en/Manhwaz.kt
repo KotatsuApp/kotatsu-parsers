@@ -5,7 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("MANHWAZ", "ManhwaZ", "en")
 internal class Manhwaz(context: MangaLoaderContext) :
@@ -15,18 +14,6 @@ internal class Manhwaz(context: MangaLoaderContext) :
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
 	override val selectTestAsync = "div.list-chapter"
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
-
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.POPULARITY,
-		SortOrder.NEWEST,
-		SortOrder.RATING,
-	)
 
 	init {
 		paginator.firstPage = 1

@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("TMOMANGA", "TmoManga", "es")
 internal class TmoManga(context: MangaLoaderContext) :
@@ -16,12 +15,6 @@ internal class TmoManga(context: MangaLoaderContext) :
 	override val listUrl = "biblioteca/"
 	override val selectGenre = "div.summary-content a.tags_manga"
 	override val withoutAjax = true
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-		)
 
 	init {
 		paginator.firstPage = 1
