@@ -36,10 +36,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -53,7 +50,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val postData = buildString {
 			append("page=")
 			append(page)

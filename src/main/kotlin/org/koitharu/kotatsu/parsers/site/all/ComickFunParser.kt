@@ -41,10 +41,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
 			isYearRangeSupported = true,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -61,7 +58,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		availableLocales = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val url = urlBuilder()
 			.host("api.$domain")

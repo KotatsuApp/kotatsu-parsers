@@ -35,19 +35,14 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = when {
 			!filter.query.isNullOrEmpty() -> ("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=${filter.query}&titleonly=3").toAbsoluteUrl(
 				domain,

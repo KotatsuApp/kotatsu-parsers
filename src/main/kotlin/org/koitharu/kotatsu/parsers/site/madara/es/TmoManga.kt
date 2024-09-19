@@ -33,7 +33,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

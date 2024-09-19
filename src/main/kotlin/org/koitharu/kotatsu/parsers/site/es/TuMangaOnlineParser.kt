@@ -41,18 +41,15 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
 		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

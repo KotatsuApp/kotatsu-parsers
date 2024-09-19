@@ -48,16 +48,11 @@ internal abstract class MangaReaderParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
-		availableContentRating = emptySet(),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
@@ -65,8 +60,6 @@ internal abstract class MangaReaderParser(
 			ContentType.COMICS,
 			ContentType.NOVEL,
 		),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	protected open val listUrl = "/manga"
@@ -76,7 +69,7 @@ internal abstract class MangaReaderParser(
 	protected var tagCache: ArrayMap<String, MangaTag>? = null
 	protected val mutex = Mutex()
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

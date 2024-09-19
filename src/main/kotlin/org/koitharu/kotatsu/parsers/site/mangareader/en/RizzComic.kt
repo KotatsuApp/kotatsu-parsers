@@ -63,7 +63,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}

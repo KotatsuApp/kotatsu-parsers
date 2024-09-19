@@ -47,7 +47,6 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -56,7 +55,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder()
 			.host(domain)
 			.addPathSegment("manga_list")

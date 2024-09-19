@@ -27,12 +27,7 @@ internal class AComics(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	init {
@@ -44,16 +39,12 @@ internal class AComics(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override suspend fun getListPage(
 		page: Int,
 		order: SortOrder,
-		filter: MangaListFilterV2,
+		filter: MangaListFilter,
 	): List<Manga> {
 		val url = buildString {
 			append("https://")

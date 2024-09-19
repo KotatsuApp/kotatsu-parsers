@@ -22,16 +22,11 @@ internal abstract class OtakuSanctuaryParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -59,7 +54,7 @@ internal abstract class OtakuSanctuaryParser(
 		"Done",
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val doc = when {
 			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {

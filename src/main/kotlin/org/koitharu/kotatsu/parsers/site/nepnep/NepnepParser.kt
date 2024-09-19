@@ -42,13 +42,11 @@ internal abstract class NepnepParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
-		availableContentRating = emptySet(),
 	)
 
 	data class MangaWithLastUpdate(
@@ -57,7 +55,7 @@ internal abstract class NepnepParser(
 		val views: String,
 	)
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val doc = searchDoc.get()
 		val json = JSONArray(
 			doc.selectFirstOrThrow("script:containsData(MainFunction)").data()

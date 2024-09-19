@@ -27,19 +27,14 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
 			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {

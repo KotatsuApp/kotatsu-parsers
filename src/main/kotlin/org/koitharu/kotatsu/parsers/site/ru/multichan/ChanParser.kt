@@ -34,16 +34,13 @@ internal abstract class ChanParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val doc = webClient.httpGet(buildUrl(offset, order, filter)).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
@@ -191,7 +188,7 @@ internal abstract class ChanParser(
 	protected open fun buildUrl(
 		offset: Int,
 		order: SortOrder,
-		filter: MangaListFilterV2,
+		filter: MangaListFilter,
 	): HttpUrl {
 		val builder = urlBuilder()
 		builder.addQueryParameter("offset", offset.toString())

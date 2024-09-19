@@ -6,7 +6,7 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilterV2
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.SortOrder
 
 class RelatedMangaFinder(
@@ -36,7 +36,7 @@ class RelatedMangaFinder(
 		}
 		val results = words.map { keyword ->
 			scope.async {
-				val result = parser.getList(0, SortOrder.RELEVANCE, MangaListFilterV2(query = keyword))
+				val result = parser.getList(0, SortOrder.RELEVANCE, MangaListFilter(query = keyword))
 				result.filter { it.id != seed.id && it.containKeyword(keyword) }
 			}
 		}.awaitAll()

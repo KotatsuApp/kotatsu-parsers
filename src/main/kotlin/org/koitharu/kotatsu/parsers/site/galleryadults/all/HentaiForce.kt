@@ -53,7 +53,7 @@ internal class HentaiForce(context: MangaLoaderContext) :
 		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

@@ -35,7 +35,7 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response =
 			when {
 				!filter.query.isNullOrEmpty() -> {

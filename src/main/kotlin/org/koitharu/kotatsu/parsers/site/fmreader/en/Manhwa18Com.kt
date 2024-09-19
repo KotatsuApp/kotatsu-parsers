@@ -22,7 +22,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 	override val selectPage = "div#chapter-content img"
 	override val selectBodyTag = "div.advanced-wrapper .genre_label"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

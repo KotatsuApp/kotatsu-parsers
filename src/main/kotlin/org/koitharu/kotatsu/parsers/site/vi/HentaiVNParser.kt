@@ -38,18 +38,14 @@ internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {
 			!filter.query.isNullOrEmpty() -> {
 				val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1

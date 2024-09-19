@@ -32,19 +32,12 @@ internal abstract class MadaraParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
 		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -208,7 +201,7 @@ internal abstract class MadaraParser(
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (withoutAjax) {
 			val pages = page + 1
 

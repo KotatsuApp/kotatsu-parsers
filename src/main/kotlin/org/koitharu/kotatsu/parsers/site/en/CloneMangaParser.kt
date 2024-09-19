@@ -20,24 +20,17 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-	)
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (!filter.query.isNullOrEmpty()) {
 			return emptyList()
 		}

@@ -28,15 +28,12 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-		availableContentRating = emptySet(),
 	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
@@ -44,7 +41,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 		.add("Referer", "https://$domain/")
 		.build()
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
 			addPathSegment("manga")
 			addPathSegment("page")

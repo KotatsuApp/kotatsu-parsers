@@ -25,16 +25,11 @@ internal abstract class LineWebtoonsParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	private val signer by lazy {
@@ -147,7 +142,7 @@ internal abstract class LineWebtoonsParser(
 			}
 	}
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val manga = when {
 			!filter.query.isNullOrEmpty() -> {
 				makeRequest("/lineWebtoon/webtoon/searchChallenge?query=${filter.query.urlEncoded()}&startIndex=${offset + 1}&pageSize=20")

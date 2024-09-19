@@ -69,24 +69,16 @@ internal abstract class GroupleParser(
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
-			isYearSupported = false,
 			isYearRangeSupported = true,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val doc = when {
 			!filter.query.isNullOrEmpty() && filter.tags.isEmpty() -> webClient.httpPost(
@@ -337,7 +329,7 @@ internal abstract class GroupleParser(
 		else -> null
 	}
 
-	private suspend fun advancedSearch(domain: String, filter: MangaListFilterV2): Response {
+	private suspend fun advancedSearch(domain: String, filter: MangaListFilter): Response {
 		val url = "https://$domain/search/advanced"
 		// Step 1: map catalog genres names to advanced-search genres ids
 		val tagsIndex =

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
@@ -32,7 +32,7 @@ internal class MangaDna(context: MangaLoaderContext) :
 		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

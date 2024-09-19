@@ -67,21 +67,19 @@ internal abstract class FuzzyDoodleParser(
 	protected open val pausedValue = "haitus"
 	protected open val abandonedValue = "dropped"
 
-    override val filterCapabilities: MangaListFilterCapabilities
-        get() = MangaListFilterCapabilities(
-            isMultipleTagsSupported = true,
-            isTagsExclusionSupported = false,
-            isSearchSupported = true,
-            isSearchWithFiltersSupported = false,
-        )
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
-    override suspend fun getFilterOptions() = MangaListFilterOptions(
-        availableTags = fetchAvailableTags(),
-        availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
-        availableContentRating = emptySet(),
-    )
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+	)
 
-    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
@@ -258,7 +256,7 @@ internal abstract class FuzzyDoodleParser(
 
 	protected open val selectTagsList = "div.mt-1 div.items-center:has(label)"
 
-    private suspend fun fetchAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/manga").parseHtml()
 		return doc.select(selectTagsList).mapNotNullToSet {
 			val key = it.selectFirst("input")?.attr("value") ?: return@mapNotNullToSet null

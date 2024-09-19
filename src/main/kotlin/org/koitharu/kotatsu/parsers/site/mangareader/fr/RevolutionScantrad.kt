@@ -27,7 +27,7 @@ internal class RevolutionScantrad(context: MangaLoaderContext) :
 			isSearchSupported = false,
 		)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (page > 1) {
 			return emptyList()
 		}

@@ -28,15 +28,12 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tagsCache.get().values.toSet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
@@ -45,7 +42,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	private val tagsCache = SuspendLazy(::fetchTags)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (!filter.query.isNullOrEmpty() && page != searchPaginator.firstPage) {
 			return emptyList()
 		}

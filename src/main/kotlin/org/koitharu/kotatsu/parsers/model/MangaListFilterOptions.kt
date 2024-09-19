@@ -8,7 +8,7 @@ public data class MangaListFilterOptions @InternalParsersApi constructor(
 	/**
 	 * Available tags (genres)
 	 */
-	public val availableTags: Set<MangaTag>,
+	public val availableTags: Set<MangaTag> = emptySet(),
 
 	/**
 	 * Supported [MangaState] variants for filtering. May be empty.

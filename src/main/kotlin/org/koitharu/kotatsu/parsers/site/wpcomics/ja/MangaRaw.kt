@@ -14,7 +14,7 @@ internal class MangaRaw(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.MANGARAW, "mangaraw.xyz") {
 	override val listUrl = "/search/manga"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response = when {
 			!filter.query.isNullOrEmpty() -> {
 				val url = buildString {

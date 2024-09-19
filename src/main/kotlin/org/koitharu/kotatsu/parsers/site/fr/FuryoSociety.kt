@@ -25,18 +25,9 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
-			isSearchSupported = false,
-			isSearchWithFiltersSupported = false,
-		)
+		get() = MangaListFilterCapabilities()
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-	)
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -52,7 +43,7 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

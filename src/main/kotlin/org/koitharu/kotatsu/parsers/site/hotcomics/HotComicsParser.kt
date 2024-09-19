@@ -37,31 +37,20 @@ internal abstract class HotComicsParser(
 
 	protected open val isSearchSupported: Boolean = true
 
-	override val filterCapabilities: MangaListFilterCapabilities
+	final override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = isSearchSupported,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.CHROME_DESKTOP)
 		.build()
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (onePage && page > 1) {
 			return emptyList()
 		}

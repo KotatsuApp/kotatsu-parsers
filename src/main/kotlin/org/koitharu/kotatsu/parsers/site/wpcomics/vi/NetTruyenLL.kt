@@ -35,7 +35,7 @@ internal class NetTruyenLL(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response =
 			when {
 				!filter.query.isNullOrEmpty() -> {

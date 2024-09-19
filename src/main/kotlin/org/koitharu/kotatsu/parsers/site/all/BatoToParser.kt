@@ -65,10 +65,6 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -122,7 +118,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		"zbato.org",
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
 			!filter.query.isNullOrEmpty() -> {
 				return search(page, filter.query)

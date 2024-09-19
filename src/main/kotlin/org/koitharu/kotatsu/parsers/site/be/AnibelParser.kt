@@ -28,15 +28,11 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -48,7 +44,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		SortOrder.NEWEST,
 	)
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val filters = when {
 			!filter.query.isNullOrEmpty() -> {
 				return if (offset == 0) {

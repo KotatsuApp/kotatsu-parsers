@@ -6,44 +6,44 @@ public data class MangaListFilterCapabilities @InternalParsersApi constructor(
 
 	/**
 	 * Whether parser supports filtering by more than one tag
-	 * @see [MangaListFilterV2.tags]
+	 * @see [MangaListFilter.tags]
 	 * @see [MangaListFilterOptions.availableTags]
 	 */
-	val isMultipleTagsSupported: Boolean,
+	val isMultipleTagsSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports tagsExclude field in filter
-	 * @see [MangaListFilterV2.tagsExclude]
+	 * @see [MangaListFilter.tagsExclude]
 	 * @see [MangaListFilterOptions.availableTags]
 	 */
-	val isTagsExclusionSupported: Boolean,
+	val isTagsExclusionSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports searching by string query
-	 * @see [MangaListFilterV2.query]
+	 * @see [MangaListFilter.query]
 	 */
-	val isSearchSupported: Boolean,
+	val isSearchSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports searching by string query combined within other filters
 	 */
-	val isSearchWithFiltersSupported: Boolean,
+	val isSearchWithFiltersSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports searching/filtering by year
-	 * @see [MangaListFilterV2.year]
+	 * @see [MangaListFilter.year]
 	 */
 	val isYearSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports searching by year range
-	 * @see [MangaListFilterV2.yearFrom] and [MangaListFilterV2.yearTo]
+	 * @see [MangaListFilter.yearFrom] and [MangaListFilter.yearTo]
 	 */
 	val isYearRangeSupported: Boolean = false,
 
 	/**
 	 * Whether parser supports searching Original Languages
-	 * @see [MangaListFilterV2.originalLocale]
+	 * @see [MangaListFilter.originalLocale]
 	 * @see [MangaListFilterOptions.availableLocales]
 	 */
 	val isOriginalLocaleSupported: Boolean = false,

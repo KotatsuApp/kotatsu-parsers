@@ -36,19 +36,14 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = cacheTags.get().values.toSet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {
 			!filter.query.isNullOrEmpty() -> {
 				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${filter.query.urlEncoded()}&p=$page"

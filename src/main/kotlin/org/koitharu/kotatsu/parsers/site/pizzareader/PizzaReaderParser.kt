@@ -34,11 +34,9 @@ internal abstract class PizzaReaderParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
 	)
@@ -80,7 +78,7 @@ internal abstract class PizzaReaderParser(
 	protected open val hiatusFilter = "in pausa"
 	protected open val abandonedFilter = "droppato"
 
-	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		var foundTag = true
 		var foundTagExclude = true
 		var foundState = true

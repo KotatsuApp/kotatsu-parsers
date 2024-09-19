@@ -38,18 +38,11 @@ internal abstract class LibSocialParser(
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	private val statesMap = intObjectMapOf(
@@ -73,7 +66,7 @@ internal abstract class LibSocialParser(
 		defaultValue = null,
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val urlBuilder = urlBuilder("api")
 			.addPathSegment("api")
 			.addPathSegment("manga")

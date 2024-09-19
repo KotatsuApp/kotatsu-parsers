@@ -55,10 +55,6 @@ internal class ExHentaiParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override val isAuthorized: Boolean
@@ -87,10 +83,6 @@ internal class ExHentaiParser(
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tagsMap.get().values.toSet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
 		availableLocales = setOf(
 			Locale.JAPANESE,
 			Locale.ENGLISH,
@@ -110,7 +102,7 @@ internal class ExHentaiParser(
 		),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val next = nextPages.get(page, 0L)
 
 		if (page > 0 && next == 0L) {
@@ -431,7 +423,7 @@ internal class ExHentaiParser(
 			?.toLongOrNull() ?: 1
 	}
 
-	private fun MangaListFilterV2.toSearchQuery(): String? {
+	private fun MangaListFilter.toSearchQuery(): String? {
 		val joiner = StringUtil.StringJoiner(" ")
 		for (tag in tags) {
 			if (tag.key.isNumeric()) {

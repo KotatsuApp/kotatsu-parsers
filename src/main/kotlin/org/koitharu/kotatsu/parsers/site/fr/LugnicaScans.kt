@@ -30,12 +30,6 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
-			isSearchSupported = false,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -68,7 +62,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
 			!filter.query.isNullOrEmpty() -> {
 				throw IllegalArgumentException(ErrorMessages.SEARCH_NOT_SUPPORTED)

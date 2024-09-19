@@ -27,26 +27,11 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 	}
 
 	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
-			isSearchSupported = false,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
-		)
+		get() = MangaListFilterCapabilities()
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
-	)
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

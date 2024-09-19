@@ -32,12 +32,7 @@ internal abstract class HeanCmsAlt(
 	protected open val datePattern = "MMMM d, yyyy"
 
 	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
-			isSearchSupported = false,
-			isSearchWithFiltersSupported = false,
-		)
+		get() = MangaListFilterCapabilities()
 
 	init {
 		paginator.firstPage = 1
@@ -47,13 +42,9 @@ internal abstract class HeanCmsAlt(
 	protected open val selectManga = "div.grid.grid-cols-2 div:not([class]):contains(M)"
 	protected open val selectMangaTitle = "h5"
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-	)
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

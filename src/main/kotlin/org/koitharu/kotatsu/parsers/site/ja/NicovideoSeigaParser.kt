@@ -23,16 +23,11 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -60,7 +55,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val page = (offset / 20f).toIntUp().inc()
 		val domain = getDomain("seiga")
 		val url = when {

@@ -68,7 +68,7 @@ public abstract class MangaParser @InternalParsersApi constructor(
 	 * @param order one of [availableSortOrders] or [defaultSortOrder] for default value
 	 * @param filter is a set of filter rules
 	 */
-	public abstract suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga>
+	public abstract suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.

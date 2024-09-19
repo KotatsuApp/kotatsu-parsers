@@ -25,9 +25,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -45,7 +43,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override suspend fun getListPage(
 		page: Int,
 		order: SortOrder,
-		filter: MangaListFilterV2,
+		filter: MangaListFilter,
 	): List<Manga> {
 		val url = buildString {
 			append("https://")

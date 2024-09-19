@@ -30,19 +30,15 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tagsMap.get().values.toSet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-		availableContentRating = emptySet(),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
 			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) return emptyList()

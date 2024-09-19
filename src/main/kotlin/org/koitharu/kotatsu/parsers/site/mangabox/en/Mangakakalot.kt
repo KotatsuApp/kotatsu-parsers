@@ -27,7 +27,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)

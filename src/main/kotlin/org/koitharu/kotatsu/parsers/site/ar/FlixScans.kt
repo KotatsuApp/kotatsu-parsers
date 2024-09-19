@@ -24,12 +24,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -46,7 +41,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val json = when {
 			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {

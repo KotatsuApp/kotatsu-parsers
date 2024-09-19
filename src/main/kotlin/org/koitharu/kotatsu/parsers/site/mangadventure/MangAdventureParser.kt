@@ -41,10 +41,6 @@ internal abstract class MangAdventureParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
-			isYearSupported = false,
-			isYearRangeSupported = false,
-			isOriginalLocaleSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -56,15 +52,12 @@ internal abstract class MangAdventureParser(
 			MangaState.PAUSED,
 		),
 		availableContentRating = EnumSet.of(ContentRating.SAFE),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override suspend fun getListPage(
 		page: Int,
 		order: SortOrder,
-		filter: MangaListFilterV2,
+		filter: MangaListFilter,
 	): List<Manga> {
 		val url = apiUrl.addEncodedPathSegment("series")
 			.addEncodedQueryParameter("limit", pageSize.toString())

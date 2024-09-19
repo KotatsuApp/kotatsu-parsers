@@ -64,7 +64,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		)
 	}
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val url = buildString {
 			append("https://api.")

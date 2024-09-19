@@ -1,10 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -16,7 +12,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("MANYTOON", "ManyToon", "en", ContentType.HENTAI)
 internal class ManyToon(context: MangaLoaderContext) :
@@ -40,7 +36,7 @@ internal class ManyToon(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val pages = page + 1
 
 		val url = buildString {

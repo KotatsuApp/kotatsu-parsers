@@ -36,7 +36,6 @@ internal class MangaWtfParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -55,7 +54,7 @@ internal class MangaWtfParser(
 		searchPaginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url =
 			urlBuilder("api")
 				.addPathSegment("v2")

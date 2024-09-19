@@ -44,15 +44,12 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -88,7 +85,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 		)
 	}
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		// Get all manga
 		val json = allManga.get().toMutableList()
 

@@ -59,7 +59,7 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		)
 	}
 
-	override fun buildUrl(offset: Int, order: SortOrder, filter: MangaListFilterV2): HttpUrl = when {
+	override fun buildUrl(offset: Int, order: SortOrder, filter: MangaListFilter): HttpUrl = when {
 		filter.query.isNullOrEmpty() && filter.tags.isEmpty() && filter.tagsExclude.isEmpty() -> {
 			val builder = urlBuilder().addQueryParameter("offset", offset.toString())
 			when (order) {

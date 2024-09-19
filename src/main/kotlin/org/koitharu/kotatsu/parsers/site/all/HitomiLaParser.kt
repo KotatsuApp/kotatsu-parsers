@@ -73,15 +73,11 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
 		availableLocales = localeMap.keys,
 	)
 
@@ -122,7 +118,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 
 	private var cachedSearchIds: List<Int> = emptyList()
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> = when {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> = when {
 		filter.query.isNullOrEmpty() -> {
 			if (filter.tags.isEmpty()) {
 				when (order) {

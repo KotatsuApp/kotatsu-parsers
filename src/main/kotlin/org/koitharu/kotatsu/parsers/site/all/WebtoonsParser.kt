@@ -49,10 +49,7 @@ internal abstract class WebtoonsParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = false,
 		)
 
 	override val userAgentKey = ConfigKey.UserAgent("nApps (Android 12;; linewebtoon; 3.1.0)")
@@ -192,7 +189,7 @@ internal abstract class WebtoonsParser(
 
 	}
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val webtoons = when {
 			!filter.query.isNullOrEmpty() -> {
 				makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}").getJSONObject("webtoonSearch")
