@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANHWASMEN", "ManhwasMen", "en", type = ContentType.HENTAI)
-class ManhwasMen(context: MangaLoaderContext) :
+internal class ManhwasMen(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANHWASMEN, pageSize = 30, searchPageSize = 30) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwas.men")
@@ -21,12 +21,22 @@ class ManhwasMen(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.POPULARITY)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(
 		page: Int,
@@ -85,7 +95,7 @@ class ManhwasMen(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://$domain/manga-list").parseHtml()
 			.selectLastOrThrow(".filter-bx .form-group select.custom-select").select("option").drop(1)
 		return tags.mapNotNullToSet { option ->

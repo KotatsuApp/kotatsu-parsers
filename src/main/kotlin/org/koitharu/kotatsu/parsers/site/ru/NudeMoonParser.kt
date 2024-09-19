@@ -37,6 +37,14 @@ internal class NudeMoonParser(
 		SortOrder.RATING,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
 	init {
 		context.cookieJar.insertCookies(
 			domain,
@@ -44,6 +52,12 @@ internal class NudeMoonParser(
 			"nm_mobile=1;",
 		)
 	}
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val domain = domain
@@ -157,7 +171,7 @@ internal class NudeMoonParser(
 		}.toList()
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/tags").parseHtml()
 		val root = doc.body().getElementsByAttributeValue("name", "multitags").first()

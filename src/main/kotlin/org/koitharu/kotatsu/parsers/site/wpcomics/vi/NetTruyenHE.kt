@@ -5,25 +5,17 @@ import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilterV2
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("NETTRUYENHE", "NetTruyenHE", "vi")
 internal class NetTruyenHE(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENHE, "nettruyenhe.com", 20) {
 
-	override val isMultipleTagsSupported = true
-	override val isTagsExclusionSupported = true
 	override val listUrl = "/tim-kiem-nang-cao"
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -31,6 +23,16 @@ internal class NetTruyenHE(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {

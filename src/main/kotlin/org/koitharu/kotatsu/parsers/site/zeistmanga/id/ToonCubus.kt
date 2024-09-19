@@ -13,7 +13,8 @@ import org.koitharu.kotatsu.parsers.util.*
 @MangaSourceParser("TOONCUBUS", "ToonCubus", "id", ContentType.HENTAI)
 internal class ToonCubus(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.TOONCUBUS, "www.tooncubus.top") {
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/p/genre-list.html").parseHtml()
 		return doc.select(".dzdes-genre ul li a").mapNotNullToSet {
 			MangaTag(

@@ -41,12 +41,10 @@ internal abstract class WpComicsParser(
 	protected open val listUrl = "/tim-truyen"
 	protected open val datePattern = "dd/MM/yy"
 
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
-
 
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
@@ -183,7 +181,7 @@ internal abstract class WpComicsParser(
 		}
 	}
 
-	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val map = getOrCreateTagMap()
 		val tagSet = ArraySet<MangaTag>(map.size)
 		for (entry in map) {

@@ -59,6 +59,20 @@ internal class RemangaParser(
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
 		if (response.code == TOO_MANY_REQUESTS) {
@@ -212,7 +226,7 @@ internal class RemangaParser(
 		return result
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val content = webClient.httpGet("https://api.$domain/api/forms/titles/?get=genres")
 			.parseJson().getJSONObject("content").getJSONArray("genres")

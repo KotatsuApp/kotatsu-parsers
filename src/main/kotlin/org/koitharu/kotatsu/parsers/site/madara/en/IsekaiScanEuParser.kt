@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("ISEKAISCAN_EU", "ParagonScans", "en")
 internal class IsekaiScanEuParser(context: MangaLoaderContext) :
@@ -13,7 +13,11 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 
 	override val datePattern = "MM/dd/yyyy"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val listUrl = "mangax/"

@@ -73,7 +73,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { label ->
 			val key = label.attr("data-genre-id")

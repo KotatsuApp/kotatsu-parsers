@@ -19,8 +19,11 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val isTagsExclusionSupported = false
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+			isMultipleTagsSupported = false,
+		)
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
 
@@ -94,7 +97,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val tags = doc.select("ul.tag li a").drop(1)
 		return tags.mapNotNullToSet { a ->

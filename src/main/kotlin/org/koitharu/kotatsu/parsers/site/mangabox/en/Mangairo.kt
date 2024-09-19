@@ -31,8 +31,11 @@ internal class Mangairo(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val isTagsExclusionSupported = false
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+			isMultipleTagsSupported = false,
+		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -105,7 +108,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/type-latest/ctg-all/state-all/page-1").parseHtml()
 		return doc.select("div.panel_category a:not(.ctg_select)").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast("ctg-").substringBefore("/")

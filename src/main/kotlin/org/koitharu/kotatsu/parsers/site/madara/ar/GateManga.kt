@@ -2,10 +2,11 @@ package org.koitharu.kotatsu.parsers.site.madara.ar
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import java.util.EnumSet
+import java.util.*
 
 @MangaSourceParser("GATEMANGA", "GateManga", "ar")
 internal class GateManga(context: MangaLoaderContext) :
@@ -14,7 +15,11 @@ internal class GateManga(context: MangaLoaderContext) :
 	override val datePattern = "d MMMM، yyyy"
 	override val listUrl = "ar/"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 

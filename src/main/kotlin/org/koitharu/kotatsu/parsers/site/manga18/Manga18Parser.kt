@@ -31,8 +31,6 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val isMultipleTagsSupported = false
-
 	protected open val listUrl = "list-manga/"
 	protected open val tagUrl = "manga-list/"
 	protected open val datePattern = "dd-MM-yyyy"
@@ -52,6 +50,20 @@ internal abstract class Manga18Parser(
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"Completed",
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
@@ -114,7 +126,7 @@ internal abstract class Manga18Parser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/").parseHtml()
 		return doc.select("div.grid_cate li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

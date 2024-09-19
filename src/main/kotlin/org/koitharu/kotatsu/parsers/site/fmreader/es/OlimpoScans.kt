@@ -14,8 +14,12 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 	override val selectAlt = "ul.manga-info li:contains(Otros nombres)"
 	override val selectTag = "ul.manga-info li:contains(Género) a"
 	override val tagPrefix = "lista-de-comics-genero-"
-	override val isMultipleTagsSupported = false
-	override val isTagsExclusionSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

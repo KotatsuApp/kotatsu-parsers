@@ -20,6 +20,20 @@ internal abstract class OtakuSanctuaryParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -44,8 +58,6 @@ internal abstract class OtakuSanctuaryParser(
 		"Completed",
 		"Done",
 	)
-
-	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val doc = when {
@@ -118,7 +130,7 @@ internal abstract class OtakuSanctuaryParser(
 
 	protected open val selectBodyTag = "div#genre-table a"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/Home/LoadingGenresMenu").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfterLast("/").substringBefore("?")

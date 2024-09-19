@@ -18,7 +18,10 @@ internal class HentaiFox(context: MangaLoaderContext) :
 	override val selectTag = "ul.tags"
 	override val selectLanguageChapter = "ul.languages a.tag_btn"
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 

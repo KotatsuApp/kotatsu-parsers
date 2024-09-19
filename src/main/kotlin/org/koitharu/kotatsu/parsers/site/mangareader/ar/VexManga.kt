@@ -3,10 +3,7 @@ package org.koitharu.kotatsu.parsers.site.mangareader.ar
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.WordSet
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -19,7 +16,10 @@ internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.VEXMANGA, "vexmanga.com", pageSize = 10, searchPageSize = 10) {
 	override val selectMangaList = ".listarchives .latest-recom"
 	override val selectChapter = ".ulChapterList > a"
-	override val isTagsExclusionSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

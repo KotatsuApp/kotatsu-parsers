@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRWEBTOON", "TrWebtoon", "tr")
-class TrWebtoon(context: MangaLoaderContext) :
+internal class TrWebtoon(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.TRWEBTOON, pageSize = 21) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
@@ -31,9 +31,19 @@ class TrWebtoon(context: MangaLoaderContext) :
 			SortOrder.UPDATED,
 		)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
 
-	override val isMultipleTagsSupported = false
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		when {
@@ -150,7 +160,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags =
 			webClient.httpGet("https://$domain/webtoon-listesi").parseHtml().requireElementById("collapseExample")
 				.select(".pt-12 a").drop(1)

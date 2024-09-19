@@ -40,10 +40,21 @@ internal abstract class MangaPlusParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	private val extraHeaders = Headers.headersOf("Session-Token", UUID.randomUUID().toString())
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
 
-	// no tags or tag search available
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	private val extraHeaders = Headers.headersOf("Session-Token", UUID.randomUUID().toString())
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		return when {

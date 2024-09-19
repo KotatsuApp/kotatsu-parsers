@@ -23,13 +23,25 @@ internal abstract class ChanParser(
 		SortOrder.RATING,
 	)
 
-	override val isTagsExclusionSupported: Boolean = true
-
 	override val authUrl: String
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val domain = domain
@@ -125,7 +137,7 @@ internal abstract class ChanParser(
 		doc.parseFailed("Pages list not found at ${chapter.url}")
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")

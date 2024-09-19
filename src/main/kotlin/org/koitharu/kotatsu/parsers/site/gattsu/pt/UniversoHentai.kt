@@ -13,7 +13,21 @@ internal class UniversoHentai(context: MangaLoaderContext) :
 
 	override val tagPrefix = "category"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tags/").parseHtml()
 		return doc.requireElementById("menu-topo").parseTags()
 	}

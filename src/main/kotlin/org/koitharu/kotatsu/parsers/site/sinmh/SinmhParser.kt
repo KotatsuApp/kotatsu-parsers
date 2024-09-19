@@ -28,10 +28,6 @@ internal abstract class SinmhParser(
 		SortOrder.POPULARITY,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
-	override val isMultipleTagsSupported = false
-
 	protected open val searchUrl = "search/"
 	protected open val listUrl = "list/"
 
@@ -48,6 +44,20 @@ internal abstract class SinmhParser(
 	@JvmField
 	protected val finished: Set<String> = hashSetOf(
 		"已完结",
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
@@ -117,7 +127,7 @@ internal abstract class SinmhParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(".filter-item:contains(按剧情) li a:not(.active)").mapNotNullToSet { a ->
 			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')

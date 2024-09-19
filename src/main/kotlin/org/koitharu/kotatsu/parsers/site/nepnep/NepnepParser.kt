@@ -32,12 +32,24 @@ internal abstract class NepnepParser(
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.UPDATED)
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-	override val isTagsExclusionSupported = true
 
 	private val searchDoc = SoftSuspendLazy {
 		webClient.httpGet("https://$domain/search/").parseHtml()
 	}
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = emptySet(),
+	)
 
 	data class MangaWithLastUpdate(
 		val manga: Manga,
@@ -141,8 +153,7 @@ internal abstract class NepnepParser(
 		)
 	}
 
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = searchDoc.get()
 		val tags = doc.selectFirstOrThrow("script:containsData(vm.AvailableFilters)").data()
 			.substringAfter("\"Genre\"")

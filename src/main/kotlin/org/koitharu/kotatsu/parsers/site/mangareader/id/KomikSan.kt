@@ -18,7 +18,10 @@ internal class KomikSan(context: MangaLoaderContext) :
 	override val selectMangaListImg = "img.attachment-medium"
 	override val listUrl = "/list"
 	override val datePattern = "MMM d, yyyy"
-	override val isTagsExclusionSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

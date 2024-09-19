@@ -19,6 +19,20 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -27,8 +41,6 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("Accept-Language", "fr")
 		.build()
-
-	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -154,7 +166,7 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/manga-list/").parseHtml()
 		return doc.select("ul li a.category").mapNotNullToSet { a ->
 			val name = a.text()

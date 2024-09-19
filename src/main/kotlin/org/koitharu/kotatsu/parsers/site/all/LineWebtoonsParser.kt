@@ -23,7 +23,19 @@ internal abstract class LineWebtoonsParser(
 	source: MangaParserSource,
 ) : MangaParser(context, source) {
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	private val signer by lazy {
 		WebtoonsUrlSigner("gUtPzJFZch4ZyAGviiyH94P99lQ3pFdRTwpJWDlSGFfwgpr6ses5ALOxWHOIT7R1")
@@ -237,7 +249,7 @@ internal abstract class LineWebtoonsParser(
 		)
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return makeRequest("/lineWebtoon/webtoon/challengeGenreList.json")
 			.getJSONObject("genreList")
 			.getJSONArray("challengeGenres")

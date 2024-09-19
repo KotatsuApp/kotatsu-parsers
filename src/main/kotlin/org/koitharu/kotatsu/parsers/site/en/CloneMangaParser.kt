@@ -18,6 +18,20 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -92,6 +106,4 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 			),
 		)
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 }

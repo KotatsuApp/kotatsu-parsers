@@ -19,8 +19,6 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
 	override val configKeyDomain = ConfigKey.Domain("www.baozimh.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -28,9 +26,21 @@ internal class Baozimh(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	private val tagsMap = SuspendLazy(::parseTags)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tagsMap.get().values.toSet(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		when {
@@ -122,10 +132,6 @@ internal class Baozimh(context: MangaLoaderContext) :
 				isNsfw = isNsfwSource,
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tagsMap.get().values.toSet()
 	}
 
 	private suspend fun parseTags(): Map<String, MangaTag> {

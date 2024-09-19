@@ -24,7 +24,8 @@ private const val PAGE_SIZE = 60
 
 // NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
-class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR), Interceptor {
+internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR),
+	Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
@@ -39,6 +40,20 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 	}
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -129,7 +144,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return allManga.get().flatMapTo(HashSet()) { x ->
 			x.getJSONArray("tags").mapJSON { t ->
 				MangaTag(

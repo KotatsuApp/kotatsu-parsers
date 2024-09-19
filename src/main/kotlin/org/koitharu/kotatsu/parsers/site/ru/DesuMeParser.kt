@@ -25,6 +25,20 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		SortOrder.ALPHABETICAL,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tagsCache.get().values.toSet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
@@ -146,10 +160,6 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				url = jo.getString("img"),
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tagsCache.get().values.toSet()
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =

@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.wpcomics.en
 
+import androidx.collection.ArrayMap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -96,10 +98,11 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun fetchAvailableTags(): Set<MangaTag> {
+	override suspend fun getOrCreateTagMap(): ArrayMap<String, MangaTag> = mutex.withLock {
+		tagCache?.let { return@withLock it }
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
-		return doc.select("div.genres ul li:not(.active)").mapNotNullToSet { li ->
-			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
+		val list = doc.select("div.genres ul li:not(.active)").mapNotNull { li ->
+			val a = li.selectFirst("a") ?: return@mapNotNull null
 			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')
 			MangaTag(
 				key = href,
@@ -107,6 +110,9 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
+		val result = list.associateByTo(ArrayMap<String, MangaTag>(list.size)) { it.title }
+		tagCache = result
+		result
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {

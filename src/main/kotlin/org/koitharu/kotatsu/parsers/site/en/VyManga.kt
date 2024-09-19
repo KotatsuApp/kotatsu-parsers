@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("VYMANGA", "VyManga", "en")
-class VyManga(context: MangaLoaderContext) :
+internal class VyManga(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.VYMANGA, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("vymanga.net")
@@ -20,8 +20,6 @@ class VyManga(context: MangaLoaderContext) :
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isMultipleTagsSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -34,7 +32,19 @@ class VyManga(context: MangaLoaderContext) :
 		SortOrder.UPDATED_ASC,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -120,7 +130,7 @@ class VyManga(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.select("div.dropdown-menu.custom-menu ul li a[href*=genre]").mapNotNullToSet {
 			MangaTag(

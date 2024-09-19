@@ -1,5 +1,5 @@
 plugins {
-	id 'org.jetbrains.kotlin.jvm' version '2.0.10-RC'
+	id 'org.jetbrains.kotlin.jvm' version '2.0.20'
 }
 
 repositories {
@@ -14,5 +14,5 @@ dependencies {
 	implementation gradleApi()
 	implementation 'org.simpleframework:simple-xml:2.7.1'
 	implementation 'com.soywiz.korlibs.korte:korte-jvm:4.0.10'
-	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC'
+	implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0'
 }

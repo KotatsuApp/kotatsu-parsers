@@ -13,7 +13,7 @@ import java.util.*
 private const val DEF_BRANCH_NAME = "Основний переклад"
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
-class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
+internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	context = context,
 	source = MangaParserSource.MANGAINUA,
 	pageSize = 24,
@@ -29,11 +29,23 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported: Boolean = false
-
 	private val userHashRegex by lazy {
 		Regex("site_login_hash\\s*=\\s*\'([^\']+)\'", RegexOption.IGNORE_CASE)
 	}
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = when {
@@ -41,7 +53,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 				domain,
 			)
 
-			filter.tags.isNullOrEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
+			filter.tags.isEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
 			filter.tags.size == 1 -> "${filter.tags.first().key}/page/$page"
 			filter.tags.size > 1 -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
 			else -> "/mangas/page/$page".toAbsoluteUrl(domain)
@@ -155,7 +167,7 @@ class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/mangas").parseHtml()
 		val root = doc.body().requireElementById("menu_1").selectFirstOrThrow("div.menu__wrapper")

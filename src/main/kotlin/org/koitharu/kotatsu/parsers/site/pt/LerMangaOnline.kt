@@ -13,7 +13,8 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("LERMANGAONLINE", "LerMangaOnline", "pt")
-class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGAONLINE, 20) {
+internal class LerMangaOnline(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.LERMANGAONLINE, 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
@@ -24,7 +25,19 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {
@@ -82,7 +95,7 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml().requireElementById("sub-menu")
 		return doc.select("ul.container li a").mapNotNullToSet { a ->
 			MangaTag(

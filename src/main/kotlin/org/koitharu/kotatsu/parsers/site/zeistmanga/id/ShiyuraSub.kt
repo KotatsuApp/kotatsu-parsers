@@ -15,7 +15,7 @@ internal class ShiyuraSub(context: MangaLoaderContext) :
 
 	override val selectTags = ".leading-8 div.my-5.gap-2 a"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select("div.list-label-widget-content ul li a").mapNotNullToSet {
 			MangaTag(

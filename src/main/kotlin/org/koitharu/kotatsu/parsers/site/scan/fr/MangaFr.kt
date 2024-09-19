@@ -2,11 +2,7 @@ package org.koitharu.kotatsu.parsers.site.scan.fr
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.scan.ScanParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -16,7 +12,7 @@ internal class MangaFr(context: MangaLoaderContext) :
 	ScanParser(context, MangaParserSource.MANGAFR, "www.mangafr.org") {
 	override val listUrl = "/series"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+	private suspend fun fetchAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

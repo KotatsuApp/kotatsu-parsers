@@ -20,13 +20,24 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 	)
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
 	override val configKeyDomain = ConfigKey.Domain("lxmanga.life")
 
-	override val isMultipleTagsSupported = false
-
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -166,11 +177,10 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val body = doc.body()
 		return body.select("ul.absolute.w-full a").mapToSet { a ->
-
 			MangaTag(
 				key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 				title = a.selectFirstOrThrow("span.text-ellipsis").text(),

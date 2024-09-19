@@ -32,13 +32,25 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 
 	private val decryptionKey = "3141592653589793"
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

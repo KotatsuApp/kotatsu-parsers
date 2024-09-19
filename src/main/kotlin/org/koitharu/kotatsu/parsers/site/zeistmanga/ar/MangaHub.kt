@@ -14,13 +14,14 @@ import java.util.*
 internal class MangaHub(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.MANGAHUB_LINK, "www.mangahub.link") {
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
 	override val sateOngoing: String = "مستمر"
 	override val sateFinished: String = "مكتمل"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
+
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("Genre").select("div.items-center").mapNotNullToSet {
 			MangaTag(

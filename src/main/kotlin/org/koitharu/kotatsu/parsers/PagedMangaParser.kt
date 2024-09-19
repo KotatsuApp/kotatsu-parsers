@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.Paginator
 
 @InternalParsersApi
-abstract class PagedMangaParser(
+public abstract class PagedMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField internal val pageSize: Int,
@@ -16,10 +16,10 @@ abstract class PagedMangaParser(
 ) : MangaParser(context, source) {
 
 	@JvmField
-	protected val paginator = Paginator(pageSize)
+	protected val paginator: Paginator = Paginator(pageSize)
 
 	@JvmField
-	protected val searchPaginator = Paginator(searchPageSize)
+	protected val searchPaginator: Paginator = Paginator(searchPageSize)
 
 	final override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		return getList(
@@ -34,7 +34,7 @@ abstract class PagedMangaParser(
 		)
 	}
 
-	abstract suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga>
+	public abstract suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga>
 
 	private suspend fun getList(
 		paginator: Paginator,

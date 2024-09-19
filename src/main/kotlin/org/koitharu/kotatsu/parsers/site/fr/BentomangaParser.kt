@@ -37,15 +37,24 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-	override val isTagsExclusionSupported: Boolean = true
-
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = urlBuilder()
@@ -206,7 +215,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val root = webClient.httpGet(urlBuilder().addPathSegment("manga_list").build())
 			.parseHtml()
 			.requireElementById("search_options-form")

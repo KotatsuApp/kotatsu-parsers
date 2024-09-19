@@ -24,7 +24,7 @@ private const val HEADER_ENCODING = "Content-Encoding"
 private const val IMAGE_BASEURL_FALLBACK = "https://hmvolumestorage.b-cdn.net/public-resources"
 
 @MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
-class HoneyMangaParser(context: MangaLoaderContext) :
+internal class HoneyMangaParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE),
 	Interceptor {
 
@@ -38,6 +38,20 @@ class HoneyMangaParser(context: MangaLoaderContext) :
 	private val imageStorageUrl = SuspendLazy(::fetchCoversBaseUrl)
 
 	override val configKeyDomain = ConfigKey.Domain("honey-manga.com.ua")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -170,7 +184,7 @@ class HoneyMangaParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		// https://data.api.honey-manga.com.ua/genres-tags/genres-list
 		val content = webClient.httpGet(genresListApi).parseJsonArray()
 		val tagsSet = ArraySet<MangaTag>(content.length())

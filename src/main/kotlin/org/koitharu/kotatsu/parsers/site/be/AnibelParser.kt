@@ -25,6 +25,20 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -186,7 +200,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val json = apiCall(
 			"""
 			getFilters(mediaType: manga) {

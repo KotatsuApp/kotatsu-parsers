@@ -30,10 +30,6 @@ internal abstract class MangaboxParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
-	override val isTagsExclusionSupported = true
-
 	protected open val listUrl = "/advanced_search"
 	protected open val searchUrl = "/search/story/"
 	protected open val datePattern = "MMM dd,yy"
@@ -44,7 +40,6 @@ internal abstract class MangaboxParser(
 		searchPaginator.firstPage = 1
 	}
 
-
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
 		"ongoing",
@@ -53,6 +48,20 @@ internal abstract class MangaboxParser(
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"completed",
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
@@ -139,7 +148,7 @@ internal abstract class MangaboxParser(
 
 	protected open val selectTagMap = "div.panel-genres-list a:not(.genres-select)"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val tags = doc.select(selectTagMap).drop(1) // remove all tags
 		return tags.mapNotNullToSet { a ->

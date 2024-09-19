@@ -26,8 +26,6 @@ internal abstract class KeyoappParser(
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
@@ -57,6 +55,19 @@ internal abstract class KeyoappParser(
 		"dropped",
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		var query = ""
@@ -160,7 +171,7 @@ internal abstract class KeyoappParser(
 	}
 
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.requireElementById("series_tags_page").select("button").mapNotNullToSet { button ->
 			val key = button.attr("tag") ?: return@mapNotNullToSet null

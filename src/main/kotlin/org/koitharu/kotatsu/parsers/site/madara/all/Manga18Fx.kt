@@ -82,7 +82,7 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val list = doc.body().selectFirstOrThrow("div.genre-menu").select("ul li").orEmpty()
 		val keySet = HashSet<String>(list.size)

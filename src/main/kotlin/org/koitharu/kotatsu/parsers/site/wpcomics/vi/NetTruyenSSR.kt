@@ -14,11 +14,8 @@ import java.util.*
 internal class NetTruyenSSR(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENSSR, "nettruyenssr.com", 20) {
 
-	override val isMultipleTagsSupported = true
-	override val isTagsExclusionSupported = true
 	override val listUrl = "/tim-kiem-nang-cao"
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -26,6 +23,16 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {

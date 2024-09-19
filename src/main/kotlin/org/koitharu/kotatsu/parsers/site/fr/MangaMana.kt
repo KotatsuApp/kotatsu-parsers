@@ -32,17 +32,26 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 			SortOrder.NEWEST,
 		)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
-
 	override val configKeyDomain = ConfigKey.Domain("www.manga-mana.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isMultipleTagsSupported = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val postData = buildString {
@@ -98,7 +107,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						val doc = webClient.httpGet("https://$domain/?page=$page").parseHtml()
 						return doc.select("div.row div.col_home").map { div ->
 							val href = div.selectFirstOrThrow("h4 a").attrAsRelativeUrl("href")
-							val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() ?: false
+							val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
 							val img = if (isNsfw) {
 								div.selectFirst("img")?.attr("data-adult")
 							} else {
@@ -159,7 +168,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 		return doc.select("div.p-2 div.col").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() ?: false
+			val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
 			val img = if (isNsfw) {
 				div.selectFirst("img")?.attr("data-adult")
 			} else {
@@ -320,7 +329,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 		return pages
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/liste-mangas").parseHtml()
 		return doc.select("select.selectpicker option").drop(1).mapNotNullToSet {
 			MangaTag(

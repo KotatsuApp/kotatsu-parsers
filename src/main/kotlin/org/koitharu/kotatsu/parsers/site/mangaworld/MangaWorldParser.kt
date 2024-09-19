@@ -15,29 +15,38 @@ abstract class MangaWorldParser(
 	domain: String,
 	pageSize: Int = 16,
 ) : PagedMangaParser(context, source, pageSize) {
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(
-			SortOrder.POPULARITY,
-			SortOrder.ALPHABETICAL,
-			SortOrder.NEWEST,
-			SortOrder.ALPHABETICAL_DESC,
-			SortOrder.UPDATED,
-		)
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.POPULARITY,
+		SortOrder.ALPHABETICAL,
+		SortOrder.NEWEST,
+		SortOrder.ALPHABETICAL_DESC,
+		SortOrder.UPDATED,
+	)
 
 	override val defaultSortOrder: SortOrder
 		get() = SortOrder.ALPHABETICAL
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED),
+		availableContentRating = emptySet(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
-
-	override val isMultipleTagsSupported = true
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url =
@@ -112,7 +121,7 @@ abstract class MangaWorldParser(
 	}
 
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val genres = doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
 			MangaTag(

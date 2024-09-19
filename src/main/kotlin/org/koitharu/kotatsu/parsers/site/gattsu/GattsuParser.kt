@@ -25,7 +25,19 @@ internal abstract class GattsuParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	protected open val tagPrefix = "tag"
 
@@ -86,7 +98,7 @@ internal abstract class GattsuParser(
 
 	protected open val tagUrl = "generos"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$tagUrl/").parseHtml()
 		return doc.selectLastOrThrow(".meio-conteudo p, div.lista-tags ul").parseTags()
 	}

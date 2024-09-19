@@ -16,7 +16,10 @@ internal class Normoyun(context: MangaLoaderContext) :
 	override val selectMangaList = ".listupd .bs .bsx"
 	override val selectMangaListImg = "img"
 	override val isNetShieldProtected = true
-	override val isTagsExclusionSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		val url = buildString {

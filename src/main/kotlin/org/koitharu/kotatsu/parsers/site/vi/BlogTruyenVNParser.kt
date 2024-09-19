@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("BLOGTRUYENVN", "BlogTruyenVN", "vi")
-class BlogTruyenVNParser(context: MangaLoaderContext) :
+internal class BlogTruyenVNParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYENVN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
@@ -31,10 +31,22 @@ class BlogTruyenVNParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
 	private var cacheTags = SuspendLazy(::fetchTags)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = cacheTags.get().values.toSet(),
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilterV2): List<Manga> {
 		return when {
@@ -117,10 +129,6 @@ class BlogTruyenVNParser(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return cacheTags.get().values.toSet()
 	}
 
 	private suspend fun fetchTags(): Map<String, MangaTag> {
