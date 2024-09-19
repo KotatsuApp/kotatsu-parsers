@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-abstract class MangaWorldParser(
+internal abstract class MangaWorldParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,

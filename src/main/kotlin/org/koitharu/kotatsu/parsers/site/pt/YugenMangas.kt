@@ -13,7 +13,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("YUGENMANGAS", "YugenApp", "pt")
-class YugenMangas(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
+internal class YugenMangas(context: MangaLoaderContext) :
+	SinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("yugenmangasbr.voblog.xyz")

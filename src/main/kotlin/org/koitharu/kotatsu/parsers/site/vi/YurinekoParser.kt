@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
-class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
+internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")
 

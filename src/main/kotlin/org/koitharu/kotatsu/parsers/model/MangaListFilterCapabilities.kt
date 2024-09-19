@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.model
 
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 
-data class MangaListFilterCapabilities @InternalParsersApi constructor(
+public data class MangaListFilterCapabilities @InternalParsersApi constructor(
 
 	/**
 	 * Whether parser supports filtering by more than one tag

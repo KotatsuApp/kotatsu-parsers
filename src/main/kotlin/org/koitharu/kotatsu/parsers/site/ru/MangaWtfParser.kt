@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGA_WTF", "MangaWtf", "ru")
-class MangaWtfParser(
+internal class MangaWtfParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
 

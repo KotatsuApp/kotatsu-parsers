@@ -11,7 +11,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("ONEPIECEEX", "OnePieceEx", "pt")
-class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
+internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 

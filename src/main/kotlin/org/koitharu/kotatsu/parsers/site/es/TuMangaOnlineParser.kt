@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TUMANGAONLINE", "TuMangaOnline", "es")
-class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
+internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	context,
 	source = MangaParserSource.TUMANGAONLINE,
 	pageSize = 24,

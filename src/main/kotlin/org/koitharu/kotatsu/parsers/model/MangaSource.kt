@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.model
 
-interface MangaSource {
+public interface MangaSource {
 
-	val name: String
+	public val name: String
 }

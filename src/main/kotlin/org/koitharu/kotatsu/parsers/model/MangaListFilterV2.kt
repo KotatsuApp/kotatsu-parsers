@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.model
 
 import java.util.*
 
-data class MangaListFilterV2(
+public data class MangaListFilterV2(
 	@JvmField val query: String? = null,
 	@JvmField val tags: Set<MangaTag> = emptySet(),
 	@JvmField val tagsExclude: Set<MangaTag> = emptySet(),
@@ -17,7 +17,7 @@ data class MangaListFilterV2(
 	@JvmField val yearTo: Int = 0,
 ) {
 
-	fun isEmpty(): Boolean = tags.isEmpty() &&
+	public fun isEmpty(): Boolean = tags.isEmpty() &&
 		tagsExclude.isEmpty() &&
 		locale == null &&
 		originalLocale == null &&
@@ -30,9 +30,9 @@ data class MangaListFilterV2(
 		types.isEmpty() &&
 		demographics.isEmpty()
 
-	companion object {
+	public companion object {
 
 		@JvmStatic
-		val EMPTY = MangaListFilterV2()
+		public val EMPTY: MangaListFilterV2 = MangaListFilterV2()
 	}
 }

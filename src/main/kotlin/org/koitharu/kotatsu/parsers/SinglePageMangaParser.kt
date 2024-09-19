@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.SortOrder
 
 @InternalParsersApi
-abstract class SinglePageMangaParser(
+public abstract class SinglePageMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 ) : MangaParser(context, source) {
@@ -18,5 +18,5 @@ abstract class SinglePageMangaParser(
 		return getList(order, filter)
 	}
 
-	abstract suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga>
+	public abstract suspend fun getList(order: SortOrder, filter: MangaListFilterV2): List<Manga>
 }

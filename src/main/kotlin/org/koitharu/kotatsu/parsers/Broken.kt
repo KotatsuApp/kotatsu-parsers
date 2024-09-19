@@ -5,4 +5,4 @@ package org.koitharu.kotatsu.parsers
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-annotation class Broken
+internal annotation class Broken

@@ -1,9 +1,9 @@
 package org.koitharu.kotatsu.parsers.bitmap
 
-interface Bitmap {
+public interface Bitmap {
 
-	val width: Int
-	val height: Int
+	public val width: Int
+	public val height: Int
 
-	fun drawBitmap(sourceBitmap: Bitmap, src: Rect, dst: Rect)
+	public fun drawBitmap(sourceBitmap: Bitmap, src: Rect, dst: Rect)
 }

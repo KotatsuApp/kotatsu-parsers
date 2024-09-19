@@ -4,7 +4,7 @@ import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 
 @InternalParsersApi
-inline fun <T> List<T>.mapChapters(
+public inline fun <T> List<T>.mapChapters(
 	reversed: Boolean = false,
 	transform: (index: Int, T) -> MangaChapter?,
 ): List<MangaChapter> {
@@ -20,7 +20,7 @@ inline fun <T> List<T>.mapChapters(
 }
 
 @InternalParsersApi
-inline fun <T> List<T>.flatMapChapters(
+public inline fun <T> List<T>.flatMapChapters(
 	reversed: Boolean = false,
 	transform: (T) -> Iterable<MangaChapter?>,
 ): List<MangaChapter> {

@@ -1,5 +1,5 @@
 package org.koitharu.kotatsu.parsers.model
 
-enum class MangaState {
+public enum class MangaState {
 	ONGOING, FINISHED, ABANDONED, PAUSED, UPCOMING
 }

@@ -9,7 +9,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("LERMANGA", "LerManga", "pt")
-class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
+internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

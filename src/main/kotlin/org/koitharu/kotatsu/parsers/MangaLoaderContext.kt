@@ -9,30 +9,30 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import java.util.*
 
-abstract class MangaLoaderContext {
+public abstract class MangaLoaderContext {
 
-	abstract val httpClient: OkHttpClient
+	public abstract val httpClient: OkHttpClient
 
-	abstract val cookieJar: CookieJar
+	public abstract val cookieJar: CookieJar
 
-	fun newParserInstance(source: MangaParserSource): MangaParser = source.newParser(this)
+	public fun newParserInstance(source: MangaParserSource): MangaParser = source.newParser(this)
 
-	open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
+	public open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
 
-	open fun decodeBase64(data: String): ByteArray = Base64.getDecoder().decode(data)
+	public open fun decodeBase64(data: String): ByteArray = Base64.getDecoder().decode(data)
 
-	open fun getPreferredLocales(): List<Locale> = listOf(Locale.getDefault())
+	public open fun getPreferredLocales(): List<Locale> = listOf(Locale.getDefault())
 
 	/**
 	 * Execute JavaScript code and return result
 	 * @param script JavaScript source code
 	 * @return execution result as string, may be null
 	 */
-	abstract suspend fun evaluateJs(script: String): String?
+	public abstract suspend fun evaluateJs(script: String): String?
 
-	abstract fun getConfig(source: MangaSource): MangaSourceConfig
+	public abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
-	abstract fun getDefaultUserAgent(): String
+	public abstract fun getDefaultUserAgent(): String
 
 	/**
 	 * Helper function to be used in an interceptor
@@ -40,7 +40,7 @@ abstract class MangaLoaderContext {
 	 * @param response Image response
 	 * @param redraw lambda function to implement descrambling logic
 	 */
-	abstract fun redrawImageResponse(
+	public abstract fun redrawImageResponse(
 		response: Response,
 		redraw: (image: Bitmap) -> Bitmap,
 	): Response
@@ -48,7 +48,7 @@ abstract class MangaLoaderContext {
 	/**
 	 * create a new empty Bitmap with given dimensions
 	 */
-	abstract fun createBitmap(
+	public abstract fun createBitmap(
 		width: Int,
 		height: Int,
 	): Bitmap
