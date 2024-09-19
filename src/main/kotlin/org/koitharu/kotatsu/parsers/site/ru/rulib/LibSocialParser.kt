@@ -31,10 +31,19 @@ internal abstract class LibSocialParser(
 	)
 
 	final override val configKeyDomain = ConfigKey.Domain("lib.social")
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-	override val isMultipleTagsSupported = true
-	override val isTagsExclusionSupported = true
-	override val isSearchSupported = true
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+	)
 
 	private val statesMap = intObjectMapOf(
 		1, MangaState.ONGOING,
@@ -57,7 +66,7 @@ internal abstract class LibSocialParser(
 		defaultValue = null,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val urlBuilder = urlBuilder("api")
 			.addPathSegment("api")
 			.addPathSegment("manga")
@@ -65,49 +74,41 @@ internal abstract class LibSocialParser(
 			.addQueryParameter("fields[]", "rate")
 			.addQueryParameter("fields[]", "rate_avg")
 			.addQueryParameter("page", page.toString())
-		when (filter) {
-			is MangaListFilter.Advanced -> {
-				for (state in filter.states) {
-					urlBuilder.addQueryParameter("status[]", statesMap.keyOf(state).toString())
-				}
-				for (tag in filter.tags) {
-					urlBuilder.addQueryParameter("${tag.typeKey()}[]", tag.key.drop(1))
-				}
-				for (tag in filter.tagsExclude) {
-					urlBuilder.addQueryParameter("${tag.typeKey()}_exclude[]", tag.key.drop(1))
-				}
-			}
-
-			is MangaListFilter.Search -> {
-				urlBuilder.addQueryParameter("q", filter.query)
-			}
-
-			null -> Unit
+		for (state in filter.states) {
+			urlBuilder.addQueryParameter("status[]", statesMap.keyOf(state).toString())
 		}
-		val sortOrder = filter?.sortOrder ?: defaultSortOrder
+		for (tag in filter.tags) {
+			urlBuilder.addQueryParameter("${tag.typeKey()}[]", tag.key.drop(1))
+		}
+		for (tag in filter.tagsExclude) {
+			urlBuilder.addQueryParameter("${tag.typeKey()}_exclude[]", tag.key.drop(1))
+		}
+		if (!filter.query.isNullOrEmpty()) {
+			urlBuilder.addQueryParameter("q", filter.query)
+		}
 		urlBuilder.addQueryParameter(
 			"sort_by",
-			when (sortOrder) {
+			when (order) {
 				SortOrder.UPDATED -> "last_chapter_at"
 				SortOrder.POPULARITY -> "views"
 				SortOrder.RATING -> "rate_avg"
 				SortOrder.NEWEST -> "created_at"
 				SortOrder.ALPHABETICAL,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "rus_name"
+					-> "rus_name"
 
 				else -> null
 			},
 		)
 		urlBuilder.addQueryParameter(
 			"sort_type",
-			when (sortOrder) {
+			when (order) {
 				SortOrder.UPDATED,
 				SortOrder.POPULARITY,
 				SortOrder.RATING,
 				SortOrder.NEWEST,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "desc"
+					-> "desc"
 
 				SortOrder.ALPHABETICAL -> "asc"
 				else -> null
@@ -166,7 +167,7 @@ internal abstract class LibSocialParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = coroutineScope {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> = coroutineScope {
 		val tags = async { fetchTags("tags") }
 		val genres = async { fetchTags("genres") }
 		tagsSetOf(tags.await(), genres.await())

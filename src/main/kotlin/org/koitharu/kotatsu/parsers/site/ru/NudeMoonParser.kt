@@ -37,6 +37,12 @@ internal class NudeMoonParser(
 		SortOrder.RATING,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
 	init {
 		context.cookieJar.insertCookies(
 			domain,
@@ -45,42 +51,41 @@ internal class NudeMoonParser(
 		)
 	}
 
-	override suspend fun getList(
-		offset: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 
-		val url =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					if (!isAuthorized) {
-						throw AuthRequiredException(source)
-					}
-					"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
+		val url = when {
+			!filter.query.isNullOrEmpty() -> {
+				if (!isAuthorized) {
+					throw AuthRequiredException(source)
 				}
-
-				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.joinToString(
-							separator = "_",
-							prefix = "https://$domain/tags/",
-							postfix = "&rowstart=$offset",
-							transform = { it.key.urlEncoded() },
-						)
-					} else {
-						val order = when (filter.sortOrder) {
-							SortOrder.POPULARITY -> "views"
-							SortOrder.NEWEST -> "date"
-							SortOrder.RATING -> "like"
-							else -> "like"
-						}
-						"https://$domain/all_manga?$order&rowstart=$offset"
-					}
-				}
-
-				null -> "https://$domain/all_manga?views&rowstart=$offset"
+				"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
 			}
+
+			else -> {
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.joinToString(
+						separator = "_",
+						prefix = "https://$domain/tags/",
+						postfix = "&rowstart=$offset",
+						transform = { it.key.urlEncoded() },
+					)
+				} else {
+					val order = when (order) {
+						SortOrder.POPULARITY -> "views"
+						SortOrder.NEWEST -> "date"
+						SortOrder.RATING -> "like"
+						else -> "like"
+					}
+					"https://$domain/all_manga?$order&rowstart=$offset"
+				}
+			}
+
+		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.body().select("table.news_pic2").mapNotNull { row ->
@@ -162,7 +167,7 @@ internal class NudeMoonParser(
 		}.toList()
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/tags").parseHtml()
 		val root = doc.body().getElementsByAttributeValue("name", "multitags").first()

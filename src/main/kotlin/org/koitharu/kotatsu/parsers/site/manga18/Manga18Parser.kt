@@ -31,8 +31,6 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val isMultipleTagsSupported = false
-
 	protected open val listUrl = "list-manga/"
 	protected open val tagUrl = "manga-list/"
 	protected open val datePattern = "dd-MM-yyyy"
@@ -54,14 +52,23 @@ internal abstract class Manga18Parser(
 		"Completed",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append(page.toString())
 					append("?search=")
@@ -69,7 +76,7 @@ internal abstract class Manga18Parser(
 					append("&order_by=latest")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append(tagUrl)
@@ -82,18 +89,12 @@ internal abstract class Manga18Parser(
 
 					append(page.toString())
 					append("?order_by=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("lastest")
 						SortOrder.ALPHABETICAL -> append("name")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append(page.toString())
-					append("?order_by=latest")
 				}
 			}
 		}
@@ -120,7 +121,7 @@ internal abstract class Manga18Parser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/").parseHtml()
 		return doc.select("div.grid_cate li").mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null

@@ -15,7 +15,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
-class BlogTruyenParser(context: MangaLoaderContext) :
+internal class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
@@ -31,24 +31,28 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
 	private var cacheTags = SuspendLazy(::fetchTags)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = cacheTags.get().values.toSet(),
+	)
 
-		return when (filter) {
-
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		return when {
+			!filter.query.isNullOrEmpty() -> {
 				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${filter.query.urlEncoded()}&p=$page"
 				val searchContent = webClient.httpGet(searchUrl).parseHtml()
 					.selectFirst("section.list-manga-bycate > div.list")
 				parseMangaList(searchContent)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				if (filter.tags.isNotEmpty()) {
 					filter.tags.oneOrThrowIfMany().let {
@@ -61,8 +65,6 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 					getNormalList(page)
 				}
 			}
-
-			null -> getNormalList(page)
 		}
 	}
 
@@ -122,10 +124,6 @@ class BlogTruyenParser(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return cacheTags.get().values.toSet()
 	}
 
 	private suspend fun fetchTags(): Map<String, MangaTag> {

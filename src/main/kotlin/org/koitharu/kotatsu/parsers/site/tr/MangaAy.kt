@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAAY", "MangaAy", "tr")
-class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAAY, 45) {
+internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAAY, 45) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
@@ -25,12 +25,18 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+	)
 
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {
 					return emptyList()
 				}
@@ -42,7 +48,7 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 				)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				if (filter.tags.isNotEmpty()) {
 					filter.tags.oneOrThrowIfMany()?.let {
@@ -69,19 +75,6 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
 
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/seriler")
-					if (page > 1) {
-						append("/")
-						append(page)
-					}
-				}
-				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 		}
 
@@ -134,10 +127,6 @@ class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaPars
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

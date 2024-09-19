@@ -16,7 +16,7 @@ internal class MrBenne(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MRBENNE, "mrbenne.com", 10) {
 	override val datePattern: String = "dd/MM/yyyy"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/?s=&post_type=wp-manga").parseHtml()
 		val body = doc.body()
 		val root = body.selectFirst("div.form-group.checkbox-group")

@@ -27,16 +27,6 @@ internal abstract class MangAdventureParser(
 		keys.add(userAgentKey)
 	}
 
-	override val availableStates: Set<MangaState> = EnumSet.of(
-		MangaState.ONGOING,
-		MangaState.FINISHED,
-		MangaState.ABANDONED,
-		MangaState.PAUSED,
-	)
-
-	override val availableContentRating: Set<ContentRating> =
-		EnumSet.of(ContentRating.SAFE)
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
@@ -46,18 +36,38 @@ internal abstract class MangAdventureParser(
 
 	override val defaultSortOrder = SortOrder.ALPHABETICAL
 
-	override val isTagsExclusionSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+		),
+		availableContentRating = EnumSet.of(ContentRating.SAFE),
+	)
+
+	override suspend fun getListPage(
+		page: Int,
+		order: SortOrder,
+		filter: MangaListFilter,
+	): List<Manga> {
 		val url = apiUrl.addEncodedPathSegment("series")
 			.addEncodedQueryParameter("limit", pageSize.toString())
 			.addEncodedQueryParameter("page", page.toString())
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				url.addQueryParameter("title", filter.query)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				url.addQueryParameter(
 					"categories",
 					buildString {
@@ -79,7 +89,7 @@ internal abstract class MangAdventureParser(
 					MangaState.PAUSED -> url.addEncodedQueryParameter("status", "hiatus")
 					else -> throw IllegalArgumentException(ERROR_UNSUPPORTED_STATE)
 				}
-				when (filter.sortOrder) {
+				when (order) {
 					SortOrder.ALPHABETICAL -> url.addEncodedQueryParameter("sort", "title")
 					SortOrder.ALPHABETICAL_DESC -> url.addEncodedQueryParameter("sort", "-title")
 					SortOrder.UPDATED -> url.addEncodedQueryParameter("sort", "-latest_upload")
@@ -87,8 +97,6 @@ internal abstract class MangAdventureParser(
 					else -> throw IllegalArgumentException(ERROR_UNSUPPORTED_SORT_ORDER)
 				}
 			}
-
-			else -> {}
 		}
 		return runCatchingCancellable { getManga(url.get()) }.getOrElse {
 			if (it is NotFoundException) emptyList() else throw it
@@ -159,7 +167,7 @@ internal abstract class MangAdventureParser(
 
 	override suspend fun getPageUrl(page: MangaPage) = page.url
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val url = apiUrl.addEncodedPathSegment("categories")
 		return url.get()?.optJSONArray("results")?.mapJSONToSet {
 			val name = it.getString("name")

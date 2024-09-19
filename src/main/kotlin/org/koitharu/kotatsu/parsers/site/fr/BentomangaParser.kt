@@ -37,29 +37,37 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-	override val isTagsExclusionSupported: Boolean = true
-
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder()
 			.host(domain)
 			.addPathSegment("manga_list")
 			.addQueryParameter("limit", page.toString())
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				url.addQueryParameter("search", filter.query)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
-				when (filter.sortOrder) {
+				when (order) {
 					SortOrder.UPDATED -> url.addQueryParameter("order_by", "update")
 						.addQueryParameter("order", "desc")
 
@@ -104,8 +112,6 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 				}
 
 			}
-
-			null -> url.addQueryParameter("order_by", "update")
 		}
 		val root = webClient.httpGet(url.build()).parseHtml().requireElementById("mangas_content")
 		return root.select(".manga[data-manga]").map { div ->
@@ -208,7 +214,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val root = webClient.httpGet(urlBuilder().addPathSegment("manga_list").build())
 			.parseHtml()
 			.requireElementById("search_options-form")

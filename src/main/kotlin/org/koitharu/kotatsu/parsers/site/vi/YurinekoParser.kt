@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
-class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
+internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.net")
 
@@ -27,25 +27,31 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 	private val apiDomain
 		get() = "api.$domain"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		val listUrl =
-			when (filter) {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
-				is MangaListFilter.Search -> {
-					"/search?query=${filter.query.urlEncoded()}&page=$page"
-				}
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
-				is MangaListFilter.Advanced -> {
-					if (filter.tags.isNotEmpty()) {
-						val tagKeys = filter.tags.joinToString(separator = ",") { it.key }
-						"/advancedSearch?genre=$tagKeys&notGenre=&sort=7&minChapter=1&status=0&page=$page"
-					} else {
-						"/lastest2?page=$page"
-					}
-				}
-
-				null -> "/lastest2?page=$page"
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val listUrl = when {
+			!filter.query.isNullOrEmpty() -> {
+				"/search?query=${filter.query.urlEncoded()}&page=$page"
 			}
+
+			else -> {
+				if (filter.tags.isNotEmpty()) {
+					val tagKeys = filter.tags.joinToString(separator = ",") { it.key }
+					"/advancedSearch?genre=$tagKeys&notGenre=&sort=7&minChapter=1&status=0&page=$page"
+				} else {
+					"/lastest2?page=$page"
+				}
+			}
+		}
 		val jsonResponse = webClient.httpGet(listUrl.toAbsoluteUrl(apiDomain)).parseJson()
 		return jsonResponse.getJSONArray("result")
 			.mapJSON { jo ->
@@ -125,7 +131,7 @@ class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 			}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return webClient.httpGet("https://$apiDomain/tag/find?query=")
 			.parseJsonArray()
 			.mapJSONToSet { jo ->

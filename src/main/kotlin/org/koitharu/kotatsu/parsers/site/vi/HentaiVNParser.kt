@@ -19,7 +19,7 @@ private const val PAGE_SIZE = 15
 private const val SEARCH_PAGE_SIZE = 10
 
 @MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
-class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIVN) {
+internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIVN) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiayame.net")
 
@@ -35,10 +35,19 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 		SortOrder.NEWEST,
 	)
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		return when (filter) {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
-			is MangaListFilter.Search -> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+	)
+
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		return when {
+			!filter.query.isNullOrEmpty() -> {
 				val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
 				urlBuilder()
 				val searchUrl =
@@ -47,7 +56,7 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 				parseMainList(docs, page)
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val pageSize = if (filter.tags.isEmpty()) PAGE_SIZE else SEARCH_PAGE_SIZE
 				val page = (offset / pageSize.toFloat()).toIntUp() + 1
 
@@ -70,18 +79,12 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 					val docs = webClient.httpGet(url).parseHtml()
 					return parseAdvanceSearch(docs, page)
 				} else {
-					val site = if (filter.sortOrder == SortOrder.UPDATED) "/chap-moi" else "/danh-sach"
+					val site = if (order == SortOrder.UPDATED) "/chap-moi" else "/danh-sach"
 					val url = "$site.html?page=$page".toAbsoluteUrl(domain)
-					context.cookieJar.insertCookies(domain, *getSortCookies(filter.sortOrder))
+					context.cookieJar.insertCookies(domain, *getSortCookies(order))
 					val docs = webClient.httpGet(url).parseHtml()
 					parseMainList(docs, page)
 				}
-			}
-
-			null -> {
-				val page = (offset / PAGE_SIZE.toFloat()).toIntUp() + 1
-				val url = "/chap-moi.html?page=$page".toAbsoluteUrl(domain)
-				parseMainList(webClient.httpGet(url).parseHtml(), page)
 			}
 		}
 	}
@@ -145,10 +148,6 @@ class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context, MangaPa
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

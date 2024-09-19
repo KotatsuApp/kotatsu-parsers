@@ -15,74 +15,70 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
 	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		val url =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					buildString {
-						append("https://")
-						append(domain)
-						append("/tim-kiem/trang-$page.html")
-						append("?q=")
-						append(filter.query.urlEncoded())
-					}
-				}
-
-				is MangaListFilter.Advanced -> {
-					buildString {
-						append("https://")
-						append(domain)
-						append("/tim-kiem-nang-cao/trang-")
-						append(page.toString())
-						append(".html?country=0&sort=")
-						when (filter.sortOrder) {
-							SortOrder.POPULARITY -> append("4")
-							SortOrder.UPDATED -> append("2")
-							SortOrder.NEWEST -> append("0")
-							else -> append("2")
-						}
-						if (filter.states.isNotEmpty()) {
-							filter.states.oneOrThrowIfMany()?.let {
-								append("&status=")
-								append(
-									when (it) {
-										MangaState.ONGOING -> "0"
-										MangaState.FINISHED -> "1"
-										else -> "-1"
-									},
-								)
-							}
-						} else {
-							append("&status=-1")
-						}
-
-						append("&category=")
-						append(filter.tags.joinToString(separator = ",") { it.key })
-						append("&notcategory=&minchapter=0")
-					}
-				}
-
-				null -> {
-					buildString {
-						append("https://")
-						append(domain)
-						append("/tim-kiem-nang-cao/trang-")
-						append(page.toString())
-						append(".html?status=-1&country=0&sort=2&category=&notcategory=&minchapter=0")
-					}
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val url = when {
+			!filter.query.isNullOrEmpty() -> {
+				buildString {
+					append("https://")
+					append(domain)
+					append("/tim-kiem/trang-$page.html")
+					append("?q=")
+					append(filter.query.urlEncoded())
 				}
 			}
+
+			else -> {
+				buildString {
+					append("https://")
+					append(domain)
+					append("/tim-kiem-nang-cao/trang-")
+					append(page.toString())
+					append(".html?country=0&sort=")
+					when (order) {
+						SortOrder.POPULARITY -> append("4")
+						SortOrder.UPDATED -> append("2")
+						SortOrder.NEWEST -> append("0")
+						else -> append("2")
+					}
+					if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append("&status=")
+							append(
+								when (it) {
+									MangaState.ONGOING -> "0"
+									MangaState.FINISHED -> "1"
+									else -> "-1"
+								},
+							)
+						}
+					} else {
+						append("&status=-1")
+					}
+
+					append("&category=")
+					append(filter.tags.joinToString(separator = ",") { it.key })
+					append("&notcategory=&minchapter=0")
+				}
+			}
+		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.requireElementById("main_homepage").select("li").map { li ->
 			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
@@ -103,7 +99,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao.html").parseHtml()
 		return doc.select(".advsearch-form div.genre-item").mapNotNullToSet {
 			MangaTag(
@@ -113,7 +109,6 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 			)
 		}
 	}
-
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

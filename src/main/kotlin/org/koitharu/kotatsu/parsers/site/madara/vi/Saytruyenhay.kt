@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @Broken
 @MangaSourceParser("SAYTRUYENHAY", "PheTruyen", "vi")
@@ -17,31 +16,31 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 
 	override val tagPrefix = "genre/"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
 	override val listUrl = "public/genre/manga/"
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.RATING, SortOrder.NEWEST)
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?s=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -54,19 +53,13 @@ internal class Saytruyenhay(context: MangaLoaderContext) :
 					append("?page=")
 					append(page.toString())
 					append("&m_orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.RATING -> append("rating")
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.NEWEST -> append("new")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					append("?page=")
-					append(page.toString())
 				}
 			}
 		}

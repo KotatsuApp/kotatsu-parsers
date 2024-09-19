@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("VYMANGA", "VyManga", "en")
-class VyManga(context: MangaLoaderContext) :
+internal class VyManga(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.VYMANGA, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("vymanga.net")
@@ -20,8 +20,6 @@ class VyManga(context: MangaLoaderContext) :
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isMultipleTagsSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -34,22 +32,30 @@ class VyManga(context: MangaLoaderContext) :
 		SortOrder.UPDATED_ASC,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentRating = emptySet(),
+	)
 
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?search_po=0&q=")
 					append(filter.query.urlEncoded())
 					append("&author_po=0&author=&completed=2&sort=updated_at&sort_type=desc&page=")
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isEmpty()) {
 
@@ -84,7 +90,7 @@ class VyManga(context: MangaLoaderContext) :
 					}
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("viewed&sort_type=desc")
 						SortOrder.POPULARITY_ASC -> append("viewed&sort_type=asc")
 						SortOrder.RATING -> append("scored&sort_type=desc")
@@ -97,11 +103,6 @@ class VyManga(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-					append(page)
-				}
-
-				null -> {
-					append("/search?search_po=0&q=&author_po=0&author=&completed=2&sort=updated_at&sort_type=desc&page=")
 					append(page)
 				}
 			}
@@ -126,7 +127,7 @@ class VyManga(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.select("div.dropdown-menu.custom-menu ul li a[href*=genre]").mapNotNullToSet {
 			MangaTag(

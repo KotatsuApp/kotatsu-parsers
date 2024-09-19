@@ -3,7 +3,10 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
@@ -52,7 +55,7 @@ internal class FireScans(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/?s=&post_type=wp-manga").parseHtml()
 		return doc.select("form.search-advanced-form div.form-group div.checkbox ").mapNotNullToSet { div ->
 			val key = div.selectFirst("input")?.attr("value") ?: return@mapNotNullToSet null

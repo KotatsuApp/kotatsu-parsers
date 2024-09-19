@@ -24,25 +24,31 @@ internal abstract class VmpParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val isMultipleTagsSupported = false
-
 	protected open val listUrl = "xxx/"
 	protected open val geneUrl = "genero/"
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(listUrl)
 					append("/page/")
 					append(page.toString())
@@ -50,7 +56,7 @@ internal abstract class VmpParser(
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -64,12 +70,6 @@ internal abstract class VmpParser(
 						append("/page/")
 						append(page.toString())
 					}
-				}
-
-				null -> {
-					append(listUrl)
-					append("/page/")
-					append(page.toString())
 				}
 			}
 		}
@@ -96,7 +96,7 @@ internal abstract class VmpParser(
 
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select("div.tagcloud a").mapNotNullToSet { a ->
 			MangaTag(

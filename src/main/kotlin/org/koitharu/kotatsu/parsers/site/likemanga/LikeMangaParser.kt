@@ -32,30 +32,35 @@ internal abstract class LikeMangaParser(
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override val isMultipleTagsSupported = false
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/?act=search")
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&f")
 					append("[keyword]".urlEncoded())
 					append("=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("&f")
 					append("[sortby]".urlEncoded())
 					append("=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("hot")
 						SortOrder.UPDATED -> append("lastest-chap")
 						SortOrder.NEWEST -> append("lastest-manga")
@@ -85,12 +90,6 @@ internal abstract class LikeMangaParser(
 						)
 					}
 				}
-
-				null -> {
-					append("&f")
-					append("[sortby]".urlEncoded())
-					append("=lastest-chap")
-				}
 			}
 
 			if (page > 1) {
@@ -119,7 +118,7 @@ internal abstract class LikeMangaParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/genres/").parseHtml()
 		return doc.select("ul.nav-genres li:not(.text-center) a").mapNotNullToSet { a ->
 			MangaTag(

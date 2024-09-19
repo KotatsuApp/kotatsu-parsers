@@ -20,30 +20,37 @@ internal class Komikcast(context: MangaLoaderContext) :
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-	override val isTagsExclusionSupported = false
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("/page/")
 					append(page.toString())
 					append("/?type=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "&orderby=titleasc"
 							SortOrder.ALPHABETICAL_DESC -> "&orderby=titledesc"
 							SortOrder.POPULARITY -> "&orderby=popular"
@@ -67,13 +74,6 @@ internal class Komikcast(context: MangaLoaderContext) :
 							}
 						}
 					}
-				}
-
-				null -> {
-					append("/page/")
-					append(page.toString())
-					append(listUrl)
-					append("/?order=update")
 				}
 			}
 		}

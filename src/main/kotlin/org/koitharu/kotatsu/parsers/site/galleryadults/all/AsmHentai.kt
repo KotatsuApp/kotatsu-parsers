@@ -14,6 +14,7 @@ import java.util.*
 @MangaSourceParser("ASMHENTAI", "AsmHentai", type = ContentType.HENTAI)
 internal class AsmHentai(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.ASMHENTAI, "asmhentai.com") {
+
 	override val selectGallery = ".preview_item"
 	override val selectGalleryLink = ".image a"
 	override val selectGalleryImg = ".image img"
@@ -21,11 +22,13 @@ internal class AsmHentai(context: MangaLoaderContext) :
 	override val selectAuthor = "div.tags:contains(Artists:) .tag_list a span.tag"
 	override val idImg = "fimg"
 
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
-		Locale("tr"),
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.JAPANESE,
+			Locale.CHINESE,
+			Locale("tr"),
+		),
 	)
 
 	override fun Element.parseTags() = select("a").mapToSet {

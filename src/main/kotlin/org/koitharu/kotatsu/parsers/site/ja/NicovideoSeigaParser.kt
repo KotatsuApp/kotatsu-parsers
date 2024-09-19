@@ -1,6 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
@@ -12,11 +15,20 @@ private const val STATUS_ONGOING = "連載"
 private const val STATUS_FINISHED = "完結"
 
 @MangaSourceParser("NICOVIDEO_SEIGA", "NicoVideo Seiga", "ja")
-class NicovideoSeigaParser(context: MangaLoaderContext) :
+internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -41,36 +53,30 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 	)
 
-	override val isMultipleTagsSupported = false
-
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
 
-	@InternalParsersApi
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val page = (offset / 20f).toIntUp().inc()
 		val domain = getDomain("seiga")
-		val url =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					return if (offset == 0) getSearchList(filter.query, page) else emptyList()
-				}
+		val url = when {
+			!filter.query.isNullOrEmpty() -> {
+				return if (offset == 0) getSearchList(filter.query, page) else emptyList()
+			}
 
-				is MangaListFilter.Advanced -> {
+			else -> {
 
 
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany().let {
-							"https://$domain/manga/list?category=${it?.key}&page=$page&sort=${getSortKey(filter.sortOrder)}"
-						}
-
-					} else {
-						"https://$domain/manga/list?page=$page&sort=${getSortKey(filter.sortOrder)}"
+				if (filter.tags.isNotEmpty()) {
+					filter.tags.oneOrThrowIfMany().let {
+						"https://$domain/manga/list?category=${it?.key}&page=$page&sort=${getSortKey(order)}"
 					}
 
+				} else {
+					"https://$domain/manga/list?page=$page&sort=${getSortKey(order)}"
 				}
 
-				null -> "https://$domain/manga/list?page=$page"
 			}
+		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 		val comicList = doc.body().select("#comic_list > ul > li") ?: doc.parseFailed("Container not found")
@@ -143,7 +149,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain("seiga"))
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		if (!doc.select("#login_manga").isEmpty())
+		if (!doc.select("#login_manga").isEmpty)
 			throw AuthRequiredException(source)
 		val root = doc.body().select("#page_contents > li")
 		return root.map { li ->
@@ -157,7 +163,7 @@ class NicovideoSeigaParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${getDomain("seiga")}/manga/list").parseHtml()
 		val root = doc.body().selectOrThrow("#mg_category_list > ul > li").drop(1)
 		return root.mapToSet { li ->

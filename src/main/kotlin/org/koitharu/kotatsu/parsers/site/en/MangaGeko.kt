@@ -19,20 +19,26 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 
 	override val configKeyDomain = ConfigKey.Domain("www.mgeko.cc", "www.mgeko.com", "www.mangageko.com")
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						return emptyList()
 					}
@@ -40,13 +46,13 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("/browse-comics/?results=")
 					append(page)
 
 					append("&filter=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("Updated")
 						SortOrder.NEWEST -> append("New")
@@ -59,12 +65,6 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 							append(it.key)
 						}
 					}
-				}
-
-				null -> {
-					append("/browse-comics/?results=")
-					append(page)
-					append("&filter=Updated")
 				}
 			}
 		}
@@ -88,7 +88,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
 		return doc.select("label.checkbox-inline").mapNotNullToSet { label ->
 			MangaTag(

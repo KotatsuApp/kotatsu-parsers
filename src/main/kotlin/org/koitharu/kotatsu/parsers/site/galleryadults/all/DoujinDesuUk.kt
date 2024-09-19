@@ -21,10 +21,12 @@ internal class DoujinDesuUk(context: MangaLoaderContext) :
 	override val selectLanguageChapter = "div.tag-container:contains(Languages) a"
 	override val idImg = "image-container"
 
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.JAPANESE,
+			Locale.CHINESE,
+		),
 	)
 
 	override fun parseMangaList(doc: Document): List<Manga> {

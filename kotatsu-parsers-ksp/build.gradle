@@ -7,5 +7,5 @@ kotlin {
 }
 
 dependencies {
-	implementation 'com.google.devtools.ksp:symbol-processing-api:2.0.10-RC-1.0.23'
+	implementation 'com.google.devtools.ksp:symbol-processing-api:2.0.20-1.0.25'
 }

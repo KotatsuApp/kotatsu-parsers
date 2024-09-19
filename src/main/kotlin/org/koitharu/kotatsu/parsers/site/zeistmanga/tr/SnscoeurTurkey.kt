@@ -20,7 +20,7 @@ internal class SnscoeurTurkey(context: MangaLoaderContext) :
 
 	override val mangaCategory = "Seriler"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/p/gelismis-arama.html").parseHtml()
 		return doc.selectFirstOrThrow("div.filter").select("ul li").mapNotNullToSet {
 			MangaTag(

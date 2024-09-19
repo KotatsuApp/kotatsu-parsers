@@ -25,24 +25,24 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override val availableContentRating: Set<ContentRating> = emptySet()
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
-	override val availableStates: Set<MangaState> get() = emptySet()
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -57,13 +57,6 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 							append("/page/")
 							append(page)
 						}
-					}
-				}
-
-				null -> {
-					if (page > 1) {
-						append("/page/")
-						append(page)
 					}
 				}
 			}
@@ -89,7 +82,7 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val list = doc.body().selectFirstOrThrow("div.genre-menu").select("ul li").orEmpty()
 		val keySet = HashSet<String>(list.size)

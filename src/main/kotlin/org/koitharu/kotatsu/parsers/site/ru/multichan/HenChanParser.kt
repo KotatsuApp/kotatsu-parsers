@@ -59,10 +59,10 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		)
 	}
 
-	override fun buildUrl(offset: Int, filter: MangaListFilter?): HttpUrl = when {
-		filter is MangaListFilter.Advanced && filter.tags.isEmpty() && filter.tagsExclude.isEmpty() -> {
+	override fun buildUrl(offset: Int, order: SortOrder, filter: MangaListFilter): HttpUrl = when {
+		filter.query.isNullOrEmpty() && filter.tags.isEmpty() && filter.tagsExclude.isEmpty() -> {
 			val builder = urlBuilder().addQueryParameter("offset", offset.toString())
-			when (filter.sortOrder) {
+			when (order) {
 				SortOrder.POPULARITY -> {
 					builder.addPathSegment("mostviews")
 					builder.addQueryParameter("sort", "manga")
@@ -81,15 +81,8 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 			builder.build()
 		}
 
-		filter == null -> {
-			val builder = urlBuilder().addQueryParameter("offset", offset.toString())
-			builder.addPathSegment("manga")
-			builder.addPathSegment("newest")
-			builder.build()
-		}
-
 		else -> {
-			super.buildUrl(offset, filter)
+			super.buildUrl(offset, order, filter)
 		}
 	}
 }

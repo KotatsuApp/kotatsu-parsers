@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,19 +11,23 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("ONEPIECEEX", "OnePieceEx", "pt")
-class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.ONEPIECEEX, 1) {
+internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val configKeyDomain = ConfigKey.Domain("onepieceex.net")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities()
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if (page > 1) return emptyList()
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return listOf(
 			Manga(
 				id = generateUid("https://$domain/mangas/leitor/"),
@@ -66,8 +70,6 @@ class OnePieceEx(context: MangaLoaderContext) : PagedMangaParser(context, MangaP
 			),
 		)
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		if (manga.url.endsWith("/leitor/")) {

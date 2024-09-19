@@ -31,24 +31,28 @@ internal class Mangairo(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val isTagsExclusionSupported = false
-	override val isMultipleTagsSupported = false
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+			isMultipleTagsSupported = false,
+		)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					append(filter.query.urlEncoded())
 					append("?page=")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("/type-")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("topview")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("newest")
@@ -81,11 +85,6 @@ internal class Mangairo(context: MangaLoaderContext) :
 
 					append("/page-")
 				}
-
-				null -> {
-					append(listUrl)
-					append("/type-latest/ctg-all/state-all/page-")
-				}
 			}
 			append(page.toString())
 		}
@@ -109,7 +108,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/type-latest/ctg-all/state-all/page-1").parseHtml()
 		return doc.select("div.panel_category a:not(.ctg_select)").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast("ctg-").substringBefore("/")

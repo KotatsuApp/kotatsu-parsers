@@ -16,9 +16,10 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGA_WTF", "MangaWtf", "ru")
-class MangaWtfParser(
+internal class MangaWtfParser(
 	context: MangaLoaderContext,
 ) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
 			SortOrder.POPULARITY,
@@ -30,27 +31,30 @@ class MangaWtfParser(
 	@InternalParsersApi
 	override val configKeyDomain = ConfigKey.Domain("manga.wtf")
 
-	override val isTagsExclusionSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
 			MangaState.UPCOMING,
 			MangaState.PAUSED,
 			MangaState.ONGOING,
 			MangaState.FINISHED,
-		)
-
-	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
+		),
+		availableContentRating = EnumSet.allOf(ContentRating::class.java),
+	)
 
 	init {
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url =
 			urlBuilder("api")
 				.addPathSegment("v2")
@@ -58,22 +62,16 @@ class MangaWtfParser(
 				.addQueryParameter("page", page.toString())
 				.addQueryParameter("size", pageSize.toString())
 				.addQueryParameter("type", "COMIC")
-		when (filter) {
-			is MangaListFilter.Advanced -> {
+		when {
+			filter.query.isNullOrEmpty() -> {
 				url.addQueryParameter(
 					"sort",
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> "updatedAt,desc"
 						SortOrder.POPULARITY -> "viewsCount,desc"
 						SortOrder.RATING -> "likesCount,desc"
 						SortOrder.NEWEST -> "createdAt,desc"
-						SortOrder.ALPHABETICAL,
-						SortOrder.ALPHABETICAL_DESC,
-						SortOrder.UPDATED_ASC,
-						SortOrder.POPULARITY_ASC,
-						SortOrder.RATING_ASC,
-						SortOrder.NEWEST_ASC,
-						-> throw IllegalArgumentException("Unsupported ${filter.sortOrder}")
+						else -> throw IllegalArgumentException("Unsupported ${order}")
 					},
 				)
 				if (filter.tags.isNotEmpty()) {
@@ -110,11 +108,9 @@ class MangaWtfParser(
 				}
 			}
 
-			is MangaListFilter.Search -> {
+			else -> {
 				url.addQueryParameter("search", filter.query)
 			}
-
-			null -> Unit
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
 		return ja.mapJSON { jo -> jo.toManga() }
@@ -141,13 +137,13 @@ class MangaWtfParser(
 				tags = jo.getJSONArray("labels").mapJSONToSet { it.toMangaTag() },
 				state = jo.getStringOrNull("status")?.toMangaState(),
 				author =
-				jo.getJSONArray("relations").toJSONList().firstNotNullOfOrNull {
-					if (it.getStringOrNull("type") == "AUTHOR") {
-						it.getJSONObject("publisher").getStringOrNull("name")
-					} else {
-						null
-					}
-				},
+					jo.getJSONArray("relations").toJSONList().firstNotNullOfOrNull {
+						if (it.getStringOrNull("type") == "AUTHOR") {
+							it.getJSONObject("publisher").getStringOrNull("name")
+						} else {
+							null
+						}
+					},
 				source = source,
 				largeCoverUrl = null,
 				description = jo.getString("description").nl2br(),
@@ -172,10 +168,8 @@ class MangaWtfParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("label")
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+		val url = urlBuilder("api").addPathSegment("label")
 		val json = webClient.httpGet(url.build()).parseJson()
 		return json.getJSONArray("content").mapJSONToSet { jo ->
 			MangaTag(
@@ -215,10 +209,10 @@ class MangaWtfParser(
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
 					name =
-					jo.getStringOrNull("name") ?: buildString {
-						if (volume > 0) append("Том ").append(volume).append(' ')
-						if (number > 0) append("Глава ").append(number) else append("Без имени")
-					},
+						jo.getStringOrNull("name") ?: buildString {
+							if (volume > 0) append("Том ").append(volume).append(' ')
+							if (number > 0) append("Глава ").append(number) else append("Без имени")
+						},
 					number = number,
 					volume = volume,
 					url = jo.getString("id"),

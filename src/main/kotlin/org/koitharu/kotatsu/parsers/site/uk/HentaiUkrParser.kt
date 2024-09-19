@@ -24,7 +24,8 @@ private const val PAGE_SIZE = 60
 
 // NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
-class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR), Interceptor {
+internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR),
+	Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
@@ -39,6 +40,17 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 	}
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -73,38 +85,27 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 		)
 	}
 
-	override suspend fun getList(
-		offset: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		// Get all manga
 		val json = allManga.get().toMutableList()
 
-		when (filter) {
-			is MangaListFilter.Search -> {
-				json.retainAll { item ->
-					item.getString("name").contains(filter.query, ignoreCase = true) ||
-						item.getStringOrNull("eng_name")?.contains(filter.query, ignoreCase = true) == true ||
-						item.getStringOrNull("orig_name")?.contains(filter.query, ignoreCase = true) == true ||
-						item.getStringOrNull("author")?.contains(filter.query, ignoreCase = true) == true ||
-						item.getStringOrNull("team")?.contains(filter.query, ignoreCase = true) == true
-				}
+		if (!filter.query.isNullOrEmpty()) {
+			json.retainAll { item ->
+				item.getString("name").contains(filter.query, ignoreCase = true) ||
+					item.getStringOrNull("eng_name")?.contains(filter.query, ignoreCase = true) == true ||
+					item.getStringOrNull("orig_name")?.contains(filter.query, ignoreCase = true) == true ||
+					item.getStringOrNull("author")?.contains(filter.query, ignoreCase = true) == true ||
+					item.getStringOrNull("team")?.contains(filter.query, ignoreCase = true) == true
 			}
-
-			is MangaListFilter.Advanced -> {
-				if (filter.tags.isNotEmpty()) {
-					val ids = filter.tags.mapToSet { it.key }
-					json.retainAll { item ->
-						item.getJSONArray("tags")
-							.mapJSON { it.getAsString() }
-							.any { x -> x in ids }
-					}
-				}
-			}
-
-			null -> {}
 		}
-
+		if (filter.tags.isNotEmpty()) {
+			val ids = filter.tags.mapToSet { it.key }
+			json.retainAll { item ->
+				item.getJSONArray("tags")
+					.mapJSON { it.getAsString() }
+					.any { x -> x in ids }
+			}
+		}
 		// Return to app
 		return json.drop(offset).take(PAGE_SIZE).map { jo ->
 			val id = jo.getAsLong()
@@ -140,7 +141,7 @@ class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaP
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return allManga.get().flatMapTo(HashSet()) { x ->
 			x.getJSONArray("tags").mapJSON { t ->
 				MangaTag(

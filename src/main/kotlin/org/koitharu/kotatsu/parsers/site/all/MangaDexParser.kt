@@ -44,17 +44,38 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		keys.add(preferredServerKey)
 	}
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearSupported = true,
+			isYearRangeSupported = true,
+			isOriginalLocaleSupported = true,
+		)
+
 	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
-	override val availableContentRating: Set<ContentRating> = EnumSet.allOf(ContentRating::class.java)
+	override suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
+		val localesDeferred = async { fetchAvailableLocales() }
+		val tagsDeferred = async { fetchAvailableTags() }
+		MangaListFilterOptions(
+			availableTags = tagsDeferred.await(),
+			availableStates = EnumSet.of(
+				MangaState.ONGOING,
+				MangaState.FINISHED,
+				MangaState.PAUSED,
+				MangaState.ABANDONED,
+			),
+			availableContentRating = EnumSet.allOf(ContentRating::class.java),
+			availableContentTypes = emptySet(),
+			availableDemographics = EnumSet.allOf(Demographic::class.java),
+			availableLocales = localesDeferred.await(),
+		)
+	}
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-	override val isTagsExclusionSupported: Boolean = true
-
-
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val url = buildString {
 			append("https://api.")
@@ -64,68 +85,90 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			append("&offset=")
 			append(offset)
 			append("&includes[]=cover_art&includes[]=author&includes[]=artist")
-			when (filter) {
-				is MangaListFilter.Search -> {
-					append("&title=")
-					append(filter.query)
-					append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
-				}
 
-				is MangaListFilter.Advanced -> {
-					filter.tags.forEach {
-						append("&includedTags[]=")
-						append(it.key)
-					}
+			filter.query?.let {
+				append("&title=")
+				append(filter.query.urlEncoded())
+			}
 
-					filter.tagsExclude.forEach {
-						append("&excludedTags[]=")
-						append(it.key)
-					}
+			filter.tags.forEach {
+				append("&includedTags[]=")
+				append(it.key)
+			}
 
-					if (filter.contentRating.isNotEmpty()) {
-						filter.contentRating.forEach {
-							when (it) {
-								ContentRating.SAFE -> append("&contentRating[]=safe")
-								ContentRating.SUGGESTIVE -> append("&contentRating[]=suggestive&contentRating[]=erotica")
-								ContentRating.ADULT -> append("&contentRating[]=pornographic")
-							}
-						}
-					}
+			filter.tagsExclude.forEach {
+				append("&excludedTags[]=")
+				append(it.key)
+			}
 
-					append("&order")
-					append(
-						when (filter.sortOrder) {
-							SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
-							SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
-							SortOrder.RATING -> "[rating]=desc"
-							SortOrder.RATING_ASC -> "[rating]=asc"
-							SortOrder.ALPHABETICAL -> "[title]=asc"
-							SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
-							SortOrder.NEWEST -> "[createdAt]=desc"
-							SortOrder.NEWEST_ASC -> "[createdAt]=asc"
-							SortOrder.POPULARITY -> "[followedCount]=desc"
-							SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
-						},
-					)
-					filter.states.forEach {
-						append("&status[]=")
-						when (it) {
-							MangaState.ONGOING -> append("ongoing")
-							MangaState.FINISHED -> append("completed")
-							MangaState.ABANDONED -> append("cancelled")
-							MangaState.PAUSED -> append("hiatus")
-							else -> append("")
-						}
-					}
-					filter.locale?.let {
-						append("&availableTranslatedLanguage[]=")
-						append(it.language)
+			if (filter.contentRating.isNotEmpty()) {
+				filter.contentRating.forEach {
+					when (it) {
+						ContentRating.SAFE -> append("&contentRating[]=safe")
+						ContentRating.SUGGESTIVE -> append("&contentRating[]=suggestive&contentRating[]=erotica")
+						ContentRating.ADULT -> append("&contentRating[]=pornographic")
+
 					}
 				}
+			} else append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
 
-				null -> {
-					append("&order[latestUploadedChapter]=desc")
+			append("&order")
+			append(
+				when (order) {
+					SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
+					SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
+					SortOrder.RATING -> "[rating]=desc"
+					SortOrder.RATING_ASC -> "[rating]=asc"
+					SortOrder.ALPHABETICAL -> "[title]=asc"
+					SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
+					SortOrder.NEWEST -> "[year]=desc"
+					SortOrder.NEWEST_ASC -> "[year]=asc"
+					SortOrder.POPULARITY -> "[followedCount]=desc"
+					SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
+					SortOrder.ADDED -> "[createdAt]=desc"
+					SortOrder.ADDED_ASC -> "[createdAt]=asc"
+					SortOrder.RELEVANCE -> "&order[relevance]=desc"
+					else -> "[latestUploadedChapter]=desc"
+				},
+			)
+
+			filter.states.forEach {
+				append("&status[]=")
+				when (it) {
+					MangaState.ONGOING -> append("ongoing")
+					MangaState.FINISHED -> append("completed")
+					MangaState.ABANDONED -> append("cancelled")
+					MangaState.PAUSED -> append("hiatus")
+					else -> append("")
 				}
+			}
+
+			filter.demographics.forEach {
+				append("&publicationDemographic[]=")
+				append(
+					when (it) {
+						Demographic.SHOUNEN -> "shounen"
+						Demographic.SHOUJO -> "shoujo"
+						Demographic.SEINEN -> "seinen"
+						Demographic.JOSEI -> "josei"
+						Demographic.NONE -> "none"
+					},
+				)
+			}
+
+			filter.locale?.let {
+				append("&availableTranslatedLanguage[]=")
+				append(it.language)
+			}
+
+			filter.originalLocale?.let {
+				append("&originalLanguage[]=")
+				append(it.language)
+			}
+
+			if (filter.year != 0) {
+				append("&year=")
+				append(filter.year)
 			}
 		}
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
@@ -219,7 +262,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://api.${domain}/manga/tag").parseJson()
 			.getJSONArray("data")
 		return tags.mapJSONToSet { jo ->
@@ -233,7 +276,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun getAvailableLocales(): Set<Locale> {
+	private suspend fun fetchAvailableLocales(): Set<Locale> {
 		val head = webClient.httpGet("https://$domain/").parseHtml().head()
 		return head.getElementsByAttributeValue("property", "og:locale:alternate")
 			.mapNotNullToSet { meta ->

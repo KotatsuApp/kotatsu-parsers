@@ -2,17 +2,17 @@ package org.koitharu.kotatsu.parsers.model
 
 import org.koitharu.kotatsu.parsers.MangaParser
 
-class MangaTag(
+public class MangaTag(
 	/**
 	 * User-readable tag title, should be in Title case
 	 */
-	@JvmField val title: String,
+	@JvmField public val title: String,
 	/**
 	 * Identifier of a tag, must be unique among the source.
 	 * @see MangaParser.getList
 	 */
-	@JvmField val key: String,
-	@JvmField val source: MangaSource,
+	@JvmField public val key: String,
+	@JvmField public val source: MangaSource,
 ) {
 
 	override fun equals(other: Any?): Boolean {

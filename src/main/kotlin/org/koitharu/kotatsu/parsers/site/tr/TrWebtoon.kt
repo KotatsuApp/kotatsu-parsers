@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRWEBTOON", "TrWebtoon", "tr")
-class TrWebtoon(context: MangaLoaderContext) :
+internal class TrWebtoon(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.TRWEBTOON, pageSize = 21) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
@@ -31,13 +31,19 @@ class TrWebtoon(context: MangaLoaderContext) :
 			SortOrder.UPDATED,
 		)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override val isMultipleTagsSupported = false
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				val url = buildString {
 					append("https://")
 					append(domain)
@@ -50,9 +56,9 @@ class TrWebtoon(context: MangaLoaderContext) :
 				return parseMangaList(webClient.httpGet(url).parseHtml())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 
-				if (filter.sortOrder == SortOrder.UPDATED) {
+				if (order == SortOrder.UPDATED) {
 					if (filter.tags.isNotEmpty()) {
 						throw IllegalArgumentException("Sort order updated + Tags or States is not supported by this source")
 					}
@@ -84,7 +90,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 							)
 						}
 						append("&sort=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("views&short_type=DESC")
 							SortOrder.POPULARITY_ASC -> append("views&short_type=ASC")
 							SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
@@ -96,16 +102,6 @@ class TrWebtoon(context: MangaLoaderContext) :
 					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
 
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/son-eklenenler?page=")
-					append(page.toString())
-				}
-				return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
 			}
 		}
 	}
@@ -160,7 +156,7 @@ class TrWebtoon(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags =
 			webClient.httpGet("https://$domain/webtoon-listesi").parseHtml().requireElementById("collapseExample")
 				.select(".pt-12 a").drop(1)

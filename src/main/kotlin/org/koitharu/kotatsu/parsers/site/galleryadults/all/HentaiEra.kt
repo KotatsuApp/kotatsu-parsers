@@ -18,17 +18,21 @@ internal class HentaiEra(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
 
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale("ko"),
-		Locale.GERMAN,
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale("es"),
+			Locale("ru"),
+			Locale("ko"),
+			Locale.GERMAN,
+		),
 	)
 
 	override fun Element.parseTags() = select("a.tag, .gallery_title a").mapToSet {
@@ -41,22 +45,22 @@ internal class HentaiEra(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search/?key=")
 					append(filter.query.urlEncoded())
 					append("&")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search/?key=")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append(
 								buildQuery(filter.tags, filter.locale)
 									.replace("&lt=1&dl=0&pp=0&tr=0", "&lt=0&dl=0&pp=1&tr=0"),
@@ -72,7 +76,7 @@ internal class HentaiEra(context: MangaLoaderContext) :
 						}
 						append("/")
 
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 						append("?")
@@ -81,7 +85,7 @@ internal class HentaiEra(context: MangaLoaderContext) :
 						append(filter.locale.toLanguagePath())
 						append("/")
 
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("popular/")
 						}
 						append("?")
@@ -89,8 +93,6 @@ internal class HentaiEra(context: MangaLoaderContext) :
 						append("/?")
 					}
 				}
-
-				null -> append("/?")
 			}
 			append("page=")
 			append(page.toString())

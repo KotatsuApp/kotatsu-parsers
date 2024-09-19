@@ -39,27 +39,38 @@ internal abstract class HeanCms(
 		SortOrder.POPULARITY_ASC,
 	)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-
 	protected open val pathManga = "series"
 	protected open val apiPath
 		get() = getDomain("api")
 
 	protected open val paramsUpdated = "latest"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(apiPath)
 			append("/query?query_string=&series_type=Comic&perPage=$pageSize")
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.states.oneOrThrowIfMany()?.let {
 						append("&status=")
@@ -75,7 +86,7 @@ internal abstract class HeanCms(
 					}
 
 					append("&orderBy=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("total_views&order=desc")
 						SortOrder.POPULARITY_ASC -> append("total_views&order=asc")
 						SortOrder.UPDATED -> append("$paramsUpdated&order=desc")
@@ -91,7 +102,6 @@ internal abstract class HeanCms(
 					append(filter.tags.joinToString(",") { it.key })
 					append("]".urlEncoded())
 				}
-				null -> append("&status=All&orderBy=$paramsUpdated&order=desc")
 			}
 			append("&page=")
 			append(page.toString())
@@ -180,7 +190,7 @@ internal abstract class HeanCms(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 		val regex = Regex("\"tags\\\\?\":\\s*\\[(.+?)]\\s*[},]")
 		val tags = doc.select("script").joinToString("") { it.html() }

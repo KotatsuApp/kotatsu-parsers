@@ -59,6 +59,16 @@ internal class RemangaParser(
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
 		if (response.code == TOO_MANY_REQUESTS) {
@@ -69,25 +79,19 @@ internal class RemangaParser(
 		return response
 	}
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		copyCookies()
 		val domain = domain
 		val urlBuilder = StringBuilder()
 			.append("https://api.")
 			.append(domain)
-		if (query != null) {
+		if (!filter.query.isNullOrEmpty()) {
 			urlBuilder.append("/api/search/?query=")
-				.append(query.urlEncoded())
+				.append(filter.query.urlEncoded())
 		} else {
 			urlBuilder.append("/api/search/catalog/?ordering=")
-				.append(getSortKey(sortOrder))
-			tags?.forEach { tag ->
+				.append(getSortKey(order))
+			filter.tags.forEach { tag ->
 				urlBuilder.append("&genres=")
 				urlBuilder.append(tag.key)
 			}
@@ -218,7 +222,7 @@ internal class RemangaParser(
 		return result
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val content = webClient.httpGet("https://api.$domain/api/forms/titles/?get=genres")
 			.parseJson().getJSONObject("content").getJSONArray("genres")

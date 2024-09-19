@@ -64,6 +64,8 @@ All functions in `MangaParser` class are documented. Pay attention to some pecul
   find issues during unit testing.
 - If your source website (or it's api) uses pages for pagination instead of offset you should extend `PagedMangaParser`
   instead of `MangaParser`.
+- If your source website (or it's api) do not provide pagination (has only one page of content) you should extend
+  `SinglePageMangaParser` instead of `MangaParser` nor `PagedMangaParser.
 - Your parser may also implement the `Interceptor` interface for additional manipulation of all network requests and/or
   responses, including image loading.
 

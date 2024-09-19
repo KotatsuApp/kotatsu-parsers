@@ -31,12 +31,6 @@ internal abstract class FuzzyDoodleParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
-	override val isMultipleTagsSupported = true
-
-
 	@JvmField
 	protected val ongoing = scatterSetOf(
 		"en cours",
@@ -73,21 +67,33 @@ internal abstract class FuzzyDoodleParser(
 	protected open val pausedValue = "haitus"
 	protected open val abandonedValue = "dropped"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/manga?page=")
 			append(page)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("&title=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("&type=")
 
 					append("&status=")
@@ -110,8 +116,6 @@ internal abstract class FuzzyDoodleParser(
 						append(it.key)
 					}
 				}
-
-				null -> {}
 			}
 		}
 
@@ -252,7 +256,7 @@ internal abstract class FuzzyDoodleParser(
 
 	protected open val selectTagsList = "div.mt-1 div.items-center:has(label)"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/manga").parseHtml()
 		return doc.select(selectTagsList).mapNotNullToSet {
 			val key = it.selectFirst("input")?.attr("value") ?: return@mapNotNullToSet null

@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
 
 @MangaSourceParser("MANGADASS", "MangaDass", "en", ContentType.HENTAI)
 internal class MangaDass(context: MangaLoaderContext) :
@@ -17,35 +16,32 @@ internal class MangaDass(context: MangaLoaderContext) :
 
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectChapter = "li.a-h"
 	override val selectDesc = "div.ss-manga"
-
-	override val availableStates: Set<MangaState> get() = emptySet()
-
-	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -62,7 +58,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 					}
 
 					append("orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
@@ -70,13 +66,6 @@ internal class MangaDass(context: MangaLoaderContext) :
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					append("/")
-					append(page.toString())
-					append("?orderby=latest")
 				}
 			}
 		}

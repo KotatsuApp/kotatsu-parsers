@@ -19,7 +19,18 @@ internal abstract class ScanParser(
 	domain: String,
 	pageSize: Int = 0,
 ) : PagedMangaParser(context, source, pageSize) {
+
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -31,26 +42,25 @@ internal abstract class ScanParser(
 
 	protected open val listUrl = "/manga"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		var query = false
 
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					query = true
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append(listUrl)
 					append("?q=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> "u"
 							SortOrder.ALPHABETICAL -> "a"
 							SortOrder.POPULARITY -> "p"
@@ -65,12 +75,6 @@ internal abstract class ScanParser(
 					}
 
 					append("&page=")
-					append(page.toString())
-				}
-
-				null -> {
-					append(listUrl)
-					append("?page=")
 					append(page.toString())
 				}
 			}
@@ -109,10 +113,6 @@ internal abstract class ScanParser(
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

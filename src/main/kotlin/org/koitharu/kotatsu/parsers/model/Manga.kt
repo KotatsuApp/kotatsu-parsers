@@ -2,86 +2,86 @@ package org.koitharu.kotatsu.parsers.model
 
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 
-class Manga(
+public class Manga(
 	/**
 	 * Unique identifier for manga
 	 */
-	@JvmField val id: Long,
+	@JvmField public val id: Long,
 	/**
 	 * Manga title, human-readable
 	 */
-	@JvmField val title: String,
+	@JvmField public val title: String,
 	/**
 	 * Alternative title (for example on other language), may be null
 	 */
-	@JvmField val altTitle: String?,
+	@JvmField public val altTitle: String?,
 	/**
 	 * Relative url to manga (**without** a domain) or any other uri.
 	 * Used principally in parsers
 	 */
-	@JvmField val url: String,
+	@JvmField public val url: String,
 	/**
 	 * Absolute url to manga, must be ready to open in browser
 	 */
-	@JvmField val publicUrl: String,
+	@JvmField public val publicUrl: String,
 	/**
 	 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
 	 * @see hasRating
 	 */
-	@JvmField val rating: Float,
+	@JvmField public val rating: Float,
 	/**
 	 * Indicates that manga may contain sensitive information (18+, NSFW)
 	 */
-	@JvmField val isNsfw: Boolean,
+	@JvmField public val isNsfw: Boolean,
 	/**
 	 * Absolute link to the cover
 	 * @see largeCoverUrl
 	 */
-	@JvmField val coverUrl: String,
+	@JvmField public val coverUrl: String,
 	/**
 	 * Tags (genres) of the manga
 	 */
-	@JvmField val tags: Set<MangaTag>,
+	@JvmField public val tags: Set<MangaTag>,
 	/**
 	 * Manga status (ongoing, finished) or null if unknown
 	 */
-	@JvmField val state: MangaState?,
+	@JvmField public val state: MangaState?,
 	/**
 	 * Author of the manga, may be null
 	 */
-	@JvmField val author: String?,
+	@JvmField public val author: String?,
 	/**
 	 * Large cover url (absolute), null if is no large cover
 	 * @see coverUrl
 	 */
-	@JvmField val largeCoverUrl: String? = null,
+	@JvmField public val largeCoverUrl: String? = null,
 	/**
 	 * Manga description, may be html or null
 	 */
-	@JvmField val description: String? = null,
+	@JvmField public val description: String? = null,
 	/**
 	 * List of chapters
 	 */
-	@JvmField val chapters: List<MangaChapter>? = null,
+	@JvmField public val chapters: List<MangaChapter>? = null,
 	/**
 	 * Manga source
 	 */
-	@JvmField val source: MangaSource,
+	@JvmField public val source: MangaSource,
 ) {
 
 	/**
 	 * Return if manga has a specified rating
 	 * @see rating
 	 */
-	val hasRating: Boolean
+	public val hasRating: Boolean
 		get() = rating > 0f && rating <= 1f
 
-	fun getChapters(branch: String?): List<MangaChapter>? {
+	public fun getChapters(branch: String?): List<MangaChapter>? {
 		return chapters?.filter { x -> x.branch == branch }
 	}
 
 	@InternalParsersApi
-	fun copy(
+	public fun copy(
 		title: String = this.title,
 		altTitle: String? = this.altTitle,
 		publicUrl: String = this.publicUrl,
@@ -95,7 +95,7 @@ class Manga(
 		description: String? = this.description,
 		chapters: List<MangaChapter>? = this.chapters,
 		source: MangaSource = this.source,
-	) = Manga(
+	): Manga = Manga(
 		id = id,
 		title = title,
 		altTitle = altTitle,

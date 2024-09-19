@@ -20,30 +20,37 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 	)
 
-	override val isMultipleTagsSupported = false
-
 	override val configKeyDomain = ConfigKey.Domain("scantrad-union.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/tag/")
@@ -53,24 +60,18 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 							append("/")
 						}
 					} else {
-						if (filter.sortOrder == SortOrder.ALPHABETICAL) {
+						if (order == SortOrder.ALPHABETICAL) {
 							append("/manga/page/")
 							append(page.toString())
 							append("/")
 						}
 
-						if (filter.sortOrder == SortOrder.UPDATED && page > 1) {
+						if (order == SortOrder.UPDATED && page > 1) {
 							return emptyList()
 						}
 
 					}
 
-				}
-
-				null -> {
-					append("/manga/page/")
-					append(page.toString())
-					append("/")
 				}
 			}
 		}
@@ -183,7 +184,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val body = doc.body()
 		val list = body.select(".asp_gochosen")[1].select("option").orEmpty()

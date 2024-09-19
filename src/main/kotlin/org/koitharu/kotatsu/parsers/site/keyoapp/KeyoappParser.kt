@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,8 +17,7 @@ internal abstract class KeyoappParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-	pageSize: Int = 24,
-) : PagedMangaParser(context, source, pageSize) {
+) : SinglePageMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -26,8 +25,6 @@ internal abstract class KeyoappParser(
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-
-	override val isMultipleTagsSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -58,29 +55,28 @@ internal abstract class KeyoappParser(
 		"dropped",
 	)
 
-	init {
-		paginator.firstPage = 1
-		searchPaginator.firstPage = 1
-	}
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		var query = ""
 		var tag = ""
 
-		if (page > 1) {
-			return emptyList()
-		}
-
 		val url = urlBuilder().apply {
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					addPathSegment("series")
 					query = filter.query
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -88,15 +84,13 @@ internal abstract class KeyoappParser(
 						}
 					}
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.UPDATED -> addPathSegment("latest")
 						SortOrder.NEWEST -> addPathSegment("series")
 						else -> addPathSegment("latest")
 					}
 
 				}
-
-				null -> addPathSegment("latest")
 			}
 		}.build()
 
@@ -172,7 +166,7 @@ internal abstract class KeyoappParser(
 	}
 
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.requireElementById("series_tags_page").select("button").mapNotNullToSet { button ->
 			val key = button.attr("tag") ?: return@mapNotNullToSet null

@@ -60,8 +60,6 @@ internal abstract class MangaFireParser(
 			?: body.parseFailed("Cannot find username")
 	}
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-
 	private val tags = SoftSuspendLazy {
 		webClient.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
@@ -73,36 +71,44 @@ internal abstract class MangaFireParser(
 			}.associateBy { it.title }
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tags.get().values.toSet()
-	}
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
 
-	override val isTagsExclusionSupported = true
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tags.get().values.toSet(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = "https://$domain/filter".toHttpUrl().newBuilder().apply {
 			addQueryParameter("page", page.toString())
 			addQueryParameter("language[]", siteLang)
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					addQueryParameter("keyword", filter.query)
-					filter.sortOrder?.let {
-						addQueryParameter(
-							name = "sort",
-							value = when (it) {
-								SortOrder.UPDATED -> "recently_updated"
-								SortOrder.POPULARITY -> "most_viewed"
-								SortOrder.RATING -> "scores"
-								SortOrder.NEWEST -> "release_date"
-								SortOrder.ALPHABETICAL -> "title_az"
-								else -> ""
-							},
-						)
-					}
+					addQueryParameter(
+						name = "sort",
+						value = when (order) {
+							SortOrder.UPDATED -> "recently_updated"
+							SortOrder.POPULARITY -> "most_viewed"
+							SortOrder.RATING -> "scores"
+							SortOrder.NEWEST -> "release_date"
+							SortOrder.ALPHABETICAL -> "title_az"
+							else -> ""
+						},
+					)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					filter.tagsExclude.forEach { tag ->
 						addQueryParameter("genre[]", "-${tag.key}")
 					}
@@ -126,7 +132,7 @@ internal abstract class MangaFireParser(
 					}
 					addQueryParameter(
 						name = "sort",
-						value = when (filter.sortOrder) {
+						value = when (order) {
 							SortOrder.UPDATED -> "recently_updated"
 							SortOrder.POPULARITY -> "most_viewed"
 							SortOrder.RATING -> "scores"
@@ -136,8 +142,6 @@ internal abstract class MangaFireParser(
 						},
 					)
 				}
-
-				null -> {}
 			}
 		}.build()
 

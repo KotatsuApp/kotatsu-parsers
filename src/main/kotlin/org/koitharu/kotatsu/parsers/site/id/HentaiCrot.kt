@@ -17,27 +17,33 @@ internal class HentaiCrot(context: MangaLoaderContext) :
 	)
 	override val configKeyDomain = ConfigKey.Domain("hentaicrot.com")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page)
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("/category/")
@@ -45,12 +51,6 @@ internal class HentaiCrot(context: MangaLoaderContext) :
 						append('/')
 					}
 
-					append("/page/")
-					append(page)
-					append('/')
-				}
-
-				null -> {
 					append("/page/")
 					append(page)
 					append('/')
@@ -78,7 +78,7 @@ internal class HentaiCrot(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select("ul.megamenu li").mapNotNullToSet { li ->
 			val key = li.selectFirstOrThrow("a").attr("href").removeSuffix('/').substringAfterLast('/')

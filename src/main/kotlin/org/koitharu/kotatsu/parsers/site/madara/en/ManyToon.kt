@@ -1,10 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.*
 import okhttp3.Headers
 import okhttp3.Request
 import okhttp3.RequestBody
@@ -16,7 +12,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
 
 @MangaSourceParser("MANYTOON", "ManyToon", "en", ContentType.HENTAI)
 internal class ManyToon(context: MangaLoaderContext) :
@@ -24,22 +19,22 @@ internal class ManyToon(context: MangaLoaderContext) :
 	override val listUrl = "comic/"
 	override val postReq = true
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 
-	override val availableStates: Set<MangaState> = emptySet()
+	override suspend fun getFilterOptions(): MangaListFilterOptions {
+		return super.getFilterOptions().copy(
+			availableStates = emptySet(),
+			availableContentRating = emptySet(),
+		)
+	}
 
-	override val availableContentRating: Set<ContentRating> = emptySet()
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val pages = page + 1
 
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (pages > 1) {
 						append("/page/")
 						append(pages.toString())
@@ -49,7 +44,7 @@ internal class ManyToon(context: MangaLoaderContext) :
 					append("&post_type=wp-manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
@@ -70,23 +65,13 @@ internal class ManyToon(context: MangaLoaderContext) :
 					}
 
 					append("?m_orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
-					}
-				}
-
-				null -> {
-					append('/')
-					append(listUrl)
-					if (pages > 1) {
-						append("page/")
-						append(pages)
-						append("/?m_orderby=latest")
 					}
 				}
 			}

@@ -26,22 +26,28 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		".tag-container:contains(Languages:) span.tags a:not(.tag-17249) span.name" // tag-17249 = translated
 	override val idImg = "image-container"
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.POPULARITY_TODAY, SortOrder.POPULARITY_WEEK)
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(Locale.ENGLISH, Locale.JAPANESE, Locale.CHINESE),
+	)
 
 	override fun getRequestHeaders(): Headers = super.getRequestHeaders().newBuilder()
 		.set("User-Agent", config[userAgentKey])
 		.build()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					// Check if the query is all numbers
 					val numericQuery = filter.query.trim()
 					if (numericQuery.matches("\\d+".toRegex())) {
@@ -56,49 +62,23 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
-					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
-						append("/search/?q=")
-						append(buildQuery(filter.tags, filter.locale).urlEncoded())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("&sort=popular")
-						}
-						append("&")
-					} else if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append("/tag/")
-							append(it.key)
-						}
-						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
-						}
-						if (page > 1) {
-							append("?")
-						}
-					} else if (filter.locale != null) {
-						append("/language/")
-						append(filter.locale.toLanguagePath())
-						append("/")
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("popular")
-						}
-						if (page > 1) {
-							append("?")
-						}
-					} else {
-						if (filter.sortOrder == SortOrder.POPULARITY) {
-							append("/?sort=popular&")
-						} else {
-							append("/?")
-						}
+				else -> {
+					append("/search/?q=pages:>0 ")
+					// for Search with query
+					// append(filter.query.urlEncoded())
+					// append(' ')
+					append(buildQuery(filter.tags, filter.locale).urlEncoded())
+					when (order) {
+						SortOrder.POPULARITY -> append("&sort=popular")
+						SortOrder.POPULARITY_TODAY -> append("&sort=popular-today")
+						SortOrder.POPULARITY_WEEK -> append("&sort=popular-week")
+						SortOrder.UPDATED -> {}
+						else -> {}
 					}
 				}
-
-				null -> append("/?")
 			}
 			if (page > 1) {
-				append("page=")
+				append("&page=")
 				append(page.toString())
 			}
 		}
@@ -145,12 +125,6 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			source = source,
 		)
 	}
-
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.JAPANESE,
-		Locale.CHINESE,
-	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

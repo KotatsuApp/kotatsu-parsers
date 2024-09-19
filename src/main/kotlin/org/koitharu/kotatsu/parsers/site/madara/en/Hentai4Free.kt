@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.EnumSet
 
 @MangaSourceParser("HENTAI_4FREE", "Hentai4Free", "en", ContentType.HENTAI)
 internal class Hentai4Free(context: MangaLoaderContext) :
@@ -15,9 +14,6 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 	override val tagPrefix = "hentai-tag/"
 	override val listUrl = ""
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val datePattern = "MMMM dd, yyyy"
 	override val selectGenre = "div.tags-content a"
 
@@ -26,12 +22,12 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
@@ -39,7 +35,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 					append("&post_type=wp-manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -85,7 +81,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 					}
 
 					append("m_orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("new-manga")
@@ -95,14 +91,6 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 					}
 
 
-				}
-
-				null -> {
-					if (page > 1) {
-						append("/page/")
-						append(page.toString())
-					}
-					append("/?m_orderby=latest")
 				}
 			}
 		}

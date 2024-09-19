@@ -80,11 +80,11 @@ class ParserProcessor(
 			"""
 			package org.koitharu.kotatsu.parsers.model
 			
-			enum class MangaParserSource(
-				val title: String,
-				val locale: String,
-				val contentType: ContentType,
-				val isBroken: Boolean,
+			public enum class MangaParserSource(
+				public val title: String,
+				public val locale: String,
+				public val contentType: ContentType,
+				public val isBroken: Boolean,
 			): MangaSource {
 			
 			""".trimIndent(),

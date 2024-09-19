@@ -17,7 +17,6 @@ import java.util.*
 internal class PapScan(context: MangaLoaderContext) :
 	AnimeBootstrapParser(context, MangaParserSource.PAPSCAN, "papscan.com") {
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val isMultipleTagsSupported = false
 	override val listUrl = "/liste-manga"
 	override val selectState = "div.anime__details__widget li:contains(En cours)"
 	override val selectTag = "div.anime__details__widget li:contains(Genre) a"
@@ -29,20 +28,20 @@ internal class PapScan(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/filterList")
 			append("?page=")
 			append(page.toString())
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&alpha=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&cat=")
@@ -50,7 +49,7 @@ internal class PapScan(context: MangaLoaderContext) :
 					}
 
 					append("&sortBy=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.ALPHABETICAL_DESC -> append("name&asc=false")
 						SortOrder.ALPHABETICAL -> append("name&asc=true")
@@ -58,8 +57,6 @@ internal class PapScan(context: MangaLoaderContext) :
 					}
 
 				}
-
-				null -> append("&sortBy=updated")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -82,7 +79,7 @@ internal class PapScan(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
 		return doc.select("a.category ").mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast('=')

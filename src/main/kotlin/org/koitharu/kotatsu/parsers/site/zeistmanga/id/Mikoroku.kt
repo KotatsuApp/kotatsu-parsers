@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class Mikoroku(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.MIKOROKU, "www.mikoroku.web.id") {
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("Genre").select("div.items-center").mapNotNullToSet {
 			MangaTag(

@@ -28,10 +28,6 @@ internal abstract class SinmhParser(
 		SortOrder.POPULARITY,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-
-	override val isMultipleTagsSupported = false
-
 	protected open val searchUrl = "search/"
 	protected open val listUrl = "list/"
 
@@ -50,14 +46,23 @@ internal abstract class SinmhParser(
 		"已完结",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					append("?keywords=")
 					append(filter.query.urlEncoded())
@@ -65,7 +70,7 @@ internal abstract class SinmhParser(
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					filter.tags.oneOrThrowIfMany()?.let {
 						append(it.key)
@@ -85,18 +90,11 @@ internal abstract class SinmhParser(
 						append('/')
 					}
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("click/")
 						SortOrder.UPDATED -> append("update/")
 						else -> append("/")
 					}
-					append(page.toString())
-					append('/')
-				}
-
-				null -> {
-					append(listUrl)
-					append("update/")
 					append(page.toString())
 					append('/')
 				}
@@ -125,7 +123,7 @@ internal abstract class SinmhParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(".filter-item:contains(按剧情) li a:not(.active)").mapNotNullToSet { a ->
 			val href = a.attr("href").removeSuffix('/').substringAfterLast('/')

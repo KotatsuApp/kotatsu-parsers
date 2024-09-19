@@ -7,11 +7,11 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlin.coroutines.cancellation.CancellationException
 
-fun Iterable<Job>.cancelAll(cause: CancellationException? = null) {
+public fun Iterable<Job>.cancelAll(cause: CancellationException? = null) {
 	forEach { it.cancel(cause) }
 }
 
-suspend fun <T> Iterable<Deferred<T>>.awaitFirst(): T {
+public suspend fun <T> Iterable<Deferred<T>>.awaitFirst(): T {
 	return channelFlow {
 		for (deferred in this@awaitFirst) {
 			launch {
@@ -21,7 +21,7 @@ suspend fun <T> Iterable<Deferred<T>>.awaitFirst(): T {
 	}.first().also { this@awaitFirst.cancelAll() }
 }
 
-suspend fun <T> Collection<Deferred<T>>.awaitFirst(condition: (T) -> Boolean): T {
+public suspend fun <T> Collection<Deferred<T>>.awaitFirst(condition: (T) -> Boolean): T {
 	return channelFlow {
 		for (deferred in this@awaitFirst) {
 			launch {

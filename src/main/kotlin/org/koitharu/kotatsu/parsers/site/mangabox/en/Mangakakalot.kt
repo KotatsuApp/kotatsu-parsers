@@ -19,18 +19,21 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val isTagsExclusionSupported = false
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+			isMultipleTagsSupported = false,
+		)
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(searchUrl)
 					val regex = Regex("[^A-Za-z0-9 ]")
 					val q = regex.replace(filter.query, "")
@@ -38,10 +41,10 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 					append("?page=")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 					append("?type=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("topview")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.NEWEST -> append("newest")
@@ -66,11 +69,6 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 					}
 
 					append("&page=")
-				}
-
-				null -> {
-					append(listUrl)
-					append("?type=latest&page=")
 				}
 			}
 			append(page.toString())
@@ -99,7 +97,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val tags = doc.select("ul.tag li a").drop(1)
 		return tags.mapNotNullToSet { a ->

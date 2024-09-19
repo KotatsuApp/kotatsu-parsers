@@ -17,22 +17,31 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED)
-
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED),
+		availableContentRating = emptySet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val end = page * pageSize
 		val start = end - (pageSize - 1)
 
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				if (page > 1) {
 					return emptyList()
 				}
@@ -43,7 +52,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				return parseMangaListQuery(webClient.httpGet(url).parseJson())
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val url = buildString {
 					append("https://api.")
 					append(domain)
@@ -62,18 +71,6 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 					append("&order=&genreNames=")
 					append(filter.tags.joinToString(",") { it.key })
 					append("&type=&start=")
-					append(start)
-					append("&end=")
-					append(end)
-				}
-				return parseMangaList(webClient.httpGet(url).parseJson())
-			}
-
-			null -> {
-				val url = buildString {
-					append("https://api.")
-					append(domain)
-					append("/misc/comic/search/query?status=&order=&genreNames=&type=&start=")
 					append(start)
 					append("&end=")
 					append(end)
@@ -175,7 +172,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/comics").parseHtml()
 		val script = doc.requireElementById("__NUXT_DATA__").data()
 			.substringAfterLast("\"genres\"").substringBeforeLast("\"comics\"")

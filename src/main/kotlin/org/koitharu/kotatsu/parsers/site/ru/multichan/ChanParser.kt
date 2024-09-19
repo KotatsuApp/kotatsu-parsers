@@ -23,17 +23,26 @@ internal abstract class ChanParser(
 		SortOrder.RATING,
 	)
 
-	override val isTagsExclusionSupported: Boolean = true
-
 	override val authUrl: String
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
-		val doc = webClient.httpGet(buildUrl(offset, filter)).parseHtml()
+		val doc = webClient.httpGet(buildUrl(offset, order, filter)).parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("content")
 			?: doc.parseFailed("Cannot find root")
 		return root.select("div.content_row").mapNotNull { row ->
@@ -125,7 +134,7 @@ internal abstract class ChanParser(
 		doc.parseFailed("Pages list not found at ${chapter.url}")
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val domain = domain
 		val doc = webClient.httpGet("https://$domain/mostfavorites&sort=manga").parseHtml()
 		val root = doc.body().selectFirst("div.main_fon")?.getElementById("side")
@@ -178,12 +187,13 @@ internal abstract class ChanParser(
 
 	protected open fun buildUrl(
 		offset: Int,
-		filter: MangaListFilter?,
+		order: SortOrder,
+		filter: MangaListFilter,
 	): HttpUrl {
 		val builder = urlBuilder()
 		builder.addQueryParameter("offset", offset.toString())
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				builder.addQueryParameter("do", "search")
 				builder.addQueryParameter("subaction", "search")
 				builder.addQueryParameter("search_start", ((offset / 40) + 1).toString())
@@ -194,7 +204,7 @@ internal abstract class ChanParser(
 				builder.addQueryParameter("need_sort_date", "false")
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				if (filter.tags.isNotEmpty() || filter.tagsExclude.isNotEmpty()) {
 					builder.addPathSegment("tags")
 					val joiner = StringUtil.StringJoiner("+")
@@ -203,17 +213,17 @@ internal abstract class ChanParser(
 					builder.addPathSegment(joiner.complete())
 					builder.addQueryParameter(
 						"n",
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.RATING,
 							SortOrder.POPULARITY,
-							-> "favdesc"
+								-> "favdesc"
 
 							SortOrder.ALPHABETICAL -> "abcasc"
 							else -> "" // SortOrder.NEWEST
 						},
 					)
 				} else {
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> builder.addPathSegment("mostviews")
 						SortOrder.ALPHABETICAL -> builder.addPathSegment("catalog")
 						SortOrder.RATING -> builder.addPathSegment("mostfavorites")
@@ -223,11 +233,6 @@ internal abstract class ChanParser(
 						}
 					}
 				}
-			}
-
-			null -> {
-				builder.addPathSegment("manga")
-				builder.addPathSegment("new")
 			}
 		}
 		return builder.build()

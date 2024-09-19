@@ -13,7 +13,8 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("LERMANGAONLINE", "LerMangaOnline", "pt")
-class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGAONLINE, 20) {
+internal class LerMangaOnline(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.LERMANGAONLINE, 20) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
@@ -24,16 +25,22 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						append("page/")
 						append(page.toString())
@@ -43,20 +50,12 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					filter.tags.oneOrThrowIfMany()?.let {
 						append(it.key)
 						append('/')
 					}
 
-					if (page > 1) {
-						append("page/")
-						append(page.toString())
-						append('/')
-					}
-				}
-
-				null -> {
 					if (page > 1) {
 						append("page/")
 						append(page.toString())
@@ -91,7 +90,7 @@ class LerMangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, Ma
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml().requireElementById("sub-menu")
 		return doc.select("ul.container li a").mapNotNullToSet { a ->
 			MangaTag(

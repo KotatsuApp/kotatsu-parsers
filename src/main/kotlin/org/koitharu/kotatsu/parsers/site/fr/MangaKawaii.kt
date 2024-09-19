@@ -19,6 +19,15 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -28,28 +37,25 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 		.add("Accept-Language", "fr")
 		.build()
 
-	override val isMultipleTagsSupported = false
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?query=")
 					append(filter.query.urlEncoded())
 					append("&search_type=manga&page=")
 					append(page)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
-					if (filter.sortOrder == SortOrder.UPDATED && filter.tags.isNotEmpty()) {
+					if (order == SortOrder.UPDATED && filter.tags.isNotEmpty()) {
 						throw IllegalArgumentException("Filtrer part tag n'est pas disponible avec le tri pas mis à jour")
 					}
 
-					if (filter.sortOrder == SortOrder.ALPHABETICAL) {
+					if (order == SortOrder.ALPHABETICAL) {
 						append("/manga-list")
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/category/")
@@ -57,12 +63,6 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 						}
 					}
 
-					if (page > 1) {
-						return emptyList()
-					}
-				}
-
-				null -> {
 					if (page > 1) {
 						return emptyList()
 					}
@@ -161,7 +161,7 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/manga-list/").parseHtml()
 		return doc.select("ul li a.category").mapNotNullToSet { a ->
 			val name = a.text()

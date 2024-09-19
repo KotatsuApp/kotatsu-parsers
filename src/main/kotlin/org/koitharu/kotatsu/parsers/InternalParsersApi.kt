@@ -11,4 +11,4 @@ package org.koitharu.kotatsu.parsers
 @SinceKotlin("1.3")
 @RequiresOptIn
 @MustBeDocumented
-annotation class InternalParsersApi
+public annotation class InternalParsersApi

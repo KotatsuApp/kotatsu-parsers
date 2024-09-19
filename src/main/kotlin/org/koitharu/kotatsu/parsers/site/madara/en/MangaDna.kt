@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
 
 @MangaSourceParser("MANGADNA", "MangaDna", "en", ContentType.HENTAI)
 internal class MangaDna(context: MangaLoaderContext) :
@@ -17,27 +16,27 @@ internal class MangaDna(context: MangaLoaderContext) :
 
 	override val datePattern = "dd MMM yyyy"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectDesc = "div.dsct"
 	override val selectChapter = "li.a-h"
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -52,20 +51,13 @@ internal class MangaDna(context: MangaLoaderContext) :
 					}
 
 					append("?orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("trending")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					append("/page/")
-					append(page.toString())
-					append("?orderby=latest")
 				}
 			}
 		}

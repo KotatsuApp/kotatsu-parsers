@@ -23,21 +23,24 @@ internal class MangaPure(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 	)
 
-	override val availableStates: Set<MangaState> = emptySet()
-
-	override val availableContentRating: Set<ContentRating> = emptySet()
-
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions(): MangaListFilterOptions {
+		return super.getFilterOptions().copy(
+			availableStates = emptySet(),
+			availableContentRating = emptySet(),
+		)
+	}
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?s=")
 					append(filter.query.urlEncoded())
 					append("&page=")
@@ -45,14 +48,14 @@ internal class MangaPure(context: MangaLoaderContext) :
 					append("&post_type=wp-manga")
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
 						append("/$tagPrefix")
 						append(tag?.key.orEmpty())
 						append("?orderby=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("2")
 							SortOrder.UPDATED -> append("3")
 							else -> append("3")
@@ -60,7 +63,7 @@ internal class MangaPure(context: MangaLoaderContext) :
 						append("&page=")
 						append(page.toString())
 					} else {
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("/popular-manga")
 							SortOrder.UPDATED -> append("/latest-manga")
 							else -> append("/latest-manga")
@@ -68,11 +71,6 @@ internal class MangaPure(context: MangaLoaderContext) :
 						append("?page=")
 						append(page.toString())
 					}
-				}
-
-				null -> {
-					append("/latest-manga?page=")
-					append(page.toString())
 				}
 			}
 		}

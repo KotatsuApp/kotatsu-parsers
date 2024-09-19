@@ -35,17 +35,16 @@ internal abstract class FmreaderParser(
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(
-		MangaState.ONGOING,
-		MangaState.FINISHED,
-		MangaState.ABANDONED,
-	)
-
-	override val isTagsExclusionSupported = true
-
 	protected open val listUrl = "/manga-list.html"
 	protected open val datePattern = "MMMM d, yyyy"
 	protected open val tagPrefix = "manga-list-genre-"
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
 
 	init {
 		paginator.firstPage = 1
@@ -72,20 +71,33 @@ internal abstract class FmreaderParser(
 		"drop",
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+		),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("?page=")
 			append(page.toString())
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&name=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("&genre=")
 					append(filter.tags.joinToString(",") { it.key })
@@ -95,7 +107,7 @@ internal abstract class FmreaderParser(
 
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views&sort_type=DESC")
 						SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
 						SortOrder.UPDATED -> append("last_update&sort_type=DESC")
@@ -118,8 +130,6 @@ internal abstract class FmreaderParser(
 					}
 
 				}
-
-				null -> append("&sort=last_update")
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
@@ -150,7 +160,7 @@ internal abstract class FmreaderParser(
 
 	protected open val selectBodyTag = "ul.filter-type li a"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select(selectBodyTag).mapNotNullToSet { a ->
 			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")

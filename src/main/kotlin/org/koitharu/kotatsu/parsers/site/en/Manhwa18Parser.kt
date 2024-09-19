@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MANHWA18", "Manhwa18.net", "en", type = ContentType.HENTAI)
-class Manhwa18Parser(context: MangaLoaderContext) :
+internal class Manhwa18Parser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANHWA18, pageSize = 18, searchPageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.net")
@@ -29,15 +29,24 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 			SortOrder.RATING,
 		)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(
-		MangaState.ONGOING,
-		MangaState.FINISHED,
-		MangaState.PAUSED,
-	)
-
-	override val isTagsExclusionSupported = true
-
 	private val tagsMap = SuspendLazy(::parseTags)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tagsMap.get().values.toSet(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.PAUSED,
+		),
+		availableContentRating = emptySet(),
+	)
 
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(
@@ -48,21 +57,20 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/tim-kiem?page=")
 			append(page.toString())
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("&accept_genres=")
 					if (filter.tags.isNotEmpty()) {
@@ -80,7 +88,7 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 
 					append("&sort=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "az"
 							SortOrder.ALPHABETICAL_DESC -> "za"
 							SortOrder.POPULARITY -> "top"
@@ -103,8 +111,6 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> append("&sort=update")
 			}
 		}
 
@@ -219,10 +225,6 @@ class Manhwa18Parser(context: MangaLoaderContext) :
 				source = MangaParserSource.MANHWA18,
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tagsMap.get().values.toSet()
 	}
 
 	private suspend fun parseTags(): Map<String, MangaTag> {

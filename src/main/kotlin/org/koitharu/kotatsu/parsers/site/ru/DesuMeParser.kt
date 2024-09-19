@@ -25,20 +25,25 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		SortOrder.ALPHABETICAL,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tagsCache.get().values.toSet(),
+	)
+
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 
 	private val tagsCache = SuspendLazy(::fetchTags)
 
-	override suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> {
-		if (query != null && page != searchPaginator.firstPage) {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		if (!filter.query.isNullOrEmpty() && page != searchPaginator.firstPage) {
 			return emptyList()
 		}
 		val domain = domain
@@ -46,16 +51,16 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			append("https://")
 			append(domain)
 			append("/manga/api/?limit=20&order=")
-			append(getSortKey(sortOrder))
+			append(getSortKey(order))
 			append("&page=")
 			append(page)
-			if (!tags.isNullOrEmpty()) {
+			if (filter.tags.isNotEmpty()) {
 				append("&genres=")
-				appendAll(tags, ",") { it.key }
+				appendAll(filter.tags, ",") { it.key }
 			}
-			if (query != null) {
+			if (!filter.query.isNullOrEmpty()) {
 				append("&search=")
-				append(query)
+				append(filter.query)
 			}
 		}
 		val json = webClient.httpGet(url).parseJson().getJSONArray("response")
@@ -104,7 +109,6 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			?: throw ParseException("Invalid response", url)
 		val baseChapterUrl = manga.url + "/chapter/"
 		val chaptersList = json.getJSONObject("chapters").getJSONArray("list")
-		val totalChapters = chaptersList.length()
 		return manga.copy(
 			tags = json.getJSONArray("genres").mapJSONToSet {
 				MangaTag(
@@ -153,10 +157,6 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				url = jo.getString("img"),
 			)
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tagsCache.get().values.toSet()
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =

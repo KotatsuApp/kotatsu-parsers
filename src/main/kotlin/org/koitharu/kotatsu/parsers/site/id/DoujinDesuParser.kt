@@ -11,7 +11,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("DOUJINDESU", "DoujinDesu.tv", "id")
-class DoujinDesuParser(context: MangaLoaderContext) :
+internal class DoujinDesuParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.DOUJINDESU, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain
@@ -25,30 +25,38 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
 
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("X-Requested-With", "XMLHttpRequest")
 		.add("Referer", "https://$domain/")
 		.build()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
 			addPathSegment("manga")
 			addPathSegment("page")
 			addPathSegment("$page/")
 
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					addQueryParameter("title", filter.query)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					addQueryParameter("title", "")
 					addQueryParameter(
 						"order",
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> "update"
 							SortOrder.POPULARITY -> "popular"
 							SortOrder.ALPHABETICAL -> "title"
@@ -72,8 +80,6 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 						)
 					}
 				}
-
-				null -> addQueryParameter("order", "update")
 			}
 		}.build()
 
@@ -160,7 +166,7 @@ class DoujinDesuParser(context: MangaLoaderContext) :
 			}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return webClient.httpGet("/genre/".toAbsoluteUrl(domain)).parseHtml()
 			.requireElementById("taxonomy")
 			.selectFirstOrThrow(".entries")

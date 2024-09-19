@@ -6,12 +6,12 @@ import org.koitharu.kotatsu.parsers.model.Favicons
 import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 
-class FaviconParser(
+public class FaviconParser(
 	private val webClient: WebClient,
 	private val domain: String,
 ) {
 
-	suspend fun parseFavicons(): Favicons {
+	public suspend fun parseFavicons(): Favicons {
 		val url = "https://$domain"
 		val doc = webClient.httpGet(url).parseHtml()
 		val result = HashSet<Favicon>()

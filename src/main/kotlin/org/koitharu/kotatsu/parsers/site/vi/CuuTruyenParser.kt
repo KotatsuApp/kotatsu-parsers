@@ -32,20 +32,25 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
+
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 
 	private val decryptionKey = "3141592653589793"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/api/v2/mangas/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
@@ -53,13 +58,13 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				}
 
 				else -> {
-					val tag = (filter as? MangaListFilter.Advanced)?.tags?.oneOrThrowIfMany()
+					val tag = filter.tags.oneOrThrowIfMany()
 					if (tag != null) {
 						append("/api/v2/tags/")
 						append(tag.key)
 					} else {
 						append("/api/v2/mangas")
-						when (filter?.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> append("/recently_updated")
 							SortOrder.POPULARITY -> append("/top")
 							SortOrder.NEWEST -> append("/recently_updated")

@@ -23,38 +23,43 @@ internal class Hentai3(context: MangaLoaderContext) :
 	override val selectUrlChapter = "#main-cover a"
 	override val idImg = ".js-main-img"
 
-	override val isMultipleTagsSupported = true
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override suspend fun getAvailableLocales(): Set<Locale> = setOf(
-		Locale.ENGLISH,
-		Locale.FRENCH,
-		Locale.JAPANESE,
-		Locale("es"),
-		Locale("ru"),
-		Locale.ITALIAN,
-		Locale("pt"),
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale("es"),
+			Locale("ru"),
+			Locale.ITALIAN,
+			Locale("pt"),
+		),
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.size > 1 || (filter.tags.isNotEmpty() && filter.locale != null)) {
 						append("/search?q=")
 						append(buildQuery(filter.tags, filter.locale))
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("&sort=popular")
 						}
 						append("&page=")
@@ -64,7 +69,7 @@ internal class Hentai3(context: MangaLoaderContext) :
 						append(filter.locale.toLanguagePath())
 						append("/")
 						append(page.toString())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("?sort=popular")
 						}
 					} else if (filter.tags.isNotEmpty()) {
@@ -74,18 +79,13 @@ internal class Hentai3(context: MangaLoaderContext) :
 						}
 						append("/")
 						append(page.toString())
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("?sort=popular")
 						}
 					} else {
 						append("/")
 						append(page)
 					}
-				}
-
-				null -> {
-					append("/")
-					append(page)
 				}
 			}
 		}

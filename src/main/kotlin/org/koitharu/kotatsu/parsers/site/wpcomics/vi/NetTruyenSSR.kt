@@ -5,12 +5,7 @@ import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.Broken
@@ -21,11 +16,8 @@ import java.util.EnumSet
 internal class NetTruyenSSR(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENSSR, "nettruyenssr.com", 20) {
 
-	override val isMultipleTagsSupported = true
-	override val isTagsExclusionSupported = true
 	override val listUrl = "/tim-kiem-nang-cao"
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -35,10 +27,20 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response =
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -58,7 +60,7 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 					result.getOrThrow()
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					val url = buildString {
 						append("https://")
 						append(domain)
@@ -95,7 +97,7 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 
 						append("&sort=")
 						append(
-							when (filter.sortOrder) {
+							when (order) {
 								SortOrder.UPDATED -> "latest-updated"
 								SortOrder.POPULARITY -> "views"
 								SortOrder.NEWEST -> "new"
@@ -107,19 +109,6 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 						)
 					}
 
-					webClient.httpGet(url)
-				}
-
-				null -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append(listUrl)
-						append('/')
-						append(page.toString())
-						append('/')
-						append("?genres=&notGenres=&sex=All&status=&chapter_count=0&sort=latest-updated")
-					}
 					webClient.httpGet(url)
 				}
 			}

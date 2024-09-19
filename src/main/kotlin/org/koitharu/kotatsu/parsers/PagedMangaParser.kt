@@ -1,11 +1,14 @@
 package org.koitharu.kotatsu.parsers
 
 import androidx.annotation.VisibleForTesting
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.Paginator
 
 @InternalParsersApi
-abstract class PagedMangaParser(
+public abstract class PagedMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField internal val pageSize: Int,
@@ -13,77 +16,34 @@ abstract class PagedMangaParser(
 ) : MangaParser(context, source) {
 
 	@JvmField
-	protected val paginator = Paginator(pageSize)
+	protected val paginator: Paginator = Paginator(pageSize)
 
 	@JvmField
-	protected val searchPaginator = Paginator(searchPageSize)
+	protected val searchPaginator: Paginator = Paginator(searchPageSize)
 
-	final override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	final override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return getList(
-			paginator = if (filter is MangaListFilter.Search) {
-				searchPaginator
-			} else {
+			paginator = if (filter.query.isNullOrEmpty()) {
 				paginator
+			} else {
+				searchPaginator
 			},
 			offset = offset,
+			order = order,
 			filter = filter,
 		)
 	}
 
-	@InternalParsersApi
-	@Deprecated("You should use getListPage for PagedMangaParser", level = DeprecationLevel.HIDDEN)
-	final override suspend fun getList(
-		offset: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> = throw UnsupportedOperationException("You should use getListPage for PagedMangaParser")
-
-	@Deprecated("")
-	open suspend fun getListPage(
-		page: Int,
-		query: String?,
-		tags: Set<MangaTag>?,
-		tagsExclude: Set<MangaTag>?,
-		sortOrder: SortOrder,
-	): List<Manga> = throw NotImplementedError("Please implement getListPage(page, filter) instead")
-
-	open suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		return when (filter) {
-			is MangaListFilter.Advanced -> getListPage(
-				page = page,
-				query = null,
-				tags = filter.tags,
-				tagsExclude = filter.tagsExclude,
-				sortOrder = filter.sortOrder,
-			)
-
-			is MangaListFilter.Search -> getListPage(
-				page = page,
-				query = filter.query,
-				tags = null,
-				tagsExclude = null,
-				sortOrder = defaultSortOrder,
-			)
-
-			null -> getListPage(
-				page = page,
-				query = null,
-				tags = null,
-				tagsExclude = null,
-				sortOrder = defaultSortOrder,
-			)
-		}
-	}
+	public abstract suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
 
 	private suspend fun getList(
 		paginator: Paginator,
 		offset: Int,
-		filter: MangaListFilter?,
+		order: SortOrder,
+		filter: MangaListFilter,
 	): List<Manga> {
 		val page = paginator.getPage(offset)
-		val list = getListPage(page, filter)
+		val list = getListPage(page, order, filter)
 		paginator.onListReceived(offset, page, list.size)
 		return list
 	}

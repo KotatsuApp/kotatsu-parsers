@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.util.requireElementById
 internal class KlManhua(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.KLMANHUA, "klmanhua.blogspot.com") {
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("LinkList1").select("ul li a").mapNotNullToSet {
 			MangaTag(

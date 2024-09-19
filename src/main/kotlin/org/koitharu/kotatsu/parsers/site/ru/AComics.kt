@@ -16,12 +16,19 @@ import java.util.*
 internal class AComics(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.ACOMICS, pageSize = 10) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL, SortOrder.POPULARITY)
-
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.ALPHABETICAL,
+		SortOrder.POPULARITY,
+	)
 
 	override val configKeyDomain = ConfigKey.Domain("acomics.ru")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
 	init {
 		paginator.firstPage = 0
@@ -29,12 +36,21 @@ internal class AComics(context: MangaLoaderContext) :
 		context.cookieJar.insertCookies(domain, "ageRestrict=18")
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
+
+	override suspend fun getListPage(
+		page: Int,
+		order: SortOrder,
+		filter: MangaListFilter,
+	): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 0) {
 						return emptyList()
 					}
@@ -42,12 +58,12 @@ internal class AComics(context: MangaLoaderContext) :
 					append(filter.query)
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("/comics?ratings[]=1&ratings[]=2&ratings[]=3&ratings[]=4&ratings[]=5&ratings[]=6&skip=")
-					append((page * 10).toString())
+					append(page * 10)
 					append("&sort=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.UPDATED -> "last_update"
 							SortOrder.ALPHABETICAL -> "serial_name"
 							SortOrder.POPULARITY -> "subscr_count"
@@ -72,11 +88,6 @@ internal class AComics(context: MangaLoaderContext) :
 							},
 						)
 					}
-				}
-
-				null -> {
-					append("/comics?ratings[]=1&ratings[]=2&ratings[]=3&ratings[]=4&ratings[]=5&ratings[]=6&sort=last_update&skip=")
-					append((page * 20).toString())
 				}
 			}
 		}
@@ -107,10 +118,6 @@ internal class AComics(context: MangaLoaderContext) :
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
 	private val mutex = Mutex()
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
-	}
 
 	private suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }

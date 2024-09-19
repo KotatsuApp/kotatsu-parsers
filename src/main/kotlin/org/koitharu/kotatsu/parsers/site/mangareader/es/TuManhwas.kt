@@ -13,37 +13,40 @@ import java.util.*
 @MangaSourceParser("TU_MANHWAS", "TuManhwas.com", "es")
 internal class TuManhwas(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.TU_MANHWAS, "tumanhwas.com", 20, 20) {
+
 	override val listUrl = "/biblioteca"
 	override val selectPage = "div#readerarea img"
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
-	override val availableStates: Set<MangaState> = emptySet()
-	override val isMultipleTagsSupported = false
-	override val isTagsExclusionSupported = false
 
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = false,
+			isTagsExclusionSupported = false,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append(listUrl)
 			append("?page=")
 			append(page.toString())
-			when (filter) {
-
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("&search=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&genero=")
 						append(it.key)
 					}
 				}
-
-				null -> {}
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
@@ -122,6 +125,8 @@ internal class TuManhwas(context: MangaLoaderContext) :
 		}
 		return pages
 	}
+
+	override suspend fun getOrCreateTagMap(): Map<String, MangaTag> = emptyMap()
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it

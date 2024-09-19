@@ -5,6 +5,7 @@ package org.koitharu.kotatsu.parsers.util
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
+import kotlin.math.absoluteValue
 
 fun Number.format(decimals: Int = 0, decPoint: Char = '.', thousandsSep: Char? = ' '): String {
 	val formatter = NumberFormat.getInstance(Locale.US) as DecimalFormat
@@ -22,7 +23,7 @@ fun Number.format(decimals: Int = 0, decPoint: Char = '.', thousandsSep: Char? =
 	return when (this) {
 		is Float,
 		is Double,
-		-> formatter.format(this.toDouble())
+			-> formatter.format(this.toDouble())
 
 		else -> formatter.format(this.toLong())
 	}
@@ -30,7 +31,7 @@ fun Number.format(decimals: Int = 0, decPoint: Char = '.', thousandsSep: Char? =
 
 fun Float.toIntUp(): Int {
 	val intValue = toInt()
-	return if (this == intValue.toFloat()) {
+	return if ((this - intValue.toFloat()).absoluteValue <= 0.00001) {
 		intValue
 	} else {
 		intValue + 1
@@ -53,4 +54,10 @@ fun Number.formatSimple(): String {
 	} else {
 		raw
 	}
+}
+
+inline fun Int.ifZero(defaultVale: () -> Int): Int = if (this == 0) {
+	defaultVale()
+} else {
+	this
 }

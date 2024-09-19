@@ -17,23 +17,23 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "search"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
 			append(listUrl)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("?sort=updated_at&q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					append("?sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("updated_at")
 						SortOrder.ALPHABETICAL -> append("name")
@@ -62,8 +62,6 @@ internal class ManhuaScan(context: MangaLoaderContext) :
 					}
 
 				}
-
-				null -> append("?sort=updated_at")
 			}
 
 			append("&page=")

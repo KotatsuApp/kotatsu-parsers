@@ -66,10 +66,22 @@ internal abstract class GroupleParser(
 	override val isAuthorized: Boolean
 		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearRangeSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
-		val doc = when (filter) {
-			is MangaListFilter.Search -> webClient.httpPost(
+		val doc = when {
+			!filter.query.isNullOrEmpty() && filter.tags.isEmpty() -> webClient.httpPost(
 				"https://$domain/search",
 				mapOf(
 					"q" to filter.query.urlEncoded(),
@@ -78,27 +90,21 @@ internal abstract class GroupleParser(
 				),
 			)
 
-			null -> webClient.httpGet(
-				"https://$domain/list?sortType=${
-					getSortKey(defaultSortOrder)
-				}&offset=${offset upBy PAGE_SIZE}",
-			)
-
-			is MangaListFilter.Advanced -> when {
+			else -> when {
 				filter.tags.isEmpty() -> webClient.httpGet(
 					"https://$domain/list?sortType=${
-						getSortKey(filter.sortOrder)
+						getSortKey(order)
 					}&offset=${offset upBy PAGE_SIZE}",
 				)
 
 				filter.tags.size == 1 -> webClient.httpGet(
 					"https://$domain/list/genre/${filter.tags.first().key}?sortType=${
-						getSortKey(filter.sortOrder)
+						getSortKey(order)
 					}&offset=${offset upBy PAGE_SIZE}",
 				)
 
 				offset > 0 -> return emptyList()
-				else -> advancedSearch(domain, filter.tags)
+				else -> advancedSearch(domain, filter)
 			}
 		}.parseHtml().body()
 		val root = (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults"))
@@ -255,7 +261,7 @@ internal abstract class GroupleParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://${domain}/list/genres/sort_name").parseHtml()
 		val root = doc.body().getElementById("mangaBox")?.selectFirst("div.leftContent")?.selectFirst("table.table")
 			?: doc.parseFailed("Cannot find root")
@@ -323,14 +329,14 @@ internal abstract class GroupleParser(
 		else -> null
 	}
 
-	private suspend fun advancedSearch(domain: String, tags: Set<MangaTag>): Response {
+	private suspend fun advancedSearch(domain: String, filter: MangaListFilter): Response {
 		val url = "https://$domain/search/advanced"
 		// Step 1: map catalog genres names to advanced-search genres ids
 		val tagsIndex =
 			webClient.httpGet(url).parseHtml().body().selectFirst("form.search-form")?.select("div.form-group")
 				?.find { it.selectFirst("li.property") != null }
 				?: throw ParseException("Genres filter element not found", url)
-		val tagNames = tags.map { it.title.lowercase() }
+		val tagNames = filter.tags.map { it.title.lowercase() }
 		val payload = HashMap<String, String>()
 		var foundGenres = 0
 		tagsIndex.select("li.property").forEach { li ->
@@ -341,11 +347,11 @@ internal abstract class GroupleParser(
 				"in"
 			} else ""
 		}
-		if (foundGenres != tags.size) {
+		if (foundGenres != filter.tags.size) {
 			tagsIndex.parseFailed("Some genres are not found")
 		}
 		// Step 2: advanced search
-		payload["q"] = ""
+		payload["q"] = filter.query.orEmpty()
 		payload["s_high_rate"] = ""
 		payload["s_single"] = ""
 		payload["s_mature"] = ""
@@ -354,7 +360,11 @@ internal abstract class GroupleParser(
 		payload["s_many_chapters"] = ""
 		payload["s_wait_upload"] = ""
 		payload["s_sale"] = ""
-		payload["years"] = "1900,2099"
+		payload["years"] = buildString {
+			append(filter.yearFrom.ifZero { 1900 })
+			append(',')
+			append(filter.yearTo.ifZero { 2099 })
+		}
 		payload["+"] = "Искать".urlEncoded()
 		return webClient.httpPost(url, payload)
 	}

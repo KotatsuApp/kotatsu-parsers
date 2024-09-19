@@ -16,7 +16,13 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("mangastorm.org")
-	override val isMultipleTagsSupported = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
@@ -25,19 +31,19 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/mangas?page=")
 					append(page)
 					append("&query=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					if (filter.tags.isNotEmpty()) {
 						val tag = filter.tags.oneOrThrowIfMany()
@@ -46,7 +52,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 						append("?page=")
 						append(page)
 					} else {
-						if (filter.sortOrder == SortOrder.POPULARITY) {
+						if (order == SortOrder.POPULARITY) {
 							append("/mangas?page=")
 							append(page)
 						} else {
@@ -55,11 +61,6 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 							}
 						}
 					}
-				}
-
-				null -> {
-					append("/mangas?page=")
-					append(page)
 				}
 			}
 		}
@@ -82,8 +83,6 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 			)
 		}
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

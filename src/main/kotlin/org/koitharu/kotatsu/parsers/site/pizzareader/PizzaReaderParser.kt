@@ -4,7 +4,7 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -18,8 +18,7 @@ internal abstract class PizzaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-	pageSize: Int = 20,
-) : PagedMangaParser(context, source, pageSize) {
+) : SinglePageMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -29,10 +28,18 @@ internal abstract class PizzaReaderParser(
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
-	override val isTagsExclusionSupported = true
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
+	)
 
 	@JvmField
 	protected val ongoing: Set<String> = hashSetOf(
@@ -71,10 +78,7 @@ internal abstract class PizzaReaderParser(
 	protected open val hiatusFilter = "in pausa"
 	protected open val abandonedFilter = "droppato"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if (page > 1) {
-			return emptyList()
-		}
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		var foundTag = true
 		var foundTagExclude = true
 		var foundState = true
@@ -82,8 +86,8 @@ internal abstract class PizzaReaderParser(
 
 		val manga = ArrayList<Manga>()
 
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				val jsonManga = webClient.httpGet("https://$domain/api/search/${filter.query.urlEncoded()}").parseJson()
 					.getJSONArray("comics")
 				for (i in 0 until jsonManga.length()) {
@@ -93,7 +97,7 @@ internal abstract class PizzaReaderParser(
 				}
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val jsonManga = webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
 				for (i in 0 until jsonManga.length()) {
 
@@ -164,17 +168,6 @@ internal abstract class PizzaReaderParser(
 					}
 				}
 			}
-
-			null -> {
-				val jsonManga = webClient.httpGet("https://$domain/api/comics").parseJson().getJSONArray("comics")
-				for (i in 0 until jsonManga.length()) {
-					val j = jsonManga.getJSONObject(i)
-					val href = "/api" + j.getString("url")
-					manga.add(
-						addManga(href, j),
-					)
-				}
-			}
 		}
 
 		return manga
@@ -211,9 +204,6 @@ internal abstract class PizzaReaderParser(
 			},
 		)
 	}
-
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

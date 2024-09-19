@@ -30,14 +30,14 @@ internal abstract class ZeistMangaParser(
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED)
-
 	protected open val datePattern = "yyyy-MM-dd"
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
 	@JvmField
 	protected val ongoing: Set<String> = hashSetOf(
@@ -82,16 +82,21 @@ internal abstract class ZeistMangaParser(
 
 	protected open val mangaCategory: String = "Series"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val startIndex = maxMangaResults * (page - 1) + 1
 
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/feeds/posts/default/-/")
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append(mangaCategory)
 					append("?alt=json&orderby=published&max-results=")
 					append((maxMangaResults + 1).toString())
@@ -103,7 +108,7 @@ internal abstract class ZeistMangaParser(
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 
 					if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
@@ -127,14 +132,6 @@ internal abstract class ZeistMangaParser(
 						append(mangaCategory)
 					}
 
-					append("?alt=json&orderby=published&max-results=")
-					append((maxMangaResults + 1).toString())
-					append("&start-index=")
-					append(startIndex.toString())
-				}
-
-				null -> {
-					append(mangaCategory)
 					append("?alt=json&orderby=published&max-results=")
 					append((maxMangaResults + 1).toString())
 					append("&start-index=")
@@ -183,7 +180,7 @@ internal abstract class ZeistMangaParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.selectFirstOrThrow("div.filter").select("ul li").mapNotNullToSet {
 			MangaTag(

@@ -18,7 +18,7 @@ internal class Mikrokosmosfb(context: MangaLoaderContext) :
 	override val sateFinished: String = "Tamamlandı"
 	override val sateAbandoned: String = "Güncel"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		val tags = doc.selectFirstOrThrow("script:containsData(label: )").data()
 			.substringAfter("label: [").substringBefore("]").replace("\"", "").split(", ")

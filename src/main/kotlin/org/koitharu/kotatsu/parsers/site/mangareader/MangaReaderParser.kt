@@ -43,10 +43,24 @@ internal abstract class MangaReaderParser(
 			SortOrder.NEWEST,
 		)
 
-	override val availableStates: Set<MangaState>
-		get() = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED)
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+		)
 
-	override val isTagsExclusionSupported = true
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getOrCreateTagMap().values.toSet(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+			ContentType.NOVEL,
+		),
+	)
 
 	protected open val listUrl = "/manga"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -55,26 +69,26 @@ internal abstract class MangaReaderParser(
 	protected var tagCache: ArrayMap<String, MangaTag>? = null
 	protected val mutex = Mutex()
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append(listUrl)
 
 					append("/?order=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.ALPHABETICAL -> "title"
 							SortOrder.ALPHABETICAL_DESC -> "titlereverse"
 							SortOrder.NEWEST -> "latest"
@@ -110,13 +124,21 @@ internal abstract class MangaReaderParser(
 						}
 					}
 
-					append("&page=")
-					append(page.toString())
-				}
+					filter.types.oneOrThrowIfMany()?.let {
+						append("&type=")
+						append(
+							when (it) {
+								ContentType.MANGA -> "manga"
+								ContentType.MANHWA -> "manhwa"
+								ContentType.MANHUA -> "manhua"
+								ContentType.COMICS -> "comic"
+								ContentType.NOVEL -> "novel"
+								else -> ""
+							},
+						)
+					}
 
-				null -> {
-					append(listUrl)
-					append("/?order=update&page=")
+					append("&page=")
 					append(page.toString())
 				}
 			}
@@ -223,18 +245,18 @@ internal abstract class MangaReaderParser(
 				"En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
 				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating", "Lançando", "In Arrivo", "Emision",
 				"En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中", "Devam ediyor", "Devam Etmekte",
-				-> MangaState.ONGOING
+					-> MangaState.ONGOING
 
 				"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành",
 				"مكتملة", "Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído",
 				"Concluido", "已完结", "Bitmiş",
-				-> MangaState.FINISHED
+					-> MangaState.FINISHED
 
 				"Canceled", "Cancelled", "Cancelado", "cancellato", "Cancelados", "Dropped", "Discontinued", "abandonné", "Abandonné",
-				-> MangaState.ABANDONED
+					-> MangaState.ABANDONED
 
 				"Hiatus", "On Hold", "Pausado", "En espera", "En pause", "En Pause", "En attente",
-				-> MangaState.PAUSED
+					-> MangaState.PAUSED
 
 				else -> null
 			}
@@ -322,10 +344,6 @@ internal abstract class MangaReaderParser(
 			}
 			return pages
 		}
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getOrCreateTagMap().values.toSet()
 	}
 
 	protected open suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {

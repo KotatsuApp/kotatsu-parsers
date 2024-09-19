@@ -25,8 +25,6 @@ internal abstract class WebtoonsParser(
 	source: MangaParserSource,
 ) : MangaParser(context, source) {
 
-	override val isMultipleTagsSupported = false
-
 	private val signer by lazy {
 		WebtoonsUrlSigner("gUtPzJFZch4ZyAGviiyH94P99lQ3pFdRTwpJWDlSGFfwgpr6ses5ALOxWHOIT7R1")
 	}
@@ -49,7 +47,16 @@ internal abstract class WebtoonsParser(
 		SortOrder.UPDATED,
 	)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
 	override val userAgentKey = ConfigKey.UserAgent("nApps (Android 12;; linewebtoon; 3.1.0)")
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = getAllGenreList().values.toSet(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -182,10 +189,9 @@ internal abstract class WebtoonsParser(
 
 	}
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-
-		val webtoons = when (filter) {
-			is MangaListFilter.Search -> {
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val webtoons = when {
+			!filter.query.isNullOrEmpty() -> {
 				makeRequest("/lineWebtoon/webtoon/searchWebtoon?query=${filter.query.urlEncoded()}").getJSONObject("webtoonSearch")
 					.getJSONArray("titleList").mapJSON { jo ->
 						val titleNo = jo.getLong("titleNo")
@@ -210,7 +216,7 @@ internal abstract class WebtoonsParser(
 					}
 			}
 
-			is MangaListFilter.Advanced -> {
+			else -> {
 				val genre = filter.tags.oneOrThrowIfMany()?.key ?: "ALL"
 
 				val genres = getAllGenreList()
@@ -220,17 +226,14 @@ internal abstract class WebtoonsParser(
 					result = result.filter { it.manga.tags.contains(genres[genre]) }
 				}
 
-				when (filter.sortOrder) {
+				when (order) {
 					SortOrder.UPDATED -> result.sortedByDescending { it.date }
 					SortOrder.POPULARITY -> result.sortedByDescending { it.readCount }
 					SortOrder.RATING -> result.sortedByDescending { it.manga.rating }
 					//SortOrder.LIKE -> result.sortedBy { it.likeitCount }
-					else -> throw IllegalArgumentException("Unsupported sort order: ${filter.sortOrder}")
+					else -> throw IllegalArgumentException("Unsupported sort order: $order")
 				}
 			}
-
-			else -> getAllTitleList()
-
 		}
 		return webtoons.map { it.manga }.subList(offset, (offset + 20).coerceAtMost(webtoons.size))
 	}
@@ -255,10 +258,6 @@ internal abstract class WebtoonsParser(
 			key = jo.getString("code"),
 			source = source,
 		)
-	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return getAllGenreList().values.toSet()
 	}
 
 	private suspend fun makeRequest(url: String): JSONObject {

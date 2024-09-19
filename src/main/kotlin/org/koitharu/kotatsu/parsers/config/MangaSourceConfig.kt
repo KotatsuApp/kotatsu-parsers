@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.config
 
-interface MangaSourceConfig {
+public interface MangaSourceConfig {
 
-	operator fun <T> get(key: ConfigKey<T>): T
+	public operator fun <T> get(key: ConfigKey<T>): T
 }

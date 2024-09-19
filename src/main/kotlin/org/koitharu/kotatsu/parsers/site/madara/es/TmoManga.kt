@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("TMOMANGA", "TmoManga", "es")
 internal class TmoManga(context: MangaLoaderContext) :
@@ -16,22 +15,23 @@ internal class TmoManga(context: MangaLoaderContext) :
 	override val listUrl = "biblioteca/"
 	override val selectGenre = "div.summary-content a.tags_manga"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
-	override val availableStates: Set<MangaState> = emptySet()
-	override val availableContentRating: Set<ContentRating> = emptySet()
 
 	init {
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					append("/$listUrl")
 					append("?search=")
 					append(filter.query.urlEncoded())
@@ -41,7 +41,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 					}
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -57,14 +57,6 @@ internal class TmoManga(context: MangaLoaderContext) :
 							append("?page=")
 							append(page)
 						}
-					}
-				}
-
-				null -> {
-					append("/$listUrl")
-					if (page > 1) {
-						append("?page=")
-						append(page)
 					}
 				}
 			}

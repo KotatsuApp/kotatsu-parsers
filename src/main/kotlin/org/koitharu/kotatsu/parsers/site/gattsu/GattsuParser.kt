@@ -25,25 +25,31 @@ internal abstract class GattsuParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	protected open val tagPrefix = "tag"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/page/")
 					append(page.toString())
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("/$tagPrefix/")
@@ -53,11 +59,6 @@ internal abstract class GattsuParser(
 					append("/page/")
 					append(page.toString())
 
-				}
-
-				null -> {
-					append("/page/")
-					append(page.toString())
 				}
 			}
 		}
@@ -92,7 +93,7 @@ internal abstract class GattsuParser(
 
 	protected open val tagUrl = "generos"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$tagUrl/").parseHtml()
 		return doc.selectLastOrThrow(".meio-conteudo p, div.lista-tags ul").parseTags()
 	}

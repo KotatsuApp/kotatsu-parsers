@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -13,65 +13,58 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("YUGENMANGAS", "YugenApp", "pt")
-class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YUGENMANGAS, 28) {
+internal class YugenMangas(context: MangaLoaderContext) :
+	SinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("yugenmangasbr.voblog.xyz")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val json = when {
 
-		if (page > 1) {
-			return emptyList()
-		}
+			!filter.query.isNullOrEmpty() -> {
 
-		val json =
-			when (filter) {
-
-				is MangaListFilter.Search -> {
-
-					val url = buildString {
-						append("https://api.")
-						append(domain)
-						append("/api/series/?search=")
-						append(filter.query.urlEncoded())
-					}
-					webClient.httpGet(url).parseJsonArray()
+				val url = buildString {
+					append("https://api.")
+					append(domain)
+					append("/api/series/?search=")
+					append(filter.query.urlEncoded())
 				}
+				webClient.httpGet(url).parseJsonArray()
+			}
 
-				is MangaListFilter.Advanced -> {
+			else -> {
 
-					if (filter.sortOrder == SortOrder.UPDATED) {
-						val url = buildString {
-							append("https://api.")
-							append(domain)
-							append("/api/latest_updates/")
-						}
-						webClient.httpGet(url).parseJsonArray()
-					} else {
-						val url = buildString {
-							append("https://api.")
-							append(domain)
-							append("/api/series_novels/all_series/")
-						}
-						webClient.httpGet(url).parseJson().getJSONArray("series")
-					}
-
-				}
-
-				null -> {
+				if (order == SortOrder.UPDATED) {
 					val url = buildString {
 						append("https://api.")
 						append(domain)
 						append("/api/latest_updates/")
 					}
 					webClient.httpGet(url).parseJsonArray()
+				} else {
+					val url = buildString {
+						append("https://api.")
+						append(domain)
+						append("/api/series_novels/all_series/")
+					}
+					webClient.httpGet(url).parseJson().getJSONArray("series")
 				}
+
 			}
+		}
 
 		return json.mapJSON { j ->
 			val slug = j.getString("slug")
@@ -176,6 +169,4 @@ class YugenMangas(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		}
 		return pages
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 }

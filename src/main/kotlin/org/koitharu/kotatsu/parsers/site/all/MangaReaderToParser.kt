@@ -21,7 +21,8 @@ import javax.crypto.spec.SecretKeySpec
 import kotlin.math.min
 
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
-class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
+internal class MangaReaderToParser(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
 	Interceptor, MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")
@@ -55,8 +56,6 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		SortOrder.ALPHABETICAL,
 	)
 
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-
 	val tags = SoftSuspendLazy {
 		val document = webClient.httpGet("https://$domain/filter").parseHtml()
 
@@ -69,27 +68,36 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 		}.associateBy { it.title }
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
-		return tags.get().values.toSet()
-	}
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
 
-	override val isTagsExclusionSupported = false
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = tags.get().values.toSet(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = emptySet(),
+		availableContentTypes = emptySet(),
+		availableDemographics = emptySet(),
+		availableLocales = emptySet(),
+	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = "https://$domain".toHttpUrl().newBuilder().apply {
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					addPathSegment("search")
 					addQueryParameter("keyword", filter.query)
 					addQueryParameter("page", page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					addPathSegment("filter")
 					addQueryParameter("page", page.toString())
 					addQueryParameter(
 						name = "sort",
-						value = when (filter.sortOrder) {
+						value = when (order) {
 							SortOrder.POPULARITY -> "most-viewed"
 							SortOrder.RATING -> "score"
 							SortOrder.UPDATED -> "latest-updated"
@@ -110,11 +118,6 @@ class MangaReaderToParser(context: MangaLoaderContext) : PagedMangaParser(contex
 							null -> ""
 						},
 					)
-				}
-
-				null -> {
-					addPathSegment("filter")
-					addQueryParameter("page", page.toString())
 				}
 			}
 		}.build()

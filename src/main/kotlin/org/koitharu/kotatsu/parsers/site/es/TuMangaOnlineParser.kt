@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TUMANGAONLINE", "TuMangaOnline", "es")
-class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
+internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	context,
 	source = MangaParserSource.TUMANGAONLINE,
 	pageSize = 24,
@@ -29,8 +29,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	private val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd", sourceLocale)
 
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.ALPHABETICAL_DESC,
@@ -40,22 +38,33 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 		SortOrder.RATING,
 	)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/library")
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("?title=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("?order_item=")
 					append(
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> "likes_count&order_dir=desc"
 							SortOrder.POPULARITY_ASC -> "likes_count&order_dir=asc"
 							SortOrder.UPDATED -> "release_date&order_dir=desc"
@@ -66,6 +75,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 							SortOrder.ALPHABETICAL_DESC -> "alphabetically&order_dir=desc"
 							SortOrder.RATING -> "score&order_dir=desc"
 							SortOrder.RATING_ASC -> "score&order_dir=asc"
+							else -> "release_date&order_dir=desc"
 						},
 					)
 					append("&filter_by=title")
@@ -86,10 +96,6 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 							},
 						)
 					}
-				}
-
-				null -> {
-					append("?order_item=release_date&order_dir=desc&filter_by=title")
 				}
 			}
 			append("&_pg=1&page=")
@@ -286,7 +292,7 @@ class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaParser(
 	}
 
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library", getRequestHeaders()).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
 		return elements.mapNotNullToSet { element ->

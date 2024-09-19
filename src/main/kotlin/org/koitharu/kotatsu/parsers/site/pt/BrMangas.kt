@@ -18,22 +18,29 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val configKeyDomain = ConfigKey.Domain("www.brmangas.net")
 
-	override val isMultipleTagsSupported = false
-
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when (filter) {
-				is MangaListFilter.Search -> {
+			when {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) {
 						append("/page/$page/")
 					}
@@ -41,7 +48,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("category/")
@@ -51,7 +58,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 							}
 						}
 					} else {
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("/")
 							SortOrder.UPDATED -> append("manga/")
 							else -> append("manga/")
@@ -62,37 +69,26 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 					}
 
 				}
-
-				null -> {
-					append("manga/")
-					if (page > 1) {
-						append("page/$page/")
-					}
-				}
 			}
 
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
 
-		val item =
-			when (filter) {
+		val item = when {
 
-				is MangaListFilter.Search -> {
+			!filter.query.isNullOrEmpty() -> {
+				doc.select("div.listagem div.item")
+			}
+
+			else -> {
+				if (order == SortOrder.POPULARITY && filter.tags.isEmpty()) {
+					doc.select("div.listagem")[1].select("div.item") // To remove the 6 mangas updated on the home page
+				} else {
 					doc.select("div.listagem div.item")
 				}
-
-				is MangaListFilter.Advanced -> {
-					if (filter.sortOrder == SortOrder.POPULARITY && filter.tags.isEmpty()) {
-						doc.select("div.listagem")[1].select("div.item") // To remove the 6 mangas updated on the home page
-					} else {
-						doc.select("div.listagem div.item")
-					}
-				}
-
-				null -> doc.select("div.listagem div.item")
-
 			}
+		}
 		return item.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
@@ -112,7 +108,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/lista-de-generos-de-manga/").parseHtml()
 		return doc.select(".genres_page a").mapNotNullToSet { a ->
 			MangaTag(

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MUITOHENTAI", "MuitoHentai", "pt", ContentType.HENTAI)
-class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MUITOHENTAI, 24) {
+internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MUITOHENTAI, 24) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
@@ -20,22 +20,28 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					if (page > 1) return emptyList()
 					append("/buscar-manga/?q=")
 					append(filter.query.urlEncoded())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					append("/mangas")
 
 					filter.tags.oneOrThrowIfMany()?.let {
@@ -44,12 +50,6 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 					}
 
 					append('/')
-					append(page.toString())
-					append('/')
-				}
-
-				null -> {
-					append("/mangas/")
 					append(page.toString())
 					append('/')
 				}
@@ -77,7 +77,7 @@ class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, Manga
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/generos-dos-mangas/").parseHtml()
 		return doc.select("div.content a.profileSideBar").mapNotNullToSet { a ->
 			MangaTag(

@@ -18,58 +18,50 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val configKeyDomain = ConfigKey.Domain("lire-scan.me")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-
-		val doc =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					if (page > 1) {
-						return emptyList()
-					}
-					val q = filter.query.urlEncoded().replace("%20", "+")
-					val post = "do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=$q"
-					webClient.httpPost("https://$domain/index.php?do=search", post).parseHtml()
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val doc = when {
+			!filter.query.isNullOrEmpty() -> {
+				if (page > 1) {
+					return emptyList()
 				}
-
-				is MangaListFilter.Advanced -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-
-						filter.tags.oneOrThrowIfMany()?.let {
-							append("/manga/")
-							append(it.key)
-						}
-
-						if (page > 1) {
-							append("/page/")
-							append(page)
-							append('/')
-						}
-					}
-					webClient.httpGet(url).parseHtml()
-				}
-
-				null -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						if (page > 1) {
-							append("/page/")
-							append(page)
-							append('/')
-						}
-					}
-					webClient.httpGet(url).parseHtml()
-				}
+				val q = filter.query.urlEncoded().replace("%20", "+")
+				val post = "do=search&subaction=search&search_start=0&full_search=0&result_from=1&story=$q"
+				webClient.httpPost("https://$domain/index.php?do=search", post).parseHtml()
 			}
+
+			else -> {
+				val url = buildString {
+					append("https://")
+					append(domain)
+
+					filter.tags.oneOrThrowIfMany()?.let {
+						append("/manga/")
+						append(it.key)
+					}
+
+					if (page > 1) {
+						append("/page/")
+						append(page)
+						append('/')
+					}
+				}
+				webClient.httpGet(url).parseHtml()
+			}
+		}
 
 		return doc.select("div.sect__content.grid-items div.item-poster").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
@@ -148,7 +140,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		return doc.select(".nav-menu li a").mapNotNullToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast("manga/", "")

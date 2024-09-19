@@ -15,9 +15,6 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 	override val listUrl = "webtoons/"
 	override val tagPrefix = "webtoon-genre/"
 	override val withoutAjax = true
-	override val isTagsExclusionSupported = false
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
 	override val selectTestAsync = "ul.row-content-chapter"
 	override val selectDate = "span.chapter-time"
 	override val selectChapter = "li.a-h"
@@ -28,24 +25,25 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 		searchPaginator.firstPage = 1
 	}
 
-	override val availableContentRating: Set<ContentRating> = emptySet()
+	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+		availableStates = emptySet(),
+		availableContentRating = emptySet(),
+	)
 
-	override val availableStates: Set<MangaState> get() = emptySet()
-
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					append("/search?q=")
 					append(filter.query.urlEncoded())
 					append("&page=")
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 					val tag = filter.tags.oneOrThrowIfMany()
 					if (filter.tags.isNotEmpty()) {
@@ -60,17 +58,13 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 					}
 
 					append("?orderby=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("trending")
 						SortOrder.UPDATED -> append("latest")
 						SortOrder.ALPHABETICAL -> append("alphabet")
 						SortOrder.RATING -> append("rating")
 						else -> append("latest")
 					}
-				}
-
-				null -> {
-					append("?s&post_type=wp-manga&m_orderby=latest")
 				}
 			}
 		}
@@ -94,7 +88,7 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val list = doc.body().selectFirstOrThrow("div.sub-menu").select("ul li").orEmpty()
 		val keySet = HashSet<String>(list.size)

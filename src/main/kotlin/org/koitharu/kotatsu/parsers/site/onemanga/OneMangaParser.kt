@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.onemanga
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,8 +11,7 @@ internal abstract class OneMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-	pageSize: Int = 1,
-) : PagedMangaParser(context, source, pageSize) {
+) : SinglePageMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -21,16 +20,14 @@ internal abstract class OneMangaParser(
 		keys.add(userAgentKey)
 	}
 
-	override val isMultipleTagsSupported = false
-
-	override val isSearchSupported = false
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
-		if (page > 1) {
-			return emptyList()
-		}
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities()
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
+
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = "https://$domain"
 		val doc = webClient.httpGet(url).parseHtml()
 		val manga = ArrayList<Manga>()
@@ -55,8 +52,6 @@ internal abstract class OneMangaParser(
 		)
 		return manga
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

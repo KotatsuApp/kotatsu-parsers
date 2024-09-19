@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.requireElementById
 internal class GuildaTierDraw(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.GUILDATIERDRAW, "www.guildatierdraw.top") {
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("LinkList2").select("ul li a").mapNotNullToSet {
 			MangaTag(

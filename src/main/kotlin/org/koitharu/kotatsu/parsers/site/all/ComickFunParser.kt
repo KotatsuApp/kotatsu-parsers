@@ -27,8 +27,6 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override val isTagsExclusionSupported = true
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
@@ -36,12 +34,31 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		SortOrder.NEWEST,
 	)
 
-	override val availableStates: Set<MangaState> =
-		EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
-
 	private val tagsArray = SuspendLazy(::loadTags)
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isYearRangeSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentRating = emptySet(),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.OTHER,
+		),
+		availableDemographics = EnumSet.allOf(Demographic::class.java),
+		availableLocales = emptySet(),
+	)
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
 		val url = urlBuilder()
 			.host("api.$domain")
@@ -51,16 +68,12 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			.addQueryParameter("tachiyomi", "true")
 			.addQueryParameter("limit", pageSize.toString())
 			.addQueryParameter("page", page.toString())
-		when (filter) {
-			is MangaListFilter.Search -> {
+		when {
+			!filter.query.isNullOrEmpty() -> {
 				url.addQueryParameter("q", filter.query)
 			}
 
-			null -> {
-				url.addQueryParameter("sort", "view")
-			}
-
-			is MangaListFilter.Advanced -> {
+			else -> {
 
 				filter.tags.forEach {
 					url.addQueryParameter("genres", it.key)
@@ -72,7 +85,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 
 				url.addQueryParameter(
 					"sort",
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> "view"
 						SortOrder.UPDATED -> "uploaded"
 						SortOrder.NEWEST -> "created_at"
@@ -90,6 +103,40 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 							MangaState.ABANDONED -> "3"
 							MangaState.PAUSED -> "4"
 							else -> ""
+						},
+					)
+				}
+
+				if (filter.yearFrom != 0) {
+					url.addQueryParameter("from", filter.yearFrom.toString())
+				}
+
+				if (filter.yearTo != 0) {
+					url.addQueryParameter("to", filter.yearTo.toString())
+				}
+
+				filter.types.forEach {
+					url.addQueryParameter(
+						"country",
+						when (it) {
+							ContentType.MANGA -> "jp"
+							ContentType.MANHWA -> "kr"
+							ContentType.MANHUA -> "cn"
+							ContentType.OTHER -> "others"
+							else -> ""
+						},
+					)
+				}
+
+				filter.demographics.forEach {
+					url.addQueryParameter(
+						"demographic",
+						when (it) {
+							Demographic.SHOUNEN -> "1"
+							Demographic.SHOUJO -> "2"
+							Demographic.SEINEN -> "3"
+							Demographic.JOSEI -> "4"
+							Demographic.NONE -> "5"
 						},
 					)
 				}
@@ -163,7 +210,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val sparseArray = tagsArray.get()
 		val set = ArraySet<MangaTag>(sparseArray.size())
 		for (i in 0 until sparseArray.size()) {

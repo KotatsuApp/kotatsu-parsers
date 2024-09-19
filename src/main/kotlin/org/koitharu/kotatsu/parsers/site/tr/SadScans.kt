@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.tr
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -10,33 +10,31 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("SADSCANS", "SadScans", "tr")
-internal class SadScans(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.SADSCANS) {
+internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.SADSCANS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("sadscans.com")
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getList(offset: Int, filter: MangaListFilter?): List<Manga> {
-		if (offset > 0) {
-			return emptyList()
-		}
-
+	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/series")
-			when (filter) {
-				is MangaListFilter.Search -> {
-					append("?search=")
-					append(filter.query.urlEncoded())
-				}
-
-				is MangaListFilter.Advanced -> {}
-				null -> {}
+			if (!filter.query.isNullOrEmpty()) {
+				append("?search=")
+				append(filter.query.urlEncoded())
 			}
 		}
 
@@ -59,8 +57,6 @@ internal class SadScans(context: MangaLoaderContext) : MangaParser(context, Mang
 			)
 		}
 	}
-
-	override suspend fun getAvailableTags(): Set<MangaTag> = emptySet()
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

@@ -17,7 +17,7 @@ internal class AnimeXNovel(context: MangaLoaderContext) :
 	override val sateFinished: String = "Completo"
 	override val sateAbandoned: String = "Dropado"
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.requireElementById("LinkList1").select("ul li a").mapNotNullToSet {
 			MangaTag(

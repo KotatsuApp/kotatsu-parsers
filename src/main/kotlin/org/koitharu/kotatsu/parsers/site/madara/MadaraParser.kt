@@ -32,6 +32,45 @@ internal abstract class MadaraParser(
 		keys.add(userAgentKey)
 	}
 
+	// Change these values only if the site does not support manga listings via ajax
+	protected open val withoutAjax = false
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = !withoutAjax,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
+	)
+
+	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
+
+	private fun setupAvailableSortOrders(): Set<SortOrder> {
+		return if(!withoutAjax)
+		{
+			EnumSet.of(
+				SortOrder.UPDATED,
+				SortOrder.UPDATED_ASC,
+				SortOrder.POPULARITY,
+				SortOrder.POPULARITY_ASC,
+				SortOrder.NEWEST,
+				SortOrder.NEWEST_ASC,
+				SortOrder.ALPHABETICAL,
+				SortOrder.ALPHABETICAL_DESC,
+				SortOrder.RATING,
+				SortOrder.RATING_ASC,
+			)
+		}else
+		{
+			EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
+		}
+	}
+
 	override val authUrl: String
 		get() = "https://${domain}"
 
@@ -53,27 +92,6 @@ internal abstract class MadaraParser(
 				}
 			}
 	}
-
-	override val isMultipleTagsSupported = true
-
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.UPDATED_ASC,
-		SortOrder.POPULARITY,
-		SortOrder.POPULARITY_ASC,
-		SortOrder.NEWEST,
-		SortOrder.NEWEST_ASC,
-		SortOrder.ALPHABETICAL,
-		SortOrder.ALPHABETICAL_DESC,
-		SortOrder.RATING,
-		SortOrder.RATING_ASC,
-	)
-
-	override val availableStates: Set<MangaState> = EnumSet.allOf(MangaState::class.java)
-
-	override val availableContentRating: Set<ContentRating> = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT)
-
-	override val isTagsExclusionSupported = true
 
 	protected open val tagPrefix = "manga-genre/"
 	protected open val datePattern = "MMMM d, yyyy"
@@ -190,13 +208,10 @@ internal abstract class MadaraParser(
 		"à venir",
 	)
 
-	// Change these values only if the site does not support manga listings via ajax
-	protected open val withoutAjax = false
-
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (withoutAjax) {
 			val pages = page + 1
 
@@ -204,9 +219,9 @@ internal abstract class MadaraParser(
 				append("https://")
 				append(domain)
 
-				when (filter) {
+				when {
 
-					is MangaListFilter.Search -> {
+					!filter.query.isNullOrEmpty() -> {
 						if (pages > 1) {
 							append("/page/")
 							append(pages.toString())
@@ -216,7 +231,7 @@ internal abstract class MadaraParser(
 						append("&post_type=wp-manga")
 					}
 
-					is MangaListFilter.Advanced -> {
+					else -> {
 						if (pages > 1) {
 							append("/page/")
 							append(pages.toString())
@@ -278,7 +293,7 @@ internal abstract class MadaraParser(
 
 
 						append("&m_orderby=")
-						when (filter.sortOrder) {
+						when (order) {
 							SortOrder.POPULARITY -> append("views")
 							SortOrder.UPDATED -> append("latest")
 							SortOrder.NEWEST -> append("new-manga")
@@ -287,10 +302,6 @@ internal abstract class MadaraParser(
 							// SortOrder.RELEVANCE -> {}
 							else -> append("latest")
 						}
-					}
-
-					null -> {
-						append("/?s=&post_type=wp-manga&m_orderby=latest")
 					}
 				}
 			}
@@ -301,13 +312,13 @@ internal abstract class MadaraParser(
 
 			payload["page"] = page.toString()
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					payload["vars[s]"] = filter.query.urlEncoded()
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 
 
 					// Support query
@@ -362,7 +373,7 @@ internal abstract class MadaraParser(
 						payload["vars[tax_query][relation]"] = "AND"
 					}
 
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> {
 							payload["vars[meta_key]"] = "_wp_manga_views"
 							payload["vars[orderby]"] = "meta_value_num"
@@ -453,10 +464,6 @@ internal abstract class MadaraParser(
 							}
 					}
 				}
-
-				null -> {
-					payload["vars[meta_key]"] = "_latest_update"
-				}
 			}
 
 			return parseMangaList(
@@ -510,7 +517,7 @@ internal abstract class MadaraParser(
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val body = doc.body()
 		val root1 = body.selectFirst("header")?.selectFirst("ul.second-menu")

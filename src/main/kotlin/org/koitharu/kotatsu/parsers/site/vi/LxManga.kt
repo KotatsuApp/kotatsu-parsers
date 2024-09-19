@@ -20,27 +20,34 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		SortOrder.NEWEST,
 		SortOrder.POPULARITY,
 	)
-	override val availableStates: Set<MangaState> = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
 
 	override val configKeyDomain = ConfigKey.Domain("lxmanga.life")
 
-	override val isMultipleTagsSupported = false
-
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	override suspend fun getListPage(page: Int, filter: MangaListFilter?): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
-			when (filter) {
+			when {
 
-				is MangaListFilter.Search -> {
+				!filter.query.isNullOrEmpty() -> {
 					val skey = "filter[name]=".urlEncoded()
 					append("/tim-kiem?$skey")
 					append(filter.query.urlEncoded())
@@ -48,7 +55,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					append(page.toString())
 				}
 
-				is MangaListFilter.Advanced -> {
+				else -> {
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/the-loai/")
@@ -74,7 +81,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					}
 
 					append("&sort=")
-					when (filter.sortOrder) {
+					when (order) {
 						SortOrder.POPULARITY -> append("-views")
 						SortOrder.UPDATED -> append("-updated_at")
 						SortOrder.NEWEST -> append("-created_at")
@@ -82,11 +89,6 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 						SortOrder.ALPHABETICAL_DESC -> append("-name")
 						else -> append("-updated_at")
 					}
-				}
-
-				null -> {
-					append("/danh-sach?sort=-updated_at&page=")
-					append(page.toString())
 				}
 			}
 
@@ -171,11 +173,10 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
 		val body = doc.body()
 		return body.select("ul.absolute.w-full a").mapToSet { a ->
-
 			MangaTag(
 				key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 				title = a.selectFirstOrThrow("span.text-ellipsis").text(),

@@ -1,93 +1,38 @@
 package org.koitharu.kotatsu.parsers.model
 
-import org.koitharu.kotatsu.parsers.MangaParser
 import java.util.*
 
-sealed interface MangaListFilter {
+public data class MangaListFilter(
+	@JvmField val query: String? = null,
+	@JvmField val tags: Set<MangaTag> = emptySet(),
+	@JvmField val tagsExclude: Set<MangaTag> = emptySet(),
+	@JvmField val locale: Locale? = null,
+	@JvmField val originalLocale: Locale? = null,
+	@JvmField val states: Set<MangaState> = emptySet(),
+	@JvmField val contentRating: Set<ContentRating> = emptySet(),
+	@JvmField val types: Set<ContentType> = emptySet(),
+	@JvmField val demographics: Set<Demographic> = emptySet(),
+	@JvmField val year: Int = 0,
+	@JvmField val yearFrom: Int = 0,
+	@JvmField val yearTo: Int = 0,
+) {
 
-	fun isEmpty(): Boolean
+	public fun isEmpty(): Boolean = tags.isEmpty() &&
+		tagsExclude.isEmpty() &&
+		locale == null &&
+		originalLocale == null &&
+		states.isEmpty() &&
+		contentRating.isEmpty() &&
+		query == null &&
+		year == 0 &&
+		yearFrom == 0 &&
+		yearTo == 0 &&
+		types.isEmpty() &&
+		demographics.isEmpty()
 
-	val sortOrder: SortOrder?
+	public companion object {
 
-	fun isValid(parser: MangaParser): Boolean = when (this) {
-		is Advanced -> (sortOrder in parser.availableSortOrders) &&
-			(tags.size <= 1 || parser.isMultipleTagsSupported) &&
-			(tagsExclude.isEmpty() || parser.isTagsExclusionSupported) &&
-			(contentRating.isEmpty() || parser.availableContentRating.containsAll(contentRating)) &&
-			(states.isEmpty() || parser.availableStates.containsAll(states))
-
-		is Search -> parser.isSearchSupported
-	}
-
-	data class Search(
-		@JvmField val query: String,
-	) : MangaListFilter {
-
-		override val sortOrder: SortOrder? = null
-
-		override fun isEmpty() = query.isBlank()
-	}
-
-	data class Advanced(
-		override val sortOrder: SortOrder,
-		@JvmField val tags: Set<MangaTag>,
-		@JvmField val tagsExclude: Set<MangaTag>,
-		@JvmField val locale: Locale?,
-		@JvmField val states: Set<MangaState>,
-		@JvmField val contentRating: Set<ContentRating>,
-	) : MangaListFilter {
-
-		override fun isEmpty(): Boolean =
-			tags.isEmpty() && tagsExclude.isEmpty() && locale == null && states.isEmpty() && contentRating.isEmpty()
-
-		fun newBuilder() = Builder(sortOrder)
-			.tags(tags)
-			.tagsExclude(tagsExclude)
-			.locale(locale)
-			.states(states)
-			.contentRatings(contentRating)
-
-		class Builder(sortOrder: SortOrder) {
-
-			private var _sortOrder: SortOrder = sortOrder
-			private var _tags: Set<MangaTag>? = null
-			private var _tagsExclude: Set<MangaTag>? = null
-			private var _locale: Locale? = null
-			private var _states: Set<MangaState>? = null
-			private var _contentRating: Set<ContentRating>? = null
-
-			fun sortOrder(order: SortOrder) = apply {
-				_sortOrder = order
-			}
-
-			fun tags(tags: Set<MangaTag>?) = apply {
-				_tags = tags
-			}
-
-			fun tagsExclude(tags: Set<MangaTag>?) = apply {
-				_tagsExclude = tags
-			}
-
-			fun locale(locale: Locale?) = apply {
-				_locale = locale
-			}
-
-			fun states(states: Set<MangaState>?) = apply {
-				_states = states
-			}
-
-			fun contentRatings(rating: Set<ContentRating>?) = apply {
-				_contentRating = rating
-			}
-
-			fun build() = Advanced(
-				sortOrder = _sortOrder,
-				tags = _tags.orEmpty(),
-				tagsExclude = _tagsExclude.orEmpty(),
-				locale = _locale,
-				states = _states.orEmpty(),
-				contentRating = _contentRating.orEmpty(),
-			)
-		}
+		@JvmStatic
+		public val EMPTY: MangaListFilter = MangaListFilter()
 	}
 }

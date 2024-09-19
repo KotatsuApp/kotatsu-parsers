@@ -25,6 +25,16 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -34,30 +44,25 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		SortOrder.NEWEST,
 	)
 
-	override suspend fun getList(
-		offset: Int,
-		filter: MangaListFilter?,
-	): List<Manga> {
-		val filters =
-			when (filter) {
-				is MangaListFilter.Search -> {
-					return if (offset == 0) {
-						search(filter.query)
-					} else {
-						emptyList()
-					}
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val filters = when {
+			!filter.query.isNullOrEmpty() -> {
+				return if (offset == 0) {
+					search(filter.query)
+				} else {
+					emptyList()
 				}
-
-				is MangaListFilter.Advanced -> {
-					filter.tags.takeUnless { it.isEmpty() }?.joinToString(
-						separator = ",",
-						prefix = "genres: [",
-						postfix = "]",
-					) { "\"${it.key}\"" }.orEmpty()
-				}
-
-				null -> ""
 			}
+
+			else -> {
+				filter.tags.takeUnless { it.isEmpty() }?.joinToString(
+					separator = ",",
+					prefix = "genres: [",
+					postfix = "]",
+				) { "\"${it.key}\"" }.orEmpty()
+			}
+
+		}
 
 		val array = apiCall(
 			"""
@@ -191,7 +196,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		}
 	}
 
-	override suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val json = apiCall(
 			"""
 			getFilters(mediaType: manga) {
