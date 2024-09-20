@@ -107,11 +107,11 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					)
 				}
 
-				if (filter.yearFrom != 0) {
+				if (filter.yearFrom != YEAR_UNKNOWN) {
 					url.addQueryParameter("from", filter.yearFrom.toString())
 				}
 
-				if (filter.yearTo != 0) {
+				if (filter.yearTo != YEAR_UNKNOWN) {
 					url.addQueryParameter("to", filter.yearTo.toString())
 				}
 

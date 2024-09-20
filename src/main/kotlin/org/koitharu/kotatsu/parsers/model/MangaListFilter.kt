@@ -12,9 +12,9 @@ public data class MangaListFilter(
 	@JvmField val contentRating: Set<ContentRating> = emptySet(),
 	@JvmField val types: Set<ContentType> = emptySet(),
 	@JvmField val demographics: Set<Demographic> = emptySet(),
-	@JvmField val year: Int = 0,
-	@JvmField val yearFrom: Int = 0,
-	@JvmField val yearTo: Int = 0,
+	@JvmField val year: Int = YEAR_UNKNOWN,
+	@JvmField val yearFrom: Int = YEAR_UNKNOWN,
+	@JvmField val yearTo: Int = YEAR_UNKNOWN,
 ) {
 
 	public fun isEmpty(): Boolean = tags.isEmpty() &&
@@ -24,9 +24,9 @@ public data class MangaListFilter(
 		states.isEmpty() &&
 		contentRating.isEmpty() &&
 		query == null &&
-		year == 0 &&
-		yearFrom == 0 &&
-		yearTo == 0 &&
+		year == YEAR_UNKNOWN &&
+		yearFrom == YEAR_UNKNOWN &&
+		yearTo == YEAR_UNKNOWN &&
 		types.isEmpty() &&
 		demographics.isEmpty()
 

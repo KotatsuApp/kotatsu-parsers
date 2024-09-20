@@ -361,9 +361,9 @@ internal abstract class GroupleParser(
 		payload["s_wait_upload"] = ""
 		payload["s_sale"] = ""
 		payload["years"] = buildString {
-			append(filter.yearFrom.ifZero { 1900 })
+			append(filter.yearFrom.ifZero { YEAR_MIN })
 			append(',')
-			append(filter.yearTo.ifZero { 2099 })
+			append(filter.yearTo.ifZero { YEAR_MAX })
 		}
 		payload["+"] = "Искать".urlEncoded()
 		return webClient.httpPost(url, payload)
