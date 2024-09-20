@@ -86,7 +86,7 @@ public abstract class MangaParser @InternalParsersApi constructor(
 	/**
 	 * Fetch direct link to the page image.
 	 */
-	internal open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(domain)
+	public open suspend fun getPageUrl(page: MangaPage): String = page.url.toAbsoluteUrl(domain)
 
 	public abstract suspend fun getFilterOptions(): MangaListFilterOptions
 
