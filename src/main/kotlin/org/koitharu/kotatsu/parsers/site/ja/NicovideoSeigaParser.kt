@@ -149,7 +149,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(getDomain("seiga"))
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		if (!doc.select("#login_manga").isEmpty)
+		if (!doc.select("#login_manga").isEmpty())
 			throw AuthRequiredException(source)
 		val root = doc.body().select("#page_contents > li")
 		return root.map { li ->

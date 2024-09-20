@@ -53,10 +53,6 @@ internal abstract class NineMangaParser(
 			MangaState.ONGOING,
 			MangaState.FINISHED,
 		),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun intercept(chain: Interceptor.Chain): Response {

@@ -81,10 +81,6 @@ internal abstract class MangaFireParser(
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tags.get().values.toSet(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

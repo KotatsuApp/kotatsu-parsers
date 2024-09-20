@@ -32,8 +32,6 @@ internal class MangaPark(context: MangaLoaderContext) :
 		availableTags = tagsMap.get().values.toSet(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
 		availableContentRating = EnumSet.of(ContentRating.SAFE),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
 		availableLocales = setOf(
 			Locale("af"), Locale("sq"), Locale("am"), Locale("ar"), Locale("hy"),
 			Locale("az"), Locale("be"), Locale("bn"), Locale("zh_hk"), Locale("zh_tw"),

@@ -69,7 +69,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				MangaState.ABANDONED,
 			),
 			availableContentRating = EnumSet.allOf(ContentRating::class.java),
-			availableContentTypes = emptySet(),
 			availableDemographics = EnumSet.allOf(Demographic::class.java),
 			availableLocales = localesDeferred.await(),
 		)

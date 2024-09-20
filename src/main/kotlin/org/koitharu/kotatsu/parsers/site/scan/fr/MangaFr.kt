@@ -12,8 +12,9 @@ internal class MangaFr(context: MangaLoaderContext) :
 	ScanParser(context, MangaParserSource.MANGAFR, "www.mangafr.org") {
 	override val listUrl = "/series"
 
-	private suspend fun fetchAvailableTags(): Set<MangaTag> = emptySet()
-
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = emptySet()
+	)
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("MM-dd-yyyy", sourceLocale)

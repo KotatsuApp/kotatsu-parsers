@@ -71,8 +71,6 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
 		availableContentRating = EnumSet.of(ContentRating.SAFE),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
 		availableLocales = setOf(
 			Locale.CHINESE, Locale.ENGLISH, Locale.US, Locale.FRENCH, Locale.GERMAN, Locale.ITALIAN, Locale.JAPANESE,
 			Locale("af"), Locale("ar"), Locale("az"), Locale("eu"), Locale("be"),

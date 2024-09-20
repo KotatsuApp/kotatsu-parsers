@@ -66,7 +66,6 @@ internal abstract class MmrcmsParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = false,
 			isSearchSupported = true,
 		)
 

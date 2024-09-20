@@ -174,7 +174,8 @@ internal class RemangaParser(
 				MangaChapter(
 					id = generateUid(id),
 					url = "/api/titles/chapters/$id/",
-					number = jo.getIntOrDefault("index", chapters.size - i),
+					number = jo.getIntOrDefault("index", chapters.size - i).toFloat(),
+					volume = 0,
 					name = buildString {
 						append("Том ")
 						append(jo.optString("tome", "0"))

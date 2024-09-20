@@ -38,28 +38,6 @@ public class MangaChapter(
 	@JvmField public val source: MangaSource,
 ) {
 
-	@Deprecated(message = "Consider using constructor with volume value")
-	internal constructor(
-		id: Long,
-		name: String,
-		number: Int,
-		url: String,
-		scanlator: String?,
-		uploadDate: Long,
-		branch: String?,
-		source: MangaSource,
-	) : this(
-		id = id,
-		name = name,
-		number = number.toFloat(),
-		volume = 0,
-		url = url,
-		scanlator = scanlator,
-		uploadDate = uploadDate,
-		branch = branch,
-		source = source,
-	)
-
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true
 		if (javaClass != other?.javaClass) return false

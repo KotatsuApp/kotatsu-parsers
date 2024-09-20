@@ -47,7 +47,6 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
-		availableContentRating = emptySet(),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
@@ -55,7 +54,6 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			ContentType.OTHER,
 		),
 		availableDemographics = EnumSet.allOf(Demographic::class.java),
-		availableLocales = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

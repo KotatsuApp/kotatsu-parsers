@@ -45,7 +45,6 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 			MangaState.FINISHED,
 			MangaState.PAUSED,
 		),
-		availableContentRating = emptySet(),
 	)
 
 	override suspend fun getFavicons(): Favicons {

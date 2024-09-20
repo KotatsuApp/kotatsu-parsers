@@ -279,24 +279,17 @@ internal abstract class WpComicsParser(
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") ||
-				d.endsWith(" trước")
-				-> parseRelativeDate(date)
 
-			d.startsWith("year") -> Calendar.getInstance().apply {
-				add(Calendar.DAY_OF_MONTH, -1)
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet(" ago", " trước").endsWith(d) -> { parseRelativeDate(d) }
 
-			d.startsWith("today") -> Calendar.getInstance().apply {
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet("today").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
 
 			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
 				if (it.contains(Regex("""\d\D\D"""))) {
@@ -314,28 +307,16 @@ internal abstract class WpComicsParser(
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 		return when {
-
-			WordSet("second", "giây").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-
-			WordSet("min", "minute", "minutes", "mins", "phút").anyWordIn(date) -> cal.apply {
-				add(Calendar.MINUTE, -number)
-			}.timeInMillis
-
-			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "giờ").anyWordIn(date) -> cal.apply {
-				add(Calendar.HOUR, -number)
-			}.timeInMillis
-
-			WordSet("day", "days", "d", "ngày").anyWordIn(date) -> cal.apply {
-				add(Calendar.DAY_OF_MONTH, -number)
-			}.timeInMillis
-
-			WordSet("month", "months", "tháng").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MONTH,
-					-number,
-				)
-			}.timeInMillis
-
+			WordSet("second", "giây")
+				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+			WordSet("min", "minute", "minutes", "mins", "phút")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "giờ")
+				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+			WordSet("day", "days", "d", "ngày")
+				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+			WordSet("month", "months", "tháng")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
 			WordSet("year", "năm").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}

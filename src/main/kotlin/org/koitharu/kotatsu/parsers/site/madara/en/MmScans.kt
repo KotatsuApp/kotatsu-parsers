@@ -13,4 +13,4 @@ internal class MmScans(context: MangaLoaderContext) :
 	override val selectChapter = "li.chapter-li"
 	override val selectDesc = "div.summary-text"
 	override val withoutAjax = true
-	}
+}

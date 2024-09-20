@@ -746,56 +746,46 @@ internal abstract class MadaraParser(
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") || d.endsWith(" atrás") || // Handle translated 'ago' in Portuguese.
-				d.startsWith("há ") || // other translated 'ago' in Portuguese.
-				d.endsWith(" hace") || // other translated 'ago' in Spanish
-				d.endsWith(" publicado") ||
-				d.endsWith(" назад") || // other translated 'ago' in Russian
-				d.endsWith(" önce") || // Handle translated 'ago' in Turkish.
-				d.endsWith(" trước") || // Handle translated 'ago' in Viêt Nam.
-				d.endsWith("مضت") || // Handle translated 'ago' in Arabic
-				d.startsWith("منذ") ||
-				d.startsWith("il y a") || // Handle translated 'ago' in French.
-				//If there is no ago but just a motion of time
-				// short Hours
-				d.endsWith(" h") ||
-				// short Day
-				d.endsWith(" d") ||
-				// Day in Portuguese
-				d.endsWith(" días") || d.endsWith(" día") ||
-				// Day in French
-				d.endsWith(" jour") || d.endsWith(" jours") ||
-				// Hours in Portuguese
-				d.endsWith(" horas") || d.endsWith(" hora") ||
-				// Hours in french
-				d.endsWith(" heure") || d.endsWith(" heures") ||
-				// Minutes in English
-				d.endsWith(" mins") ||
-				// Minutes in Portuguese
-				d.endsWith(" minutos") || d.endsWith(" minuto") ||
-				//Minutes in French
-				d.endsWith(" minute") || d.endsWith(" minutes") ||
-				//month in French
-				d.endsWith(" mois") -> parseRelativeDate(date)
 
-			// Handle 'yesterday' and 'today', using midnight
-			d.startsWith("year") -> Calendar.getInstance().apply {
-				add(Calendar.DAY_OF_MONTH, -1) // yesterday
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet(" ago", "atrás", " hace", " publicado"," назад", " önce", " trước", "مضت",
+				" h", " d", " días", " jour", " horas", " heure", " mins", " minutos", " minute", " mois").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
-			d.startsWith("today") -> Calendar.getInstance().apply {
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet("há ", "منذ", "il y a" ).startsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
+			WordSet("yesterday", "يوم واحد").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					add(Calendar.DAY_OF_MONTH, -1) // yesterday
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
+
+			WordSet("today").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
+
+			WordSet("يومين").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					add(Calendar.DAY_OF_MONTH, -2) // day before yesterday
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
 
 			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
 				if (it.contains(Regex("""\d\D\D"""))) {
@@ -812,27 +802,19 @@ internal abstract class MadaraParser(
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
-
 		return when {
-
 			WordSet("detik", "segundo", "second", "ثوان")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-
 			WordSet("menit", "dakika", "min", "minute", "minutes", "minuto", "mins", "phút", "минут", "دقيقة")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
-
 			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "ساعات", "ساعة")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
-
 			WordSet("hari", "gün", "jour", "día", "dia", "day", "days", "d", "день")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-
 			WordSet("month", "months", "أشهر", "mois")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-
 			WordSet("year")
 				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
-
 			else -> 0
 		}
 	}

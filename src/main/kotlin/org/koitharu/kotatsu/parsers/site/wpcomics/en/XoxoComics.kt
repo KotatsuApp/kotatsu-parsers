@@ -110,7 +110,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
-		val result = list.associateByTo(ArrayMap<String, MangaTag>(list.size)) { it.title }
+		val result = list.associateByTo(ArrayMap(list.size)) { it.title }
 		tagCache = result
 		result
 	}

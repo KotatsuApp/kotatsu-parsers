@@ -31,9 +31,6 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
 		availableContentRating = EnumSet.of(ContentRating.ADULT),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

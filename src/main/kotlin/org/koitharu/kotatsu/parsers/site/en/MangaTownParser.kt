@@ -39,7 +39,6 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 			MangaState.ONGOING,
 			MangaState.FINISHED,
 		),
-		availableContentRating = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

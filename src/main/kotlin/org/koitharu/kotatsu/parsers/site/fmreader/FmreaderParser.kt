@@ -78,10 +78,6 @@ internal abstract class FmreaderParser(
 			MangaState.FINISHED,
 			MangaState.ABANDONED,
 		),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -253,31 +249,19 @@ internal abstract class FmreaderParser(
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
-		// Clean date (e.g. 5th December 2019 to 5 December 2019) before parsing it
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") ||
-				d.endsWith(" atrás") ||
-				// short Hours
-				d.endsWith(" h") ||
-				// short Day
-				d.endsWith(" d") -> parseRelativeDate(date)
 
-			// Handle 'yesterday' and 'today', using midnight
-			d.startsWith("year") -> Calendar.getInstance().apply {
-				add(Calendar.DAY_OF_MONTH, -1) // yesterday
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet(" ago", " atrás", " h", " d").endsWith(d) -> { parseRelativeDate(d) }
 
-			d.startsWith("today") -> Calendar.getInstance().apply {
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet("today").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
 
 			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
 				if (it.contains(Regex("""\d\D\D"""))) {
@@ -291,49 +275,24 @@ internal abstract class FmreaderParser(
 		}
 	}
 
-	// Parses dates in this form:
-	// 21 hours ago
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 		return when {
-			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-			WordSet("min", "minute", "minutes", "minuto", "minutos").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MINUTE,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("hour", "hours", "hora", "horas", "h").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.HOUR,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("day", "days", "día", "dia").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.DAY_OF_MONTH,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("week", "weeks", "semana", "semanas").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.WEEK_OF_YEAR,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("month", "months", "mes", "meses").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MONTH,
-					-number,
-				)
-			}.timeInMillis
-
-			WordSet("year", "año", "años").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("second")
+				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+			WordSet("min", "minute", "minutes", "minuto", "minutos")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+			WordSet("hour", "hours", "hora", "horas", "h")
+				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+			WordSet("day", "days", "día", "dia")
+				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+			WordSet("week", "weeks", "semana", "semanas")
+				.anyWordIn(date) -> cal.apply { add(Calendar.WEEK_OF_YEAR, -number) }.timeInMillis
+			WordSet("month", "months", "mes", "meses")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+			WordSet("year", "año", "años")
+				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}
 	}

@@ -36,10 +36,6 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

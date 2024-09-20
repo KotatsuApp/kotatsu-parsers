@@ -33,12 +33,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
-		availableContentRating = emptySet(),
-		availableContentTypes = emptySet(),
-		availableDemographics = emptySet(),
-		availableLocales = emptySet(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

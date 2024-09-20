@@ -97,7 +97,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val tags = doc.select("ul.tag li a").drop(1)
 		return tags.mapNotNullToSet { a ->

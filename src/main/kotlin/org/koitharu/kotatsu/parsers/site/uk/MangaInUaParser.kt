@@ -124,7 +124,8 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 						prevChapterName = name
 						name
 					},
-					number = i,
+					number = i.toFloat(),
+					volume = 0,
 					url = href,
 					scanlator = null,
 					branch = if (isAlternative) {

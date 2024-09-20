@@ -71,7 +71,7 @@ internal class MangaWtfParser(
 						SortOrder.POPULARITY -> "viewsCount,desc"
 						SortOrder.RATING -> "likesCount,desc"
 						SortOrder.NEWEST -> "createdAt,desc"
-						else -> throw IllegalArgumentException("Unsupported ${order}")
+						else -> throw IllegalArgumentException("Unsupported $order")
 					},
 				)
 				if (filter.tags.isNotEmpty()) {
@@ -137,13 +137,13 @@ internal class MangaWtfParser(
 				tags = jo.getJSONArray("labels").mapJSONToSet { it.toMangaTag() },
 				state = jo.getStringOrNull("status")?.toMangaState(),
 				author =
-					jo.getJSONArray("relations").toJSONList().firstNotNullOfOrNull {
-						if (it.getStringOrNull("type") == "AUTHOR") {
-							it.getJSONObject("publisher").getStringOrNull("name")
-						} else {
-							null
-						}
-					},
+				jo.getJSONArray("relations").toJSONList().firstNotNullOfOrNull {
+					if (it.getStringOrNull("type") == "AUTHOR") {
+						it.getJSONObject("publisher").getStringOrNull("name")
+					} else {
+						null
+					}
+				},
 				source = source,
 				largeCoverUrl = null,
 				description = jo.getString("description").nl2br(),
@@ -209,10 +209,10 @@ internal class MangaWtfParser(
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
 					name =
-						jo.getStringOrNull("name") ?: buildString {
-							if (volume > 0) append("Том ").append(volume).append(' ')
-							if (number > 0) append("Глава ").append(number) else append("Без имени")
-						},
+					jo.getStringOrNull("name") ?: buildString {
+						if (volume > 0) append("Том ").append(volume).append(' ')
+						if (number > 0) append("Глава ").append(number) else append("Без имени")
+					},
 					number = number,
 					volume = volume,
 					url = jo.getString("id"),

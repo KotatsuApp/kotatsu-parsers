@@ -266,22 +266,17 @@ internal abstract class KeyoappParser(
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") -> parseRelativeDate(date)
 
-			d.startsWith("year") -> Calendar.getInstance().apply {
-				add(Calendar.DAY_OF_MONTH, -1)
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet(" ago").endsWith(d) -> { parseRelativeDate(d) }
 
-			d.startsWith("today") -> Calendar.getInstance().apply {
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet("today").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
 
 			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
 				if (it.contains(Regex("""\d\D\D"""))) {
@@ -299,17 +294,18 @@ internal abstract class KeyoappParser(
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 		return when {
-			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-
-			WordSet("minute", "minutes").anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
-
-			WordSet("hour", "hours").anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
-
-			WordSet("day", "days").anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("second")
+				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+			WordSet("minute", "minutes")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+			WordSet("hour", "hours")
+				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+			WordSet("day", "days")
+				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+			WordSet("month", "months")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+			WordSet("year")
+				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}
 	}
