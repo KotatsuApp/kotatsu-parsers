@@ -35,6 +35,9 @@ internal class VyManga(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -46,65 +49,54 @@ internal class VyManga(context: MangaLoaderContext) :
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("/search?search_po=0&q=")
-					append(filter.query.urlEncoded())
-					append("&author_po=0&author=&completed=2&sort=updated_at&sort_type=desc&page=")
-					append(page)
-				}
+			append("/search?search_po=0&q=")
 
-				else -> {
-
-					if (filter.tags.isEmpty()) {
-
-						append("/search?search_po=0&q=&author_po=0&author=&completed=")
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "0"
-									MangaState.FINISHED -> "1"
-									else -> "2"
-								},
-							)
-						}
-
-					} else {
-
-						append("/genre/")
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(it.key)
-						}
-
-						append("?status=")
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "0"
-									MangaState.FINISHED -> "1"
-									else -> ""
-								},
-							)
-						}
-					}
-
-					append("&sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("viewed&sort_type=desc")
-						SortOrder.POPULARITY_ASC -> append("viewed&sort_type=asc")
-						SortOrder.RATING -> append("scored&sort_type=desc")
-						SortOrder.RATING_ASC -> append("scored&sort_type=asc")
-						SortOrder.NEWEST -> append("created_at&sort_type=desc")
-						SortOrder.NEWEST_ASC -> append("created_at&sort_type=asc")
-						SortOrder.UPDATED -> append("updated_at&sort_type=desc")
-						SortOrder.UPDATED_ASC -> append("updated_at&sort_type=asc")
-						else -> append("Updated")
-					}
-
-					append("&page=")
-					append(page)
-				}
+			filter.query?.let {
+				append(filter.query.urlEncoded())
 			}
+
+			append("&author_po=0&author=")
+
+			// filter.author?.let {
+			// 	append(filter.author.urlEncoded())
+			// }
+
+			append("&completed=")
+			filter.states.oneOrThrowIfMany()?.let {
+				append(
+					when (it) {
+						MangaState.ONGOING -> "0"
+						MangaState.FINISHED -> "1"
+						else -> ""
+					},
+				)
+			}
+
+			append("&sort=")
+			when (order) {
+				SortOrder.POPULARITY -> append("viewed&sort_type=desc")
+				SortOrder.POPULARITY_ASC -> append("viewed&sort_type=asc")
+				SortOrder.RATING -> append("scored&sort_type=desc")
+				SortOrder.RATING_ASC -> append("scored&sort_type=asc")
+				SortOrder.NEWEST -> append("created_at&sort_type=desc")
+				SortOrder.NEWEST_ASC -> append("created_at&sort_type=asc")
+				SortOrder.UPDATED -> append("updated_at&sort_type=desc")
+				SortOrder.UPDATED_ASC -> append("updated_at&sort_type=asc")
+				else -> append("updated_at&sort_type=desc")
+			}
+
+			filter.tags.forEach { tag ->
+				append("&genre[]=")
+				append(tag.key)
+			}
+
+			filter.tagsExclude.forEach { tagsExclude ->
+				append("&exclude_genre[]=")
+				append(tagsExclude.key)
+			}
+
+			append("&page=")
+			append(page.toString())
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select(".comic-item").map { div ->
@@ -127,11 +119,11 @@ internal class VyManga(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.select("div.dropdown-menu.custom-menu ul li a[href*=genre]").mapNotNullToSet {
+		val doc = webClient.httpGet("https://$domain/search").parseHtml()
+		return doc.select("#advance-search .check-genre .d-flex").mapNotNullToSet {
 			MangaTag(
-				key = it.attr("href").substringAfterLast('/'),
-				title = it.text(),
+				key = it.selectFirstOrThrow(".checkbox-genre").attr("data-value"),
+				title = it.selectFirstOrThrow("label").text(),
 				source = source,
 			)
 		}

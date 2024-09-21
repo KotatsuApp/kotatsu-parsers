@@ -17,58 +17,72 @@ import java.util.*
 internal class Pururin(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.PURURIN, pageSize = 20) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.ALPHABETICAL)
-
 	override val configKeyDomain = ConfigKey.Domain("pururin.to")
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING, SortOrder.ALPHABETICAL)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
+
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("/search?q=")
-					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page.toString())
+			append("/search?tag_condition=contains&page=")
+			append(page.toString())
+
+			filter.query?.let {
+				append("&q=")
+				append(filter.query.urlEncoded())
+			}
+
+			if (filter.tags.isNotEmpty()) {
+				append("&included_tags=[")
+				filter.tags.joinToString(separator = ",") {
+					append("{\"id\":")
+					append(it.key)
+					append(",\"name\":\"")
+					append(it.title.replace(" ", "+"))
+					append("[Content]\"}")
 				}
+				append("]")
+			}
 
-				else -> {
-					append("/browse")
-
-					filter.tags.oneOrThrowIfMany()?.let {
-						append("/tags/content/")
-						append(it.key)
-						append("/")
-					}
-
-					append("?page=")
-					append(page)
-
-					append("&sort=")
-					when (order) {
-						SortOrder.UPDATED -> append("")
-						SortOrder.POPULARITY -> append("most-viewed")
-						SortOrder.RATING -> append("highest-rated")
-						SortOrder.ALPHABETICAL -> append("title")
-						else -> append("")
-					}
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&excluded_tags=[")
+				filter.tagsExclude.joinToString(separator = ",") {
+					append("{\"id\":")
+					append(it.key)
+					append(",\"name\":\"")
+					append(it.title.replace(" ", "+"))
+					append("[Content]\"}")
 				}
+				append("]")
+			}
+
+
+			append("&sort=")
+			when (order) {
+				SortOrder.UPDATED -> append("")
+				SortOrder.POPULARITY -> append("most-viewed")
+				SortOrder.RATING -> append("highest-rated")
+				SortOrder.ALPHABETICAL -> append("title")
+				else -> append("")
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
@@ -109,7 +123,7 @@ internal class Pururin(context: MangaLoaderContext) :
 		val href = it.attr("href").substringAfterLast("content/").substringBeforeLast('/')
 		MangaTag(
 			key = href,
-			title = it.text(),
+			title = it.text().substringBefore(" /"),
 			source = source,
 		)
 	}

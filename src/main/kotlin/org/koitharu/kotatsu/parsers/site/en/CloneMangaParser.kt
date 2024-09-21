@@ -18,10 +18,7 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("manga.clone-army.org")
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
+	override val filterCapabilities: MangaListFilterCapabilities get() = MangaListFilterCapabilities()
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
@@ -31,9 +28,6 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
-		if (!filter.query.isNullOrEmpty()) {
-			return emptyList()
-		}
 		val doc = webClient.httpGet("https://$domain/viewer_landing.php").parseHtml()
 		val mangas = doc.getElementsByClass("comicPreviewContainer")
 		return mangas.mapNotNull { item ->

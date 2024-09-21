@@ -22,6 +22,8 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -51,19 +53,23 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					append("/browse-comics/?results=")
 					append(page)
 
+					if (filter.tags.isNotEmpty()) {
+						append("&tags_include=")
+						append(filter.tags.joinToString(separator = ",") { it.key })
+					}
+
+					if (filter.tagsExclude.isNotEmpty()) {
+						append("&tags_exclude=")
+						append(filter.tagsExclude.joinToString(separator = ",") { it.key })
+					}
+
 					append("&filter=")
 					when (order) {
 						SortOrder.POPULARITY -> append("views")
 						SortOrder.UPDATED -> append("Updated")
 						SortOrder.NEWEST -> append("New")
+						// SortOrder.RANDOM -> append("Random")
 						else -> append("Updated")
-					}
-
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append("&genre=")
-							append(it.key)
-						}
 					}
 				}
 			}
@@ -90,7 +96,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
-		return doc.select("label.checkbox-inline").mapNotNullToSet { label ->
+		return doc.selectFirstOrThrow("div.genre-select-i").select("label").mapNotNullToSet { label ->
 			MangaTag(
 				key = label.selectFirstOrThrow("input").attr("value"),
 				title = label.text(),

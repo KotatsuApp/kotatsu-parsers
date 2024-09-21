@@ -14,9 +14,6 @@ import java.util.*
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en")
 internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 25) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
-
 	override val configKeyDomain = ConfigKey.Domain("comixextra.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
@@ -25,6 +22,9 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
 		)
+
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
@@ -52,6 +52,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 				}
 
 				else -> {
+
 					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
 							append(it.key)
@@ -67,7 +68,9 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 							)
 						}
 
-					} else if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
+					}
+
+					if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
 						throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED)
 					} else {
 						when (order) {

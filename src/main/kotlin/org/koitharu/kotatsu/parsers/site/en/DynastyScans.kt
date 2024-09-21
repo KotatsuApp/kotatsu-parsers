@@ -20,10 +20,17 @@ import java.util.*
 @MangaSourceParser("DYNASTYSCANS", "DynastyScans", "en")
 internal class DynastyScans(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.DYNASTYSCANS, 117) {
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+
 	override val configKeyDomain = ConfigKey.Domain("dynasty-scans.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -33,11 +40,6 @@ internal class DynastyScans(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
@@ -67,7 +69,6 @@ internal class DynastyScans(context: MangaLoaderContext) :
 						append("?view=groupings")
 					} else {
 						append("/series?view=cover")
-
 					}
 
 					append("&page=")
@@ -77,7 +78,6 @@ internal class DynastyScans(context: MangaLoaderContext) :
 			}
 		}
 	}
-
 
 	private fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("li.span2")

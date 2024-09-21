@@ -29,13 +29,12 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 			SortOrder.RATING,
 		)
 
-	private val tagsMap = SuspendLazy(::parseTags)
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -63,54 +62,57 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 			append("/tim-kiem?page=")
 			append(page.toString())
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("&q=")
-					append(filter.query.urlEncoded())
-				}
-
-				else -> {
-
-					append("&accept_genres=")
-					if (filter.tags.isNotEmpty()) {
-						append(
-							filter.tags.joinToString(",") { it.key },
-						)
-					}
-
-					append("&reject_genres=")
-					if (filter.tagsExclude.isNotEmpty()) {
-						append(
-							filter.tagsExclude.joinToString(",") { it.key },
-						)
-					}
-
-					append("&sort=")
-					append(
-						when (order) {
-							SortOrder.ALPHABETICAL -> "az"
-							SortOrder.ALPHABETICAL_DESC -> "za"
-							SortOrder.POPULARITY -> "top"
-							SortOrder.UPDATED -> "update"
-							SortOrder.NEWEST -> "new"
-							SortOrder.RATING -> "like"
-							else -> null
-						},
-					)
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&status=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "1"
-								MangaState.FINISHED -> "3"
-								MangaState.PAUSED -> "2"
-								else -> ""
-							},
-						)
-					}
-				}
+			filter.query?.let {
+				append("&q=")
+				append(filter.query.urlEncoded())
 			}
+
+			append("&accept_genres=")
+			if (filter.tags.isNotEmpty()) {
+				append(
+					filter.tags.joinToString(",") { it.key },
+				)
+			}
+
+			append("&reject_genres=")
+			if (filter.tagsExclude.isNotEmpty()) {
+				append(
+					filter.tagsExclude.joinToString(",") { it.key },
+				)
+			}
+
+			append("&sort=")
+			append(
+				when (order) {
+					SortOrder.ALPHABETICAL -> "az"
+					SortOrder.ALPHABETICAL_DESC -> "za"
+					SortOrder.POPULARITY -> "top"
+					SortOrder.UPDATED -> "update"
+					SortOrder.NEWEST -> "new"
+					SortOrder.RATING -> "like"
+					else -> "update"
+				},
+			)
+
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&status=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "1"
+						MangaState.FINISHED -> "3"
+						MangaState.PAUSED -> "2"
+						else -> ""
+					},
+				)
+			}
+
+			// Support author
+			// filter.author.let{
+			// 	the
+			// 	append("&artist=")
+			// 	append(filter.author)
+			// }
+
 		}
 
 		val docs = webClient.httpGet(url).parseHtml()
@@ -184,14 +186,8 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 		)
 	}
 
-	// 7 minutes ago
-	// 5 hours ago
-	// 2 days ago
-	// 2 weeks ago
-	// 4 years ago
 	private fun parseUploadDate(timeStr: String?): Long {
 		timeStr ?: return 0
-
 		val timeWords = timeStr.split(' ')
 		if (timeWords.size != 3) return 0
 		val timeWord = timeWords[1]
@@ -225,6 +221,8 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+	private val tagsMap = SuspendLazy(::parseTags)
 
 	private suspend fun parseTags(): Map<String, MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem?q=").parseHtml()

@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.en
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -15,6 +16,7 @@ import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("FLIXSCANSORG", "FlixScans.org", "en")
 internal class FlixScansOrg(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.FLIXSCANSORG, 18) {

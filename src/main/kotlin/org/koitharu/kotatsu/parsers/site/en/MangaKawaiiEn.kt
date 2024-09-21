@@ -15,10 +15,15 @@ import java.util.*
 internal class MangaKawaiiEn(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANGAKAWAII_EN, 50) {
 
+	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
-
-	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -28,11 +33,6 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("Accept-Language", "en")

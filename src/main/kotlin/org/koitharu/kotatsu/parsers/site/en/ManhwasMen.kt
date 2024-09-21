@@ -53,6 +53,11 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 
 				else -> {
 
+
+					if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
+						throw IllegalArgumentException("The source supports one filter at a time")
+					}
+
 					filter.tags.oneOrThrowIfMany()?.let {
 						append("&genero=")
 						append(it.key)
