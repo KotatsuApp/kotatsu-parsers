@@ -51,7 +51,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
-			isYearRangeSupported = true,
 			isOriginalLocaleSupported = true,
 		)
 
