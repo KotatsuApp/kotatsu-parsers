@@ -49,10 +49,10 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.NEWEST,
-		SortOrder.UPDATED,
-		SortOrder.POPULARITY,
 		SortOrder.ALPHABETICAL,
+		SortOrder.UPDATED,
+		SortOrder.NEWEST,
+		SortOrder.POPULARITY,
 		SortOrder.POPULARITY_YEAR,
 		SortOrder.POPULARITY_MONTH,
 		SortOrder.POPULARITY_WEEK,
@@ -65,6 +65,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
+			isOriginalLocaleSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -163,6 +164,15 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 							append(it.language)
 						}
 
+					}
+
+					filter.originalLocale?.let {
+						append("&origs=")
+						if (it.language == "in") {
+							append("id")
+						} else {
+							append(it.language)
+						}
 					}
 
 					append("&genres=")

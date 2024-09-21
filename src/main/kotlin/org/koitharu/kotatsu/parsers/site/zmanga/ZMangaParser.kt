@@ -252,7 +252,9 @@ internal abstract class ZMangaParser(
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			WordSet(" ago", " h", " d").endsWith(d) -> { parseRelativeDate(d) }
+			WordSet(" ago", " h", " d").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			WordSet("today").startsWith(d) -> {
 				Calendar.getInstance().apply {
@@ -282,15 +284,20 @@ internal abstract class ZMangaParser(
 		return when {
 			WordSet("second")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
 			WordSet("min", "minute", "minutes")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
 			WordSet("hour", "hours", "h")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
 			WordSet("day", "days").anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 			WordSet("month", "months")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
 			WordSet("year")
 				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}

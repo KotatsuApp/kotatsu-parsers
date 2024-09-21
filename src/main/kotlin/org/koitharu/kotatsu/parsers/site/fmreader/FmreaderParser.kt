@@ -252,7 +252,9 @@ internal abstract class FmreaderParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 
-			WordSet(" ago", " atrás", " h", " d").endsWith(d) -> { parseRelativeDate(d) }
+			WordSet(" ago", " atrás", " h", " d").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			WordSet("today").startsWith(d) -> {
 				Calendar.getInstance().apply {
@@ -281,18 +283,25 @@ internal abstract class FmreaderParser(
 		return when {
 			WordSet("second")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
 			WordSet("min", "minute", "minutes", "minuto", "minutos")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
 			WordSet("hour", "hours", "hora", "horas", "h")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
 			WordSet("day", "days", "día", "dia")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
 			WordSet("week", "weeks", "semana", "semanas")
 				.anyWordIn(date) -> cal.apply { add(Calendar.WEEK_OF_YEAR, -number) }.timeInMillis
+
 			WordSet("month", "months", "mes", "meses")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
 			WordSet("year", "año", "años")
 				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}

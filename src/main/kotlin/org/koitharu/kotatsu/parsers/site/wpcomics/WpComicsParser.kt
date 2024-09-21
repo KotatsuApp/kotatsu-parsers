@@ -280,7 +280,9 @@ internal abstract class WpComicsParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 
-			WordSet(" ago", " trước").endsWith(d) -> { parseRelativeDate(d) }
+			WordSet(" ago", " trước").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			WordSet("today").startsWith(d) -> {
 				Calendar.getInstance().apply {
@@ -309,14 +311,19 @@ internal abstract class WpComicsParser(
 		return when {
 			WordSet("second", "giây")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
 			WordSet("min", "minute", "minutes", "mins", "phút")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
 			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "giờ")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
 			WordSet("day", "days", "d", "ngày")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
 			WordSet("month", "months", "tháng")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
 			WordSet("year", "năm").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
 			else -> 0
 		}

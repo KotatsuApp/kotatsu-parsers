@@ -16,16 +16,23 @@ import java.util.*
 internal class MangaPark(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
+	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST, SortOrder.ALPHABETICAL, SortOrder.RATING)
-
-	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isOriginalLocaleSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -56,13 +63,6 @@ internal class MangaPark(context: MangaLoaderContext) :
 		),
 	)
 
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
-
-	private val tagsMap = SuspendLazy(::parseTags)
-
 	init {
 		context.cookieJar.insertCookies(domain, "nsfw", "2")
 	}
@@ -73,66 +73,66 @@ internal class MangaPark(context: MangaLoaderContext) :
 			append(domain)
 			append("/search?page=")
 			append(page.toString())
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("&word=")
-					append(filter.query.urlEncoded())
-				}
+			filter.query?.let {
+				append("&word=")
+				append(filter.query.urlEncoded())
+			}
 
-				else -> {
+			append("&genres=")
+			if (filter.tags.isNotEmpty()) {
+				appendAll(filter.tags, ",") { it.key }
+			}
 
-					append("&genres=")
-					if (filter.tags.isNotEmpty()) {
-						appendAll(filter.tags, ",") { it.key }
-					}
+			append("|")
+			if (filter.tagsExclude.isNotEmpty()) {
+				appendAll(filter.tagsExclude, ",") { it.key }
+			}
 
-					append("|")
-					if (filter.tagsExclude.isNotEmpty()) {
-						appendAll(filter.tagsExclude, ",") { it.key }
-					}
-
-					if (filter.contentRating.isNotEmpty()) {
-						filter.contentRating.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									ContentRating.SAFE -> append(",gore,bloody,violence,ecchi,adult,mature,smut,hentai")
-									else -> append("")
-								},
-							)
-						}
-					}
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&status=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ongoing"
-								MangaState.FINISHED -> "completed"
-								MangaState.PAUSED -> "hiatus"
-								MangaState.ABANDONED -> "cancelled"
-								MangaState.UPCOMING -> "pending"
-							},
-						)
-					}
-
-					append("&sortby=")
+			if (filter.contentRating.isNotEmpty()) {
+				filter.contentRating.oneOrThrowIfMany()?.let {
 					append(
-						when (order) {
-							SortOrder.POPULARITY -> "views_d000"
-							SortOrder.UPDATED -> "field_update"
-							SortOrder.NEWEST -> "field_create"
-							SortOrder.ALPHABETICAL -> "field_name"
-							SortOrder.RATING -> "field_score"
-							else -> ""
-
+						when (it) {
+							ContentRating.SAFE -> append(",gore,bloody,violence,ecchi,adult,mature,smut,hentai")
+							else -> append("")
 						},
 					)
-
-					filter.locale?.let {
-						append("&lang=")
-						append(it.language)
-					}
 				}
+			}
+
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&status=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "ongoing"
+						MangaState.FINISHED -> "completed"
+						MangaState.PAUSED -> "hiatus"
+						MangaState.ABANDONED -> "cancelled"
+						MangaState.UPCOMING -> "pending"
+					},
+				)
+			}
+
+			append("&sortby=")
+			append(
+				when (order) {
+					SortOrder.POPULARITY -> "views_d000"
+					SortOrder.UPDATED -> "field_update"
+					SortOrder.NEWEST -> "field_create"
+					SortOrder.ALPHABETICAL -> "field_name"
+					SortOrder.RATING -> "field_score"
+					else -> ""
+
+				},
+			)
+
+			filter.locale?.let {
+				append("&lang=")
+				append(it.language)
+			}
+
+			filter.originalLocale?.let {
+				append("&orig=")
+				append(it.language)
 			}
 		}
 
@@ -155,6 +155,8 @@ internal class MangaPark(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+	private val tagsMap = SuspendLazy(::parseTags)
 
 	private suspend fun parseTags(): Map<String, MangaTag> {
 		val tagElements = webClient.httpGet("https://$domain/search").parseHtml()
@@ -217,13 +219,18 @@ internal class MangaPark(context: MangaLoaderContext) :
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") -> parseRelativeDate(date)
-			d.startsWith("just now") -> Calendar.getInstance().apply {
-				set(Calendar.HOUR_OF_DAY, 0)
-				set(Calendar.MINUTE, 0)
-				set(Calendar.SECOND, 0)
-				set(Calendar.MILLISECOND, 0)
-			}.timeInMillis
+			WordSet(" ago").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
+			WordSet("just now").startsWith(d) -> {
+				Calendar.getInstance().apply {
+					set(Calendar.HOUR_OF_DAY, 0)
+					set(Calendar.MINUTE, 0)
+					set(Calendar.SECOND, 0)
+					set(Calendar.MILLISECOND, 0)
+				}.timeInMillis
+			}
 
 			else -> dateFormat.tryParse(date)
 		}

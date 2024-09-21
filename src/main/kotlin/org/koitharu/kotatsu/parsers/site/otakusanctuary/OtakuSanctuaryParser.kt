@@ -243,8 +243,14 @@ internal abstract class OtakuSanctuaryParser(
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			WordSet(" ago", " atrás").endsWith(d) -> { parseRelativeDate(d) }
-			WordSet("cách đây ").startsWith(d) -> { parseRelativeDate(d) }
+			WordSet(" ago", " atrás").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
+			WordSet("cách đây ").startsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
 			else -> dateFormat.tryParse(date)
 		}
 	}
@@ -255,16 +261,22 @@ internal abstract class OtakuSanctuaryParser(
 		return when {
 			WordSet("second", "giây")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
 			WordSet("min", "minute", "minutes", "phút")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
 			WordSet("tiếng", "hour", "hours")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
 			WordSet("day", "days", "d", "ngày")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
 			WordSet("month", "months")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
 			WordSet("year")
 				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}

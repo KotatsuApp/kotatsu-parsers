@@ -9,12 +9,12 @@ import java.util.*
 
 @MangaSourceParser("ADUMANGA", "AduManga", "tr")
 internal class AduManga(context: MangaLoaderContext) :
-    MangaReaderParser(context, MangaParserSource.ADUMANGA, "adumanga.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.ADUMANGA, "adumanga.com", pageSize = 20, searchPageSize = 10) {
 
-    override val sourceLocale: Locale = Locale.ENGLISH
+	override val sourceLocale: Locale = Locale.ENGLISH
 
-    override val filterCapabilities: MangaListFilterCapabilities
-        get() = super.filterCapabilities.copy(
-            isTagsExclusionSupported = false,
-        )
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isTagsExclusionSupported = false,
+		)
 }

@@ -43,10 +43,16 @@ internal abstract class AnimeBootstrapParser(
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -58,30 +64,37 @@ internal abstract class AnimeBootstrapParser(
 			append(page.toString())
 			append("&type=all")
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("&search=")
-					append(filter.query.urlEncoded())
-				}
-
-				else -> {
-
-					filter.tags.oneOrThrowIfMany()?.let {
-						append("&categorie=")
-						append(it.key)
-					}
-
-					append("&sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("view")
-						SortOrder.UPDATED -> append("updated")
-						SortOrder.ALPHABETICAL -> append("default")
-						SortOrder.NEWEST -> append("published")
-						else -> append("updated")
-					}
-
-				}
+			filter.query?.let {
+				append("&search=")
+				append(filter.query.urlEncoded())
 			}
+
+			filter.tags.oneOrThrowIfMany()?.let {
+				append("&categorie=")
+				append(it.key)
+			}
+
+			filter.types.oneOrThrowIfMany()?.let {
+				append("&type=")
+				append(
+					when (it) {
+						ContentType.MANGA -> "manga"
+						ContentType.MANHWA -> "manhwa"
+						ContentType.MANHUA -> "manhua"
+						else -> "all"
+					},
+				)
+			}
+
+			append("&sort=")
+			when (order) {
+				SortOrder.POPULARITY -> append("view")
+				SortOrder.UPDATED -> append("updated")
+				SortOrder.ALPHABETICAL -> append("default")
+				SortOrder.NEWEST -> append("published")
+				else -> append("updated")
+			}
+
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 

@@ -18,7 +18,7 @@ internal class Hanman18(context: MangaLoaderContext) :
 	Manga18Parser(context, MangaParserSource.HANMAN18, "hanman18.com") {
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = emptySet()
+		availableTags = emptySet(),
 	)
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {

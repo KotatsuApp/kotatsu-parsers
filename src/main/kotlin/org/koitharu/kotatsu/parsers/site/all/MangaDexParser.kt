@@ -44,6 +44,22 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		keys.add(preferredServerKey)
 	}
 
+	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.UPDATED_ASC,
+		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
+		SortOrder.RATING,
+		SortOrder.RATING_ASC,
+		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
+		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
+		SortOrder.ADDED,
+		SortOrder.ADDED_ASC,
+		SortOrder.RELEVANCE,
+	)
+
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
@@ -53,8 +69,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			isYearSupported = true,
 			isOriginalLocaleSupported = true,
 		)
-
-	override val availableSortOrders: EnumSet<SortOrder> = EnumSet.allOf(SortOrder::class.java)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
 		val localesDeferred = async { fetchAvailableLocales() }

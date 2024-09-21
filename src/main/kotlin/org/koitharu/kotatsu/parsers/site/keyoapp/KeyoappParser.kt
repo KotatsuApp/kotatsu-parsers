@@ -267,7 +267,9 @@ internal abstract class KeyoappParser(
 		val d = date?.lowercase() ?: return 0
 		return when {
 
-			WordSet(" ago").endsWith(d) -> { parseRelativeDate(d) }
+			WordSet(" ago").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			WordSet("today").startsWith(d) -> {
 				Calendar.getInstance().apply {
@@ -296,16 +298,22 @@ internal abstract class KeyoappParser(
 		return when {
 			WordSet("second")
 				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
+
 			WordSet("minute", "minutes")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
 			WordSet("hour", "hours")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
 			WordSet("day", "days")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
 			WordSet("month", "months")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
 			WordSet("year")
 				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}
