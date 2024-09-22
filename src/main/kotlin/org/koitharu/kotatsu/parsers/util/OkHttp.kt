@@ -7,19 +7,19 @@ import okhttp3.Call
 import okhttp3.Headers
 import okhttp3.Response
 
-suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
+public suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
 	val callback = ContinuationCallCallback(this, continuation)
 	enqueue(callback)
 	continuation.invokeOnCancellation(callback)
 }
 
-val Response.mimeType: String?
+public val Response.mimeType: String?
 	get() = header("content-type")?.takeUnless { it.isEmpty() }
 
-val Response.contentDisposition: String?
+public val Response.contentDisposition: String?
 	get() = header("Content-Disposition")
 
-fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers.Builder {
+public fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers.Builder {
 	for ((name, value) in other) {
 		if (replaceExisting || this[name] == null) {
 			this[name] = value
@@ -28,11 +28,11 @@ fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers
 	return this
 }
 
-fun Response.copy() = newBuilder()
+public fun Response.copy(): Response = newBuilder()
 	.body(peekBody(Long.MAX_VALUE))
 	.build()
 
-fun Response.Builder.setHeader(name: String, value: String?) = if (value == null) {
+public fun Response.Builder.setHeader(name: String, value: String?): Response.Builder = if (value == null) {
 	removeHeader(name)
 } else {
 	header(name, value)

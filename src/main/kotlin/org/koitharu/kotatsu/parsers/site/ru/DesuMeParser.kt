@@ -56,7 +56,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			append(page)
 			if (filter.tags.isNotEmpty()) {
 				append("&genres=")
-				appendAll(filter.tags, ",") { it.key }
+				filter.tags.joinTo(this, ",") { it.key }
 			}
 			if (!filter.query.isNullOrEmpty()) {
 				append("&search=")

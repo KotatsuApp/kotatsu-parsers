@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.await
 import org.koitharu.kotatsu.parsers.util.parseJson
 import java.net.HttpURLConnection
 
-class OkHttpWebClient(
+public class OkHttpWebClient(
 	private val httpClient: OkHttpClient,
 	private val mangaSource: MangaSource,
 ) : WebClient {

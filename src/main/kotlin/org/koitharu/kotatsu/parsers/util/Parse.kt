@@ -5,10 +5,12 @@ package org.koitharu.kotatsu.parsers.util
 import okhttp3.Response
 import okhttp3.ResponseBody
 import okhttp3.internal.closeQuietly
+import org.jetbrains.annotations.Blocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import java.text.DateFormat
 
 /**
@@ -16,7 +18,8 @@ import java.text.DateFormat
  * @see [parseJson]
  * @see [parseJsonArray]
  */
-fun Response.parseHtml(): Document = try {
+@Blocking
+public fun Response.parseHtml(): Document = try {
 	val body = requireBody()
 	val charset = body.contentType()?.charset()?.name()
 	Jsoup.parse(body.byteStream(), charset, request.url.toString())
@@ -29,7 +32,7 @@ fun Response.parseHtml(): Document = try {
  * @see [parseJsonArray]
  * @see [parseHtml]
  */
-fun Response.parseJson(): JSONObject = try {
+public fun Response.parseJson(): JSONObject = try {
 	JSONObject(requireBody().string())
 } finally {
 	closeQuietly()
@@ -40,19 +43,19 @@ fun Response.parseJson(): JSONObject = try {
  * @see [parseJson]
  * @see [parseHtml]
  */
-fun Response.parseJsonArray(): JSONArray = try {
+public fun Response.parseJsonArray(): JSONArray = try {
 	JSONArray(requireBody().string())
 } finally {
 	closeQuietly()
 }
 
-fun Response.parseRaw(): String = try {
+public fun Response.parseRaw(): String = try {
 	requireBody().string()
 } finally {
 	closeQuietly()
 }
 
-fun Response.parseBytes(): ByteArray = try {
+public fun Response.parseBytes(): ByteArray = try {
 	requireBody().bytes()
 } finally {
 	closeQuietly()
@@ -62,7 +65,7 @@ fun Response.parseBytes(): ByteArray = try {
  * Convert url to relative if it is on [domain]
  * @return an url relative to the [domain] or absolute, if domain is mismatching
  */
-fun String.toRelativeUrl(domain: String): String {
+public fun String.toRelativeUrl(domain: String): String {
 	if (isEmpty() || startsWith("/")) {
 		return this
 	}
@@ -73,13 +76,13 @@ fun String.toRelativeUrl(domain: String): String {
  * Convert url to absolute with specified domain
  * @return an absolute url with [domain] if this is relative
  */
-fun String.toAbsoluteUrl(domain: String): String = when {
+public fun String.toAbsoluteUrl(domain: String): String = when {
 	this.startsWith("//") -> "https:$this"
 	this.startsWith('/') -> "https://$domain$this"
 	else -> this
 }
 
-fun concatUrl(host: String, path: String): String {
+public fun concatUrl(host: String, path: String): String {
 	val hostWithSlash = host.endsWith('/')
 	val pathWithSlash = path.startsWith('/')
 	val hostWithScheme = if (host.startsWith("//")) "https:$host" else host
@@ -90,7 +93,8 @@ fun concatUrl(host: String, path: String): String {
 	}
 }
 
-fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
+@InternalParsersApi
+public fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
 //	assert(false) { "Date string is null or empty" }
 	0L
 } else {

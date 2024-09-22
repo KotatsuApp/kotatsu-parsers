@@ -130,7 +130,7 @@ fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
 	return destination
 }
 
-fun JSONArray?.isNullOrEmpty(): Boolean {
+public fun JSONArray?.isNullOrEmpty(): Boolean {
 	contract {
 		returns(false) implies (this@isNullOrEmpty != null)
 	}

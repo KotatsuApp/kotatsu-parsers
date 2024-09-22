@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import org.jsoup.select.QueryParser
 import org.jsoup.select.Selector
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
 val Element.host: String?
@@ -154,8 +155,22 @@ fun Element.attrOrNull(vararg names: String): String? {
 	return null
 }
 
+@InternalParsersApi
 @JvmOverloads
-fun Element.src(names: Array<String> = arrayOf("data-src", "data-cfsrc", "data-original", "data-cdn", "data-sizes", "data-lazy-src", "data-srcset", "original-src", "data-wpfc-original-src", "src")): String? {
+public fun Element.src(
+	names: Array<String> = arrayOf(
+		"data-src",
+		"data-cfsrc",
+		"data-original",
+		"data-cdn",
+		"data-sizes",
+		"data-lazy-src",
+		"data-srcset",
+		"original-src",
+		"data-wpfc-original-src",
+		"src",
+	),
+): String? {
 	for (name in names) {
 		val value = attrAsAbsoluteUrlOrNull(name)
 		if (value != null) {

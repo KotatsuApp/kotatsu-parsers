@@ -61,7 +61,7 @@ internal abstract class IkenParser(
 
 					if (filter.tags.isNotEmpty()) {
 						append("&genreIds=")
-						appendAll(filter.tags, ",") { it.key }
+						filter.tags.joinTo(this, ",") { it.key }
 					}
 
 					append("&seriesType=&seriesStatus=")

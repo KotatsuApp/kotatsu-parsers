@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.util
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-class SuspendLazy<T>(
+public class SuspendLazy<T>(
 	private val initializer: suspend () -> T,
 ) {
 
@@ -11,7 +11,7 @@ class SuspendLazy<T>(
 	private var cachedValue: Any? = Uninitialized
 
 	@Suppress("UNCHECKED_CAST")
-	suspend fun get(): T {
+	public suspend fun get(): T {
 		// fast way
 		cachedValue.let {
 			if (it !== Uninitialized) {
@@ -30,10 +30,10 @@ class SuspendLazy<T>(
 		}
 	}
 
-	suspend fun tryGet() = runCatchingCancellable { get() }
+	public suspend fun tryGet(): Result<T> = runCatchingCancellable { get() }
 
 	@Suppress("UNCHECKED_CAST")
-	fun peek(): T? {
+	public fun peek(): T? {
 		return cachedValue?.takeUnless { it === Uninitialized } as T?
 	}
 

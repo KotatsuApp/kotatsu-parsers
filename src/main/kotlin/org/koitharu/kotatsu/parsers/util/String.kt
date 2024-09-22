@@ -12,7 +12,7 @@ import java.security.MessageDigest
 import java.util.*
 import kotlin.math.min
 
-fun String.removeSurrounding(vararg chars: Char): String {
+public fun String.removeSurrounding(vararg chars: Char): String {
 	if (isEmpty()) {
 		return this
 	}
@@ -24,7 +24,7 @@ fun String.removeSurrounding(vararg chars: Char): String {
 	return this
 }
 
-fun String.toCamelCase(): String {
+public fun String.toCamelCase(): String {
 	if (isEmpty()) {
 		return this
 	}
@@ -43,15 +43,15 @@ fun String.toCamelCase(): String {
 	return result.toString()
 }
 
-fun String.toTitleCase(): String {
+public fun String.toTitleCase(): String {
 	return replaceFirstChar { x -> x.uppercase() }
 }
 
-fun String.toTitleCase(locale: Locale): String {
+public fun String.toTitleCase(locale: Locale): String {
 	return replaceFirstChar { x -> x.uppercase(locale) }
 }
 
-fun String.transliterate(skipMissing: Boolean): String {
+public fun String.transliterate(skipMissing: Boolean): String {
 	val cyr = charArrayOf(
 		'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п',
 		'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё', 'ў',
@@ -76,15 +76,15 @@ fun String.transliterate(skipMissing: Boolean): String {
 	}
 }
 
-fun String.toFileNameSafe() = this.transliterate(false)
+public fun String.toFileNameSafe() = this.transliterate(false)
 	.replace(Regex("[^a-z0-9_\\-]", arraySetOf(RegexOption.IGNORE_CASE)), " ")
 	.replace(Regex("\\s+"), "_")
 
-fun String.ellipsize(maxLength: Int) = if (this.length > maxLength) {
+public fun String.ellipsize(maxLength: Int) = if (this.length > maxLength) {
 	this.take(maxLength - 1) + Typography.ellipsis
 } else this
 
-fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
+public fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
 	val indices = MutableIntList(4)
 	for ((i, c) in this.withIndex()) {
 		if (c == delimiter) {
@@ -98,13 +98,13 @@ fun String.splitTwoParts(delimiter: Char): Pair<String, String>? {
 	return substring(0, index) to substring(index + 1)
 }
 
-fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.name())
+public fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.name())
 
-fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
+public fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
 
-fun String.nl2br() = replace("\n", "<br>")
+public fun String.nl2br() = replace("\n", "<br>")
 
-fun ByteArray.byte2HexFormatted(): String {
+public fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
 	for (i in indices) {
 		var h = Integer.toHexString(this[i].toInt())
@@ -123,14 +123,14 @@ fun ByteArray.byte2HexFormatted(): String {
 	return str.toString()
 }
 
-fun String.md5(): String {
+public fun String.md5(): String {
 	val md = MessageDigest.getInstance("MD5")
 	return BigInteger(1, md.digest(toByteArray()))
 		.toString(16)
 		.padStart(32, '0')
 }
 
-fun String.substringBetween(from: String, to: String, fallbackValue: String = this): String {
+public fun String.substringBetween(from: String, to: String, fallbackValue: String = this): String {
 	val fromIndex = indexOf(from)
 	if (fromIndex == -1) {
 		return fallbackValue
@@ -143,7 +143,7 @@ fun String.substringBetween(from: String, to: String, fallbackValue: String = th
 	}
 }
 
-fun String.substringBetweenFirst(from: String, to: String): String? {
+public fun String.substringBetweenFirst(from: String, to: String): String? {
 	val fromIndex = indexOf(from)
 	if (fromIndex == -1) {
 		return null
@@ -156,7 +156,7 @@ fun String.substringBetweenFirst(from: String, to: String): String? {
 	}
 }
 
-fun String.substringBetweenLast(from: String, to: String, fallbackValue: String = this): String {
+public fun String.substringBetweenLast(from: String, to: String, fallbackValue: String = this): String {
 	val fromIndex = lastIndexOf(from)
 	if (fromIndex == -1) {
 		return fallbackValue
@@ -169,16 +169,16 @@ fun String.substringBetweenLast(from: String, to: String, fallbackValue: String 
 	}
 }
 
-fun String.find(regex: Regex) = regex.find(this)?.value
+public fun String.find(regex: Regex) = regex.find(this)?.value
 
-fun String.removeSuffix(suffix: Char): String {
+public fun String.removeSuffix(suffix: Char): String {
 	if (lastOrNull() == suffix) {
 		return substring(0, length - 1)
 	}
 	return this
 }
 
-fun String.levenshteinDistance(other: String): Int {
+public fun String.levenshteinDistance(other: String): Int {
 	if (this == other) {
 		return 0
 	}
@@ -219,7 +219,7 @@ fun String.levenshteinDistance(other: String): Int {
 /**
  * @param threshold 0 = exact match
  */
-fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold: Float): Boolean {
+public fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold: Float): Boolean {
 	if (threshold <= 0f) {
 		return equals(other, ignoreCase = true)
 	}
@@ -227,24 +227,7 @@ fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold: Float)
 	return diff < threshold
 }
 
-
-inline fun <T> Appendable.appendAll(
-	items: Iterable<T>,
-	separator: CharSequence,
-	transform: (T) -> CharSequence = { it.toString() },
-) {
-	var isFirst = true
-	for (item in items) {
-		if (isFirst) {
-			isFirst = false
-		} else {
-			append(separator)
-		}
-		append(transform(item))
-	}
-}
-
-fun String.isNumeric() = all { c -> c.isDigit() }
+public fun String.isNumeric() = all { c -> c.isDigit() }
 
 internal fun StringBuilder.removeTrailingZero() {
 	if (length > 2 && get(length - 1) == '0') {

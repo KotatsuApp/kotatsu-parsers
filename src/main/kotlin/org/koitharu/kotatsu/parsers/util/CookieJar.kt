@@ -8,7 +8,7 @@ import okhttp3.HttpUrl
 
 private const val SCHEME_HTTPS = "https"
 
-fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
+public fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
 	val url = safeUrlOf(domain) ?: return
 	saveFromResponse(
 		url,
@@ -18,17 +18,17 @@ fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
 	)
 }
 
-fun CookieJar.insertCookie(domain: String, cookie: Cookie) {
+public fun CookieJar.insertCookie(domain: String, cookie: Cookie) {
 	val url = safeUrlOf(domain) ?: return
 	saveFromResponse(url, listOf(cookie))
 }
 
-fun CookieJar.getCookies(domain: String): List<Cookie> {
+public fun CookieJar.getCookies(domain: String): List<Cookie> {
 	val url = safeUrlOf(domain) ?: return emptyList()
 	return loadForRequest(url)
 }
 
-fun CookieJar.copyCookies(oldDomain: String, newDomain: String, names: Array<String>? = null) {
+public fun CookieJar.copyCookies(oldDomain: String, newDomain: String, names: Array<String>? = null) {
 	val url = HttpUrl.Builder()
 		.scheme(SCHEME_HTTPS)
 		.host(oldDomain)

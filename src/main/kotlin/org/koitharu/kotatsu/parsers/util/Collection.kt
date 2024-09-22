@@ -6,7 +6,7 @@ import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import java.util.*
 
-fun <T> MutableCollection<T>.replaceWith(subject: Iterable<T>) {
+public fun <T> MutableCollection<T>.replaceWith(subject: Iterable<T>) {
 	clear()
 	addAll(subject)
 }
@@ -23,7 +23,7 @@ fun <T> List<T>.medianOrNull(): T? = when {
 	else -> get((size / 2).coerceIn(indices))
 }
 
-inline fun <T, R> Collection<T>.mapToSet(transform: (T) -> R): Set<R> {
+public inline fun <T, R> Collection<T>.mapToSet(transform: (T) -> R): Set<R> {
 	return mapTo(ArraySet(size), transform)
 }
 
@@ -35,13 +35,13 @@ inline fun <T, R> Collection<T>.mapNotNullToSet(transform: (T) -> R?): Set<R> {
 	return destination
 }
 
-inline fun <T, reified R> Array<T>.mapToArray(transform: (T) -> R): Array<R> = Array(size) { i ->
+public inline fun <T, reified R> Array<T>.mapToArray(transform: (T) -> R): Array<R> = Array(size) { i ->
 	transform(get(i))
 }
 
 fun <K, V> List<Pair<K, V>>.toMutableMap(): MutableMap<K, V> = toMap(ArrayMap(size))
 
-fun <T> MutableList<T>.move(sourceIndex: Int, targetIndex: Int) {
+public fun <T> MutableList<T>.move(sourceIndex: Int, targetIndex: Int) {
 	if (sourceIndex <= targetIndex) {
 		Collections.rotate(subList(sourceIndex, targetIndex + 1), -1)
 	} else {

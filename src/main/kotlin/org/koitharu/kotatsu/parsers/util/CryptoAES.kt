@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.util
 
+import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import java.security.MessageDigest
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
+import kotlin.Throws
 
 private const val HASH_CIPHER = "AES/CBC/PKCS7PADDING"
 private const val AES = "AES"
@@ -14,7 +16,8 @@ private const val KDF_DIGEST = "MD5"
 /**
  * Conforming with CryptoJS AES method
  */
-class CryptoAES(
+@InternalParsersApi
+public class CryptoAES(
 	private val context: MangaLoaderContext,
 ) {
 
@@ -27,7 +30,7 @@ class CryptoAES(
 	 * @param password passphrase
 	 */
 	@Throws(Exception::class)
-	fun decrypt(cipherText: String, password: String): String {
+	public fun decrypt(cipherText: String, password: String): String {
 		val ctBytes = context.decodeBase64(cipherText)
 		val saltBytes = Arrays.copyOfRange(ctBytes, 8, 16)
 		val cipherTextBytes = Arrays.copyOfRange(ctBytes, 16, ctBytes.size)
@@ -48,7 +51,7 @@ class CryptoAES(
 	 * @param ivBytes iv as a bytearray
 	 */
 	@Throws(Exception::class)
-	fun decrypt(cipherText: String, keyBytes: ByteArray, ivBytes: ByteArray): String {
+	public fun decrypt(cipherText: String, keyBytes: ByteArray, ivBytes: ByteArray): String {
 		val cipherTextBytes = context.decodeBase64(cipherText)
 		return decryptAES(cipherTextBytes, keyBytes, ivBytes)
 	}

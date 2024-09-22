@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.model
 
-enum class Demographic {
+public enum class Demographic {
 	SHOUNEN,
 	SHOUJO,
 	SEINEN,

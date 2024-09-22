@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.model
 
-enum class ContentType {
+public enum class ContentType {
 
 	/**
 	 * Standard manga, manhua, webtoons, etc

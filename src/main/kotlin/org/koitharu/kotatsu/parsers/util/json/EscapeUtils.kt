@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.util.json
 
-fun String.unescapeJson(): String {
+public fun String.unescapeJson(): String {
 	val builder = StringBuilder()
 	var i = 0
 	while (i < length) {

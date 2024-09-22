@@ -9,13 +9,13 @@ import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.SortOrder
 
-class RelatedMangaFinder(
+public class RelatedMangaFinder(
 	private val parsers: Collection<MangaParser>,
 ) {
 
 	private val regexWhitespace = Regex("\\s+")
 
-	suspend operator fun invoke(seed: Manga): List<Manga> = coroutineScope {
+	public suspend operator fun invoke(seed: Manga): List<Manga> = coroutineScope {
 		parsers.singleOrNull()?.let { parser ->
 			findRelatedImpl(this, parser, seed)
 		} ?: parsers.map { parser ->

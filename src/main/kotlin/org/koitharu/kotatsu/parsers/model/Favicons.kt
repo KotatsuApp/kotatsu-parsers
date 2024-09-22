@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.model
 
-class Favicons internal constructor(
+public class Favicons(
 	favicons: Collection<Favicon>,
-	@JvmField val referer: String?,
+	@JvmField public val referer: String?,
 ) : Collection<Favicon> {
 
 	private val icons = favicons.sortedDescending()
@@ -18,7 +18,7 @@ class Favicons internal constructor(
 
 	override fun iterator(): Iterator<Favicon> = icons.iterator()
 
-	operator fun minus(victim: Favicon): Favicons = Favicons(
+	public operator fun minus(victim: Favicon): Favicons = Favicons(
 		favicons = icons.filterNot { it == victim },
 		referer = referer,
 	)
@@ -30,7 +30,7 @@ class Favicons internal constructor(
 	 * @param types supported file types, e.g. png, svg, ico. May be null but not empty
 	 */
 	@JvmOverloads
-	fun find(size: Int, types: Set<String>? = null): Favicon? {
+	public fun find(size: Int, types: Set<String>? = null): Favicon? {
 		if (icons.isEmpty()) {
 			return null
 		}
@@ -48,11 +48,12 @@ class Favicons internal constructor(
 		return result
 	}
 
-	companion object {
+	public companion object {
 
 		@JvmStatic
-		fun empty() = Favicons(emptySet(), null)
+		public val EMPTY: Favicons = Favicons(emptySet(), null)
 
-		fun single(url: String) = Favicons(setOf(Favicon(url, 0, null)), null)
+		@JvmStatic
+		public fun single(url: String): Favicons = Favicons(setOf(Favicon(url, 0, null)), null)
 	}
 }

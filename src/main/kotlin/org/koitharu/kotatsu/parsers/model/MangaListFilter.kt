@@ -17,18 +17,23 @@ public data class MangaListFilter(
 	@JvmField val yearTo: Int = YEAR_UNKNOWN,
 ) {
 
-	public fun isEmpty(): Boolean = tags.isEmpty() &&
+	private fun isNonSearchOptionsEmpty(): Boolean = tags.isEmpty() &&
 		tagsExclude.isEmpty() &&
 		locale == null &&
 		originalLocale == null &&
 		states.isEmpty() &&
 		contentRating.isEmpty() &&
-		query == null &&
 		year == YEAR_UNKNOWN &&
 		yearFrom == YEAR_UNKNOWN &&
 		yearTo == YEAR_UNKNOWN &&
 		types.isEmpty() &&
 		demographics.isEmpty()
+
+	public fun isEmpty(): Boolean = isNonSearchOptionsEmpty() && query.isNullOrEmpty()
+
+	public fun isNotEmpty(): Boolean = !isEmpty()
+
+	public fun hasNonSearchOptions(): Boolean = !isNonSearchOptionsEmpty()
 
 	public companion object {
 

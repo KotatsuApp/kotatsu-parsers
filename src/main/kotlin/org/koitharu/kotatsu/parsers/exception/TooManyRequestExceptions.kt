@@ -4,18 +4,18 @@ import okio.IOException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 
-class TooManyRequestExceptions(
-	val url: String,
+public class TooManyRequestExceptions(
+	public val url: String,
 	retryAfter: Long,
 ) : IOException("Too man requests") {
 
-	val retryAt: Instant? = if (retryAfter > 0 && retryAfter < Long.MAX_VALUE) {
+	public val retryAt: Instant? = if (retryAfter > 0 && retryAfter < Long.MAX_VALUE) {
 		Instant.now().plusMillis(retryAfter)
 	} else {
 		null
 	}
 
-	fun getRetryDelay(): Long {
+	public fun getRetryDelay(): Long {
 		if (retryAt == null) {
 			return -1L
 		}

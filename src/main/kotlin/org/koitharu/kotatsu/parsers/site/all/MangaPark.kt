@@ -79,14 +79,10 @@ internal class MangaPark(context: MangaLoaderContext) :
 			}
 
 			append("&genres=")
-			if (filter.tags.isNotEmpty()) {
-				appendAll(filter.tags, ",") { it.key }
-			}
+			filter.tags.joinTo(this, ",") { it.key }
 
 			append("|")
-			if (filter.tagsExclude.isNotEmpty()) {
-				appendAll(filter.tagsExclude, ",") { it.key }
-			}
+			filter.tagsExclude.joinTo(this, ",") { it.key }
 
 			if (filter.contentRating.isNotEmpty()) {
 				filter.contentRating.oneOrThrowIfMany()?.let {

@@ -2,14 +2,14 @@ package org.koitharu.kotatsu.parsers.model
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-class Favicon internal constructor(
-	@JvmField val url: String,
-	@JvmField val size: Int,
+public class Favicon(
+	@JvmField public val url: String,
+	@JvmField public val size: Int,
 	@JvmField internal val rel: String?,
 ) : Comparable<Favicon> {
 
 	@JvmField
-	val type: String = url.toHttpUrl().pathSegments.last()
+	public val type: String = url.toHttpUrl().pathSegments.last()
 		.substringAfterLast('.', "").lowercase()
 
 	override fun compareTo(other: Favicon): Int {

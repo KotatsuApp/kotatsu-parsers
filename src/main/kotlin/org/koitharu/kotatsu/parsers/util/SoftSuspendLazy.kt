@@ -7,14 +7,14 @@ import java.lang.ref.SoftReference
 /**
  * Like a [SuspendLazy] but with [SoftReference] under the hood
  */
-class SoftSuspendLazy<T : Any>(
+public class SoftSuspendLazy<T : Any>(
 	private val initializer: suspend () -> T,
 ) {
 
 	private val mutex = Mutex()
 	private var cachedValue: SoftReference<T>? = null
 
-	suspend fun get(): T {
+	public suspend fun get(): T {
 		// fast way
 		cachedValue?.get()?.let {
 			return it
@@ -29,9 +29,9 @@ class SoftSuspendLazy<T : Any>(
 		}
 	}
 
-	suspend fun tryGet() = runCatchingCancellable { get() }
+	public suspend fun tryGet(): Result<T> = runCatchingCancellable { get() }
 
-	fun peek(): T? {
+	public fun peek(): T? {
 		return cachedValue?.get()
 	}
 }
