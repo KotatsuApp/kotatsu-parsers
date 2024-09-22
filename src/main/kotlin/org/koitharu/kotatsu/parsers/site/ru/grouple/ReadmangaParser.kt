@@ -15,6 +15,7 @@ internal class ReadmangaParser(
 	companion object {
 
 		val domains = arrayOf(
+			"zz.readmanga.io",
 			"readmanga.live",
 			"readmanga.io",
 			"readmanga.me",
