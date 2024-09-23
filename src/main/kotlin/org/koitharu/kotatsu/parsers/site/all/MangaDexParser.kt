@@ -177,12 +177,20 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 			filter.locale?.let {
 				append("&availableTranslatedLanguage[]=")
-				append(it.language)
+				if (it.language == "in") {
+					append("id")
+				} else {
+					append(it.language)
+				}
 			}
 
 			filter.originalLocale?.let {
 				append("&originalLanguage[]=")
-				append(it.language)
+				if (it.language == "in") {
+					append("id")
+				} else {
+					append(it.language)
+				}
 			}
 
 			if (filter.year != 0) {
