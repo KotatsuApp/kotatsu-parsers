@@ -7,8 +7,10 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.symbol.KSClassDeclaration
 import com.google.devtools.ksp.symbol.KSVisitorVoid
 import com.google.devtools.ksp.validate
+import java.io.File
 import java.io.Writer
 import java.util.*
+import kotlin.math.log
 
 class ParserProcessor(
 	private val codeGenerator: CodeGenerator,
@@ -19,9 +21,7 @@ class ParserProcessor(
 	private val sourceNamePattern = Regex("[A-Z_][A-Z0-9_]{3,}")
 
 	override fun process(resolver: Resolver): List<KSAnnotated> {
-		val symbols =
-			resolver
-				.getSymbolsWithAnnotation("org.koitharu.kotatsu.parsers.MangaSourceParser")
+		val symbols = resolver.getSymbolsWithAnnotation("org.koitharu.kotatsu.parsers.MangaSourceParser")
 		val ret = symbols.filterNot { it.validate() }.toList()
 		if (!symbols.iterator().hasNext()) {
 			return ret
@@ -49,11 +49,12 @@ class ParserProcessor(
 				logger.warn(e.toString(), null)
 				null
 			}
-		sourcesFile?.writer().use { sourcesWriter ->
+		val totalCount = sourcesFile?.writer().use { sourcesWriter ->
 			factoryFile?.writer().use { factoryWriter ->
 				writeContent(sourcesWriter, factoryWriter, symbols)
 			}
 		}
+		writeSummary(totalCount)
 		return ret
 	}
 
@@ -61,9 +62,9 @@ class ParserProcessor(
 		sourcesWriter: Writer?,
 		factoryWriter: Writer?,
 		symbols: Sequence<KSAnnotated>,
-	) {
+	): Int {
 		if (sourcesWriter == null && factoryWriter == null) {
-			return
+			return 0
 		}
 		factoryWriter?.write(
 			"""
@@ -91,9 +92,10 @@ class ParserProcessor(
 		)
 
 		val visitor = ParserVisitor(sourcesWriter, factoryWriter)
-		symbols
+		val totalCount = symbols
 			.filter { it is KSClassDeclaration && it.validate() }
-			.forEach { it.accept(visitor, Unit) }
+			.onEach { it.accept(visitor, Unit) }
+			.count()
 
 		factoryWriter?.write(
 			"""
@@ -112,6 +114,12 @@ class ParserProcessor(
 			}
 			""".trimIndent(),
 		)
+		return totalCount
+	}
+
+	private fun writeSummary(totalCount: Int) {
+		val file = File(options["summaryOutputDir"] ?: return, "summary.yaml")
+		file.writeText("total: $totalCount")
 	}
 
 	private inner class ParserVisitor(
