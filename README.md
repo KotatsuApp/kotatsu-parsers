@@ -1,15 +1,9 @@
 # Kotatsu parsers
 
-This library provides manga sources.
+This library provides a collection of manga parsers for convenient access manga available on the web. It can be used in
+JVM and Android applications.
 
-[![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![Kotlin](https://img.shields.io/github/languages/top/KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Telegram](https://img.shields.io/badge/chat-telegram-60ACFF)](https://t.me/kotatsuapp) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
-
-## Projects that use the library
-
-- [Kotatsu](https://github.com/KotatsuApp/Kotatsu)
-- [kotatsu-dl](https://github.com/KotatsuApp/kotatsu-dl)
-- [Shirizu (WIP)](https://github.com/ztimms73/shirizu)
-- [OtakuWorld](https://github.com/jakepurple13/OtakuWorld)
+![Sources count](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FKotatsuApp%2Fkotatsu-parsers%2Frefs%2Fheads%2Fmaster%2F.github%2Fsummary.yaml&query=total&label=manga%20sources&color=%23E9321C) [![](https://jitpack.io/v/KotatsuApp/kotatsu-parsers.svg)](https://jitpack.io/#KotatsuApp/kotatsu-parsers) ![License](https://img.shields.io/github/license/KotatsuApp/Kotatsu) [![Telegram](https://img.shields.io/badge/chat-telegram-60ACFF)](https://t.me/kotatsuapp) [![Discord](https://img.shields.io/discord/898363402467045416?color=5865f2&label=discord)](https://discord.gg/NNJ5RgVBC5)
 
 ## Usage
 
@@ -63,6 +57,13 @@ This library provides manga sources.
    implementation.
 
    Note that the `MangaParserSourceLOCAL` and `MangaParserSourceDUMMY` parsers cannot be instantiated.
+
+## Projects that use the library
+
+- [Kotatsu](https://github.com/KotatsuApp/Kotatsu)
+- [kotatsu-dl](https://github.com/KotatsuApp/kotatsu-dl)
+- [Shirizu (WIP)](https://github.com/ztimms73/shirizu)
+- [OtakuWorld](https://github.com/jakepurple13/OtakuWorld)
 
 ## Contribution
 
