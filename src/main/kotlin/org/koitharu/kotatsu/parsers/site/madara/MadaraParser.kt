@@ -791,10 +791,10 @@ internal abstract class MadaraParser(
 			WordSet("jam", "saat", "heure", "hora", "horas", "hour", "hours", "h", "ساعات", "ساعة")
 				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
 
-			WordSet("hari", "gün", "jour", "día", "dia", "day", "days", "d", "день")
+			WordSet("hari", "gün", "jour", "día", "dia", "day", "días", "days", "d", "день")
 				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
 
-			WordSet("month", "months", "أشهر", "mois")
+			WordSet("month", "months", "أشهر", "mois", "meses", "mes")
 				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
 
 			WordSet("year")

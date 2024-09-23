@@ -5,5 +5,6 @@ public enum class Demographic {
 	SHOUJO,
 	SEINEN,
 	JOSEI,
+	KODOMO,
 	NONE,
 }

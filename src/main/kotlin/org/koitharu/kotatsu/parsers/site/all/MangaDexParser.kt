@@ -82,7 +82,13 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				MangaState.ABANDONED,
 			),
 			availableContentRating = EnumSet.allOf(ContentRating::class.java),
-			availableDemographics = EnumSet.allOf(Demographic::class.java),
+			availableDemographics = EnumSet.of(
+				Demographic.SHOUNEN,
+				Demographic.SHOUJO,
+				Demographic.SEINEN,
+				Demographic.JOSEI,
+				Demographic.NONE,
+			),
 			availableLocales = localesDeferred.await(),
 		)
 	}
@@ -164,6 +170,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 						Demographic.SEINEN -> "seinen"
 						Demographic.JOSEI -> "josei"
 						Demographic.NONE -> "none"
+						else -> ""
 					},
 				)
 			}

@@ -52,7 +52,13 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			ContentType.MANHUA,
 			ContentType.OTHER,
 		),
-		availableDemographics = EnumSet.allOf(Demographic::class.java),
+		availableDemographics = EnumSet.of(
+			Demographic.SHOUNEN,
+			Demographic.SHOUJO,
+			Demographic.SEINEN,
+			Demographic.JOSEI,
+			Demographic.NONE,
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -132,6 +138,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					Demographic.SEINEN -> "3"
 					Demographic.JOSEI -> "4"
 					Demographic.NONE -> "5"
+					else -> ""
 				},
 			)
 		}
