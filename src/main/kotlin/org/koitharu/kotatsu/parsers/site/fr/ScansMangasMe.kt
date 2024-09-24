@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.SinglePageMangaParser
@@ -12,6 +13,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
+@Broken
 @MangaSourceParser("SCANS_MANGAS_ME", "ScansMangas.me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.SCANS_MANGAS_ME) {

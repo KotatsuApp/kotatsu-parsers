@@ -79,7 +79,8 @@ public fun String.toRelativeUrl(domain: String): String {
 public fun String.toAbsoluteUrl(domain: String): String = when {
 	this.startsWith("//") -> "https:$this"
 	this.startsWith('/') -> "https://$domain$this"
-	else -> this
+	this.startsWith("https://") -> this
+	else -> "https://$domain/$this"
 }
 
 public fun concatUrl(host: String, path: String): String {

@@ -66,7 +66,7 @@ internal abstract class FoolSlideParser(
 				val url = buildString {
 					append("https://")
 					append(domain)
-					append("/")
+					append('/')
 					append(listUrl)
 					// For some sites that don't have enough manga and page 2 links to page 1
 					if (!pagination) {
@@ -89,7 +89,7 @@ internal abstract class FoolSlideParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),// in search no img
-				title = div.selectFirstOrThrow(".title a").text().orEmpty(),
+				title = div.selectFirst(".title a")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -113,21 +113,21 @@ internal abstract class FoolSlideParser(
 			testAdultPage
 		}
 		val chapters = getChapters(doc)
-		val desc = if (doc.selectFirstOrThrow(selectInfo).html().contains("</b>")) {
-			doc.selectFirstOrThrow(selectInfo).text().substringAfterLast(": ")
+		val desc = if (doc.selectFirst(selectInfo)?.html()?.contains("</b>") == true) {
+			doc.selectFirst(selectInfo)?.text()?.substringAfterLast(": ")
 		} else {
-			doc.selectFirstOrThrow(selectInfo).text()
+			doc.selectFirst(selectInfo)?.text()
 		}
-		val author = if (doc.selectFirstOrThrow(selectInfo).html().contains("</b>")) {
-			doc.selectFirstOrThrow(selectInfo).text().substringAfter(": ").substringBefore("Art")
+		val author = if (doc.selectFirst(selectInfo)?.html()?.contains("</b>") == true) {
+			doc.selectFirst(selectInfo)?.text()?.substringAfter(": ")?.substringBefore("Art")
 		} else {
 			null
 		}
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
-			description = desc,
+			description = desc.orEmpty(),
 			altTitle = null,
-			author = author,
+			author = author.orEmpty(),
 			state = null,
 			chapters = chapters,
 		)
@@ -142,14 +142,14 @@ internal abstract class FoolSlideParser(
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, div ->
 			val a = div.selectFirstOrThrow(".title a")
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = div.selectFirstOrThrow(selectDate).text().substringAfter(", ")
+			val dateText = div.selectFirst(selectDate)?.text()?.substringAfter(", ")
 			MangaChapter(
 				id = generateUid(href),
 				name = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,
-				uploadDate = if (div.selectFirstOrThrow(selectDate).text().contains(", ")) {
+				uploadDate = if (div.selectFirst(selectDate)?.text()?.contains(", ") == true) {
 					dateFormat.tryParse(dateText)
 				} else {
 					0

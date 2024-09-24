@@ -23,20 +23,20 @@ internal class SeinagiAdulto(context: MangaLoaderContext) :
 		}
 		val chapters = getChapters(doc)
 		val desc = if (doc.selectFirstOrThrow(selectInfo).html().contains("Descripción")) {
-			doc.selectFirstOrThrow(selectInfo).text().substringAfter("Descripción: ").substringBefore("Lecturas")
+			doc.selectFirst(selectInfo)?.text()?.substringAfter("Descripción: ")?.substringBefore("Lecturas")
 		} else {
-			doc.selectFirstOrThrow(selectInfo).text()
+			doc.selectFirst(selectInfo)?.text()
 		}
-		val author = if (doc.selectFirstOrThrow(selectInfo).html().contains("Author")) {
-			doc.selectFirstOrThrow(selectInfo).text().substringAfter("Author: ").substringBefore("Art")
+		val author = if (doc.selectFirst(selectInfo)?.html()?.contains("Author") == true) {
+			doc.selectFirst(selectInfo)?.text()?.substringAfter("Author: ")?.substringBefore("Art")
 		} else {
 			null
 		}
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src().orEmpty(),// for manga result on search
-			description = desc,
+			description = desc.orEmpty(),
 			altTitle = null,
-			author = author,
+			author = author.orEmpty(),
 			state = null,
 			chapters = chapters,
 		)

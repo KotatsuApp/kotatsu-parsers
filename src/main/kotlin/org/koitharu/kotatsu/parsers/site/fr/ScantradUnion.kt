@@ -15,14 +15,19 @@ import java.util.*
 internal class ScantradUnion(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.SCANTRADUNION, 10) {
 
+	override val configKeyDomain = ConfigKey.Domain("scantrad-union.com")
+
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
 		SortOrder.UPDATED,
 	)
-
-	override val configKeyDomain = ConfigKey.Domain("scantrad-union.com")
-
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -32,11 +37,6 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -89,7 +89,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
 						isNsfw = false,
-						coverUrl = article.selectFirstOrThrow("img.attachment-thumbnail").attrAsAbsoluteUrl("src"),
+						coverUrl = article.selectFirst("img.attachment-thumbnail")?.attrAsAbsoluteUrl("src").orEmpty(),
 						tags = setOf(),
 						state = null,
 						author = null,
@@ -109,7 +109,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
 						isNsfw = false,
-						coverUrl = article.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
+						coverUrl = article.selectFirst("img")?.attrAsAbsoluteUrl("src").orEmpty(),
 						tags = setOf(),
 						state = null,
 						author = null,
@@ -151,7 +151,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					} else {
 						"Chapter $i"
 					}
-					val date = li.select(".name-chapter").first()!!.children().elementAt(2).text()
+					val date = li.select(".name-chapter").first()?.children()?.elementAt(2)?.text()
 					MangaChapter(
 						id = generateUid(href),
 						name = name,

@@ -35,16 +35,22 @@ internal abstract class FmreaderParser(
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	protected open val listUrl = "/manga-list.html"
-	protected open val datePattern = "MMMM d, yyyy"
-	protected open val tagPrefix = "manga-list-genre-"
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
-			isSearchSupported = true,
 		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+		),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -71,14 +77,9 @@ internal abstract class FmreaderParser(
 		"drop",
 	)
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(
-			MangaState.ONGOING,
-			MangaState.FINISHED,
-			MangaState.ABANDONED,
-		),
-	)
+	protected open val listUrl = "/manga-list.html"
+	protected open val datePattern = "MMMM d, yyyy"
+	protected open val tagPrefix = "manga-list-genre-"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -87,45 +88,45 @@ internal abstract class FmreaderParser(
 			append(listUrl)
 			append("?page=")
 			append(page.toString())
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("&name=")
-					append(filter.query.urlEncoded())
-				}
 
-				else -> {
+			filter.query?.let {
+				append("&name=")
+				append(filter.query.urlEncoded())
+			}
 
-					append("&genre=")
-					append(filter.tags.joinToString(",") { it.key })
+			// filter.author?.let {
+			// 	append("&author=")
+			// 	append(filter.author.urlEncoded())
+			// }
 
-					append("&ungenre=")
-					append(filter.tagsExclude.joinToString(",") { it.key })
+			append("&genre=")
+			append(filter.tags.joinToString(",") { it.key })
+
+			append("&ungenre=")
+			append(filter.tagsExclude.joinToString(",") { it.key })
 
 
-					append("&sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("views&sort_type=DESC")
-						SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
-						SortOrder.UPDATED -> append("last_update&sort_type=DESC")
-						SortOrder.UPDATED_ASC -> append("last_update&sort_type=ASC")
-						SortOrder.ALPHABETICAL -> append("name&sort_type=ASC")
-						SortOrder.ALPHABETICAL_DESC -> append("name&sort_type=DESC")
-						else -> append("last_update&sort_type=DESC")
-					}
+			append("&sort=")
+			when (order) {
+				SortOrder.POPULARITY -> append("views&sort_type=DESC")
+				SortOrder.POPULARITY_ASC -> append("views&sort_type=ASC")
+				SortOrder.UPDATED -> append("last_update&sort_type=DESC")
+				SortOrder.UPDATED_ASC -> append("last_update&sort_type=ASC")
+				SortOrder.ALPHABETICAL -> append("name&sort_type=ASC")
+				SortOrder.ALPHABETICAL_DESC -> append("name&sort_type=DESC")
+				else -> append("last_update&sort_type=DESC")
+			}
 
-					append("&m_status=")
-					filter.states.oneOrThrowIfMany()?.let {
-						append(
-							when (it) {
-								MangaState.ONGOING -> "2"
-								MangaState.FINISHED -> "1"
-								MangaState.ABANDONED -> "3"
-								else -> ""
-							},
-						)
-					}
-
-				}
+			append("&m_status=")
+			filter.states.oneOrThrowIfMany()?.let {
+				append(
+					when (it) {
+						MangaState.ONGOING -> "2"
+						MangaState.FINISHED -> "1"
+						MangaState.ABANDONED -> "3"
+						else -> ""
+					},
+				)
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseHtml())
@@ -139,10 +140,10 @@ internal abstract class FmreaderParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("data-bg")
-					?: div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("(")
-						.substringBefore(")"),
-				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
+				coverUrl = (div.selectFirst("div.img-in-ratio")?.attr("data-bg")
+					?: div.selectFirst("div.img-in-ratio")?.attr("style")?.substringAfter("(")
+						?.substringBefore(")"))?.toAbsoluteUrl(domain).orEmpty(),
+				title = div.selectFirst("div.series-title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

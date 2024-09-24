@@ -87,7 +87,7 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = getChapters(doc)
 		manga.copy(
-			description = doc.selectFirstOrThrow("div.fs-comic-description").html(),
+			description = doc.selectFirst("div.fs-comic-description")?.html().orEmpty(),
 			chapters = chaptersDeferred,
 			isNsfw = doc.selectFirst(".adult-text") != null,
 		)
@@ -98,10 +98,10 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 			val a = div.selectFirstOrThrow("div.title a")
 			val href = a.attrAsRelativeUrl("href")
 			val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
-			val dateText = div.selectFirstOrThrow("div.meta_r").text().replace("Hier", "1 jour")
+			val dateText = div.selectFirst("div.meta_r")?.text()?.replace("Hier", "1 jour")
 			MangaChapter(
 				id = generateUid(href),
-				name = div.selectFirstOrThrow("div.title").text() + " : " + div.selectFirstOrThrow("div.name").text(),
+				name = div.selectFirst("div.title")?.text() + " : " + div.selectFirst("div.name")?.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,
@@ -133,13 +133,16 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.startsWith("il y a") || // Handle translated 'ago' in French.
-				d.endsWith(" an") || d.endsWith(" ans") ||
-				d.endsWith(" mois") ||
-				d.endsWith(" jour") || d.endsWith(" jours") ||
-				d.endsWith(" heure") || d.endsWith(" heures") ||
-				d.endsWith(" seconde") || d.endsWith(" secondes") ||
-				d.endsWith(" minute") || d.endsWith(" minutes") -> parseRelativeDate(date)
+
+			WordSet("il y a").startsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
+			WordSet(
+				" an", " mois", " jour", " jours", " heure", " heures", " minute", " minutes", " seconde", " secondes",
+			).endsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			else -> dateFormat.tryParse(date)
 		}

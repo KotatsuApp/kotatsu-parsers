@@ -14,24 +14,24 @@ import java.util.*
 @MangaSourceParser("MANGAKAWAII", "MangaKawaii Fr", "fr")
 internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAKAWAII, 50) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
-
 	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
 		)
 
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
+
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("Accept-Language", "fr")
@@ -52,7 +52,7 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 				else -> {
 
 					if (order == SortOrder.UPDATED && filter.tags.isNotEmpty()) {
-						throw IllegalArgumentException("Filtrer part tag n'est pas disponible avec le tri pas mis à jour")
+						throw IllegalArgumentException("Filtrer par tag n'est pas  avec le tri pas mis à jour")
 					}
 
 					if (order == SortOrder.ALPHABETICAL) {
@@ -81,7 +81,7 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = (div.selectFirst("img")?.src() ?: a.attr("data-bg")).orEmpty(),
-				title = div.selectFirstOrThrow("h4, .media-thumbnail__name").text().orEmpty(),
+				title = div.selectFirst("h4, .media-thumbnail__name")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

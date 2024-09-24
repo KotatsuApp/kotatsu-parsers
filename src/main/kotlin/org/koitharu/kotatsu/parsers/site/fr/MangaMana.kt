@@ -23,31 +23,33 @@ import java.util.*
 @MangaSourceParser("MANGAMANA", "MangaMana", "fr")
 internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAMANA, 25) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(
-			SortOrder.UPDATED,
-			SortOrder.RATING,
-			SortOrder.ALPHABETICAL,
-			SortOrder.ALPHABETICAL_DESC,
-			SortOrder.NEWEST,
-		)
-
 	override val configKeyDomain = ConfigKey.Domain("www.manga-mana.com")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
 		)
 
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.RATING,
+			SortOrder.RATING_ASC,
+			SortOrder.ALPHABETICAL,
+			SortOrder.ALPHABETICAL_DESC,
+			SortOrder.NEWEST,
+			SortOrder.NEWEST_ASC,
+		)
+
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val postData = buildString {
@@ -97,7 +99,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 					if (order == SortOrder.UPDATED) {
 
 						if (filter.tags.isNotEmpty() or filter.states.isNotEmpty()) {
-							throw IllegalArgumentException("Le filtrage par « tri par : mis à jour » avec les genres ou les statuts n'est pas pris en charge par cette source.")
+							throw IllegalArgumentException("Le filtrage par « tri par : mis à jour » avec d'autres n'est pas pris en charge par cette source.")
 						}
 
 						val doc = webClient.httpGet("https://$domain/?page=$page").parseHtml()
@@ -146,7 +148,9 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						append("&sort_by=")
 						when (order) {
 							SortOrder.RATING -> append("score&sort_dir=desc")
+							SortOrder.RATING_ASC -> append("score&sort_dir=asc")
 							SortOrder.NEWEST -> append("updated_at&sort_dir=desc")
+							SortOrder.NEWEST_ASC -> append("updated_at&sort_dir=asc")
 							SortOrder.ALPHABETICAL -> append("name&sort_dir=asc")
 							SortOrder.ALPHABETICAL_DESC -> append("name&sort_dir=desc")
 							else -> append("updated_at&sort_dir=desc")

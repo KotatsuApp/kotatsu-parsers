@@ -317,7 +317,7 @@ internal abstract class GroupleParser(
 		SortOrder.UPDATED -> "updated"
 		SortOrder.ADDED,
 		SortOrder.NEWEST,
-			-> "created"
+		-> "created"
 
 		SortOrder.RATING -> "votes"
 		else -> "rate"
