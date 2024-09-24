@@ -220,7 +220,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					if (vol > 0) {
 						append("Vol ").append(vol).append(' ')
 					}
-					append("Chap ").append(chap)
+					append("Chap ").append(chap.formatSimple())
 					jo.getStringOrNull("title")?.let { append(": ").append(it) }
 				},
 				number = chap,
