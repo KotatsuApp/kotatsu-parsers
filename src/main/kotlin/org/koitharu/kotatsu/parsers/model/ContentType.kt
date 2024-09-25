@@ -26,6 +26,11 @@ public enum class ContentType {
 	/**
 	 * Use this type if no other suits your needs. For example, for an indie manga
 	 */
-	OTHER,
+
 	ONE_SHOT,
+	DOUJINSHI,
+	IMAGE_SET,
+	ARTIST_CG,
+	GAME_CG,
+	OTHER,
 }

@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.iken.IkenParser
 
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
 internal class MangaGalaxyParser(context: MangaLoaderContext) :
-	IkenParser(context, MangaParserSource.MANGAGALAXY, "mangagalaxy.org")
+	IkenParser(context, MangaParserSource.MANGAGALAXY, "mangagalaxy.net")

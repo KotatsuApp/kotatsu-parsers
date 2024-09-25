@@ -38,7 +38,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
-			ContentType.HENTAI,
+			ContentType.DOUJINSHI,
 		),
 	)
 
@@ -92,7 +92,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 					when (it) {
 						ContentType.MANGA -> "Manga"
 						ContentType.MANHWA -> "Manhwa"
-						ContentType.HENTAI -> "Doujinshi"
+						ContentType.DOUJINSHI -> "Doujinshi"
 						else -> ""
 					},
 				)

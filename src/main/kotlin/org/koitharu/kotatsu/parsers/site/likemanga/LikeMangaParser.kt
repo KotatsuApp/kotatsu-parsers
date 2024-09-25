@@ -30,11 +30,19 @@ internal abstract class LikeMangaParser(
 	}
 
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+		EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.POPULARITY,
+			SortOrder.NEWEST,
+			SortOrder.POPULARITY_TODAY,
+			SortOrder.POPULARITY_WEEK,
+			SortOrder.POPULARITY_MONTH,
+		)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -48,48 +56,47 @@ internal abstract class LikeMangaParser(
 			append(domain)
 			append("/?act=search")
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("&f")
-					append("[keyword]".urlEncoded())
-					append("=")
-					append(filter.query.urlEncoded())
+			filter.query?.let {
+				append("&f")
+				append("[keyword]".urlEncoded())
+				append("=")
+				append(filter.query.urlEncoded())
+			}
+
+			append("&f")
+			append("[sortby]".urlEncoded())
+			append("=")
+			when (order) {
+				SortOrder.UPDATED -> append("lastest-chap")
+				SortOrder.NEWEST -> append("lastest-manga")
+				SortOrder.POPULARITY -> append("top-manga")
+				SortOrder.POPULARITY_TODAY -> append("top-day")
+				SortOrder.POPULARITY_WEEK -> append("top-week")
+				SortOrder.POPULARITY_MONTH -> append("top-month")
+				else -> append("lastest-chap")
+			}
+
+			if (filter.tags.isNotEmpty()) {
+				append("&f")
+				append("[genres]".urlEncoded())
+				append("=")
+				filter.tags.oneOrThrowIfMany()?.let {
+					append(it.key)
 				}
+			}
 
-				else -> {
-					append("&f")
-					append("[sortby]".urlEncoded())
-					append("=")
-					when (order) {
-						SortOrder.POPULARITY -> append("hot")
-						SortOrder.UPDATED -> append("lastest-chap")
-						SortOrder.NEWEST -> append("lastest-manga")
-						else -> append("lastest-chap")
-					}
-
-					if (filter.tags.isNotEmpty()) {
-						append("&f")
-						append("[genres]".urlEncoded())
-						append("=")
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(it.key)
-						}
-					}
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&f")
-						append("[status]".urlEncoded())
-						append("=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "in-process"
-								MangaState.FINISHED -> "complete"
-								MangaState.PAUSED -> "pause"
-								else -> "all"
-							},
-						)
-					}
-				}
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&f")
+				append("[status]".urlEncoded())
+				append("=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "in-process"
+						MangaState.FINISHED -> "complete"
+						MangaState.PAUSED -> "pause"
+						else -> "all"
+					},
+				)
 			}
 
 			if (page > 1) {

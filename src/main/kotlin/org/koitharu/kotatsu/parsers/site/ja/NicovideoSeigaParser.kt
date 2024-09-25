@@ -19,7 +19,19 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	MangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
+
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.POPULARITY,
+	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -29,11 +41,6 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override val authUrl: String
 		get() = "https://${getDomain("account")}/login?site=seiga"
@@ -48,13 +55,6 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 		return body.selectFirst("#userinfo > div > div > strong")?.text() ?: throw AuthRequiredException(source)
 	}
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.UPDATED,
-		SortOrder.POPULARITY,
-	)
-
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")
-
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val page = (offset / 20f).toIntUp().inc()
 		val domain = getDomain("seiga")
@@ -64,7 +64,6 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 			}
 
 			else -> {
-
 
 				if (filter.tags.isNotEmpty()) {
 					filter.tags.oneOrThrowIfMany().let {

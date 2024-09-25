@@ -62,7 +62,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 			ContentType.MANHUA,
 			ContentType.NOVEL,
 			ContentType.ONE_SHOT,
-			ContentType.HENTAI,
+			ContentType.DOUJINSHI,
 			ContentType.OTHER,
 		),
 	)
@@ -116,7 +116,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 						ContentType.MANHUA -> "manhua"
 						ContentType.NOVEL -> "novel"
 						ContentType.ONE_SHOT -> "one_shot"
-						ContentType.HENTAI -> "doujinshi"
+						ContentType.DOUJINSHI -> "doujinshi"
 						ContentType.OTHER -> "oel"
 						else -> ""
 					},

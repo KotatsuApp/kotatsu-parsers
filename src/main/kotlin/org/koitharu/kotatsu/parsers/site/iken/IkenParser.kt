@@ -30,8 +30,9 @@ internal abstract class IkenParser(
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isMultipleTagsSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -42,6 +43,12 @@ internal abstract class IkenParser(
 			MangaState.ABANDONED,
 			MangaState.UPCOMING,
 		),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHUA,
+			ContentType.MANHWA,
+			ContentType.OTHER,
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -51,32 +58,40 @@ internal abstract class IkenParser(
 			append("/api/query?page=")
 			append(page)
 			append("&perPage=18&searchTerm=")
-			when {
 
-				!filter.query.isNullOrEmpty() -> {
-					append(filter.query.urlEncoded())
-				}
+			filter.query?.let {
+				append(filter.query.urlEncoded())
+			}
 
-				else -> {
+			if (filter.tags.isNotEmpty()) {
+				append("&genreIds=")
+				filter.tags.joinTo(this, ",") { it.key }
+			}
 
-					if (filter.tags.isNotEmpty()) {
-						append("&genreIds=")
-						filter.tags.joinTo(this, ",") { it.key }
-					}
+			append("&seriesType=")
+			filter.types.oneOrThrowIfMany()?.let {
+				append(
+					when (it) {
+						ContentType.MANGA -> "MANGA"
+						ContentType.MANHWA -> "MANHWA"
+						ContentType.MANHUA -> "MANHUA"
+						ContentType.OTHER -> "RUSSIAN"
+						else -> ""
+					},
+				)
+			}
 
-					append("&seriesType=&seriesStatus=")
-					filter.states.oneOrThrowIfMany()?.let {
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ONGOING"
-								MangaState.FINISHED -> "COMPLETED"
-								MangaState.UPCOMING -> "COMING_SOON"
-								MangaState.ABANDONED -> "DROPPED"
-								else -> ""
-							},
-						)
-					}
-				}
+			append("&seriesStatus=")
+			filter.states.oneOrThrowIfMany()?.let {
+				append(
+					when (it) {
+						MangaState.ONGOING -> "ONGOING"
+						MangaState.FINISHED -> "COMPLETED"
+						MangaState.UPCOMING -> "COMING_SOON"
+						MangaState.ABANDONED -> "DROPPED"
+						else -> ""
+					},
+				)
 			}
 		}
 		return parseMangaList(webClient.httpGet(url).parseJson())

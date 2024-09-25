@@ -58,6 +58,7 @@ internal abstract class KeyoappParser(
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -70,28 +71,20 @@ internal abstract class KeyoappParser(
 
 		val url = urlBuilder().apply {
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					addPathSegment("series")
-					query = filter.query
-				}
-
-				else -> {
-
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							tag = it.title
-						}
-					}
-
-					when (order) {
-						SortOrder.UPDATED -> addPathSegment("latest")
-						SortOrder.NEWEST -> addPathSegment("series")
-						else -> addPathSegment("latest")
-					}
-
-				}
+			filter.query?.let {
+				query = filter.query
 			}
+
+			filter.tags.oneOrThrowIfMany()?.let {
+				tag = it.title
+			}
+
+			when (order) {
+				SortOrder.UPDATED -> addPathSegment("latest")
+				SortOrder.NEWEST -> addPathSegment("series")
+				else -> addPathSegment("series")
+			}
+
 		}.build()
 
 		return parseMangaList(webClient.httpGet(url).parseHtml(), tag, query)
