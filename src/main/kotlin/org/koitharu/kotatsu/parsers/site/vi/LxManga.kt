@@ -21,7 +21,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		SortOrder.POPULARITY,
 	)
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.life")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.click")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
