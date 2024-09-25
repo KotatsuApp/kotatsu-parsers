@@ -8,10 +8,8 @@ import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.Broken
 import java.util.EnumSet
 
-@Broken
 @MangaSourceParser("NETTRUYENSSR", "NetTruyenSSR", "vi")
 internal class NetTruyenSSR(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENSSR, "nettruyenssr.com", 20) {
