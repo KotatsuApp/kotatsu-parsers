@@ -1,17 +1,23 @@
 package org.koitharu.kotatsu.parsers
 
 import com.koushikdutta.quack.QuackContext
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
+import okhttp3.ResponseBody.Companion.toResponseBody
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.await
+import org.koitharu.kotatsu.parsers.util.requireBody
+import org.koitharu.kotatsu.test_util.BitmapTestImpl
+import java.awt.image.BufferedImage
 import java.security.SecureRandom
 import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
+import javax.imageio.ImageIO
 import javax.net.ssl.SSLContext
 import javax.net.ssl.SSLSocketFactory
 import javax.net.ssl.X509TrustManager
@@ -46,12 +52,17 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 
 	override fun getDefaultUserAgent(): String = UserAgents.FIREFOX_MOBILE
 
-	override fun redrawImageResponse(response: Response, redraw: (image: Bitmap) -> Bitmap): Response {
-		return response
+	override fun redrawImageResponse(response: Response, redraw: (Bitmap) -> Bitmap): Response {
+		val srcImage = response.requireBody().byteStream().use(ImageIO::read)
+		checkNotNull(srcImage) { "Cannot decode image" }
+		val resImage = (redraw(BitmapTestImpl(srcImage)) as BitmapTestImpl)
+		return response.newBuilder()
+			.body(resImage.compress("png").toResponseBody("image/png".toMediaTypeOrNull()))
+			.build()
 	}
 
 	override fun createBitmap(width: Int, height: Int): Bitmap {
-		throw UnsupportedOperationException()
+		return BitmapTestImpl(BufferedImage(width, height, BufferedImage.TYPE_INT_RGB))
 	}
 
 	suspend fun doRequest(url: String, source: MangaSource?): Response {
