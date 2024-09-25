@@ -24,16 +24,16 @@ internal abstract class HotComicsParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
+	override fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("User-Agent", UserAgents.CHROME_DESKTOP)
+		.build()
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
-
-	protected open val mangasUrl = "/genres"
-
-	protected open val onePage = false
 
 	protected open val isSearchSupported: Boolean = true
 
@@ -46,9 +46,9 @@ internal abstract class HotComicsParser(
 		availableTags = fetchAvailableTags(),
 	)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	protected open val mangasUrl = "/genres"
+
+	protected open val onePage = false
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (onePage && page > 1) {
@@ -160,7 +160,6 @@ internal abstract class HotComicsParser(
 				},
 		)
 	}
-
 
 	protected open val selectPages = "#viewer-img img"
 

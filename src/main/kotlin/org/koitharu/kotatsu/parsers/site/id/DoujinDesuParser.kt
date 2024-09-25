@@ -29,11 +29,17 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.HENTAI,
+		),
 	)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
@@ -47,40 +53,58 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 			addPathSegment("page")
 			addPathSegment("$page/")
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					addQueryParameter("title", filter.query)
-				}
+			addQueryParameter(
+				"title",
+				filter.query?.let {
+					filter.query
+				},
+			)
 
-				else -> {
-					addQueryParameter("title", "")
-					addQueryParameter(
-						"order",
-						when (order) {
-							SortOrder.UPDATED -> "update"
-							SortOrder.POPULARITY -> "popular"
-							SortOrder.ALPHABETICAL -> "title"
-							SortOrder.NEWEST -> "latest"
-							else -> "latest"
-						},
-					)
+			addQueryParameter(
+				"order",
+				when (order) {
+					SortOrder.UPDATED -> "update"
+					SortOrder.POPULARITY -> "popular"
+					SortOrder.ALPHABETICAL -> "title"
+					SortOrder.NEWEST -> "latest"
+					else -> "latest"
+				},
+			)
 
-					filter.tags.forEach {
-						addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
-					}
-
-					filter.states.oneOrThrowIfMany()?.let {
-						addEncodedQueryParameter(
-							"statusx",
-							when (it) {
-								MangaState.ONGOING -> "Publishing"
-								MangaState.FINISHED -> "Finished"
-								else -> ""
-							},
-						)
-					}
-				}
+			filter.tags.forEach {
+				addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
 			}
+
+			filter.states.oneOrThrowIfMany()?.let {
+				addEncodedQueryParameter(
+					"statusx",
+					when (it) {
+						MangaState.ONGOING -> "Publishing"
+						MangaState.FINISHED -> "Finished"
+						else -> ""
+					},
+				)
+			}
+
+			filter.types.oneOrThrowIfMany()?.let {
+				addQueryParameter(
+					"typex",
+					when (it) {
+						ContentType.MANGA -> "Manga"
+						ContentType.MANHWA -> "Manhwa"
+						ContentType.HENTAI -> "Doujinshi"
+						else -> ""
+					},
+				)
+			}
+
+			// Author
+			// addQueryParameter("author",
+			//	 filter.author?.let {
+			//	 	filter.author
+			//	 }
+			// )
+
 		}.build()
 
 		return webClient.httpGet(url).parseHtml()

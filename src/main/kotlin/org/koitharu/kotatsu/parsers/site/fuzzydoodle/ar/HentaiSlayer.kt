@@ -16,7 +16,16 @@ internal class HentaiSlayer(context: MangaLoaderContext) :
 	override val finishedValue = "مكتمل"
 	override val abandonedValue = "متوقف"
 
+	override val mangaValue = "مانجا"
+	override val manhuaValue = "مانهوا"
+	override val comicsValue = "كوميكس"
+
 	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+		),
 	)
 }

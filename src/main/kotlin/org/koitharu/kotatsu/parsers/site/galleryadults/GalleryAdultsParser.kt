@@ -116,7 +116,7 @@ internal abstract class GalleryAdultsParser(
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfwSource,
-				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
+				coverUrl = div.selectFirst(selectGalleryImg)?.src().orEmpty(),
 				tags = emptySet(),
 				state = null,
 				author = null,

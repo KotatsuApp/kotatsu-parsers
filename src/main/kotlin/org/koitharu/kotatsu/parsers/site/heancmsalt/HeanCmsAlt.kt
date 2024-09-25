@@ -65,8 +65,8 @@ internal abstract class HeanCmsAlt(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
-				title = div.selectFirstOrThrow(selectMangaTitle).text().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirst(selectMangaTitle)?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -90,14 +90,14 @@ internal abstract class HeanCmsAlt(
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return manga.copy(
 			altTitle = doc.selectFirst(selectAlt)?.text().orEmpty(),
-			description = doc.selectFirstOrThrow(selectDesc).html(),
+			description = doc.selectFirst(selectDesc)?.html(),
 			chapters = doc.select(selectChapter)
 				.mapChapters(reversed = true) { i, a ->
-					val dateText = a.selectFirstOrThrow(selectChapterDate).text()
+					val dateText = a.selectFirst(selectChapterDate)?.text()
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
-						name = a.selectFirstOrThrow(selectChapterTitle).text(),
+						name = a.selectFirst(selectChapterTitle)?.text() ?: "Chapter : ${i + 1f}",
 						number = i + 1f,
 						volume = 0,
 						url = url,
@@ -137,8 +137,6 @@ internal abstract class HeanCmsAlt(
 		}
 	}
 
-	// Parses dates in this form:
-	// 21 hours ago
 	private fun parseRelativeDate(date: String): Long {
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()

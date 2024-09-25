@@ -19,6 +19,7 @@ internal class AsmHentai(context: MangaLoaderContext) :
 	override val selectGalleryLink = ".image a"
 	override val selectGalleryImg = ".image img"
 	override val pathTagUrl = "/tags/?page="
+	override val selectTags = ".tags_page ul.tags"
 	override val selectAuthor = "div.tags:contains(Artists:) .tag_list a span.tag"
 	override val idImg = "fimg"
 

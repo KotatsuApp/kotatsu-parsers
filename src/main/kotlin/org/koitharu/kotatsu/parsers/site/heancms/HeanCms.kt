@@ -39,16 +39,11 @@ internal abstract class HeanCms(
 		SortOrder.POPULARITY_ASC,
 	)
 
-	protected open val pathManga = "series"
-	protected open val apiPath
-		get() = getDomain("api")
-
-	protected open val paramsUpdated = "latest"
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -56,52 +51,59 @@ internal abstract class HeanCms(
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 	)
 
+	protected open val pathManga = "series"
+	protected open val apiPath
+		get() = getDomain("api")
+
+	protected open val paramsUpdated = "latest"
+
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(apiPath)
-			append("/query?query_string=&series_type=Comic&perPage=$pageSize")
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append(filter.query.urlEncoded())
-				}
+			append("/query?query_string=")
 
-				else -> {
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&status=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "Ongoing"
-								MangaState.FINISHED -> "Completed"
-								MangaState.ABANDONED -> "Dropped"
-								MangaState.PAUSED -> "Hiatus"
-								else -> ""
-							},
-						)
-					}
-
-					append("&orderBy=")
-					when (order) {
-						SortOrder.POPULARITY -> append("total_views&order=desc")
-						SortOrder.POPULARITY_ASC -> append("total_views&order=asc")
-						SortOrder.UPDATED -> append("$paramsUpdated&order=desc")
-						SortOrder.UPDATED_ASC -> append("$paramsUpdated&order=asc")
-						SortOrder.NEWEST -> append("created_at&order=desc")
-						SortOrder.NEWEST_ASC -> append("created_at&order=asc")
-						SortOrder.ALPHABETICAL -> append("title&order=asc")
-						SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
-						else -> append("latest&order=desc")
-					}
-					append("&tags_ids=")
-					append("[".urlEncoded())
-					append(filter.tags.joinToString(",") { it.key })
-					append("]".urlEncoded())
-				}
+			filter.query?.let {
+				append(filter.query.urlEncoded())
 			}
+
+			append("&series_type=Comic&perPage=$pageSize")
+
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&status=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "Ongoing"
+						MangaState.FINISHED -> "Completed"
+						MangaState.ABANDONED -> "Dropped"
+						MangaState.PAUSED -> "Hiatus"
+						else -> ""
+					},
+				)
+			}
+
+			append("&orderBy=")
+			when (order) {
+				SortOrder.POPULARITY -> append("total_views&order=desc")
+				SortOrder.POPULARITY_ASC -> append("total_views&order=asc")
+				SortOrder.UPDATED -> append("$paramsUpdated&order=desc")
+				SortOrder.UPDATED_ASC -> append("$paramsUpdated&order=asc")
+				SortOrder.NEWEST -> append("created_at&order=desc")
+				SortOrder.NEWEST_ASC -> append("created_at&order=asc")
+				SortOrder.ALPHABETICAL -> append("title&order=asc")
+				SortOrder.ALPHABETICAL_DESC -> append("title&order=desc")
+				else -> append("latest&order=desc")
+			}
+			append("&tags_ids=")
+			append("[".urlEncoded())
+			append(filter.tags.joinToString(",") { it.key })
+			append("]".urlEncoded())
+
 			append("&page=")
 			append(page.toString())
 		}
+
+
 		return parseMangaList(webClient.httpGet(url).parseJson())
 	}
 

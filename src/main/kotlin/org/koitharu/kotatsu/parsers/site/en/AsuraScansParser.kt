@@ -158,16 +158,16 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 		return manga.copy(
 			description = doc.selectFirst("span.font-medium.text-sm")?.text().orEmpty(),
 			tags = tags,
-			author = doc.selectFirst("div.grid > div:has(h3:eq(0):containsOwn(Author)) > h3:eq(1)")?.text(),
+			author = doc.selectFirst("div.grid > div:has(h3:eq(0):containsOwn(Author)) > h3:eq(1)")?.text().orEmpty(),
 			chapters = doc.select("div.scrollbar-thumb-themecolor > div.group").mapChapters(reversed = true) { i, div ->
 				val a = div.selectLastOrThrow("a")
 				val urlRelative = "/series/" + a.attrAsRelativeUrl("href")
 				val url = urlRelative.toAbsoluteUrl(domain)
-				val date = div.selectFirst("h3:eq(1)")!!.ownText()
+				val date = div.selectLast("h3")?.text().orEmpty()
 				val cleanDate = date.replace(regexDate, "$1")
 				MangaChapter(
 					id = generateUid(url),
-					name = div.selectFirstOrThrow("h3:eq(0)").text(),
+					name = div.selectFirst("h3")?.text() ?: "Chapter : ${i + 1f}",
 					number = i + 1f,
 					volume = 0,
 					url = url,

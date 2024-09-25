@@ -31,6 +31,24 @@ internal abstract class FuzzyDoodleParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
 
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+		),
+	)
+
 	@JvmField
 	protected val ongoing = scatterSetOf(
 		"en cours",
@@ -67,54 +85,53 @@ internal abstract class FuzzyDoodleParser(
 	protected open val pausedValue = "haitus"
 	protected open val abandonedValue = "dropped"
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
-	)
+	protected open val mangaValue = "manga"
+	protected open val manhwaValue = "manhwa"
+	protected open val manhuaValue = "manhua"
+	protected open val comicsValue = "bande-dessinee"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/manga?page=")
-			append(page)
+			append(page.toString())
 
-			when {
+			append("&type=")
+			filter.types.oneOrThrowIfMany().let {
+				append(
+					when (it) {
+						ContentType.MANGA -> mangaValue
+						ContentType.MANHWA -> manhwaValue
+						ContentType.MANHUA -> manhuaValue
+						ContentType.COMICS -> comicsValue
+						else -> ""
+					},
+				)
+			}
 
-				!filter.query.isNullOrEmpty() -> {
-					append("&title=")
-					append(filter.query.urlEncoded())
-				}
+			filter.query?.let {
+				append("&title=")
+				append(filter.query.urlEncoded())
+			}
+			append("&status=")
+			filter.states.oneOrThrowIfMany()?.let {
+				append(
+					when (it) {
+						MangaState.ONGOING -> ongoingValue
+						MangaState.FINISHED -> finishedValue
+						MangaState.PAUSED -> pausedValue
+						MangaState.ABANDONED -> abandonedValue
+						else -> ""
+					},
+				)
+			}
 
-				else -> {
-					append("&type=")
-
-					append("&status=")
-					filter.states.oneOrThrowIfMany()?.let {
-						append(
-							when (it) {
-								MangaState.ONGOING -> ongoingValue
-								MangaState.FINISHED -> finishedValue
-								MangaState.PAUSED -> pausedValue
-								MangaState.ABANDONED -> abandonedValue
-								else -> ""
-							},
-						)
-					}
-
-					filter.tags.forEach {
-						append("&")
-						append("genre[]".urlEncoded())
-						append("=")
-						append(it.key)
-					}
-				}
+			filter.tags.forEach {
+				append("&")
+				append("genre[]".urlEncoded())
+				append("=")
+				append(it.key)
 			}
 		}
 
@@ -270,17 +287,14 @@ internal abstract class FuzzyDoodleParser(
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
 		val d = date?.lowercase() ?: return 0
 		return when {
-			d.endsWith(" ago") ||
-				d.endsWith("مضت") || d.startsWith("منذ") ||
-				d.startsWith("il y a") -> parseRelativeDate(date)
 
-			date.contains(Regex("""\d(st|nd|rd|th)""")) -> date.split(" ").map {
-				if (it.contains(Regex("""\d\D\D"""))) {
-					it.replace(Regex("""\D"""), "")
-				} else {
-					it
-				}
-			}.let { dateFormat.tryParse(it.joinToString(" ")) }
+			WordSet(" ago", "مضت").endsWith(d) -> {
+				parseRelativeDate(d)
+			}
+
+			WordSet("il y a", "منذ").startsWith(d) -> {
+				parseRelativeDate(d)
+			}
 
 			else -> dateFormat.tryParse(date)
 		}

@@ -12,10 +12,16 @@ import java.util.*
 internal class PixHentai(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.PIXHENTAI, 8) {
 
+	override val configKeyDomain = ConfigKey.Domain("pixhentai.com")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 	)
-	override val configKeyDomain = ConfigKey.Domain("pixhentai.com")
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -25,11 +31,6 @@ internal class PixHentai(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {

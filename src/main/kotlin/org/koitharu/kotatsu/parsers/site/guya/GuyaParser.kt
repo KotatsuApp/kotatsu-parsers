@@ -14,6 +14,13 @@ internal abstract class GuyaParser(
 	domain: String,
 ) : SinglePageMangaParser(context, source) {
 
+	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -22,13 +29,6 @@ internal abstract class GuyaParser(
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
-
-	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
