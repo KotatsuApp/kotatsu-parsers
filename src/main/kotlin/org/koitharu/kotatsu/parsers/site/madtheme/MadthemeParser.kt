@@ -34,9 +34,17 @@ internal abstract class MadthemeParser(
 		SortOrder.RATING,
 	)
 
-	protected open val listUrl = "search/"
-	protected open val datePattern = "MMM dd, yyyy"
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
 
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -46,27 +54,17 @@ internal abstract class MadthemeParser(
 
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
-		"On Going",
-		"Ongoing",
-		"ONGOING",
+		"on going",
+		"ongoing",
 	)
 
 	@JvmField
 	protected val finished: Set<String> = setOf(
-		"Completed",
-		"COMPLETED",
+		"completed",
 	)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-	)
+	protected open val listUrl = "search/"
+	protected open val datePattern = "MMM dd, yyyy"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -74,49 +72,43 @@ internal abstract class MadthemeParser(
 			append(domain)
 			append('/')
 			append(listUrl)
-			when {
 
-				!filter.query.isNullOrEmpty() -> {
-					append("?sort=updated_at&q=")
-					append(filter.query.urlEncoded())
-				}
+			append("?page=")
+			append(page.toString())
 
-				else -> {
+			filter.query?.let {
+				append("&q=")
+				append(filter.query.urlEncoded())
+			}
 
-					append("?sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("views")
-						SortOrder.UPDATED -> append("updated_at")
-						SortOrder.ALPHABETICAL -> append("name") // On some sites without tags or searches, the alphabetical option is empty.
-						SortOrder.NEWEST -> append("created_at")
-						SortOrder.RATING -> append("rating")
-						else -> append("updated_at")
-					}
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.forEach {
-							append("&")
-							append("genre[]".urlEncoded())
-							append("=")
-							append(it.key)
-						}
-					}
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&status=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ongoing"
-								MangaState.FINISHED -> "completed"
-								else -> "all"
-							},
-						)
-					}
-
+			append("&sort=")
+			when (order) {
+				SortOrder.POPULARITY -> append("views")
+				SortOrder.UPDATED -> append("updated_at")
+				SortOrder.ALPHABETICAL -> append("name") // On some sites without tags or searches, the alphabetical option is empty.
+				SortOrder.NEWEST -> append("created_at")
+				SortOrder.RATING -> append("rating")
+				else -> append("updated_at")
+			}
+			if (filter.tags.isNotEmpty()) {
+				filter.tags.forEach {
+					append("&")
+					append("genre[]".urlEncoded())
+					append("=")
+					append(it.key)
 				}
 			}
 
-			append("&page=")
-			append(page.toString())
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&status=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "ongoing"
+						MangaState.FINISHED -> "completed"
+						else -> "all"
+					},
+				)
+			}
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
@@ -128,10 +120,9 @@ internal abstract class MadthemeParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow("div.meta").selectFirst("div.title")?.text().orEmpty(),
+				title = div.selectFirst("div.meta")?.selectFirst("div.title")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirstOrThrow("div.meta span.score").ownText().toFloatOrNull()?.div(5f)
-					?: RATING_UNKNOWN,
+				rating = div.selectFirst("div.meta span.score")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = doc.body().select("div.meta div.genres span").mapNotNullToSet { span ->
 					MangaTag(
 						key = span.attr("class"),
@@ -151,7 +142,7 @@ internal abstract class MadthemeParser(
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select("div.genres .checkbox").mapNotNullToSet { checkbox ->
 			val key = checkbox.selectFirstOrThrow("input").attr("value") ?: return@mapNotNullToSet null
-			val name = checkbox.selectFirstOrThrow("span.radio__label").text()
+			val name = checkbox.selectFirst("span.radio__label")?.text() ?: key
 			MangaTag(
 				key = key,
 				title = name,
@@ -171,12 +162,12 @@ internal abstract class MadthemeParser(
 
 		val chaptersDeferred = async { getChapters(doc) }
 
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
+		val desc = doc.selectFirst(selectDesc)?.html()
 
 		val stateDiv = doc.selectFirst(selectState)
 
 		val state = stateDiv?.let {
-			when (it.text()) {
+			when (it.text().lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
 				else -> null
@@ -195,8 +186,8 @@ internal abstract class MadthemeParser(
 					source = source,
 				)
 			},
-			description = desc,
-			altTitle = alt,
+			description = desc.orEmpty(),
+			altTitle = alt.orEmpty(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 			isNsfw = nsfw || manga.isNsfw,
@@ -218,7 +209,7 @@ internal abstract class MadthemeParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow(".chapter-title").text(),
+				name = li.selectFirst(".chapter-title")?.text() ?: "Chapters : ${i + 1f}",
 				number = i + 1f,
 				volume = 0,
 				url = href,

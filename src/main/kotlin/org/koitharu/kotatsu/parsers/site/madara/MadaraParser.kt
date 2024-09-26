@@ -35,21 +35,6 @@ internal abstract class MadaraParser(
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = !withoutAjax,
-			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
-			isYearSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
-		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
-	)
-
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
 	private fun setupAvailableSortOrders(): Set<SortOrder> {
@@ -78,6 +63,21 @@ internal abstract class MadaraParser(
 			)
 		}
 	}
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = !withoutAjax,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
+	)
 
 	override val authUrl: String
 		get() = "https://${domain}"

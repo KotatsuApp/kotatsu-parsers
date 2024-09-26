@@ -11,14 +11,14 @@ import java.util.*
 @MangaSourceParser("MUITOHENTAI", "MuitoHentai", "pt", ContentType.HENTAI)
 internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MUITOHENTAI, 24) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
-
 	override val configKeyDomain = ConfigKey.Domain("www.muitohentai.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(

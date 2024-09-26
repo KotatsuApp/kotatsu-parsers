@@ -38,8 +38,15 @@ internal abstract class WpComicsParser(
 		SortOrder.RATING,
 	)
 
-	protected open val listUrl = "/tim-truyen"
-	protected open val datePattern = "dd/MM/yy"
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -62,15 +69,8 @@ internal abstract class WpComicsParser(
 		"完結済み",
 	)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-	)
+	protected open val listUrl = "/tim-truyen"
+	protected open val datePattern = "dd/MM/yy"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response =

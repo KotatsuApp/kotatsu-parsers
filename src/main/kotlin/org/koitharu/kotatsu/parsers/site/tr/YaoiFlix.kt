@@ -12,14 +12,14 @@ import java.util.*
 @MangaSourceParser("YAOIFLIX", "YaoiFlix", "tr", ContentType.HENTAI)
 internal class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YAOIFLIX, 8) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("www.yaoiflix.dev")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -75,7 +75,7 @@ internal class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context,
 				id = generateUid(href),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				title = div.selectLastOrThrow(".name").text(),
+				title = div.selectLast(".name")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
@@ -118,7 +118,7 @@ internal class YaoiFlix(context: MangaLoaderContext) : PagedMangaParser(context,
 					val href = a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = div.selectFirstOrThrow(".name").text(),
+						name = div.selectFirst(".name")?.text() ?: "Chapter : ${i + 1f}",
 						number = i + 1f,
 						volume = 0,
 						url = href,

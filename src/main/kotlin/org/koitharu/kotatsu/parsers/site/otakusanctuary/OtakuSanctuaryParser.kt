@@ -20,15 +20,6 @@ internal abstract class OtakuSanctuaryParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-	)
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -37,6 +28,15 @@ internal abstract class OtakuSanctuaryParser(
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.NEWEST,
+	)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
 	)
 
 	protected open val listUrl = "Manga/Newest"
@@ -110,10 +110,10 @@ internal abstract class OtakuSanctuaryParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
-				title = div.selectFirstOrThrow("h4").text().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				title = div.selectFirst("h4")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst(".rating")?.ownText()?.toFloat()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
 				state = null,
@@ -147,7 +147,7 @@ internal abstract class OtakuSanctuaryParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
+		val desc = doc.selectFirst(selectDesc)?.html()
 
 		val stateDiv = doc.selectFirst(selectState)
 

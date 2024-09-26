@@ -26,6 +26,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
 			isMultipleTagsSupported = false,
+			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

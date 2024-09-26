@@ -13,28 +13,43 @@ import java.util.*
 @MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
 internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
-	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
-
 	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.UPDATED_ASC,
+			SortOrder.POPULARITY,
+			SortOrder.POPULARITY_ASC,
+			SortOrder.NEWEST,
+			SortOrder.NEWEST_ASC,
+		)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
 			isSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+			ContentType.OTHER,
+		),
 	)
-
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = when {
@@ -54,31 +69,58 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 					append(domain)
 					append("/tim-kiem-nang-cao/trang-")
 					append(page.toString())
-					append(".html?country=0&sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("4")
-						SortOrder.UPDATED -> append("2")
-						SortOrder.NEWEST -> append("0")
-						else -> append("2")
-					}
-					if (filter.states.isNotEmpty()) {
-						filter.states.oneOrThrowIfMany()?.let {
-							append("&status=")
+					append(".html?country=")
+
+					if (filter.types.isNotEmpty()) {
+						filter.types.oneOrThrowIfMany()?.let {
 							append(
 								when (it) {
-									MangaState.ONGOING -> "0"
-									MangaState.FINISHED -> "1"
+									ContentType.MANHUA -> '1'
+									ContentType.OTHER -> '2' // Việt Nam
+									ContentType.MANHWA -> '3'
+									ContentType.MANGA -> '4'
+									ContentType.COMICS -> '5'
+									else -> '0' // all
+								},
+							)
+						}
+					} else append('0')
+
+
+					append("&sort=")
+					when (order) {
+						SortOrder.NEWEST -> append('0')
+						SortOrder.NEWEST_ASC -> append('1')
+						SortOrder.UPDATED -> append('2')
+						SortOrder.UPDATED_ASC -> append('3')
+						SortOrder.POPULARITY -> append('4')
+						SortOrder.POPULARITY_ASC -> append('5')
+						else -> append('2')
+					}
+
+					append("&status=")
+					if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+
+							append(
+								when (it) {
+									MangaState.ONGOING -> '0'
+									MangaState.FINISHED -> '1'
 									else -> "-1"
 								},
 							)
 						}
 					} else {
-						append("&status=-1")
+						append("-1")
 					}
 
 					append("&category=")
 					append(filter.tags.joinToString(separator = ",") { it.key })
-					append("&notcategory=&minchapter=0")
+
+					append("&notcategory=")
+					append(filter.tagsExclude.joinToString(separator = ",") { it.key })
+
+					append("&minchapter=0")
 				}
 			}
 		}
@@ -87,13 +129,13 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
-				title = li.selectFirstOrThrow(".book_name").text(),
+				title = li.selectFirst(".book_name")?.text().orEmpty(),
 				altTitle = null,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfwSource,
-				coverUrl = li.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = li.selectFirst("img")?.src().orEmpty(),
 				tags = emptySet(),
 				state = null,
 				author = null,
@@ -126,7 +168,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 					source = source,
 				)
 			},
-			state = when (doc.selectFirstOrThrow(".status p.col-xs-9").text()) {
+			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {
 				"Đang Cập Nhật" -> MangaState.ONGOING
 				"Hoàn Thành" -> MangaState.FINISHED
 				else -> null
@@ -137,7 +179,7 @@ internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context,
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")
 				val name = a.text()
-				val dateText = div.selectFirstOrThrow(".time-chap").text()
+				val dateText = div.selectFirst(".time-chap")?.text()
 				MangaChapter(
 					id = generateUid(href),
 					name = name,

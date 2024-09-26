@@ -11,6 +11,13 @@ import java.util.*
 @MangaSourceParser("LERMANGA", "LerManga", "pt")
 internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
 
+	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
 			SortOrder.UPDATED,
@@ -23,19 +30,12 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 			SortOrder.RATING_ASC,
 		)
 
-	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities()
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 	)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {

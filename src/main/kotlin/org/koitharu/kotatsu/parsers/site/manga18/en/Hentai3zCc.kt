@@ -25,7 +25,7 @@ internal class Hentai3zCc(context: MangaLoaderContext) :
 					?.replace("cover_thumb_2.webp", "cover_250x350.jpg")
 					?.replace("admin.manga18.us", "bk.18porncomic.com")
 					.orEmpty(),
-				title = div.selectFirstOrThrow("div.mg_info").selectFirst("div.mg_name a")?.text().orEmpty(),
+				title = div.selectFirst("div.mg_info")?.selectFirst("div.mg_name a")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

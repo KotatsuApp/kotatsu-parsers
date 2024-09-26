@@ -19,11 +19,11 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),
 	Interceptor {
 
-	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)
-
 	override val configKeyDomain = ConfigKey.Domain("luratoons.com")
 
 	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+
+	override val availableSortOrders = setOf(SortOrder.ALPHABETICAL)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities()

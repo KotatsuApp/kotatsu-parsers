@@ -35,18 +35,24 @@ internal abstract class ZMangaParser(
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	protected open val listUrl = "advanced-search/"
-	protected open val datePattern = "MMMM d, yyyy"
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.ONE_SHOT,
+			ContentType.DOUJINSHI,
+		),
 	)
 
 	init {
@@ -66,6 +72,11 @@ internal abstract class ZMangaParser(
 		"Completed",
 	)
 
+	protected open val listUrl = "advanced-search/"
+	protected open val datePattern = "MMMM d, yyyy"
+
+	// https://komikindo.info/advanced-search/?title=the&author=the&artist=the&yearx=2020&status=ongoing&type=Manga&order=update
+
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
@@ -78,44 +89,69 @@ internal abstract class ZMangaParser(
 				append('/')
 			}
 
-			when {
+			append("?order=")
+			when (order) {
+				SortOrder.POPULARITY -> append("popular")
+				SortOrder.UPDATED -> append("update")
+				SortOrder.ALPHABETICAL -> append("title")
+				SortOrder.ALPHABETICAL_DESC -> append("titlereverse")
+				SortOrder.NEWEST -> append("latest")
+				SortOrder.RATING -> append("rating")
+				else -> append("update")
+			}
 
-				!filter.query.isNullOrEmpty() -> {
-					append("&title=")
-					append(filter.query.urlEncoded())
-				}
+			filter.query?.let {
+				append("&title=")
+				append(filter.query.urlEncoded())
+			}
 
-				else -> {
+			// author
+			// filter.author?.let {
+			// 	append("&author=")
+			// 	append(filter.author.urlEncoded())
+			// }
 
-					append("?order=")
-					when (order) {
-						SortOrder.POPULARITY -> append("popular")
-						SortOrder.UPDATED -> append("update")
-						SortOrder.ALPHABETICAL -> append("title")
-						SortOrder.ALPHABETICAL_DESC -> append("titlereverse")
-						SortOrder.NEWEST -> append("latest")
-						SortOrder.RATING -> append("rating")
-						else -> null
-					}
+			// artist
+			// filter.artist?.let {
+			// 	append("&artist=")
+			// 	append(filter.artist.urlEncoded())
+			// }
 
-					filter.tags.forEach {
-						append("&")
-						append("genre[]".urlEncoded())
-						append("=")
-						append(it.key)
-					}
+			if (filter.year != 0) {
+				append("&yearx=")
+				append(filter.year)
+			}
 
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&status=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ongoing"
-								MangaState.FINISHED -> "completed"
-								else -> ""
-							},
-						)
-					}
-				}
+			filter.types.oneOrThrowIfMany()?.let {
+				append("&type=")
+				append(
+					when (it) {
+						ContentType.MANGA -> "Manga"
+						ContentType.MANHWA -> "Manhwa"
+						ContentType.MANHUA -> "Manhua"
+						ContentType.ONE_SHOT -> "One-shot"
+						ContentType.DOUJINSHI -> "Doujinshi"
+						else -> ""
+					},
+				)
+			}
+
+			filter.tags.forEach {
+				append("&")
+				append("genre[]".urlEncoded())
+				append("=")
+				append(it.key)
+			}
+
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&status=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "ongoing"
+						MangaState.FINISHED -> "completed"
+						else -> ""
+					},
+				)
 			}
 		}
 

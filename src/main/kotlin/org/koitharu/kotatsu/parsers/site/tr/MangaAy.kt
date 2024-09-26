@@ -16,14 +16,14 @@ import java.util.*
 @MangaSourceParser("MANGAAY", "MangaAy", "tr")
 internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAAY, 45) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("manga-ay.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -68,7 +68,7 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 						append(domain)
 						append("/seriler")
 						if (page > 1) {
-							append("/")
+							append('/')
 							append(page)
 						}
 					}
@@ -89,7 +89,7 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 				id = generateUid(href),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				title = div.selectLastOrThrow(".item-name").text(),
+				title = div.selectLast(".item-name")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

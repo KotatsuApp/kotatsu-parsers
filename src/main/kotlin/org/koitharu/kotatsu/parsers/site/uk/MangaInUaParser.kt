@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.uk
 
-import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -43,16 +42,28 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = when {
-			!filter.query.isNullOrEmpty() -> ("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=${filter.query}&titleonly=3").toAbsoluteUrl(
-				domain,
-			)
+		val url = buildString {
+			append("https://")
+			append(domain)
+			when {
 
-			filter.tags.isEmpty() -> "/mangas/page/$page".toAbsoluteUrl(domain)
-			filter.tags.size == 1 -> "${filter.tags.first().key}/page/$page"
-			filter.tags.size > 1 -> throw IllegalArgumentException(ErrorMessages.FILTER_MULTIPLE_GENRES_NOT_SUPPORTED)
-			else -> "/mangas/page/$page".toAbsoluteUrl(domain)
+				!filter.query.isNullOrEmpty() -> {
+					append("/index.php?do=search&subaction=search&search_start=$page&full_search=1&story=${filter.query}&titleonly=3")
+				}
+
+				else -> {
+
+					if (filter.tags.isNotEmpty()) {
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("${it.key}/page/$page")
+						}
+					} else {
+						append("/mangas/page/$page")
+					}
+				}
+			}
 		}
+
 		val doc = webClient.httpGet(url).parseHtml()
 		val container = doc.body().requireElementById("site-content")
 		val items = container.select("div.col-6")

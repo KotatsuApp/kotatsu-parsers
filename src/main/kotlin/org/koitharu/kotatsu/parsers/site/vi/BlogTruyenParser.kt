@@ -21,9 +21,6 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyenmoi.com")
 
-	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.UPDATED)
-
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -31,8 +28,8 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
-	private var cacheTags = SuspendLazy(::fetchTags)
+	override val availableSortOrders: Set<SortOrder>
+		get() = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -42,6 +39,9 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = cacheTags.get().values.toSet(),
 	)
+
+	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
+	private var cacheTags = SuspendLazy(::fetchTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {

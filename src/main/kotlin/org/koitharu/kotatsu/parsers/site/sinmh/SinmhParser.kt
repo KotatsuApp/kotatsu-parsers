@@ -28,8 +28,15 @@ internal abstract class SinmhParser(
 		SortOrder.POPULARITY,
 	)
 
-	protected open val searchUrl = "search/"
-	protected open val listUrl = "list/"
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -46,15 +53,8 @@ internal abstract class SinmhParser(
 		"已完结",
 	)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-	)
+	protected open val searchUrl = "search/"
+	protected open val listUrl = "list/"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -93,7 +93,7 @@ internal abstract class SinmhParser(
 					when (order) {
 						SortOrder.POPULARITY -> append("click/")
 						SortOrder.UPDATED -> append("update/")
-						else -> append("/")
+						else -> append('/')
 					}
 					append(page.toString())
 					append('/')
@@ -113,7 +113,7 @@ internal abstract class SinmhParser(
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = div.selectFirst("p > a, h3 > a")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
+				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloat()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
 				state = null,
@@ -142,13 +142,9 @@ internal abstract class SinmhParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val body = doc.body()
-
 		val chapters = getChapters(doc)
-
-		val desc = body.selectFirst(selectDesc)?.html()
-
-		val state = body.selectFirst(selectState)?.let {
+		val desc = doc.selectFirst(selectDesc)?.html()
+		val state = doc.selectFirst(selectState)?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
@@ -174,11 +170,11 @@ internal abstract class SinmhParser(
 
 	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
 		return doc.body().select(selectChapter).mapChapters { i, li ->
-			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			val name = li.selectFirstOrThrow("a").text()
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				name = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

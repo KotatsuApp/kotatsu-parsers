@@ -32,12 +32,15 @@ internal abstract class ZeistMangaParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	protected open val datePattern = "yyyy-MM-dd"
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
 		)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+	)
 
 	@JvmField
 	protected val ongoing: Set<String> = hashSetOf(
@@ -82,10 +85,7 @@ internal abstract class ZeistMangaParser(
 
 	protected open val mangaCategory: String = "Series"
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
-	)
+	protected open val datePattern = "yyyy-MM-dd"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val startIndex = maxMangaResults * (page - 1) + 1

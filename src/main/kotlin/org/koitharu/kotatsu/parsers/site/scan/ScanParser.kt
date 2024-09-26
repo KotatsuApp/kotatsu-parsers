@@ -98,7 +98,7 @@ internal abstract class ScanParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
-				title = div.selectFirstOrThrow(".link-series h3, .item-title").text().orEmpty(),
+				title = div.selectFirst(".link-series h3, .item-title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -154,12 +154,13 @@ internal abstract class ScanParser(
 					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
+						name = div.selectFirst("h5")?.html()?.substringBefore("<div")?.substringAfter("</span>")
+							.orEmpty(),
 						number = i + 1f,
 						volume = 0,
 						url = href,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(doc.selectFirstOrThrow("h5 div").text()),
+						uploadDate = dateFormat.tryParse(doc.selectFirst("h5 div")?.text()),
 						branch = null,
 						source = source,
 					)

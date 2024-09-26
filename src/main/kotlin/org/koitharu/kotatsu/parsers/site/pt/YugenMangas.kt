@@ -16,8 +16,14 @@ import java.util.*
 internal class YugenMangas(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("yugenmangasbr.voblog.xyz")
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.ALPHABETICAL)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -25,11 +31,6 @@ internal class YugenMangas(context: MangaLoaderContext) :
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val json = when {

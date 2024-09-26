@@ -17,8 +17,6 @@ import java.util.*
 internal class Baozimh(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BAOZIMH, pageSize = 36) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
-
 	override val configKeyDomain = ConfigKey.Domain("www.baozimh.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -26,7 +24,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	private val tagsMap = SuspendLazy(::parseTags)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.POPULARITY)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -36,7 +34,15 @@ internal class Baozimh(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tagsMap.get().values.toSet(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+		),
 	)
+
+	private val tagsMap = SuspendLazy(::parseTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {
@@ -55,20 +61,33 @@ internal class Baozimh(context: MangaLoaderContext) :
 				val url = buildString {
 					append("https://")
 					append(domain)
-					append("/api/bzmhq/amp_comic_list?filter=*&region=all")
+					append("/api/bzmhq/amp_comic_list?filter=*&region=")
 
+					if (filter.types.isNotEmpty()) {
+						filter.types.oneOrThrowIfMany().let {
+							append(
+								when (it) {
+									ContentType.MANGA -> "jp"
+									ContentType.MANHWA -> "kr"
+									ContentType.MANHUA -> "cn"
+									ContentType.COMICS -> "en"
+									else -> "all"
+								},
+							)
+						}
+					} else append("all")
+
+
+					append("&type=")
 					if (filter.tags.isNotEmpty()) {
 						filter.tags.oneOrThrowIfMany()?.let {
-							append("&type=")
 							append(it.key)
 						}
-					} else {
-						append("&type=all")
-					}
+					} else append("all")
 
+					append("&state=")
 					if (filter.states.isNotEmpty()) {
 						filter.states.oneOrThrowIfMany()?.let {
-							append("&state=")
 							append(
 								when (it) {
 									MangaState.ONGOING -> "serial"
@@ -77,9 +96,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 								},
 							)
 						}
-					} else {
-						append("&state=all")
-					}
+					} else append("all")
 
 					append("&limit=36&page=")
 					append(page.toString())
@@ -118,7 +135,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href,
 				coverUrl = div.selectFirst("amp-img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow(".comics-card__title h3").text(),
+				title = div.selectFirst(".comics-card__title h3")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -148,7 +165,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val state = doc.selectFirstOrThrow(".tag-list span.tag").text()
+		val state = doc.selectFirst(".tag-list span.tag")?.text()
 		val tagMap = tagsMap.get()
 		val selectTag = doc.select(".tag-list span.tag").drop(1)
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
@@ -174,7 +191,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(
 					id = generateUid(url),
-					name = a.selectFirstOrThrow("span").text(),
+					name = a.selectFirst("span")?.text() ?: "Chapter ${i + 1f}",
 					number = i + 1f,
 					volume = 0,
 					url = url,

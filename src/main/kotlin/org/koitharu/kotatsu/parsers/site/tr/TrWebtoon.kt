@@ -34,6 +34,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -42,67 +43,56 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		when {
-			!filter.query.isNullOrEmpty() -> {
-				val url = buildString {
-					append("https://")
-					append(domain)
-					append("/webtoon-listesi?page=")
-					append(page.toString())
+		if (order == SortOrder.UPDATED) {
+			if (filter.tags.isNotEmpty() || filter.states.isNotEmpty() || filter.query != null) {
+				throw IllegalArgumentException("Sorting by update with filters is not supported by this source.")
+			}
+			val url = buildString {
+				append("https://")
+				append(domain)
+				append("/son-eklenenler?page=")
+				append(page.toString())
+			}
+			return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
+		} else {
+			val url = buildString {
+				append("https://")
+				append(domain)
+				append("/webtoon-listesi?page=")
+				append(page.toString())
+
+				filter.query?.let {
 					append("&q=")
 					append(filter.query.urlEncoded())
-					append("&sort=views&short_type=DESC")
-				}
-				return parseMangaList(webClient.httpGet(url).parseHtml())
-			}
-
-			else -> {
-
-				if (order == SortOrder.UPDATED) {
-					if (filter.tags.isNotEmpty()) {
-						throw IllegalArgumentException("Sort order updated + Tags or States is not supported by this source")
-					}
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append("/son-eklenenler?page=")
-						append(page.toString())
-					}
-					return parseMangaListUpdated(webClient.httpGet(url).parseHtml())
-				} else {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append("/webtoon-listesi?page=")
-						append(page.toString())
-						filter.tags.oneOrThrowIfMany()?.let {
-							append("&genre=")
-							append(it.key)
-						}
-						filter.states.oneOrThrowIfMany()?.let {
-							append("&status=")
-							append(
-								when (it) {
-									MangaState.ONGOING -> "continues"
-									MangaState.FINISHED -> "complated"
-									else -> ""
-								},
-							)
-						}
-						append("&sort=")
-						when (order) {
-							SortOrder.POPULARITY -> append("views&short_type=DESC")
-							SortOrder.POPULARITY_ASC -> append("views&short_type=ASC")
-							SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
-							SortOrder.ALPHABETICAL_DESC -> append("name&short_type=DESC")
-							else -> append("views&short_type=DESC")
-						}
-					}
-
-					return parseMangaList(webClient.httpGet(url).parseHtml())
 				}
 
+				filter.tags.oneOrThrowIfMany()?.let {
+					append("&genre=")
+					append(it.key)
+				}
+
+				filter.states.oneOrThrowIfMany()?.let {
+					append("&status=")
+					append(
+						when (it) {
+							MangaState.ONGOING -> "continues"
+							MangaState.FINISHED -> "complated"
+							else -> ""
+						},
+					)
+				}
+
+				append("&sort=")
+				when (order) {
+					SortOrder.POPULARITY -> append("views&short_type=DESC")
+					SortOrder.POPULARITY_ASC -> append("views&short_type=ASC")
+					SortOrder.ALPHABETICAL -> append("name&short_type=ASC")
+					SortOrder.ALPHABETICAL_DESC -> append("name&short_type=DESC")
+					else -> append("views&short_type=DESC")
+				}
 			}
+
+			return parseMangaList(webClient.httpGet(url).parseHtml())
 		}
 	}
 
@@ -180,7 +170,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				)
 			},
 			description = doc.select("p.movie__plot").html(),
-			state = when (doc.selectFirstOrThrow(".movie__credits span.rounded-pill").text()) {
+			state = when (doc.selectFirst(".movie__credits span.rounded-pill")?.text()) {
 				"Devam Ediyor", "Güncel" -> MangaState.ONGOING
 				"Tamamlandı" -> MangaState.FINISHED
 				else -> null
@@ -189,14 +179,14 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				val url = tr.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = tr.selectFirstOrThrow("a").text(),
+					name = tr.selectFirst("a")?.text() ?: "Chapter : ${i + 1f}",
 					number = i + 1f,
 					volume = 0,
 					url = url,
 					scanlator = null,
 					uploadDate = parseChapterDate(
 						SimpleDateFormat("dd/MM/yyyy", sourceLocale),
-						tr.selectLastOrThrow("td").selectFirstOrThrow("span").text(),
+						tr.selectLast("td")?.selectFirst("span")?.text(),
 					),
 					branch = null,
 					source = source,

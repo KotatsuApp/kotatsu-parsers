@@ -31,10 +31,15 @@ internal abstract class Manga18Parser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listUrl = "list-manga/"
-	protected open val tagUrl = "manga-list/"
-	protected open val datePattern = "dd-MM-yyyy"
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
 
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -52,52 +57,48 @@ internal abstract class Manga18Parser(
 		"Completed",
 	)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-	)
+	protected open val listUrl = "list-manga/"
+	protected open val tagUrl = "manga-list/"
+	protected open val datePattern = "dd-MM-yyyy"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append('/')
-			when {
 
-				!filter.query.isNullOrEmpty() -> {
+			if (filter.tags.isNotEmpty() && filter.query != null) {
+				throw IllegalArgumentException("Search is not supported with tags")
+			}
+
+			if (filter.tags.isNotEmpty()) {
+				filter.tags.oneOrThrowIfMany()?.let {
+					append(tagUrl)
+					append(it.key)
+					append('/')
+					append(page.toString())
+				}
+			}
+
+			if (filter.query != null) {
+				filter.query.let {
 					append(listUrl)
 					append(page.toString())
 					append("?search=")
 					append(filter.query.urlEncoded())
 					append("&order_by=latest")
 				}
+			}
 
-				else -> {
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(tagUrl)
-							append(it.key)
-							append("/")
-						}
-					} else {
-						append(listUrl)
-					}
-
-					append(page.toString())
-					append("?order_by=")
-					when (order) {
-						SortOrder.POPULARITY -> append("views")
-						SortOrder.UPDATED -> append("lastest")
-						SortOrder.ALPHABETICAL -> append("name")
-						else -> append("latest")
-					}
-				}
+			append("?order_by=")
+			when (order) {
+				SortOrder.POPULARITY -> append("views")
+				SortOrder.UPDATED -> append("lastest")
+				SortOrder.ALPHABETICAL -> append("name")
+				else -> append("latest")
 			}
 		}
+
 		return parseMangaList(webClient.httpGet(url).parseHtml())
 	}
 
@@ -109,7 +110,7 @@ internal abstract class Manga18Parser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow("div.mg_info").selectFirst("div.mg_name a")?.text().orEmpty(),
+				title = div.selectFirst("div.mg_info")?.selectFirst("div.mg_name a")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -145,13 +146,9 @@ internal abstract class Manga18Parser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body().selectFirstOrThrow("div.detail_listInfo")
-
 		val chaptersDeferred = async { getChapters(doc) }
-
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
-
+		val desc = doc.selectFirst(selectDesc)?.html()
 		val stateDiv = body.selectFirst(selectState)
-
 		val state = stateDiv?.let {
 			when (it.text()) {
 				in ongoing -> MangaState.ONGOING
@@ -159,10 +156,8 @@ internal abstract class Manga18Parser(
 				else -> null
 			}
 		}
-
 		val alt = body.selectFirst(selectAlt)?.text().takeIf { it != "Updating" || it.isNotEmpty() }
 		val author = body.selectFirst(selectAuthor)?.text().takeIf { it != "Updating" }
-
 		manga.copy(
 			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
 				MangaTag(
@@ -171,7 +166,7 @@ internal abstract class Manga18Parser(
 					source = source,
 				)
 			},
-			description = desc,
+			description = desc.orEmpty(),
 			altTitle = alt,
 			author = author,
 			state = state,
@@ -206,12 +201,10 @@ internal abstract class Manga18Parser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-
 		val script = doc.selectFirstOrThrow("script:containsData(slides_p_path)")
-		val urlencoed = script.data().substringAfter('[').substringBefore(",]").replace("\"", "").split(",")
-		return urlencoed.map { url ->
+		val urlEncoded = script.data().substringAfter('[').substringBefore(",]").replace("\"", "").split(",")
+		return urlEncoded.map { url ->
 			val img = context.decodeBase64(url).toString(Charsets.UTF_8)
-
 			MangaPage(
 				id = generateUid(img),
 				url = img,

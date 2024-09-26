@@ -16,14 +16,14 @@ import java.util.*
 internal class LerMangaOnline(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.LERMANGAONLINE, 20) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("lermangaonline.com.br")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(

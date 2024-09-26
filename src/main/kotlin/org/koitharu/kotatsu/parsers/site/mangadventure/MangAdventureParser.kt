@@ -18,6 +18,7 @@ internal abstract class MangAdventureParser(
 	domain: String,
 	pageSize: Int = 25,
 ) : PagedMangaParser(context, source, pageSize) {
+
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
@@ -41,6 +42,7 @@ internal abstract class MangAdventureParser(
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -62,42 +64,37 @@ internal abstract class MangAdventureParser(
 		val url = apiUrl.addEncodedPathSegment("series")
 			.addEncodedQueryParameter("limit", pageSize.toString())
 			.addEncodedQueryParameter("page", page.toString())
-		when {
-			!filter.query.isNullOrEmpty() -> {
-				url.addQueryParameter("title", filter.query)
-			}
 
-			else -> {
-				url.addQueryParameter(
-					"categories",
-					buildString {
-						if (filter.tags.isNotEmpty() && filter.tagsExclude.isNotEmpty()) {
-							filter.tags.joinTo(this, ",", postfix = ",") { it.key }
-							filter.tagsExclude.joinTo(this, ",") { "-" + it.key }
-						} else if (filter.tags.isNotEmpty()) {
-							filter.tags.joinTo(this, ",") { it.key }
-						} else if (filter.tagsExclude.isNotEmpty()) {
-							filter.tagsExclude.joinTo(this, ",") { "-" + it.key }
-						}
-					},
-				)
-				when (filter.states.oneOrThrowIfMany()) {
-					null -> url.addEncodedQueryParameter("status", "any")
-					MangaState.ONGOING -> url.addEncodedQueryParameter("status", "ongoing")
-					MangaState.FINISHED -> url.addEncodedQueryParameter("status", "completed")
-					MangaState.ABANDONED -> url.addEncodedQueryParameter("status", "canceled")
-					MangaState.PAUSED -> url.addEncodedQueryParameter("status", "hiatus")
-					else -> throw IllegalArgumentException(ERROR_UNSUPPORTED_STATE)
-				}
-				when (order) {
-					SortOrder.ALPHABETICAL -> url.addEncodedQueryParameter("sort", "title")
-					SortOrder.ALPHABETICAL_DESC -> url.addEncodedQueryParameter("sort", "-title")
-					SortOrder.UPDATED -> url.addEncodedQueryParameter("sort", "-latest_upload")
-					SortOrder.POPULARITY -> url.addEncodedQueryParameter("sort", "-views")
-					else -> throw IllegalArgumentException(ERROR_UNSUPPORTED_SORT_ORDER)
-				}
+		filter.query?.let {
+			url.addQueryParameter("title", filter.query)
+		}
+
+		url.addQueryParameter(
+			"categories",
+			buildString {
+				filter.tags.joinTo(this, ",", postfix = ",") { it.key }
+				filter.tagsExclude.joinTo(this, ",") { "-" + it.key }
+			},
+		)
+
+		filter.states.oneOrThrowIfMany()?.let {
+			when (it) {
+				MangaState.ONGOING -> url.addEncodedQueryParameter("status", "ongoing")
+				MangaState.FINISHED -> url.addEncodedQueryParameter("status", "completed")
+				MangaState.ABANDONED -> url.addEncodedQueryParameter("status", "canceled")
+				MangaState.PAUSED -> url.addEncodedQueryParameter("status", "hiatus")
+				else -> url.addEncodedQueryParameter("status", "any")
 			}
 		}
+
+		when (order) {
+			SortOrder.ALPHABETICAL -> url.addEncodedQueryParameter("sort", "title")
+			SortOrder.ALPHABETICAL_DESC -> url.addEncodedQueryParameter("sort", "-title")
+			SortOrder.UPDATED -> url.addEncodedQueryParameter("sort", "-latest_upload")
+			SortOrder.POPULARITY -> url.addEncodedQueryParameter("sort", "-views")
+			else -> url.addEncodedQueryParameter("sort", "-latest_upload")
+		}
+
 		return runCatchingCancellable { getManga(url.get()) }.getOrElse {
 			if (it is NotFoundException) emptyList() else throw it
 		}
@@ -213,12 +210,4 @@ internal abstract class MangAdventureParser(
 
 	protected suspend fun HttpUrl.Builder.get() =
 		webClient.httpGet(build()).body?.string()?.let(::JSONObject)
-
-	private companion object {
-		private const val ERROR_UNSUPPORTED_STATE =
-			"The selected state is not supported by this source"
-
-		private const val ERROR_UNSUPPORTED_SORT_ORDER =
-			"The selected sort order is not supported by this source"
-	}
 }

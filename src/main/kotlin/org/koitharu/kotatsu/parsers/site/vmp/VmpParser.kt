@@ -24,9 +24,6 @@ internal abstract class VmpParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-	protected open val listUrl = "xxx/"
-	protected open val geneUrl = "genero/"
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
@@ -40,6 +37,9 @@ internal abstract class VmpParser(
 		paginator.firstPage = 1
 		searchPaginator.firstPage = 1
 	}
+
+	protected open val listUrl = "xxx/"
+	protected open val geneUrl = "genero/"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -83,7 +83,7 @@ internal abstract class VmpParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow("h2").text().orEmpty(),
+				title = div.selectFirst("h2")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

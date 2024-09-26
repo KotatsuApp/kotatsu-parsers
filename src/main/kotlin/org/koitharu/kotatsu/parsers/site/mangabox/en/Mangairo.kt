@@ -35,6 +35,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
 			isMultipleTagsSupported = false,
+			isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -125,7 +126,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
+		val desc = doc.selectFirst(selectDesc)?.html()
 		val stateDiv = doc.select(selectState).text()
 		val state = stateDiv.let {
 			when (it) {

@@ -30,10 +30,18 @@ internal abstract class MangaboxParser(
 		SortOrder.ALPHABETICAL,
 	)
 
-	protected open val listUrl = "/advanced_search"
-	protected open val searchUrl = "/search/story/"
-	protected open val datePattern = "MMM dd,yy"
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
 
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	init {
 		paginator.firstPage = 1
@@ -50,17 +58,9 @@ internal abstract class MangaboxParser(
 		"completed",
 	)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = true,
-			isSearchSupported = true,
-		)
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-	)
+	protected open val listUrl = "/advanced_search"
+	protected open val searchUrl = "/search/story/"
+	protected open val datePattern = "MMM dd,yy"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -68,53 +68,48 @@ internal abstract class MangaboxParser(
 			append(domain)
 			append(listUrl)
 			append("/?s=all")
-			when {
 
-				!filter.query.isNullOrEmpty() -> {
-					append("&keyw=")
-					append(filter.query.replace(" ", "_").urlEncoded())
+			filter.query?.let {
+				append("&keyw=")
+				append(filter.query.replace(" ", "_").urlEncoded())
+			}
+
+			if (filter.tags.isNotEmpty()) {
+				append("&g_i=")
+				filter.tags.forEach {
+					append("_")
+					append(it.key)
+					append("_")
 				}
+			}
 
-				else -> {
-
-					if (filter.tags.isNotEmpty()) {
-						append("&g_i=")
-						filter.tags.forEach {
-							append("_")
-							append(it.key)
-							append("_")
-						}
-					}
-
-					if (filter.tagsExclude.isNotEmpty()) {
-						append("&g_e=")
-						filter.tagsExclude.forEach {
-							append("_")
-							append(it.key)
-							append("_")
-						}
-					}
-
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&sts=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ongoing"
-								MangaState.FINISHED -> "completed"
-								else -> ""
-							},
-						)
-					}
-
-					append("&orby=")
-					when (order) {
-						SortOrder.POPULARITY -> append("topview")
-						SortOrder.UPDATED -> append("")
-						SortOrder.NEWEST -> append("newest")
-						SortOrder.ALPHABETICAL -> append("az")
-						else -> append("")
-					}
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&g_e=")
+				filter.tagsExclude.forEach {
+					append("_")
+					append(it.key)
+					append("_")
 				}
+			}
+
+			filter.states.oneOrThrowIfMany()?.let {
+				append("&sts=")
+				append(
+					when (it) {
+						MangaState.ONGOING -> "ongoing"
+						MangaState.FINISHED -> "completed"
+						else -> ""
+					},
+				)
+			}
+
+			append("&orby=")
+			when (order) {
+				SortOrder.POPULARITY -> append("topview")
+				SortOrder.UPDATED -> append("")
+				SortOrder.NEWEST -> append("newest")
+				SortOrder.ALPHABETICAL -> append("az")
+				else -> append("")
 			}
 
 			append("&page=")
@@ -132,7 +127,7 @@ internal abstract class MangaboxParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow("h3").text().orEmpty(),
+				title = div.selectFirst("h3")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -170,7 +165,7 @@ internal abstract class MangaboxParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirstOrThrow(selectDesc).html()
+		val desc = doc.selectFirst(selectDesc)?.html()
 		val stateDiv = doc.select(selectState).text()
 		val state = stateDiv.let {
 			when (it.lowercase()) {

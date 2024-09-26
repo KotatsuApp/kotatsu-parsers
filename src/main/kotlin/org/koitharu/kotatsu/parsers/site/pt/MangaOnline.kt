@@ -12,14 +12,15 @@ import java.util.*
 @MangaSourceParser("MANGAONLINE", "MangaOnline.biz", "pt")
 internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAONLINE, 20) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("mangaonline.biz")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -39,7 +40,6 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				!filter.query.isNullOrEmpty() -> {
 					append("/search/")
 					append(filter.query.urlEncoded())
-					append('/')
 				}
 
 				else -> {
@@ -47,16 +47,15 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 						filter.tags.oneOrThrowIfMany()?.let {
 							append("/genero/")
 							append(it.key)
-							append('/')
 						}
 					} else {
-						append("/manga/")
+						append("/manga")
 					}
 				}
 
 			}
 			if (page > 1) {
-				append("page/")
+				append("/page/")
 				append(page.toString())
 				append('/')
 			}
@@ -69,10 +68,10 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				id = generateUid(href),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				title = div.selectLastOrThrow(".data h3").text(),
+				title = div.selectLast(".data h3")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst(".rating")?.ownText()?.toFloat()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,
 				state = null,
@@ -98,7 +97,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
-			description = doc.selectLastOrThrow(".data p").html(),
+			description = doc.selectLast(".data p")?.html(),
 			tags = doc.selectFirst(".sgeneros")?.select("a")?.mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast("/", ""),
@@ -109,7 +108,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 			chapters = doc.select(".episodios li a").mapChapters(reversed = true) { i, a ->
 				val href = a.attrAsRelativeUrl("href")
 				val title = a.html().substringBeforeLast("<span")
-				val dateText = a.selectFirstOrThrow("span.date").text()
+				val dateText = a.selectFirst("span.date")?.text()
 				MangaChapter(
 					id = generateUid(href),
 					name = title,
@@ -135,7 +134,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				id = generateUid(href),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				title = div.selectLastOrThrow(".reltitle h3").text(),
+				title = div.selectLast(".reltitle h3")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

@@ -23,6 +23,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
 			isMultipleTagsSupported = false,
+			isSearchWithFiltersSupported = false,
 		)
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
@@ -85,7 +86,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = div.selectFirstOrThrow("h3").text().orEmpty(),
+				title = div.selectFirst("h3")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

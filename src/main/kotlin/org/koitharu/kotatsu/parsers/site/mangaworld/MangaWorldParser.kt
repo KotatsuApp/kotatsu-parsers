@@ -18,8 +18,10 @@ internal abstract class MangaWorldParser(
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_ASC,
 		SortOrder.ALPHABETICAL,
 		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.UPDATED,
 	)
@@ -33,11 +35,20 @@ internal abstract class MangaWorldParser(
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
+			isYearSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED, MangaState.PAUSED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHUA,
+			ContentType.MANHWA,
+			ContentType.ONE_SHOT,
+			ContentType.OTHER,
+		),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -46,43 +57,83 @@ internal abstract class MangaWorldParser(
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+
+		if (order == SortOrder.UPDATED) {
+			if (filter.query != null || filter.tags.isNotEmpty() || filter.states.isNotEmpty() || filter.types.isNotEmpty() || filter.year != 0) {
+				throw IllegalArgumentException("Sorting by update with filters is not supported by this source.")
+
+			}
+			return parseMangaList(webClient.httpGet("https://$domain/?page=$page").parseHtml())
+		}
+
 		val url =
 			buildString {
 				append("https://")
 				append(domain)
-				append("/archive?")
-				when {
-					!filter.query.isNullOrEmpty() -> {
-						append("keyword=")
-						append(filter.query.urlEncoded())
-					}
+				append("/archive?&page=")
+				append(page.toString())
 
-					else -> {
-						if (filter.tags.isEmpty() && filter.states.isEmpty() && order == SortOrder.UPDATED) return parseMangaList(
-							webClient.httpGet("https://$domain/?page=$page").parseHtml(),
-						)
+				filter.query?.let {
+					append("&keyword=")
+					append(filter.query.urlEncoded())
+				}
 
-						if (filter.tags.isNotEmpty()) {
-							filter.tags.joinTo(this, "&") { it.key.substringAfter("archive?") }
-						}
+				filter.tags.forEach {
+					append("&genre=")
+					append(it.key)
+				}
 
-						when (order) {
-							SortOrder.POPULARITY -> append("&sort=most_read")
-							SortOrder.ALPHABETICAL -> append("&sort=a-z")
-							SortOrder.NEWEST -> append("&sort=newest")
-							SortOrder.ALPHABETICAL_DESC -> append("&sort=z-a")
-							else -> append("&sort=a-z")
-						}
-						when (filter.states.oneOrThrowIfMany()) {
-							MangaState.ONGOING -> append("&status=ongoing")
-							MangaState.FINISHED -> append("&status=completed")
-							MangaState.ABANDONED -> append("&status=dropped")
-							MangaState.PAUSED -> append("&status=paused")
-							else -> Unit
-						}
+				when (order) {
+					SortOrder.POPULARITY -> append("&sort=most_read")
+					SortOrder.POPULARITY_ASC -> append("&sort=less_read")
+					SortOrder.ALPHABETICAL -> append("&sort=a-z")
+					SortOrder.NEWEST -> append("&sort=newest")
+					SortOrder.NEWEST_ASC -> append("&sort=oldest")
+					SortOrder.ALPHABETICAL_DESC -> append("&sort=z-a")
+					else -> append("&sort=a-z")
+				}
+
+				filter.states.forEach {
+					when (it) {
+						MangaState.ONGOING -> append("&status=ongoing")
+						MangaState.FINISHED -> append("&status=completed")
+						MangaState.ABANDONED -> append("&status=dropped")
+						MangaState.PAUSED -> append("&status=paused")
+						else -> {}
 					}
 				}
-				append("&page=$page")
+
+				filter.types.forEach {
+					append("&type=")
+					append(
+						when (it) {
+							ContentType.MANGA -> "manga"
+							ContentType.MANHUA -> "manhua"
+							ContentType.MANHWA -> "manhwa"
+							ContentType.ONE_SHOT -> "oneshot"
+							ContentType.OTHER -> "thai&type=vietnamese"
+							else -> ""
+						},
+					)
+				}
+
+				if (filter.year != 0) {
+					append("&year=")
+					append(filter.year)
+				}
+
+				// author ( not query but same to tags )
+				// filter.author.forEach {
+				// 	append("&author=")
+				// 	append(it.key)
+				// }
+
+				// artist ( not query but same to tags )
+				// filter.artist.forEach {
+				// 	append("&artist=")
+				// 	append(it.key)
+				// }
+
 			}
 		val doc = webClient.httpGet(url).parseHtml()
 		return parseMangaList(doc)
@@ -104,11 +155,11 @@ internal abstract class MangaWorldParser(
 				tags = tags,
 				author = div.selectFirst(".author a")?.text(),
 				state =
-				when (div.selectFirst(".status a")?.text()) {
-					"In corso" -> MangaState.ONGOING
-					"Finito" -> MangaState.FINISHED
-					"Droppato" -> MangaState.ABANDONED
-					"In pausa" -> MangaState.PAUSED
+				when (div.selectFirst(".status a")?.text()?.lowercase()) {
+					"in corso" -> MangaState.ONGOING
+					"finito" -> MangaState.FINISHED
+					"droppato" -> MangaState.ABANDONED
+					"in pausa" -> MangaState.PAUSED
 					else -> null
 				},
 				source = source,
@@ -120,23 +171,13 @@ internal abstract class MangaWorldParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		val genres = doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
+		return doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
 			MangaTag(
-				key = it.attr("href"),
+				key = it.attr("href").substringAfterLast('='),
 				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
-
-		val types = doc.select("div[aria-labelledby=typesDropdown] a").mapNotNullToSet {
-			MangaTag(
-				key = it.attr("href"),
-				title = it.text().toTitleCase(sourceLocale),
-				source = source,
-			)
-		}
-
-		return genres + types
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -154,7 +195,7 @@ internal abstract class MangaWorldParser(
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(
 					id = generateUid(url),
-					name = a.selectFirstOrThrow("span.d-inline-block").text(),
+					name = a.selectFirst("span.d-inline-block")?.text() ?: "Chapter : ${i + 1f}",
 					number = i + 1f,
 					volume = 0,
 					url = "$url?style=list",

@@ -13,19 +13,19 @@ import java.util.*
 @MangaSourceParser("ONEPIECEEX", "OnePieceEx", "pt")
 internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-
 	override val configKeyDomain = ConfigKey.Domain("onepieceex.net")
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities()
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities()
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return listOf(
