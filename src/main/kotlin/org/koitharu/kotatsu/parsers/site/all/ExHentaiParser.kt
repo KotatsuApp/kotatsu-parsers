@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
@@ -49,7 +48,6 @@ internal class ExHentaiParser(
 	private var updateDm = false
 	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
-	private val tagsMap = SuspendLazy(::fetchTags)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -84,7 +82,16 @@ internal class ExHentaiParser(
 	}
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = tagsMap.get().values.toSet(),
+		availableTags = mapTags(),
+		availableContentTypes = EnumSet.of(
+			ContentType.DOUJINSHI,
+			ContentType.MANGA,
+			ContentType.ARTIST_CG,
+			ContentType.GAME_CG,
+			ContentType.COMICS,
+			ContentType.IMAGE_SET,
+			ContentType.OTHER,
+		),
 		availableLocales = setOf(
 			Locale.JAPANESE,
 			Locale.ENGLISH,
@@ -116,19 +123,9 @@ internal class ExHentaiParser(
 		url.addEncodedQueryParameter("next", next.toString())
 		url.addQueryParameter("f_search", filter.toSearchQuery())
 
-		val catsOn = filter.tags.mapNotNullToSet { it.key.toIntOrNull() }
-		val catsOff = filter.tagsExclude.mapNotNullToSet { it.key.toIntOrNull() }
-		if (catsOff.size >= 10) {
-			return emptyList()
-		}
-		var fCats = catsOn.fold(0, Int::or)
+		var fCats = filter.types.toFCats()
 		if (fCats != 0) {
-			fCats = 1023 - fCats
-		}
-		fCats = catsOff.fold(fCats, Int::or)
-
-		if (fCats != 0) {
-			url.addEncodedQueryParameter("f_cats", fCats.toString())
+			url.addEncodedQueryParameter("f_cats", (1023 - fCats).toString())
 		}
 		if (updateDm) {
 			// by unknown reason cookie "sl=dm_2" is ignored, so, we should request it again
@@ -268,30 +265,19 @@ internal class ExHentaiParser(
 			"unusual pupils,urination,vore,vtuber,widow,wings,witch,wolf girl,x-ray,yuri,zombie,sole male,males only,yaoi," +
 			"tomgirl,tall man,oni,shotacon,prostate massage,policeman,males only,huge penis,fox boy,feminization,dog boy,dickgirl on male,big penis"
 
-	private suspend fun fetchTags(): Map<String, MangaTag> {
-		val tagMap = ArrayMap<String, MangaTag>()
+	private fun mapTags(): Set<MangaTag> {
 		val tagElements = tags.split(",")
-		for (el in tagElements) {
+		val result = ArraySet<MangaTag>(tagElements.size)
+		for (tag in tagElements) {
+			val el = tag.trim()
 			if (el.isEmpty()) continue
-			tagMap[el] = MangaTag(
+			result += MangaTag(
 				title = el.toTitleCase(Locale.ENGLISH),
 				key = el,
 				source = source,
 			)
 		}
-
-		val doc = webClient.httpGet("https://${domain}").parseHtml()
-		val root = doc.body().requireElementById("searchbox").selectFirstOrThrow("table")
-		root.select("div.cs").forEach { div ->
-			val id = div.id().substringAfterLast('_').toIntOrNull() ?: return@forEach
-			val name = div.text().toTitleCase(Locale.ENGLISH)
-			tagMap[name] = MangaTag(
-				title = "Kind: $name",
-				key = id.toString(),
-				source = source,
-			)
-		}
-		return tagMap
+		return result
 	}
 
 	override fun intercept(chain: Interceptor.Chain): Response {
@@ -443,5 +429,18 @@ internal class ExHentaiParser(
 			joiner.append("\"$")
 		}
 		return joiner.complete().takeUnless { it.isEmpty() }
+	}
+
+	private fun Collection<ContentType>.toFCats(): Int = fold(0) { acc, ct ->
+		val cat: Int = when (ct) {
+			ContentType.DOUJINSHI -> 2
+			ContentType.MANGA -> 4
+			ContentType.ARTIST_CG -> 8
+			ContentType.GAME_CG -> 16
+			ContentType.COMICS -> 512
+			ContentType.IMAGE_SET -> 32
+			else -> 449 // 1 or 64 or 128 or 256
+		}
+		acc or cat
 	}
 }
