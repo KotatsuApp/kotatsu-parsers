@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -26,6 +25,8 @@ import java.util.*
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
 
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
+
 	override val configKeyDomain = ConfigKey.Domain(
 		"cuutruyen.net",
 		"nettrom.com",
@@ -46,9 +47,10 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.KOTATSU)
-		.build()
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
