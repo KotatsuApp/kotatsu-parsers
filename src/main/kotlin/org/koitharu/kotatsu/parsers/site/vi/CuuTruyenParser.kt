@@ -2,22 +2,26 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import okhttp3.*
-import okhttp3.ResponseBody.Companion.toResponseBody
-import org.koitharu.kotatsu.parsers.Broken
+import okhttp3.Headers
+import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
+import okio.IOException
+import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
+import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken
 @MangaSourceParser("CUUTRUYEN", "CuuTruyen", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
@@ -45,8 +49,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
-
-	private val decryptionKey = "3141592653589793".toByteArray()
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -83,7 +85,15 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			append(pageSize)
 		}
 
-		val json = webClient.httpGet(url).parseJson()
+		val json = try {
+			webClient.httpGet(url).parseJson()
+		} catch (e: HttpStatusException) {
+			if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
+				return emptyList()
+			} else {
+				throw e
+			}
+		}
 		val data = json.getJSONArray("data")
 
 		return data.mapJSON { jo ->
@@ -93,8 +103,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				publicUrl = "https://$domain/manga/${jo.getLong("id")}",
 				title = jo.getString("name"),
 				altTitle = null,
-				coverUrl = jo.getString("cover_url"),
-				largeCoverUrl = jo.getString("cover_mobile_url"),
+				coverUrl = jo.getString("cover_mobile_url"),
+				largeCoverUrl = jo.getString("cover_url"),
 				author = jo.getStringOrNull("author_name"),
 				tags = emptySet(),
 				state = null,
@@ -144,19 +154,20 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		)
 	}
 
-	private val pageSizesMap = mutableMapOf<Long, Pair<Int, Int>>()
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val url = "https://$domain${chapter.url}"
 		val json = webClient.httpGet(url).parseJson().getJSONObject("data")
 
 		return json.getJSONArray("pages").mapJSON { jo ->
-			val imageUrl = jo.getString("image_url")
+			val imageUrl = jo.getString("image_url").toHttpUrl().newBuilder()
 			val id = jo.getLong("id")
-			pageSizesMap[id] = jo.getInt("width") to jo.getInt("height")
+			val drm = jo.getStringOrNull("drm_data")
+			if (!drm.isNullOrEmpty()) {
+				imageUrl.fragment(DRM_DATA_KEY + drm)
+			}
 			MangaPage(
 				id = generateUid(id),
-				url = imageUrl,
+				url = imageUrl.build().toString(),
 				preview = null,
 				source = source,
 			)
@@ -164,99 +175,52 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	}
 
 	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
+		val response = chain.proceed(chain.request())
+		val fragment = response.request.url.fragment
 
-		if (!request.url.host.contains(domain, ignoreCase = true)) {
+		if (fragment == null || !fragment.contains(DRM_DATA_KEY)) {
 			return response
 		}
 
-
-		val pageId = getPageIdFromUrl(request.url)
-		val (originalWidth, originalHeight) = pageSizesMap[pageId] ?: (0 to 0)
-		val decryptedResponse = response.map { body ->
-			val bytes = body.bytes()
-			val decrypted = decryptDRM(bytes, decryptionKey)
-			(swapSegments(decrypted, originalWidth, originalHeight) ?: decrypted).toResponseBody(body.contentType())
-		}
-
-		return context.redrawImageResponse(decryptedResponse) {
-			redrawImage(it)
+		val drmData = fragment.substringAfter(DRM_DATA_KEY)
+		return context.redrawImageResponse(response) { bitmap ->
+			unscrambleImage(bitmap, drmData)
 		}
 	}
 
-	private fun getPageIdFromUrl(url: HttpUrl): Long {
-		return url.pathSegments.lastOrNull()?.toLongOrNull() ?: 0L
+	private fun unscrambleImage(bitmap: Bitmap, drmData: String): Bitmap {
+		val data = context.decodeBase64(drmData)
+			.decodeXorCipher(DECRYPTION_KEY)
+			.toString(Charsets.UTF_8)
+
+		if (!data.startsWith("#v4|")) {
+			throw IOException("Invalid DRM data (does not start with expected magic bytes): $data")
+		}
+
+		val result = context.createBitmap(bitmap.width, bitmap.height)
+		var sy = 0
+		for (t in data.split('|').drop(1)) {
+			val (dy, height) = t.split('-').map(String::toInt)
+			val srcRect = Rect(0, sy, bitmap.width, sy + height)
+			val dstRect = Rect(0, dy, bitmap.width, dy + height)
+
+			result.drawBitmap(bitmap, srcRect, dstRect)
+			sy += height
+		}
+
+		return result
 	}
 
-	private fun getOriginalWidthFromRequest(request: Request): Int {
-		val width = request.url.queryParameter("width")?.toIntOrNull() ?: 0
-		return width
-	}
+	private fun ByteArray.decodeXorCipher(key: String): ByteArray {
+		val k = key.toByteArray(Charsets.UTF_8)
 
-	private fun getOriginalHeightFromRequest(request: Request): Int {
-		val height = request.url.queryParameter("height")?.toIntOrNull() ?: 0
-		return height
-	}
-
-	private fun decryptDRM(drmData: ByteArray, key: ByteArray): ByteArray = runCatchingCancellable {
-		drmData.mapIndexed { index, byte ->
-			(byte.toInt() xor key[index % key.size].toInt()).toByte()
+		return this.mapIndexed { i, b ->
+			(b.toInt() xor k[i % k.size].toInt()).toByte()
 		}.toByteArray()
-	}.getOrDefault(drmData)
-
-	private fun redrawImage(source: Bitmap): Bitmap {
-		return source
 	}
 
-	private fun swapSegments(decrypted: ByteArray, originalWidth: Int, originalHeight: Int): ByteArray? {
-		val delimiter = "#v".toByteArray()
-		val delimiterIndex = decrypted.indexOfFirst {
-			decrypted.sliceArray(it until (it + delimiter.size)).contentEquals(delimiter)
-		}
-		if (delimiterIndex == -1) {
-			return null
-		}
-
-		val segmentsInfoStart = delimiterIndex + delimiter.size
-		val segmentsData = decrypted.sliceArray(segmentsInfoStart until decrypted.size)
-		val segments = String(segmentsData).split("|").filter { it.contains("-") }
-
-		if (segments.isEmpty()) {
-			return null
-		}
-
-		val segmentInfo = segments.mapNotNull { seg ->
-			try {
-				val (dyStr, heightStr) = seg.split("-")
-				val dy = if (dyStr.startsWith("dy")) dyStr.substring(2).trim() else dyStr.trim()
-				val dyInt = dy.toInt()
-				val height = heightStr.trim().toInt()
-				dyInt to height
-			} catch (e: Exception) {
-				null
-			}
-		}
-
-		if (segmentInfo.isEmpty()) {
-			return null
-		}
-
-		var finalSegmentInfo = segmentInfo
-		val totalHeight = finalSegmentInfo.sumOf { it.second }
-		if (totalHeight != originalHeight) {
-			val remainingHeight = originalHeight - totalHeight
-			if (remainingHeight > 0) {
-				finalSegmentInfo = finalSegmentInfo.toMutableList().apply { add(0 to remainingHeight) }
-			}
-		}
-		return decrypted
-	}
-
-	private fun ByteArray.indexOfFirst(predicate: (Int) -> Boolean): Int {
-		for (i in indices) {
-			if (predicate(i)) return i
-		}
-		return -1
+	private companion object {
+		const val DRM_DATA_KEY = "drm_data="
+		const val DECRYPTION_KEY = "3141592653589793"
 	}
 }

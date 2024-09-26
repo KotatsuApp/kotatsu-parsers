@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.Paginator
 public abstract class PagedMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField internal val pageSize: Int,
+	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField public val pageSize: Int,
 	searchPageSize: Int = pageSize,
 ) : MangaParser(context, source) {
 

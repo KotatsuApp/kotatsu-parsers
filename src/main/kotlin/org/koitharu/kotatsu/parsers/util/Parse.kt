@@ -108,4 +108,4 @@ public fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
 	}.getOrDefault(0L)
 }
 
-internal fun Response.requireBody(): ResponseBody = requireNotNull(body) { "Response body is null" }
+public fun Response.requireBody(): ResponseBody = requireNotNull(body) { "Response body is null" }
