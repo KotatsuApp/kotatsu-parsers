@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.mmrcms.fr
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.*
 
+@Broken
 @MangaSourceParser("SCANMANGAVF_WS", "ScanMangaVf.ws", "fr")
 internal class ScanMangaVfWs(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaParserSource.SCANMANGAVF_WS, "scanmanga-vf.me") {

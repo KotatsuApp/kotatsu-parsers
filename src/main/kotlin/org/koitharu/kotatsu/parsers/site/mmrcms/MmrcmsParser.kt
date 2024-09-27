@@ -129,7 +129,7 @@ internal abstract class MmrcmsParser(
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = div.selectFirst("div.media-body h5")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst("span")?.ownText()?.toFloat()?.div(5f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst("span")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
 				state = null,

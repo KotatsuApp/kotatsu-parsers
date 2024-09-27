@@ -123,7 +123,7 @@ internal class ExHentaiParser(
 		url.addEncodedQueryParameter("next", next.toString())
 		url.addQueryParameter("f_search", filter.toSearchQuery())
 
-		var fCats = filter.types.toFCats()
+		val fCats = filter.types.toFCats()
 		if (fCats != 0) {
 			url.addEncodedQueryParameter("f_cats", (1023 - fCats).toString())
 		}

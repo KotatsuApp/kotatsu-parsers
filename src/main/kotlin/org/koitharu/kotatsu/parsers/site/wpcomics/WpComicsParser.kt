@@ -56,6 +56,7 @@ internal abstract class WpComicsParser(
 	@JvmField
 	protected val ongoing: Set<String> = setOf(
 		"Đang tiến hành",
+		"Đang cập nhật",
 		"Ongoing",
 		"Updating",
 		"連載中",
@@ -64,6 +65,7 @@ internal abstract class WpComicsParser(
 	@JvmField
 	protected val finished: Set<String> = setOf(
 		"Hoàn thành",
+		"Đã hoàn thành",
 		"Complete",
 		"Completed",
 		"完結済み",

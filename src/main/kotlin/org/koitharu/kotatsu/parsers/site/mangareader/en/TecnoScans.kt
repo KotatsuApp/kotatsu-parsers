@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("TECNOSCANS", "TecnoScans", "en")
 internal class TecnoScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.TECNOSCANS, "olyscans.xyz", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.TECNOSCANS, "oliosscans.xyz", pageSize = 20, searchPageSize = 10) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,

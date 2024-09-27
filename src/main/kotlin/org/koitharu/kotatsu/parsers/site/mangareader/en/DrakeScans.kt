@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DRAKESCANS", "DrakeComic", "en")
 internal class DrakeScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.DRAKESCANS, "drakecomic.com", 20, 10)
+	MangaReaderParser(context, MangaParserSource.DRAKESCANS, "drakecomic.org", 20, 10)

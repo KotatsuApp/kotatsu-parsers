@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MASTERKOMIK", "Tenshi", "id")
 internal class MasterKomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MASTERKOMIK, "tenshi.id", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaParserSource.MASTERKOMIK, "tenshi.pw", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
 	override val listUrl = "/komik"
 }

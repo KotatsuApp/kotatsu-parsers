@@ -113,7 +113,7 @@ internal abstract class SinmhParser(
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = div.selectFirst("p > a, h3 > a")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloat()?.div(5f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
 				state = null,
@@ -191,7 +191,7 @@ internal abstract class SinmhParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 
 		val host = webClient.httpGet("/js/config.js".toAbsoluteUrl(domain)).parseRaw().substringAfter("domain\":[\"")
-			.substringBefore("\"]}")
+			.substringBefore("\"]}").replace("http:", "https:")
 
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
@@ -204,6 +204,8 @@ internal abstract class SinmhParser(
 		images.map {
 			val imageUrl = when {
 				it.startsWith("https:\\/\\/") -> it.replace("\\", "")
+				it.startsWith("http:\\/\\/") -> it.replace("\\", "").replace("http:", "https:")
+				it.startsWith("\\/") -> host + it.replace("\\", "")
 				it.startsWith("/") -> "$host$it"
 				else -> "$host/$path$it"
 			}

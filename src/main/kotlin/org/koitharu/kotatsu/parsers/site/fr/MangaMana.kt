@@ -180,7 +180,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 				altTitle = doc.selectFirst(".mangalist_item_othernames")?.text().orEmpty(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				rating = div.getElementById("avgrating")?.ownText()?.toFloat()?.div(5f) ?: RATING_UNKNOWN,
+				rating = div.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				isNsfw = isNsfw,
 				coverUrl = img.orEmpty(),
 				description = div.selectFirst(".mangalist_item_description")?.text().orEmpty(),
@@ -243,7 +243,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 			},
 			author = doc.selectFirst("div.show_details span[itemprop=author]")?.text().orEmpty(),
 			description = doc.selectFirst("dd[itemprop=description]")?.text(),
-			rating = doc.getElementById("avgrating")?.ownText()?.toFloat()?.div(5f) ?: RATING_UNKNOWN,
+			rating = doc.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 			tags = doc.select("ul.list-unstyled li a.category").mapNotNullToSet {
 				val key = it.attr("href").substringAfterLast('=')
 				MangaTag(

@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.mmrcms.id
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import java.util.*
 
+@Broken
 @MangaSourceParser("KOMIKID", "KomikId", "id")
 internal class KomikId(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaParserSource.KOMIKID, "komikid.com") {

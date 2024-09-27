@@ -13,7 +13,7 @@ import java.util.Collections.emptyMap
 
 @MangaSourceParser("RESETSCANS", "ResetScans", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RESETSCANS, "reset-scans.co", 18) {
+	MadaraParser(context, MangaParserSource.RESETSCANS, "rspro.xyz", 18) {
 	override val datePattern = "MMM dd"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {

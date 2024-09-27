@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.zip.ZipInputStream
 
-@Broken // Not dead but totally changed structure
+@Broken // Not dead but changed template
 @MangaSourceParser("RANDOMSCANS", "LuratoonScan", "pt")
 internal class LuratoonScansParser(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),

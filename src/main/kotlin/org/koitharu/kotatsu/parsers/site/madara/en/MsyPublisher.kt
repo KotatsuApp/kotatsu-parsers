@@ -2,10 +2,12 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MANGAHALL", "MangaHolic", "en", ContentType.HENTAI)
-internal class MangaHall(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGAHALL, "mangaholic.org", 24)
+@MangaSourceParser("MSYPUBLISHER", "MsyPublisher", "en")
+internal class MsyPublisher(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.MSYPUBLISHER, "msypublisher.com", 20) {
+	override val listUrl = "manhua/"
+	override val selectGenre = "manhua-genre/"
+}

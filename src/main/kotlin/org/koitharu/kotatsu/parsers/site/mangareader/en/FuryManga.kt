@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("FURYMANGA", "KingOfScans", "en")
 internal class FuryManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.FURYMANGA, "kingofscans.com", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.FURYMANGA, "myshojo.com", pageSize = 30, searchPageSize = 10) {
 	override val listUrl = "/comics"
 }

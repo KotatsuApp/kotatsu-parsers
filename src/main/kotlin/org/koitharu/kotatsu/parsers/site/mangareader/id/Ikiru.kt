@@ -4,9 +4,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import java.util.Locale
 
-@MangaSourceParser("SOMANGA", "SoManga", "id")
-internal class SoManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.SOMANGA, "so-manga.com", pageSize = 5, searchPageSize = 25) {
-	override val datePattern = "MMM d, yyyy"
+@MangaSourceParser("IKIRU", "Ikiru", "id")
+internal class Ikiru(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.IKIRU, "ikiru.me", pageSize = 20, searchPageSize = 10) {
+	override val sourceLocale: Locale = Locale.ENGLISH
 }

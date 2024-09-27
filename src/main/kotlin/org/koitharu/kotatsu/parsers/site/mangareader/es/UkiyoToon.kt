@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("UKIYOTOON", "UkiyoToon", "es")
 internal class UkiyoToon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.UKIYOTOON, "ukiyotoon.com", 30, 10) {
+	MangaReaderParser(context, MangaParserSource.UKIYOTOON, "nakamatoon.com", 30, 10) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,

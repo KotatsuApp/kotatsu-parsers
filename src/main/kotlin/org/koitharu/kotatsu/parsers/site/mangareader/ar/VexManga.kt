@@ -10,10 +10,10 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken
+@Broken // Not dead but changed template
 @MangaSourceParser("VEXMANGA", "VexManga", "ar")
 internal class VexManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.VEXMANGA, "vexmanga.com", pageSize = 10, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.VEXMANGA, "vortexscans.org", pageSize = 10, searchPageSize = 10) {
 	override val selectMangaList = ".listarchives .latest-recom"
 	override val selectChapter = ".ulChapterList > a"
 	override val filterCapabilities: MangaListFilterCapabilities

@@ -20,7 +20,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 	pageSize = 24,
 ) {
 
-	override val configKeyDomain = ConfigKey.Domain("visortmo.com")
+	override val configKeyDomain = ConfigKey.Domain("zonatmo.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

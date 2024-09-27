@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("COSMIC_SCANS", "CosmicScans.id", "id")
 internal class CosmicScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.COSMIC_SCANS, "cosmicscans.id", pageSize = 30, searchPageSize = 30) {
+	MangaReaderParser(context, MangaParserSource.COSMIC_SCANS, "cosmic1.co", pageSize = 30, searchPageSize = 30) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 
 	override val filterCapabilities: MangaListFilterCapabilities

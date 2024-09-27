@@ -113,7 +113,7 @@ internal abstract class OtakuSanctuaryParser(
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = div.selectFirst("h4")?.text().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst(".rating")?.ownText()?.toFloat()?.div(10f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
 				state = null,

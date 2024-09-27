@@ -71,7 +71,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				title = div.selectLast(".data h3")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				altTitle = null,
-				rating = div.selectFirst(".rating")?.ownText()?.toFloat()?.div(10f) ?: RATING_UNKNOWN,
+				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,
 				state = null,
