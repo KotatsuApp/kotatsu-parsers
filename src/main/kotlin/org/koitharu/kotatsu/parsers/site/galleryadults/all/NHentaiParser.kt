@@ -1,12 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
-import okhttp3.Headers
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -37,10 +35,6 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
 		availableLocales = setOf(Locale.ENGLISH, Locale.JAPANESE, Locale.CHINESE),
 	)
-
-	override fun getRequestHeaders(): Headers = super.getRequestHeaders().newBuilder()
-		.set("User-Agent", config[userAgentKey])
-		.build()
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
@@ -124,11 +118,6 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			title = name,
 			source = source,
 		)
-	}
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
 	}
 
 	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {
