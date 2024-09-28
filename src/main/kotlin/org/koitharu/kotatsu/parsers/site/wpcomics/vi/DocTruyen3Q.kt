@@ -6,5 +6,5 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
-internal class TopTruyenViet(context: MangaLoaderContext) :
+internal class DocTruyen3Q(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qto.pro", 36)
