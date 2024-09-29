@@ -34,6 +34,11 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		"cuutruyent9sv7.xyz",
 	)
 
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
