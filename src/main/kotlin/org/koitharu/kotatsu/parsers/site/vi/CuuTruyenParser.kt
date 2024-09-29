@@ -158,8 +158,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		Tag("Xuyên không", "xuyen-khong"),
 		Tag("Việt Nam", "viet-nam"),
 		Tag("Toán học", "toan-hoc"),
-		Tag("Tình yêu không được đáp lại", "tinh-yeu-khong-duoc-dap-lai"),
-		Tag("Tình yêu thuần khiết", "tinh-yeu-thuan-khiet"),
 		Tag("Thiếu niên", "thieu-nien"),
 		Tag("Tình yêu", "tinh-yeu"),
 		Tag("Chính kịch", "chinh-kich"),
