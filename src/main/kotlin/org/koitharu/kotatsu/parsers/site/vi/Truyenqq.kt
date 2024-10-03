@@ -9,9 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
 @MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
 internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
