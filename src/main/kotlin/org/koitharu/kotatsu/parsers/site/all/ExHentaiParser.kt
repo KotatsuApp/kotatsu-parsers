@@ -6,6 +6,7 @@ import androidx.collection.set
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import okhttp3.internal.headersContentLength
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
@@ -284,10 +285,11 @@ internal class ExHentaiParser(
 		val response = chain.proceed(chain.request())
 		if (response.headersContentLength() <= 256) {
 			val text = response.peekBody(256).string()
-			if (text.startsWith("Your IP address has been temporarily banned")) {
+			if (text.startsWith("Your IP address has been temporarily banned", ignoreCase = true)) {
 				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val seconds = Regex("([0-9]+) seconds?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
+				response.closeQuietly()
 				throw TooManyRequestExceptions(
 					url = response.request.url.toString(),
 					retryAfter = TimeUnit.HOURS.toMillis(hours)

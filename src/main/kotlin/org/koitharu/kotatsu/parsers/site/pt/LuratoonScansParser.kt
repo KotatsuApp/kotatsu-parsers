@@ -128,9 +128,11 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
 		if (response.mimeType == "application/octet-stream") {
-			val (bytes, name) = ZipInputStream(checkNotNull(response.body).byteStream()).use {
-				val entry = it.nextEntry
-				it.readBytes() to entry?.name
+			val (bytes, name) = response.use { resp ->
+				ZipInputStream(resp.requireBody().byteStream()).use {
+					val entry = it.nextEntry
+					it.readBytes() to entry?.name
+				}
 			}
 			val type = if (name?.endsWith(".avif", ignoreCase = true) == true) {
 				"image/avif"
