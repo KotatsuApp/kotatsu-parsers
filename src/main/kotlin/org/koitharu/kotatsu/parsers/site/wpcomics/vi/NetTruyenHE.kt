@@ -9,7 +9,9 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("NETTRUYENHE", "NetTruyenHE", "vi")
 internal class NetTruyenHE(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENHE, "nettruyenhe.com", 20) {
