@@ -227,14 +227,11 @@ internal abstract class MangaPlusParser(
 			return response
 		}
 
-		val contentType = response.headers["Content-Type"] ?: "image/jpeg"
-
-		val image = requireNotNull(response.body).bytes().decodeXorCipher(encryptionKey)
-		val body = image.toResponseBody(contentType.toMediaTypeOrNull())
-
-		return response.newBuilder()
-			.body(body)
-			.build()
+		return response.map { responseBody ->
+			val contentType = response.headers["Content-Type"] ?: "image/jpeg"
+			val image = responseBody.bytes().decodeXorCipher(encryptionKey)
+			image.toResponseBody(contentType.toMediaTypeOrNull())
+		}
 	}
 
 	private fun ByteArray.decodeXorCipher(key: String): ByteArray {

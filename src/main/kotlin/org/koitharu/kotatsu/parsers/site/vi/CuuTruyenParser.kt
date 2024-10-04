@@ -189,8 +189,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			return response
 		}
 
-		val drmData = fragment.substringAfter(DRM_DATA_KEY)
 		return context.redrawImageResponse(response) { bitmap ->
+			val drmData = fragment.substringAfter(DRM_DATA_KEY)
 			unscrambleImage(bitmap, drmData)
 		}
 	}

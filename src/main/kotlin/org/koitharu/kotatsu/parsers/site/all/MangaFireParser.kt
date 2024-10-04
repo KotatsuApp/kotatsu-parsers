@@ -406,9 +406,8 @@ internal abstract class MangaFireParser(
 			return response
 		}
 
-		val offset = request.url.fragment!!.substringAfter("_").toInt()
-
 		return context.redrawImageResponse(response) { bitmap ->
+			val offset = request.url.fragment!!.substringAfter("_").toInt()
 			val width = bitmap.width
 			val height = bitmap.height
 
