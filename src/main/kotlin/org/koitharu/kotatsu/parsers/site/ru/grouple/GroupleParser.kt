@@ -11,6 +11,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.internal.closeQuietly
 import okhttp3.internal.headersContentLength
 import org.json.JSONArray
 import org.jsoup.nodes.Element
@@ -317,7 +318,7 @@ internal abstract class GroupleParser(
 		SortOrder.UPDATED -> "updated"
 		SortOrder.ADDED,
 		SortOrder.NEWEST,
-		-> "created"
+			-> "created"
 
 		SortOrder.RATING -> "votes"
 		else -> "rate"
@@ -381,6 +382,7 @@ internal abstract class GroupleParser(
 	private fun Response.checkAuthRequired(): Response {
 		val lastPathSegment = request.url.pathSegments.lastOrNull() ?: return this
 		if (lastPathSegment == "login") {
+			closeQuietly()
 			throw AuthRequiredException(source)
 		}
 		return this
