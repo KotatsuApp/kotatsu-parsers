@@ -7,6 +7,8 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
@@ -14,6 +16,13 @@ import org.koitharu.kotatsu.parsers.Broken
 internal class DocTruyen3Q(context: MangaLoaderContext) :
     WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qmoi.pro", 36) {
 
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+	
     override val datePattern = "dd/MM/yyyy"
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
