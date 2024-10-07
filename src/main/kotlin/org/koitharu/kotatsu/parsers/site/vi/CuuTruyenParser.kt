@@ -28,7 +28,7 @@ import org.koitharu.kotatsu.parsers.Broken
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
 
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"cuutruyen.net",
@@ -103,7 +103,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				throw e
 			}
 		}
-		val data = json.getJSONObject("data").getJSONArray("mangas")
+		val data = json.optJSONArray("data") ?: json.getJSONObject("data").getJSONArray("mangas")
 
 		return data.mapJSON { jo ->
 			Manga(
