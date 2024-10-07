@@ -10,6 +10,8 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
@@ -17,6 +19,13 @@ import org.koitharu.kotatsu.parsers.Broken
 internal class TopTruyenViet(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.TOPTRUYENVIET, "www.toptruyen68.pro", 36) {
 
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+	
     override val selectPage = "div.page-chapter > img, div.chapter-content > img"
     override val selectChapter = "div.list-chapter > a"
     override val selectDate = "div.col-xs-4"
