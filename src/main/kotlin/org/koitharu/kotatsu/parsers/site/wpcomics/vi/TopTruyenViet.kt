@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken
 @MangaSourceParser("TOPTRUYENVIET", "TopTruyen.pro", "vi")
 internal class TopTruyenViet(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.TOPTRUYENVIET, "www.toptruyenzz.pro", 36)
+	WpComicsParser(context, MangaParserSource.TOPTRUYENVIET, "www.toptruyen68.pro", 36)
