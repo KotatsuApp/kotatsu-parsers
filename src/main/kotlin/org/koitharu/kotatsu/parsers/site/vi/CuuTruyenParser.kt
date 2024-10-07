@@ -21,7 +21,9 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("CUUTRUYEN", "CuuTruyen", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
@@ -101,7 +103,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				throw e
 			}
 		}
-		val data = json.optJSONArray("data") ?: json.getJSONObject("data").getJSONArray("mangas")
+		val data = json.getJSONObject("data").getJSONArray("mangas")
 
 		return data.mapJSON { jo ->
 			Manga(
