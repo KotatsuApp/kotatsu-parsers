@@ -32,7 +32,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		"cuutruyen.net",
 		"nettrom.com",
 		"hetcuutruyen.net",
-		"cuutruyent9sv7.xyz",
+		"cuutruyenpip7z.site",
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
