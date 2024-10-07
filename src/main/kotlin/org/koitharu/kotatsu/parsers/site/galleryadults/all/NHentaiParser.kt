@@ -115,7 +115,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 		val name = it.selectFirst(".name")?.text() ?: it.text()
 		MangaTag(
 			key = key,
-			title = name,
+			title = name.toTitleCase(sourceLocale),
 			source = source,
 		)
 	}

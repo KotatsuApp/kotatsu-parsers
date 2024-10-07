@@ -101,7 +101,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				throw e
 			}
 		}
-		val data = json.getJSONArray("data")
+		val data = json.optJSONArray("data") ?: json.getJSONObject("data").getJSONArray("mangas")
 
 		return data.mapJSON { jo ->
 			Manga(
@@ -227,7 +227,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	}
 
 	private fun availableTags() = arraySetOf(
-		MangaTag("Tất cả", "", source),
 		MangaTag("Manga", "manga", source),
 		MangaTag("Đang tiến hành", "dang-tien-hanh", source),
 		MangaTag("Thể thao", "the-thao", source),
