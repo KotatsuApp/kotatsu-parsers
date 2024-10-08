@@ -162,7 +162,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.text-center img.lazy").map { img ->
+		return doc.select("div.text-center img.lazy-image").map { img ->
 			val url = img.attrAsRelativeUrlOrNull("data-src") ?: img.attrAsRelativeUrlOrNull("src")
 			?: img.parseFailed("Image src not found")
 			MangaPage(
