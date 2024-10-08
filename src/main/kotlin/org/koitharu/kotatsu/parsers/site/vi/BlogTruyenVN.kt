@@ -19,7 +19,7 @@ internal class BlogTruyenVNParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYENVN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("blogtruyenvn.org")
+		get() = ConfigKey.Domain("blogtruyenvn.org", "blogtruyenvn.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
