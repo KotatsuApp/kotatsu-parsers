@@ -678,15 +678,16 @@ internal abstract class MadaraParser(
 					"No image found, try to log in",
 					fullUrl,
 				)
-				return root.select(selectPage).map { div ->
-					val img = div.selectFirstOrThrow("img")
-					val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
-					MangaPage(
-						id = generateUid(url),
-						url = url,
-						preview = null,
-						source = source,
-					)
+				return root.select(selectPage).flatMap { div ->
+					div.selectOrThrow("img").map { img ->
+						val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+						MangaPage(
+							id = generateUid(url),
+							url = url,
+							preview = null,
+							source = source,
+						)
+					}
 				}
 			}
 		} else {
