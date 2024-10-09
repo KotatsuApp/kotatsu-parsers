@@ -11,6 +11,7 @@
     import org.koitharu.kotatsu.parsers.model.*
     import org.koitharu.kotatsu.parsers.util.*
     import java.text.SimpleDateFormat
+    import org.jsoup.Jsoup
     import java.util.*
 
     internal abstract class LilianaParser(
@@ -36,12 +37,8 @@
         override val filterCapabilities: MangaListFilterCapabilities
             get() = MangaListFilterCapabilities(
                 isMultipleTagsSupported = true,
-                isTagsExclusionSupported = false,
                 isSearchSupported = true,
-                isSearchWithFiltersSupported = true,
-                isYearSupported = false,
-                isYearRangeSupported = false,
-                isOriginalLocaleSupported = false
+                isSearchWithFiltersSupported = true
             )
 
         override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -89,7 +86,7 @@
         }
 
         private fun parseSearchManga(element: Element): Manga {
-            val href = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: element.parseFailed("Manga link not found")
+            val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
             return Manga(
                 id = generateUid(href),
                 url = href,
@@ -111,10 +108,10 @@
             return manga.copy(
                 description = doc.selectFirst("div#syn-target")?.text(),
                 largeCoverUrl = doc.selectFirst(".a1 > figure img")?.src(),
-                tags = doc.select(".a2 div > a[rel='tag'].label").mapNotNullToSet { a ->
+                tags = doc.select(".a2 div > a[rel='tag'].label").mapToSet { a ->
                     MangaTag(
-                        key = a.attr("href").substringAfterLast("/"),
-                        title = a.text().trim(),
+                        key = a.attr("href").substringAfterLast('/'),
+                        title = a.text().toTitleCase(sourceLocale),
                         source = source,
                     )
                 },
@@ -127,7 +124,7 @@
                     else -> null
                 },
                 chapters = doc.select("ul > li.chapter").mapChapters { i, element ->
-                    val href = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: element.parseFailed("Chapter link not found")
+                    val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
                     MangaChapter(
                         id = generateUid(href),
                         name = element.selectFirst("a")?.text().orEmpty(),
@@ -149,7 +146,7 @@
             val script = doc.selectFirst("script:containsData(const CHAPTER_ID)")?.data()
                 ?: throw Exception("Failed to get chapter id")
 
-            val chapterId = script.substringAfter("const CHAPTER_ID = ").substringBefore(";")
+            val chapterId = script.substringAfter("const CHAPTER_ID = ").substringBefore(';')
 
             val ajaxUrl = buildString {
                 append("https://")
@@ -158,34 +155,32 @@
                 append(chapterId)
             }
 
-            val ajaxResponse = webClient.httpGet(ajaxUrl)
-            val responseJson = JSONObject(ajaxResponse.requireBody().string())
+            val responseJson = webClient.httpGet(ajaxUrl).parseJson()
 
             if (!responseJson.optBoolean("status", false)) {
                 throw Exception(responseJson.optString("msg"))
             }
 
             val pageListHtml = responseJson.getString("html")
-            val pageListDoc = org.jsoup.Jsoup.parse(pageListHtml)
+            val pageListDoc = Jsoup.parse(pageListHtml)
 
-            return pageListDoc.select("div.separator[data-index]").map { page ->
-                val index = page.attr("data-index").toInt()
-                val url = page.selectFirst("a")?.attr("abs:href") ?: page.parseFailed("Image url not found")
+            return pageListDoc.select("div.separator[data-index]").mapIndexed { index, page ->
+                val url = page.selectFirstOrThrow("a").attr("abs:href")
                 MangaPage(
                     id = generateUid(url),
                     url = url,
                     preview = null,
                     source = source,
                 )
-            }.sortedBy { it.id.toInt() }
+            }
         }
 
         protected open suspend fun getAvailableTags(): Set<MangaTag> = coroutineScope {
             val doc = webClient.httpGet("https://$domain/filter").parseHtml()
-            doc.select("div.advanced-genres > div > .advance-item").mapNotNullToSet { element ->
+            doc.select("div.advanced-genres > div > .advance-item").mapToSet { element ->
                 MangaTag(
-                    key = element.selectFirst("span")?.attr("data-genre") ?: return@mapNotNullToSet null,
-                    title = element.text().trim(),
+                    key = element.selectFirstOrThrow("span[data-genre]").attr("data-genre"),
+                    title = element.text().toTitleCase(sourceLocale),
                     source = source,
                 )
             }
