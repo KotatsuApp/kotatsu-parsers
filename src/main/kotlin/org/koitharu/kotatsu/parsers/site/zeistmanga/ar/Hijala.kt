@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
 @MangaSourceParser("HIJALA", "Hijala", "ar")
 internal class Hijala(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaParserSource.HIJALA, "hijala.blogspot.com")
+	ZeistMangaParser(context, MangaParserSource.HIJALA, "hijala.com")
