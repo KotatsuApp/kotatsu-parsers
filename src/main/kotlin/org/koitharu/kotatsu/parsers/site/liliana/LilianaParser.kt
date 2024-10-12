@@ -31,7 +31,9 @@
         override val availableSortOrders: Set<SortOrder> = EnumSet.of(
             SortOrder.UPDATED,
             SortOrder.POPULARITY,
-            SortOrder.ALPHABETICAL
+            SortOrder.ALPHABETICAL,
+            SortOrder.NEWEST,
+            SortOrder.RATING_ASC
         )
 
         override val filterCapabilities: MangaListFilterCapabilities
@@ -60,10 +62,12 @@
                 append("/")
                 
                 when (order) {
-                    SortOrder.UPDATED -> append("?sort=last_update")
+                    SortOrder.UPDATED -> append("?sort=latest-updated")
                     SortOrder.POPULARITY -> append("?sort=views")
-                    SortOrder.ALPHABETICAL -> append("?sort=name")
-                    else -> append("?sort=last_update")
+                    SortOrder.ALPHABETICAL -> append("?sort=az")
+                    SortOrder.NEWEST -> append("?sort=new")
+                    SortOrder.RATING_ASC -> append("?sort=score")
+                    else -> append("?sort=default")
                 }
                 
                 filter.tags.forEach { tag ->
@@ -74,8 +78,10 @@
                 if (filter.states.isNotEmpty()) {
                     append("&status=")
                     append(when (filter.states.first()) {
-                        MangaState.ONGOING -> "ongoing"
+                        MangaState.ONGOING -> "on-going"
                         MangaState.FINISHED -> "completed"
+                        MangaState.PAUSED -> "on-hold"
+                        MangaState.ABANDONED -> "canceled"
                         else -> "all"
                     })
                 }
@@ -119,8 +125,10 @@
                     it.equals("updating", true)
                 },
                 state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase()) {
-                    "ongoing", "đang tiến hành", "進行中" -> MangaState.ONGOING
+                    "on-going", "đang tiến hành", "進行中" -> MangaState.ONGOING
                     "completed", "hoàn thành", "完了" -> MangaState.FINISHED
+                    "on-hold", "tạm dừng", "一時停止" -> MangaState.PAUSED
+                    "canceled", "đã huỷ bỏ", "キャンセル" -> MangaState.ABANDONED
                     else -> null
                 },
                 chapters = doc.select("ul > li.chapter").mapChapters { i, element ->
@@ -128,7 +136,7 @@
                     MangaChapter(
                         id = generateUid(href),
                         name = element.selectFirst("a")?.text().orEmpty(),
-                        number = i + 1f,
+                        number = doc.select("ul > li.chapter").size - i.toFloat(),
                         url = href,
                         scanlator = null,
                         uploadDate = element.selectFirst("time[datetime]")?.attr("datetime")?.toLongOrNull()?.times(1000) ?: 0L,
@@ -143,6 +151,7 @@
         override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
             val fullUrl = chapter.url.toAbsoluteUrl(domain)
             val doc = webClient.httpGet(fullUrl).parseHtml()
+            
             val script = doc.selectFirst("script:containsData(const CHAPTER_ID)")?.data()
                 ?: throw Exception("Failed to get chapter id")
 
@@ -164,8 +173,10 @@
             val pageListHtml = responseJson.getString("html")
             val pageListDoc = Jsoup.parse(pageListHtml)
 
-            return pageListDoc.select("div.separator[data-index]").mapIndexed { index, page ->
-                val url = page.selectFirstOrThrow("a").attr("abs:href")
+            return pageListDoc.select("div.iv-card").mapIndexed { index, div ->
+                val img = div.selectFirst("img")
+                val url = img?.attr("data-src") ?: img?.attr("src") ?: throw Exception("Failed to get image url")
+                
                 MangaPage(
                     id = generateUid(url),
                     url = url,
@@ -188,6 +199,6 @@
 
         override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions(
             availableTags = getAvailableTags(),
-            availableStates = setOf(MangaState.ONGOING, MangaState.FINISHED)
+            availableStates = setOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED)
         )
     }
