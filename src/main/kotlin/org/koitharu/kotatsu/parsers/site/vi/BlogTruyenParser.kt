@@ -242,6 +242,11 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		MangaTag("NTR", "62", source),
 		MangaTag("Event BT", "60", source),
 		MangaTag("Trinh thám", "57", source),
-		MangaTag("Video Clip", "53", source)
+		MangaTag("Video Clip", "53", source),
+		MangaTag("Truyện scan", "41", source),
+		MangaTag("Soft Yaoi", "35", source),
+		MangaTag("Soft Yuri", "36", source),
+		MangaTag("Live action", "16", source),
+		MangaTag("Tu chân - tu tiên", "18", source),
 	)
 }
