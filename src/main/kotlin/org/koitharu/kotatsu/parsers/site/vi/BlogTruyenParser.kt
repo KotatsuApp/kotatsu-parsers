@@ -39,11 +39,10 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = cacheTags.get().values.toSet(),
+		availableTags = availableTags(),
 	)
 
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
-	private var cacheTags = SuspendLazy(::fetchTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {
@@ -51,55 +50,22 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${filter.query.urlEncoded()}&p=$page"
 				val searchContent = webClient.httpGet(searchUrl).parseHtml()
 					.selectFirst("section.list-manga-bycate > div.list")
-				parseMangaList(searchContent)
+				parseMangaList(searchContent) ?: emptyList()
+			}
+
+			filter.tags.isNotEmpty() -> {
+				filter.tags.oneOrThrowIfMany()?.let { tag ->
+					val categoryAjax = "https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
+					val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
+					parseMangaList(listContent) ?: emptyList()
+				} ?: emptyList()
 			}
 
 			else -> {
-
-				if (filter.tags.isNotEmpty()) {
-					filter.tags.oneOrThrowIfMany().let {
-						val categoryAjax =
-							"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${it?.key}&orderBy=5&p=$page"
-						val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
-						parseMangaList(listContent)
-					}
-				} else {
-					getNormalList(page)
-				}
+				val url = "https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=0&orderBy=5&p=$page"
+				val listContent = webClient.httpGet(url).parseHtml().selectFirst("div.list")
+				parseMangaList(listContent) ?: emptyList()
 			}
-		}
-	}
-
-	private suspend fun getNormalList(page: Int): List<Manga> {
-		val pageLink = "https://${domain}/page-$page"
-		val doc = webClient.httpGet(pageLink).parseHtml()
-		val listElements = doc.selectFirstOrThrow("section.list-mainpage.listview")
-			.select("div.bg-white.storyitem")
-
-		return listElements.mapNotNull { el ->
-			val linkTag = el.selectFirst("div.fl-l > a") ?: return@mapNotNull null
-			val relativeUrl = linkTag.attrAsRelativeUrl("href")
-			val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
-				el.select("footer > div.category > a").mapNotNullToSet { a ->
-					tagMap[a.text()]
-				}
-			}
-
-			Manga(
-				id = generateUid(relativeUrl),
-				title = linkTag.attr("title"),
-				altTitle = null,
-				description = el.selectFirst("p.al-j.break.line-height-15")?.text(),
-				url = relativeUrl,
-				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = linkTag.selectLast("img")?.src().orEmpty(),
-				source = source,
-				tags = tags ?: emptySet(),
-				isNsfw = false,
-				rating = RATING_UNKNOWN,
-				author = null,
-				state = null,
-			)
 		}
 	}
 
@@ -128,21 +94,6 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun fetchTags(): Map<String, MangaTag> {
-		val doc = webClient.httpGet("/timkiem/nangcao".toAbsoluteUrl(domain)).parseHtml()
-		val tagItems = doc.select("li[data-id]")
-		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
-		for (tag in tagItems) {
-			val title = tag.text().trim()
-			tagMap[tag.text().trim()] = MangaTag(
-				title = title,
-				key = tag.attr("data-id"),
-				source = source,
-			)
-		}
-		return tagMap
-	}
-
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val descriptionElement = doc.selectFirstOrThrow("div.description")
@@ -169,15 +120,14 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 			}
 		}
 
-		val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
-			descriptionElement.select("p > span.category").mapNotNullToSet {
-				val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
-				tagMap[tagName]
-			}
+		val tagMap = availableTags().associateBy { it.title }
+		val tags = descriptionElement.select("p > span.category").mapNotNullToSet {
+			val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
+			tagMap[tagName]
 		}
 
 		return manga.copy(
-			tags = tags ?: emptySet(),
+			tags = tags,
 			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
@@ -226,7 +176,6 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 			)
 		}
 
-		// Some chapters use js script to render images
 		val script = doc.selectLast("#content > script")
 		if (script != null && script.data().contains("listImageCaption")) {
 			val imagesStr = script.data().substringBefore(';').substringAfterLast('=').trim()
@@ -243,7 +192,58 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				)
 			}
 		}
-
 		return pages
 	}
+
+	// Check and archived by Draken
+	private fun availableTags(): Set<MangaTag> = setOf(
+		MangaTag("18+", "45", source),
+		MangaTag("Action", "1", source),
+		MangaTag("Adventure", "3", source),
+		MangaTag("Comedy", "5", source),
+		MangaTag("Comic", "6", source),
+		MangaTag("Doujinshi", "7", source),
+		MangaTag("Drama", "49", source),
+		MangaTag("Ecchi", "48", source),
+		MangaTag("Fantasy", "50", source),
+		MangaTag("Full màu", "64", source),
+		MangaTag("Game", "61", source),
+		MangaTag("Gender bender", "51", source),
+		MangaTag("Harem", "12", source),
+		MangaTag("Historical", "13", source),
+		MangaTag("Horror", "14", source),
+		MangaTag("Isekai / Dị giới / Trọng sinh", "63", source),
+		MangaTag("Josei", "15", source),
+		MangaTag("Magic", "46", source),
+		MangaTag("Manga", "55", source),
+		MangaTag("Manhua", "17", source),
+		MangaTag("Martial Arts", "19", source),
+		MangaTag("Mecha", "21", source),
+		MangaTag("Mystery", "22", source),
+		MangaTag("Nấu ăn", "56", source),
+		MangaTag("One shot", "23", source),
+		MangaTag("Psychological", "24", source),
+		MangaTag("Romance", "25", source),
+		MangaTag("School Life", "26", source),
+		MangaTag("Sci-fi", "27", source),
+		MangaTag("Seinen", "28", source),
+		MangaTag("Shoujo", "29", source),
+		MangaTag("Shoujo Ai", "30", source),
+		MangaTag("Shounen", "31", source),
+		MangaTag("Shounen Ai", "32", source),
+		MangaTag("Slice of life", "33", source),
+		MangaTag("Smut", "34", source),
+		MangaTag("Sports", "37", source),
+		MangaTag("Supernatural", "38", source),
+		MangaTag("Tạp chí truyện tranh", "39", source),
+		MangaTag("Tragedy", "40", source),
+		MangaTag("Trap (Crossdressing)", "58", source),
+		MangaTag("VnComic", "42", source),
+		MangaTag("Webtoon", "52", source),
+		MangaTag("Yuri", "59", source),
+		MangaTag("NTR", "62", source),
+		MangaTag("Event BT", "60", source),
+		MangaTag("Trinh thám", "57", source),
+		MangaTag("Video Clip", "53", source)
+	)
 }
