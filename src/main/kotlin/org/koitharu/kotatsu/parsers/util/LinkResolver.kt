@@ -65,7 +65,8 @@ public class LinkResolver internal constructor(
 		return runCatchingCancellable {
 			val order = if (SortOrder.RELEVANCE in availableSortOrders) SortOrder.RELEVANCE else defaultSortOrder
 			val list = getList(0, order, MangaListFilter(query = query))
-			list.single { manga -> isSameUrl(manga.publicUrl) }
+			val result = list.single { manga -> isSameUrl(manga.publicUrl) }
+			getDetails(result)
 		}.getOrDefault(seed)
 	}
 
