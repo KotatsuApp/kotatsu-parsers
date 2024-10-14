@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
 @MangaSourceParser("BLOGTRUYENVN", "BlogTruyenVN", "vi")
-internal class BlogTruyenVNParser(context: MangaLoaderContext) :
+internal class BlogTruyenVN(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYENVN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain

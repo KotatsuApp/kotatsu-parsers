@@ -233,7 +233,9 @@ internal abstract class MadaraParser(
 				}
 				append("/?s=")
 
-				append(filter.query?.urlEncoded())
+				filter.query?.let {
+					append(filter.query.urlEncoded())
+				}
 
 				append("&post_type=wp-manga")
 
@@ -536,10 +538,10 @@ internal abstract class MadaraParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
+		val href = doc.selectFirst("head meta[property='og:url']")?.attr("content")?.toRelativeUrl(domain) ?: manga.url
 		val testCheckAsync = doc.select(selectTestAsync)
-
 		val chaptersDeferred = if (testCheckAsync.isNullOrEmpty()) {
-			async { loadChapters(manga.url, doc) }
+			async { loadChapters(href, doc) }
 		} else {
 			async { getChapters(manga, doc) }
 		}
@@ -561,6 +563,8 @@ internal abstract class MadaraParser(
 		val alt = doc.body().select(selectAlt).firstOrNull()?.tableValue()?.text()?.trim()
 
 		manga.copy(
+			url = href,
+			publicUrl = href.toAbsoluteUrl(domain),
 			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),

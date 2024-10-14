@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.ArrayMap
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -53,7 +52,8 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 			filter.tags.isNotEmpty() -> {
 				filter.tags.oneOrThrowIfMany()?.let { tag ->
-					val categoryAjax = "https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
+					val categoryAjax =
+						"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
 					val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
 					parseMangaList(listContent) ?: emptyList()
 				} ?: emptyList()
@@ -248,6 +248,6 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Soft Yuri", "36", source),
 		MangaTag("Live action", "16", source),
 		MangaTag("Tu chân - tu tiên", "66", source),
-		MangaTag("Ngôn tình", "65", source)
+		MangaTag("Ngôn tình", "65", source),
 	)
 }

@@ -95,7 +95,7 @@ internal abstract class LibSocialParser(
 				SortOrder.NEWEST -> "created_at"
 				SortOrder.ALPHABETICAL,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "rus_name"
+					-> "rus_name"
 
 				else -> null
 			},
@@ -108,7 +108,7 @@ internal abstract class LibSocialParser(
 				SortOrder.RATING,
 				SortOrder.NEWEST,
 				SortOrder.ALPHABETICAL_DESC,
-				-> "desc"
+					-> "desc"
 
 				SortOrder.ALPHABETICAL -> "asc"
 				else -> null

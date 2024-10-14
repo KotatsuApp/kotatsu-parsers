@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken
 @MangaSourceParser("DOCTRUYEN5S", "DocTruyen5s", "vi")
 internal class DocTruyen5s(context: MangaLoaderContext) :
-    LilianaParser(context, MangaParserSource.DOCTRUYEN5S, "dongmoe.com")
+	LilianaParser(context, MangaParserSource.DOCTRUYEN5S, "dongmoe.com")

@@ -82,6 +82,7 @@ public class Manga(
 
 	@InternalParsersApi
 	public fun copy(
+		url: String = this.url,
 		title: String = this.title,
 		altTitle: String? = this.altTitle,
 		publicUrl: String = this.publicUrl,

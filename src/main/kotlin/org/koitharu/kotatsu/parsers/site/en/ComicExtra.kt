@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("COMICEXTRA", "ComicExtra", "en")
+@MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
 internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 25) {
 
 	override val configKeyDomain = ConfigKey.Domain("comixextra.com")

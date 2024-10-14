@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.liliana
 
+import androidx.collection.scatterSetOf
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
@@ -27,16 +28,26 @@ internal abstract class LilianaParser(
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
+		SortOrder.POPULARITY_MONTH,
+		SortOrder.POPULARITY_WEEK,
+		SortOrder.POPULARITY_TODAY,
 		SortOrder.ALPHABETICAL,
+		SortOrder.ALPHABETICAL_DESC,
 		SortOrder.NEWEST,
-		SortOrder.RATING_ASC,
+		SortOrder.NEWEST_ASC,
+		SortOrder.RATING,
+	)
+
+	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions(
+		availableTags = getAvailableTags(),
+		availableStates = setOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -45,44 +56,50 @@ internal abstract class LilianaParser(
 			append(domain)
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					append("/search")
-					append("?keyword=")
+					append("/search/")
+					append(page)
+					append("/?keyword=")
 					append(filter.query.urlEncoded())
 				}
 
 				else -> {
-					append("/filter")
+					append("/filter/")
+					append(page)
+
+					append("/?sort=")
+					when (order) {
+						SortOrder.UPDATED -> append("latest-updated")
+						SortOrder.POPULARITY -> append("views")
+						SortOrder.POPULARITY_MONTH -> append("views_month")
+						SortOrder.POPULARITY_WEEK -> append("views_week")
+						SortOrder.POPULARITY_TODAY -> append("views_day")
+						SortOrder.ALPHABETICAL -> append("az")
+						SortOrder.ALPHABETICAL_DESC -> append("za")
+						SortOrder.NEWEST -> append("new")
+						SortOrder.NEWEST_ASC -> append("old")
+						SortOrder.RATING -> append("score")
+						else -> append("latest-updated")
+					}
+
+					append("&genres=")
+					filter.tags.joinTo(this, ",") { it.key }
+
+					append("&notGenres=")
+					filter.tagsExclude.joinTo(this, ",") { it.key }
+
+					if (filter.states.isNotEmpty()) {
+						append("&status=")
+						append(
+							when (filter.states.first()) {
+								MangaState.ONGOING -> "on-going"
+								MangaState.FINISHED -> "completed"
+								MangaState.PAUSED -> "on-hold"
+								MangaState.ABANDONED -> "canceled"
+								else -> "all"
+							},
+						)
+					}
 				}
-			}
-			append("/")
-			append(page)
-			append("/")
-
-			when (order) {
-				SortOrder.UPDATED -> append("?sort=latest-updated")
-				SortOrder.POPULARITY -> append("?sort=views")
-				SortOrder.ALPHABETICAL -> append("?sort=az")
-				SortOrder.NEWEST -> append("?sort=new")
-				SortOrder.RATING_ASC -> append("?sort=score")
-				else -> append("?sort=default")
-			}
-
-			filter.tags.forEach { tag ->
-				append("&genres=")
-				append(tag.key)
-			}
-
-			if (filter.states.isNotEmpty()) {
-				append("&status=")
-				append(
-					when (filter.states.first()) {
-						MangaState.ONGOING -> "on-going"
-						MangaState.FINISHED -> "completed"
-						MangaState.PAUSED -> "on-hold"
-						MangaState.ABANDONED -> "canceled"
-						else -> "all"
-					},
-				)
 			}
 		}
 
@@ -104,9 +121,29 @@ internal abstract class LilianaParser(
 			author = null,
 			state = null,
 			source = source,
-			isNsfw = false,
+			isNsfw = isNsfwSource,
 		)
 	}
+
+	@JvmField
+	protected val ongoing = scatterSetOf(
+		"on-going", "đang tiến hành", "進行中",
+	)
+
+	@JvmField
+	protected val finished = scatterSetOf(
+		"completed", "hoàn thành", "完了",
+	)
+
+	@JvmField
+	protected val abandoned = scatterSetOf(
+		"canceled", "đã huỷ bỏ", "キャンセル",
+	)
+
+	@JvmField
+	protected val paused = scatterSetOf(
+		"on-hold", "tạm dừng", "一時停止",
+	)
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
@@ -123,27 +160,28 @@ internal abstract class LilianaParser(
 			author = doc.selectFirst("div.y6x11p i.fas.fa-user + span.dt")?.text()?.takeUnless {
 				it.equals("updating", true)
 			},
-			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase()) {
-				"on-going", "đang tiến hành", "進行中" -> MangaState.ONGOING
-				"completed", "hoàn thành", "完了" -> MangaState.FINISHED
-				"on-hold", "tạm dừng", "一時停止" -> MangaState.PAUSED
-				"canceled", "đã huỷ bỏ", "キャンセル" -> MangaState.ABANDONED
+			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase().orEmpty()) {
+				in ongoing -> MangaState.ONGOING
+				in finished -> MangaState.FINISHED
+				in paused -> MangaState.PAUSED
+				in abandoned -> MangaState.ABANDONED
 				else -> null
 			},
 			chapters = doc.select("ul > li.chapter").mapChapters(reversed = true) { i, element ->
 				val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					name = element.selectFirst("a")?.text().orEmpty(),
+					name = element.selectFirst("a")?.text() ?: "Chapter : ${i + 1f}",
 					number = i + 1f,
+					volume = 0,
 					url = href,
 					scanlator = null,
 					uploadDate = element.selectFirst("time[datetime]")?.attr("datetime")?.toLongOrNull()?.times(1000)
 						?: 0L,
 					branch = null,
 					source = source,
-					volume = 0,
-				)
+
+					)
 			},
 		)
 	}
@@ -170,13 +208,10 @@ internal abstract class LilianaParser(
 			throw Exception(responseJson.optString("msg"))
 		}
 
-		val pageListHtml = responseJson.getString("html")
-		val pageListDoc = Jsoup.parse(pageListHtml)
+		val pageListDoc = responseJson.getString("html").let(Jsoup::parse)
 
-		return pageListDoc.select("div.iv-card").mapIndexed { index, div ->
-			val img = div.selectFirst("img")
-			val url = img?.attr("data-src") ?: img?.attr("src") ?: throw Exception("Failed to get image url")
-
+		return pageListDoc.select("div").map {
+			val url = it.selectFirstOrThrow("img").attr("src")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -196,9 +231,4 @@ internal abstract class LilianaParser(
 			)
 		}
 	}
-
-	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions(
-		availableTags = getAvailableTags(),
-		availableStates = setOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED, MangaState.ABANDONED),
-	)
 }

@@ -245,18 +245,18 @@ internal abstract class MangaReaderParser(
 				"En cours de publication", "Đang tiến hành", "Em lançamento", "em lançamento", "Em Lançamento", "Онгоінг", "Publishing",
 				"Devam Ediyor", "Em Andamento", "In Corso", "Güncel", "Berjalan", "Продолжается", "Updating", "Lançando", "In Arrivo", "Emision",
 				"En emision", "مستمر", "Curso", "En marcha", "Publicandose", "Publicando", "连载中", "Devam ediyor", "Devam Etmekte",
-				-> MangaState.ONGOING
+					-> MangaState.ONGOING
 
 				"Completed", "Completo", "Complété", "Fini", "Achevé", "Terminé", "Terminé ⚫", "Tamamlandı", "Đã hoàn thành", "Hoàn Thành",
 				"مكتملة", "Завершено", "Finished", "Finalizado", "Completata", "One-Shot", "Bitti", "Tamat", "Completado", "Concluído",
 				"Concluido", "已完结", "Bitmiş",
-				-> MangaState.FINISHED
+					-> MangaState.FINISHED
 
 				"Canceled", "Cancelled", "Cancelado", "cancellato", "Cancelados", "Dropped", "Discontinued", "abandonné", "Abandonné",
-				-> MangaState.ABANDONED
+					-> MangaState.ABANDONED
 
 				"Hiatus", "On Hold", "Pausado", "En espera", "En pause", "En Pause", "En attente",
-				-> MangaState.PAUSED
+					-> MangaState.PAUSED
 
 				else -> null
 			}

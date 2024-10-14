@@ -236,18 +236,24 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val number = Regex("""(\d+)""").find(date)?.value?.toIntOrNull() ?: return 0
 		val cal = Calendar.getInstance()
 		return when {
-			WordSet("second").anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
-			WordSet("minute", "minutes", "mins", "min").anyWordIn(date) -> cal.apply {
-				add(
-					Calendar.MINUTE,
-					-number,
-				)
-			}.timeInMillis
+			WordSet("second")
+				.anyWordIn(date) -> cal.apply { add(Calendar.SECOND, -number) }.timeInMillis
 
-			WordSet("hour", "hours").anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
-			WordSet("day", "days").anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
-			WordSet("month", "months").anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
-			WordSet("year").anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+			WordSet("minute", "minutes", "mins", "min")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MINUTE, -number) }.timeInMillis
+
+			WordSet("hour", "hours")
+				.anyWordIn(date) -> cal.apply { add(Calendar.HOUR, -number) }.timeInMillis
+
+			WordSet("day", "days")
+				.anyWordIn(date) -> cal.apply { add(Calendar.DAY_OF_MONTH, -number) }.timeInMillis
+
+			WordSet("month", "months")
+				.anyWordIn(date) -> cal.apply { add(Calendar.MONTH, -number) }.timeInMillis
+
+			WordSet("year")
+				.anyWordIn(date) -> cal.apply { add(Calendar.YEAR, -number) }.timeInMillis
+
 			else -> 0
 		}
 	}
@@ -255,18 +261,23 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		val script = if (doc.selectFirst("script:containsData(comic-)") != null) {
-			doc.selectFirstOrThrow("script:containsData(comic-)").data()
-				.substringAfterLast("\"comic-")
+		val id = chapter.url.removeSuffix('/').substringAfterLast('/').substringBefore('-')
+		val s = doc.selectFirstOrThrow("script:containsData($id)").data()
+
+		val script = if (s.contains("\"comic-")) {
+			s.substringAfterLast("\"comic-")
 		} else {
-			doc.selectFirstOrThrow("script:containsData(manga-)").data()
-				.substringAfterLast("\"manga-")
+			s.substringAfterLast("\"manga-")
 		}
+
 		return Regex("\"(https?:.+?)\"")
 			.findAll(script)
-			.mapNotNullTo(ArrayList()) {
-				val url = it.groupValues.getOrNull(1) ?: return@mapNotNullTo null
-				if (url.contains("/comic/") || url.contains("/manga/") || url.contains("/image/mpup/")) {
+			.mapIndexedNotNullTo(ArrayList()) { i, it ->
+				val url = it.groupValues.getOrNull(1) ?: return@mapIndexedNotNullTo null
+				if (url.contains(".jpg") || url.contains(".jpeg") || url.contains(".jfif") || url.contains(".pjpeg") ||
+					url.contains(".pjp") || url.contains(".png") || url.contains(".webp") || url.contains(".avif") ||
+					url.contains(".gif")
+				) {
 					MangaPage(
 						id = generateUid(url),
 						url = url,
@@ -274,7 +285,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 						source = source,
 					)
 				} else {
-					return@mapNotNullTo null
+					return@mapIndexedNotNullTo null
 				}
 			}
 	}
