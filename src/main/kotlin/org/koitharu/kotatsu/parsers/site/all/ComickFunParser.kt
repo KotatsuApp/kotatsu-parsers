@@ -20,7 +20,7 @@ private const val CHAPTERS_LIMIT = 99999
 internal class ComickFunParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.COMICK_FUN, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("comick.io", "comick.cc")
+	override val configKeyDomain = ConfigKey.Domain("comick.io")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
