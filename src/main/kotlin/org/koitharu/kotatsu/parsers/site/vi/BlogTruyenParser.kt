@@ -247,6 +247,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Soft Yaoi", "35", source),
 		MangaTag("Soft Yuri", "36", source),
 		MangaTag("Live action", "16", source),
-		MangaTag("Tu chân - tu tiên", "18", source),
+		MangaTag("Tu chân - tu tiên", "66", source),
+		MangaTag("Ngôn tình", "65", source)
 	)
 }
