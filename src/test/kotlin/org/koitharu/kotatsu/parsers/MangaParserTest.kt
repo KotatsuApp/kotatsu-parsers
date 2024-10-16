@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers
 
 import kotlinx.coroutines.test.runTest
 import okhttp3.HttpUrl
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
 import org.koitharu.kotatsu.parsers.model.*
@@ -213,6 +214,20 @@ internal class MangaParserTest {
 		assert(defaultDomain == realHost || defaultDomain == realDomain) {
 			"Domain mismatch:\nRequired:\t\t\t$defaultDomain\nActual:\t\t\t$realDomain\nHost:\t\t\t$realHost"
 		}
+	}
+
+	@ParameterizedTest(name = "{index}|link|{0}")
+	@MangaSources
+	fun link(source: MangaParserSource) = runTest(timeout = timeout) {
+		val parser = context.newParserInstance(source)
+		val manga = parser.getList(0, parser.defaultSortOrder, MangaListFilter.EMPTY).first()
+		val resolved = context.newLinkResolver(manga.publicUrl).getManga()
+		Assertions.assertNotNull(resolved)
+		resolved ?: return@runTest
+		Assertions.assertEquals(manga.id, resolved.id)
+		Assertions.assertEquals(manga.publicUrl, resolved.publicUrl)
+		Assertions.assertEquals(manga.url, resolved.url)
+		Assertions.assertEquals(manga.title, resolved.title)
 	}
 
 	@ParameterizedTest(name = "{index}|authorization|{0}")

@@ -19,7 +19,7 @@ public class LinkResolver internal constructor(
 
 	public suspend fun getManga(): Manga? {
 		val parser = context.newParserInstance(source.get() ?: return null)
-		return parser.resolveLink(link) ?: parser.resolveLinkLongPath()
+		return parser.resolveLink(this, link) ?: resolveManga(parser)
 	}
 
 	private suspend fun resolveSource(): MangaParserSource? = runInterruptible(Dispatchers.Default) {
@@ -35,13 +35,18 @@ public class LinkResolver internal constructor(
 		null
 	}
 
-	private suspend fun MangaParser.resolveLinkLongPath(): Manga? {
-		val stubTitle = link.pathSegments.lastOrNull().orEmpty()
-		val seed = Manga(
-			id = 0L,
-			title = stubTitle,
+	internal suspend fun resolveManga(
+		parser: MangaParser,
+		url: String = link.toString().toRelativeUrl(link.host),
+		id: Long = parser.generateUid(url),
+		title: String = STUB_TITLE,
+	): Manga? = resolveBySeed(
+		parser,
+		Manga(
+			id = id,
+			title = title,
 			altTitle = null,
-			url = link.toString().toRelativeUrl(link.host),
+			url = url,
 			publicUrl = link.toString(),
 			rating = RATING_UNKNOWN,
 			isNsfw = false,
@@ -52,22 +57,47 @@ public class LinkResolver internal constructor(
 			largeCoverUrl = null,
 			description = null,
 			chapters = null,
-			source = source,
-		).let { manga ->
-			getDetails(manga)
+			source = parser.source,
+		),
+	)
+
+	private suspend fun resolveBySeed(parser: MangaParser, s: Manga): Manga? {
+		val seed = parser.getDetails(s)
+		if (!parser.filterCapabilities.isSearchSupported) {
+			return seed.takeUnless { it.chapters.isNullOrEmpty() }
 		}
 		val query = when {
-			seed.title != stubTitle && seed.title.isNotEmpty() -> seed.title
+			seed.title != STUB_TITLE && seed.title.isNotEmpty() -> seed.title
 			!seed.altTitle.isNullOrEmpty() -> seed.altTitle
 			!seed.author.isNullOrEmpty() -> seed.author
 			else -> return seed // unfortunately we do not know a real manga title so unable to find it
 		}
+		val resolved = runCatchingCancellable {
+			val order = if (SortOrder.RELEVANCE in parser.availableSortOrders) {
+				SortOrder.RELEVANCE
+			} else {
+				parser.defaultSortOrder
+			}
+			val list = parser.getList(0, order, MangaListFilter(query = query))
+			list.singleOrNull { manga -> isSameUrl(manga.publicUrl) }
+		}.getOrNull()
+		if (resolved == null) {
+			return seed
+		}
 		return runCatchingCancellable {
-			val order = if (SortOrder.RELEVANCE in availableSortOrders) SortOrder.RELEVANCE else defaultSortOrder
-			val list = getList(0, order, MangaListFilter(query = query))
-			val result = list.single { manga -> isSameUrl(manga.publicUrl) }
-			getDetails(result)
-		}.getOrDefault(seed)
+			parser.getDetails(resolved)
+		}.getOrElse {
+			resolved.copy(
+				chapters = seed.chapters ?: resolved.chapters,
+				description = seed.description ?: resolved.description,
+				author = seed.author ?: resolved.author,
+				tags = seed.tags + resolved.tags,
+				state = seed.state ?: resolved.state,
+				coverUrl = seed.coverUrl.ifEmpty { resolved.coverUrl },
+				largeCoverUrl = seed.largeCoverUrl ?: resolved.largeCoverUrl,
+				altTitle = seed.altTitle ?: resolved.altTitle,
+			)
+		}
 	}
 
 	private fun isSameUrl(publicUrl: String): Boolean {
@@ -77,5 +107,10 @@ public class LinkResolver internal constructor(
 		val httpUrl = publicUrl.toHttpUrlOrNull() ?: return false
 		return link.host == httpUrl.host
 			&& link.encodedPath == httpUrl.encodedPath
+	}
+
+	private companion object {
+
+		const val STUB_TITLE = "Unknown manga"
 	}
 }

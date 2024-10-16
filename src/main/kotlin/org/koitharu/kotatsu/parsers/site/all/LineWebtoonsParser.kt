@@ -236,6 +236,11 @@ internal abstract class LineWebtoonsParser(
 			}
 	}
 
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val titleNo = link.queryParameter("title_no") ?: return null
+		return resolver.resolveManga(this, url = titleNo.toString())
+	}
+
 	private fun parseTag(jo: JSONObject): MangaTag {
 		return MangaTag(
 			title = jo.getString("name"),

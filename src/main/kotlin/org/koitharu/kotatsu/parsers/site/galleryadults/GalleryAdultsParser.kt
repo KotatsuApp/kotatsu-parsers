@@ -100,17 +100,15 @@ internal abstract class GalleryAdultsParser(
 	protected open val selectGalleryLink = ".inner_thumb a"
 	protected open val selectGalleryImg = "img"
 	protected open val selectGalleryTitle = "h2"
+	private val regexBrackets = Regex("\\[[^]]+]|\\([^)]+\\)")
+	private val regexSpaces = Regex("\\s+")
 
 	protected open fun parseMangaList(doc: Document): List<Manga> {
-		val regexBrackets = Regex("\\[[^]]+]|\\([^)]+\\)")
-		val regexSpaces = Regex("\\s+")
 		return doc.select(selectGallery).map { div ->
 			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
-				title = div.select(selectGalleryTitle).text().replace(regexBrackets, "")
-					.replace(regexSpaces, " ")
-					.trim(),
+				title = div.select(selectGalleryTitle).text().cleanupTitle(),
 				altTitle = null,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
@@ -168,6 +166,7 @@ internal abstract class GalleryAdultsParser(
 		}
 		return manga.copy(
 			tags = tag.orEmpty(),
+			title = doc.selectFirst("h1.title")?.textOrNull()?.cleanupTitle() ?: manga.title,
 			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
 			chapters = listOf(
 				MangaChapter(
@@ -212,6 +211,10 @@ internal abstract class GalleryAdultsParser(
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.requireElementById(idImg).src() ?: doc.parseFailed("Image src not found")
 	}
+
+	protected fun String.cleanupTitle() = replace(regexBrackets, "")
+		.replace(regexSpaces, " ")
+		.trim()
 
 	protected open fun Locale.toLanguagePath() = when (language) {
 		else -> getDisplayLanguage(Locale.ENGLISH).lowercase()

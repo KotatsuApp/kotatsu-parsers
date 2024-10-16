@@ -209,7 +209,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		return getDetails(mangaId)
 	}
 
-	override suspend fun resolveLink(link: HttpUrl): Manga? {
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
 		val regex = Regex("[0-9a-f\\-]{10,}", RegexOption.IGNORE_CASE)
 		val mangaId = link.pathSegments.find { regex.matches(it) } ?: return null
 		return getDetails(mangaId)

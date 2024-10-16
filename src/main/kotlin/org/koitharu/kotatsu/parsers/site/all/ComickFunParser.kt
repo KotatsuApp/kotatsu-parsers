@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
+import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -248,6 +249,11 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
+	}
+
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val slug = link.pathSegments.lastOrNull() ?: return null
+		return resolver.resolveManga(this, url = slug, id = generateUid(slug))
 	}
 
 	private val tagsArray = SuspendLazy(::loadTags)

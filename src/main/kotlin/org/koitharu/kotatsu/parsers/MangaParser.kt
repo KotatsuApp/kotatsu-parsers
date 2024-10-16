@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
 import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.FaviconParser
+import org.koitharu.kotatsu.parsers.util.LinkResolver
 import org.koitharu.kotatsu.parsers.util.RelatedMangaFinder
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
@@ -111,5 +112,5 @@ public abstract class MangaParser @InternalParsersApi constructor(
 	 * Return [Manga] object by web link to it
 	 * @see [Manga.publicUrl]
 	 */
-	public open suspend fun resolveLink(link: HttpUrl): Manga? = null
+	internal open suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? = null
 }

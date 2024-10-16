@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.ru
 
 import androidx.collection.ArrayMap
 import okhttp3.Headers
+import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -157,6 +158,15 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				url = jo.getString("img"),
 			)
 		}
+	}
+
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val doc = webClient.httpGet(link).parseHtml()
+		val mangaId = doc.getElementsByAttribute("data-manga_id").firstNotNullOfOrNull { element ->
+			element.attrOrNull("data-manga_id")
+		} ?: return null
+		val title = doc.metaValue("headline") ?: return null
+		return resolver.resolveManga(this, id = generateUid(mangaId), url = "/manga/api/$mangaId", title = title)
 	}
 
 	private fun getSortKey(sortOrder: SortOrder) =

@@ -89,7 +89,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
-				title = div.select(selectGalleryTitle).text().trim(),
+				title = div.select(selectGalleryTitle).text().cleanupTitle(),
 				altTitle = null,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),

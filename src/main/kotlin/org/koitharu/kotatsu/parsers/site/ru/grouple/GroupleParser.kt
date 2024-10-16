@@ -52,7 +52,10 @@ internal abstract class GroupleParser(
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 	private val tagsIndex = SuspendLazy(::fetchTagsMap)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
+	override fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("User-Agent", config[userAgentKey])
+		.add("Accept-Language", "ru,en-US;q=0.7,en;q=0.3")
+		.build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -130,6 +133,7 @@ internal abstract class GroupleParser(
 		}
 		return manga.copy(
 			source = newSource,
+			title = doc.metaValue("name") ?: manga.title,
 			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
 				?: manga.altTitle,
 			publicUrl = response.request.url.toString(),

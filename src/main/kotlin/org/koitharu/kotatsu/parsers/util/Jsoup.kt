@@ -179,3 +179,8 @@ public fun Element.src(
 	}
 	return null
 }
+
+public fun Element.metaValue(itemprop: String) = getElementsByAttributeValue("itemprop", itemprop)
+	.firstNotNullOfOrNull { element ->
+		element.attrOrNull("content")
+	}
