@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 @Broken
 @MangaSourceParser("TOPTRUYENVIET", "TopTruyen.pro", "vi")
 internal class TopTruyenViet(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.TOPTRUYENVIET, "www.toptruyen68.pro", 36) {
+	WpComicsParser(context, MangaParserSource.TOPTRUYENVIET, "www.toptruyenww.pro", 36) {
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
