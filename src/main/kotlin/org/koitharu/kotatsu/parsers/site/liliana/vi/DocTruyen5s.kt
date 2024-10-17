@@ -16,10 +16,7 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val fullUrl = chapter.url.toAbsoluteUrl(domain)
         val doc = webClient.httpGet(fullUrl).parseHtml()
-
-        val script = doc.selectFirst("script:containsData(const CHAPTER_ID)")?.data()
-            ?: throw Exception("Failed to get chapter id")
-
+        val script = doc.selectFirstOrThrow("script:containsData(const CHAPTER_ID)")?.data()
         val chapterId = script.substringAfter("const CHAPTER_ID = ").substringBefore(';')
 
         val ajaxUrl = buildString {
@@ -32,7 +29,7 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
         val responseJson = webClient.httpGet(ajaxUrl).parseJson()
 
         if (!responseJson.optBoolean("status", false)) {
-            throw Exception(responseJson.optString("msg"))
+            throw IllegalStateException(responseJson.optString("msg"))
         }
 
         val pageListDoc = Jsoup.parse(responseJson.getString("html"))
