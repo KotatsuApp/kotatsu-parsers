@@ -248,7 +248,7 @@ internal abstract class ZeistMangaParser(
 			chapterRegex
 				.find(script.html())
 				?.groupValues?.get(1)
-				?: throw Exception("Failed to find chapter feed")
+				?: doc.parseFailed("Failed to find chapter feed")
 
 		} else if (doc.selectFirst("#clwd > script") != null) {
 			val chapterRegex = """clwd\.run\('([^']+)'""".toRegex()
@@ -257,7 +257,7 @@ internal abstract class ZeistMangaParser(
 			chapterRegex
 				.find(script.html())
 				?.groupValues?.get(1)
-				?: throw Exception("Failed to find chapter feed")
+				?: doc.parseFailed("Failed to find chapter feed")
 
 		} else if (doc.selectFirst("#chapterlist") != null) {
 			doc.selectFirstOrThrow("#chapterlist").attr("data-post-title")

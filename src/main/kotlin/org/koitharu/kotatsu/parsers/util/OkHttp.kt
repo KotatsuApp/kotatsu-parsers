@@ -7,6 +7,8 @@ import okhttp3.Call
 import okhttp3.Headers
 import okhttp3.Response
 import okhttp3.ResponseBody
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 public suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
 	val callback = ContinuationCallCallback(this, continuation)
@@ -39,8 +41,13 @@ public fun Response.Builder.setHeader(name: String, value: String?): Response.Bu
 	header(name, value)
 }
 
-public inline fun Response.map(mapper: (ResponseBody) -> ResponseBody): Response = body?.use { responseBody ->
-	newBuilder()
-		.body(mapper(responseBody))
-		.build()
-} ?: this
+public inline fun Response.map(mapper: (ResponseBody) -> ResponseBody): Response {
+	contract {
+		callsInPlace(mapper, InvocationKind.AT_MOST_ONCE)
+	}
+	return body?.use { responseBody ->
+		newBuilder()
+			.body(mapper(responseBody))
+			.build()
+	} ?: this
+}

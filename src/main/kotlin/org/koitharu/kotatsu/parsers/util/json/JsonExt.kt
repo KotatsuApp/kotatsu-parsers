@@ -6,7 +6,7 @@ import org.json.JSONObject
 import java.util.*
 import kotlin.contracts.contract
 
-inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONTo(
+public inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONTo(
 	destination: C,
 	block: (JSONObject) -> R,
 ): C {
@@ -18,7 +18,7 @@ inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONTo(
 	return destination
 }
 
-inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONNotNullTo(
+public inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONNotNullTo(
 	destination: C,
 	block: (JSONObject) -> R?,
 ): C {
@@ -30,15 +30,15 @@ inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONNotNullTo(
 	return destination
 }
 
-inline fun <T> JSONArray.mapJSON(block: (JSONObject) -> T): List<T> {
+public inline fun <T> JSONArray.mapJSON(block: (JSONObject) -> T): List<T> {
 	return mapJSONTo(ArrayList(length()), block)
 }
 
-inline fun <T> JSONArray.mapJSONNotNull(block: (JSONObject) -> T?): List<T> {
+public inline fun <T> JSONArray.mapJSONNotNull(block: (JSONObject) -> T?): List<T> {
 	return mapJSONNotNullTo(ArrayList(length()), block)
 }
 
-fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> {
+public fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> {
 	val len = length()
 	val result = ArrayList<T>(len)
 	for (i in 0 until len) {
@@ -48,13 +48,13 @@ fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> {
 	return result
 }
 
-fun JSONObject.getStringOrNull(name: String): String? = opt(name)?.takeUnless {
+public fun JSONObject.getStringOrNull(name: String): String? = opt(name)?.takeUnless {
 	it === JSONObject.NULL
 }?.toString()?.takeUnless {
 	it.isEmpty()
 }
 
-fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean {
+public fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean {
 	return when (val rawValue = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Boolean -> rawValue
@@ -64,7 +64,7 @@ fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean
 	}
 }
 
-fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
+public fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
 	return when (val rawValue = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Long -> rawValue
@@ -74,7 +74,7 @@ fun JSONObject.getLongOrDefault(name: String, defaultValue: Long): Long {
 	}
 }
 
-fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
+public fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
 	return when (val rawValue = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Int -> rawValue
@@ -84,7 +84,7 @@ fun JSONObject.getIntOrDefault(name: String, defaultValue: Int): Int {
 	}
 }
 
-fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
+public fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
 	return when (val rawValue = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Double -> rawValue
@@ -94,7 +94,7 @@ fun JSONObject.getDoubleOrDefault(name: String, defaultValue: Double): Double {
 	}
 }
 
-fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Float {
+public fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Float {
 	return when (val rawValue = opt(name)) {
 		null, JSONObject.NULL -> defaultValue
 		is Float -> rawValue
@@ -104,23 +104,21 @@ fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Float {
 	}
 }
 
-fun JSONArray.JSONIterator(): Iterator<JSONObject> = JSONIterator(this)
+@Deprecated("")
+public fun JSONArray.JSONIterator(): Iterator<JSONObject> = JSONIterator(this)
 
-fun JSONArray.stringIterator(): Iterator<String> = JSONStringIterator(this)
+@Deprecated("")
+public fun JSONArray.stringIterator(): Iterator<String> = JSONStringIterator(this)
 
-fun <T> JSONArray.mapJSONToSet(block: (JSONObject) -> T): Set<T> {
-	val len = length()
-	val result = ArraySet<T>(len)
-	for (i in 0 until len) {
-		val jo = getJSONObject(i)
-		result.add(block(jo))
-	}
-	return result
+public inline fun <T> JSONArray.mapJSONToSet(mapper: (JSONObject) -> T): Set<T> {
+	return mapJSONTo(ArraySet<T>(length()), mapper)
 }
 
-fun JSONObject.values(): Iterator<Any> = JSONValuesIterator(this)
+@Deprecated("")
+public fun JSONObject.values(): Iterator<Any> = JSONValuesIterator(this)
 
-fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
+@Deprecated("")
+public fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
 	val destination = LinkedHashMap<String, JSONObject>(length())
 	repeat(length()) { i ->
 		val item = getJSONObject(i)
@@ -138,10 +136,12 @@ public fun JSONArray?.isNullOrEmpty(): Boolean {
 	return this == null || this.length() == 0
 }
 
-fun JSONArray.toJSONList(): List<JSONObject> {
+@Deprecated("")
+public fun JSONArray.toJSONList(): List<JSONObject> {
 	return List(length()) { i -> getJSONObject(i) }
 }
 
-inline fun <reified T> JSONArray.asIterable(): Iterable<T> = Iterable {
+@Deprecated("")
+public inline fun <reified T> JSONArray.asIterable(): Iterable<T> = Iterable {
 	JSONTypedIterator(this, T::class.java)
 }

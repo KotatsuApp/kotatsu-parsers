@@ -78,19 +78,9 @@ public class FaviconParser(
 		)
 	}
 
-	private fun String.resolveLink(): String {
-		return when {
-			startsWith("http:") || startsWith("https:") -> {
-				this
-			}
-
-			startsWith('/') -> {
-				"https://$domain$this"
-			}
-
-			else -> {
-				"https://$domain/$this"
-			}
-		}
+	private fun String.resolveLink(): String = when {
+		startsWith("http:") || startsWith("https:") -> this
+		startsWith('/') -> "https://$domain$this"
+		else -> "https://$domain/$this"
 	}
 }

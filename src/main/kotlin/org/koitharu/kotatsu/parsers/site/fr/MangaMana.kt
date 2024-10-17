@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
@@ -61,9 +62,10 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						return emptyList()
 					}
 					val domainCdn = "cdn" + domain.removePrefix("www")
-					val json = webClient.httpGet("https://$domain/search-live?q=${filter.query}").parseJsonArray()
+					val url = "https://$domain/search-live?q=${filter.query.urlEncoded()}"
+					val json = webClient.httpGet(url).parseJsonArray()
 					return json.mapJSON { jo ->
-						val slug = jo.getString("slug") ?: throw Exception("Missing Slug")
+						val slug = jo.getString("slug") ?: throw ParseException("Missing Slug", url)
 						val url = "https://$domain/m/$slug"
 						val img = "https://$domainCdn/uploads/manga/$slug/cover/cover_thumb.jpg"
 						Manga(

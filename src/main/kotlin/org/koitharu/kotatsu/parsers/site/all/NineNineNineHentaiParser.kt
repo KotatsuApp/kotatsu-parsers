@@ -20,7 +20,7 @@ import java.util.*
 
 @MangaSourceParser("NINENINENINEHENTAI", "AnimeH", type = ContentType.HENTAI)
 internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, size), Interceptor {
+	PagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, PAGE_SIZE), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("animeh.to")
 
@@ -126,7 +126,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 	): List<Manga> {
 		val query = """
 			queryPopularChapters(
-				size: $size
+				size: $PAGE_SIZE
 				language: "${locale.getSiteLang()}"
 				dateRange: 1
 				page: $page
@@ -167,7 +167,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		}
 		val query = """
 			queryChapters(
-				limit: $size
+				limit: $PAGE_SIZE
 				search: {$searchPayload}
 				page: $page
 			) {
@@ -322,7 +322,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 				_id: "${seed.url}"
 				search: {sortBy:Popular}
 				page: 1
-				size: $size
+				size: $PAGE_SIZE
 			) {
 				chapters {
 					_id
@@ -384,7 +384,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 	}
 
 	companion object {
-		private const val size = 20
+		private const val PAGE_SIZE = 20
 		private val shortenTitleRegex = Regex("""(\[[^]]*]|[({][^)}]*[)}])""")
 		private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
 	}
