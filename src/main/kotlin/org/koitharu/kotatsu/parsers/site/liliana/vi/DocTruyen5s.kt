@@ -17,7 +17,8 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
         val fullUrl = chapter.url.toAbsoluteUrl(domain)
         val doc = webClient.httpGet(fullUrl).parseHtml()
         val script = doc.selectFirstOrThrow("script:containsData(const CHAPTER_ID)")?.data()
-        val chapterId = script.substringAfter("const CHAPTER_ID = ").substringBefore(';')
+        val chapterId = script?.substringAfter("const CHAPTER_ID = ")?.substringBefore(';')
+            ?: throw IllegalStateException("Không thể tìm thấy CHAPTER_ID, hãy kiểm tra nguồn")
 
         val ajaxUrl = buildString {
             append("https://")
