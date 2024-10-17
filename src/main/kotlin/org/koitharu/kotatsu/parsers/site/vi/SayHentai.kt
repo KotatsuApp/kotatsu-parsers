@@ -93,10 +93,10 @@ internal class SayHentai(context: MangaLoaderContext) : PagedMangaParser(context
         return manga.copy(
             altTitle = doc.selectFirst("h2.other-name")?.text(),
             author = doc.selectFirst("div.summary-heading:contains(Tác giả) + div.summary-content")?.text(),
-            tags = doc.select("div.genres-content a[rel=tag]").mapNotNullToSet { a ->
+            tags = doc.select("div.genres-content a[rel=tag]").mapToSet { a ->
                 MangaTag(
-                    key = a.attr("href").substringAfterLast("/"),
-                    title = a.text(),
+                    key = a.attr("href").substringAfterLast('/'),
+                    title = a.text().toTitleCase(sourceLocale),
                     source = source
                 )
             },
@@ -166,8 +166,8 @@ internal class SayHentai(context: MangaLoaderContext) : PagedMangaParser(context
         return tagsCache.get() ?: run {
             val tags = webClient.httpGet("https://$domain/genre").parseHtml()
                 .select("ul.page-genres li a")
-                .mapNotNullToSet { a ->
-                    val title = a.ownText().trim()
+                .mapToSet { a ->
+                    val title = a.ownText().toTitleCase(sourceLocale)
                     MangaTag(
                         key = a.attr("href").substringAfterLast("/"),
                         title = title,
