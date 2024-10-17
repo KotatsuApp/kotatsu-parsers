@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.Broken
 @MangaSourceParser("LXMANGA", "LxManga", "vi")
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.ink")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.online")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
