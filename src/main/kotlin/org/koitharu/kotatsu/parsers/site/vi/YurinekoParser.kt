@@ -7,7 +7,10 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -93,7 +96,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 		val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 		return manga.copy(
 			chapters = response.getJSONArray("chapters")
-				.toJSONList()
+				.asTypedList<JSONObject>()
 				.mapChapters(true) { i, jo ->
 					val mangaId = jo.getInt("mangaID")
 					val chapterId = jo.getInt("id")
@@ -120,7 +123,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 			.getJSONObject("pageProps")
 			.getJSONObject("chapterData")
 			.getJSONArray("url")
-			.asIterable<String>()
+			.asTypedList<String>()
 			.map { url ->
 				MangaPage(
 					id = generateUid(url),

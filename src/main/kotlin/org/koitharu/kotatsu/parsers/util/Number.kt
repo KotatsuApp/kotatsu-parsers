@@ -5,6 +5,8 @@ package org.koitharu.kotatsu.parsers.util
 import java.text.DecimalFormat
 import java.text.NumberFormat
 import java.util.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.absoluteValue
 
 public fun Number.format(decimals: Int = 0, decPoint: Char = '.', thousandsSep: Char? = ' '): String {
@@ -56,8 +58,14 @@ public fun Number.formatSimple(): String {
 	}
 }
 
-public inline fun Int.ifZero(defaultVale: () -> Int): Int = if (this == 0) {
-	defaultVale()
-} else {
-	this
+public inline fun Int.ifZero(defaultVale: () -> Int): Int {
+	contract {
+		callsInPlace(defaultVale, InvocationKind.AT_MOST_ONCE)
+	}
+	@Suppress("KotlinConstantConditions")
+	return if (this == 0) {
+		defaultVale()
+	} else {
+		this
+	}
 }

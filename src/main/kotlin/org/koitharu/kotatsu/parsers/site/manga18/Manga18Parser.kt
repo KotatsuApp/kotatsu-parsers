@@ -80,14 +80,12 @@ internal abstract class Manga18Parser(
 				}
 			}
 
-			if (filter.query != null) {
-				filter.query.let {
-					append(listUrl)
-					append(page.toString())
-					append("?search=")
-					append(filter.query.urlEncoded())
-					append("&order_by=latest")
-				}
+			if (!filter.query.isNullOrEmpty()) {
+				append(listUrl)
+				append(page.toString())
+				append("?search=")
+				append(filter.query.urlEncoded())
+				append("&order_by=latest")
 			}
 
 			append("?order_by=")

@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.zeistmanga
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
+import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.ErrorMessages
@@ -11,8 +12,9 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -150,10 +152,11 @@ internal abstract class ZeistMangaParser(
 	}
 
 	protected open fun parseMangaList(json: JSONArray): List<Manga> {
-		return json.toJSONList().map { j ->
+		return json.mapJSON { j ->
 			val name = j.getJSONObject("title").getString("\$t")
 			val href =
-				j.getJSONArray("link").toJSONList().first { it.getString("rel") == "alternate" }.getString("href")
+				j.getJSONArray("link").asTypedList<JSONObject>().first { it.getString("rel") == "alternate" }
+					.getString("href")
 			val urlImg = if (j.toString().contains("media\$thumbnail")) {
 				j.getJSONObject("media\$thumbnail").getStringOrNull("url")
 					?.replace("""/s.+?-c/""".toRegex(), "/w600/")
@@ -248,7 +251,7 @@ internal abstract class ZeistMangaParser(
 			chapterRegex
 				.find(script.html())
 				?.groupValues?.get(1)
-				?: throw Exception("Failed to find chapter feed")
+				?: doc.parseFailed("Failed to find chapter feed")
 
 		} else if (doc.selectFirst("#clwd > script") != null) {
 			val chapterRegex = """clwd\.run\('([^']+)'""".toRegex()
@@ -257,7 +260,7 @@ internal abstract class ZeistMangaParser(
 			chapterRegex
 				.find(script.html())
 				?.groupValues?.get(1)
-				?: throw Exception("Failed to find chapter feed")
+				?: doc.parseFailed("Failed to find chapter feed")
 
 		} else if (doc.selectFirst("#chapterlist") != null) {
 			doc.selectFirstOrThrow("#chapterlist").attr("data-post-title")
@@ -274,12 +277,14 @@ internal abstract class ZeistMangaParser(
 			append("?alt=json&orderby=published&max-results=9999")
 		}
 		val json =
-			webClient.httpGet(url).parseJson().getJSONObject("feed").getJSONArray("entry").toJSONList().reversed()
+			webClient.httpGet(url).parseJson().getJSONObject("feed").getJSONArray("entry").asTypedList<JSONObject>()
+				.reversed()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return json.mapIndexedNotNull { i, j ->
 			val name = j.getJSONObject("title").getString("\$t")
 			val href =
-				j.getJSONArray("link").toJSONList().first { it.getString("rel") == "alternate" }.getString("href")
+				j.getJSONArray("link").asTypedList<JSONObject>().first { it.getString("rel") == "alternate" }
+					.getString("href")
 			val dateText = j.getJSONObject("published").getString("\$t").substringBefore("T")
 			val slug = mangaUrl.substringAfterLast('/')
 			val slugChapter = href.substringAfterLast('/')

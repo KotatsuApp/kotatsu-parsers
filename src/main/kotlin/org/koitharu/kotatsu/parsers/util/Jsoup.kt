@@ -10,7 +10,7 @@ import org.jsoup.select.Selector
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.exception.ParseException
 
-val Element.host: String?
+public val Element.host: String?
 	get() {
 		val uri = baseUri()
 		return if (uri.isEmpty()) {
@@ -24,14 +24,14 @@ val Element.host: String?
  * Return an attribute value or null if it is missing or empty
  * @see [Element.attr] which returns empty string instead of null
  */
-fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isBlank() }?.trim()
+public fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isBlank() }?.trim()
 
 
 /**
  * Return an attribute value or throw an exception if it is missing
  * @see [Element.attr] which returns empty string instead
  */
-fun Element.attrOrThrow(attributeKey: String): String = if (hasAttr(attributeKey)) {
+public fun Element.attrOrThrow(attributeKey: String): String = if (hasAttr(attributeKey)) {
 	attr(attributeKey)
 } else {
 	throw ParseException("Attribute \"$attributeKey\" is missing at element \"$this\"", baseUri())
@@ -43,7 +43,7 @@ fun Element.attrOrThrow(attributeKey: String): String = if (hasAttr(attributeKey
  * @see attrAsAbsoluteUrlOrNull
  * @see attrAsAbsoluteUrl
  */
-fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
+public fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
 	val attr = attrOrNull(attributeKey) ?: return null
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
@@ -62,7 +62,7 @@ fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
  * @see attrAsAbsoluteUrlOrNull
  * @see attrAsAbsoluteUrl
  */
-fun Element.attrAsRelativeUrl(attributeKey: String): String {
+public fun Element.attrAsRelativeUrl(attributeKey: String): String {
 	return requireNotNull(attrAsRelativeUrlOrNull(attributeKey)) {
 		"Cannot get relative url for $attributeKey: \"${attr(attributeKey)}\""
 	}
@@ -74,7 +74,7 @@ fun Element.attrAsRelativeUrl(attributeKey: String): String {
  * @see attrAsRelativeUrl
  * @see attrAsRelativeUrlOrNull
  */
-fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
+public fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
 	val attr = attrOrNull(attributeKey) ?: return null
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
@@ -89,7 +89,7 @@ fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
  * @see attrAsRelativeUrl
  * @see attrAsRelativeUrlOrNull
  */
-fun Element.attrAsAbsoluteUrl(attributeKey: String): String {
+public fun Element.attrAsAbsoluteUrl(attributeKey: String): String {
 	return requireNotNull(attrAsAbsoluteUrlOrNull(attributeKey)) {
 		"Cannot get absolute url for $attributeKey: \"${attr(attributeKey)}\""
 	}
@@ -98,7 +98,7 @@ fun Element.attrAsAbsoluteUrl(attributeKey: String): String {
 /**
  * Return css value from `style` attribute or null if it is missing
  */
-fun Element.styleValueOrNull(property: String): String? {
+public fun Element.styleValueOrNull(property: String): String? {
 	val regex = Regex("${Regex.escape(property)}\\s*:\\s*[^;]+")
 	val css = attr("style").find(regex) ?: return null
 	return css.substringAfter(':').removeSuffix(';').trim()
@@ -107,33 +107,33 @@ fun Element.styleValueOrNull(property: String): String? {
 /**
  * Like a `expectFirst` but with detailed error message
  */
-fun Element.selectFirstOrThrow(cssQuery: String): Element {
+public fun Element.selectFirstOrThrow(cssQuery: String): Element {
 	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
 }
 
-fun Element.selectOrThrow(cssQuery: String): Elements {
+public fun Element.selectOrThrow(cssQuery: String): Elements {
 	return Selector.select(cssQuery, this).ifEmpty {
 		throw ParseException("Empty result for \"$cssQuery\"", baseUri())
 	}
 }
 
-fun Element.requireElementById(id: String): Element {
+public fun Element.requireElementById(id: String): Element {
 	return getElementById(id) ?: throw ParseException("Cannot find \"#$id\"", baseUri())
 }
 
-fun Element.selectLast(cssQuery: String): Element? {
+public fun Element.selectLast(cssQuery: String): Element? {
 	return select(cssQuery).lastOrNull()
 }
 
-fun Element.selectLastOrThrow(cssQuery: String): Element {
+public fun Element.selectLastOrThrow(cssQuery: String): Element {
 	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
 }
 
-fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
+public fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
 
-fun Element.ownTextOrNull(): String? = ownText().takeUnless { it.isEmpty() }
+public fun Element.ownTextOrNull(): String? = ownText().takeUnless { it.isEmpty() }
 
-fun Element.selectFirstParent(query: String): Element? {
+public fun Element.selectFirstParent(query: String): Element? {
 	val selector = QueryParser.parse(query)
 	val parents = parents()
 	val root = parents.lastOrNull() ?: return null
@@ -145,7 +145,7 @@ fun Element.selectFirstParent(query: String): Element? {
 /**
  * Return a first non-empty attribute value of [names] or null if it is missing or empty
  */
-fun Element.attrOrNull(vararg names: String): String? {
+public fun Element.attrOrNull(vararg names: String): String? {
 	for (name in names) {
 		val value = attr(name)
 		if (value.isNotEmpty()) {

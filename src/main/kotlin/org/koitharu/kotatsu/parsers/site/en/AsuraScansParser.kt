@@ -3,13 +3,14 @@ package org.koitharu.kotatsu.parsers.site.en
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -135,7 +136,8 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 		tagCache?.let { return@withLock it }
 		val tagMap = ArrayMap<String, MangaTag>()
 		val json =
-			webClient.httpGet("https://gg.$domain/api/series/filters").parseJson().getJSONArray("genres").toJSONList()
+			webClient.httpGet("https://gg.$domain/api/series/filters").parseJson().getJSONArray("genres")
+				.asTypedList<JSONObject>()
 		for (el in json) {
 			if (el.getString("name").isEmpty()) continue
 			tagMap[el.getString("name")] = MangaTag(

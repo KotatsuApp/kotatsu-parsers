@@ -12,10 +12,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getDomain
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
-import org.koitharu.kotatsu.parsers.util.json.stringIterator
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
@@ -281,7 +281,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		}
 
 		val result = ArraySet<MangaTag>(length())
-		stringIterator().forEach {
+		asTypedList<String>().forEach {
 			result.add(
 				MangaTag(
 					title = toTitle(it),

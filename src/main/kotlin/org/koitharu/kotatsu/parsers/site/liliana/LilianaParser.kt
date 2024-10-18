@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
 import java.util.*
 
 internal abstract class LilianaParser(
@@ -148,7 +149,7 @@ internal abstract class LilianaParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			description = doc.selectFirst("div#syn-target")?.text(),
+			description = doc.selectFirst("div#syn-target")?.html(),
 			largeCoverUrl = doc.selectFirst(".a1 > figure img")?.src(),
 			tags = doc.select(".a2 div > a[rel='tag'].label").mapToSet { a ->
 				MangaTag(
@@ -157,7 +158,7 @@ internal abstract class LilianaParser(
 					source = source,
 				)
 			},
-			author = doc.selectFirst("div.y6x11p i.fas.fa-user + span.dt")?.text()?.takeUnless {
+			author = doc.selectFirst("div.y6x11p i.fas.fa-user + span.dt")?.textOrNull()?.takeUnless {
 				it.equals("updating", true)
 			},
 			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase().orEmpty()) {
@@ -167,7 +168,7 @@ internal abstract class LilianaParser(
 				in abandoned -> MangaState.ABANDONED
 				else -> null
 			},
-			chapters = doc.select("ul > li.chapter").mapChapters(reversed = true) { i, element ->
+			chapters = doc.selectOrThrow("ul > li.chapter").mapChapters(reversed = true) { i, element ->
 				val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
@@ -180,8 +181,7 @@ internal abstract class LilianaParser(
 						?: 0L,
 					branch = null,
 					source = source,
-
-					)
+				)
 			},
 		)
 	}
@@ -190,10 +190,10 @@ internal abstract class LilianaParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		val script = doc.selectFirst("script:containsData(const CHAPTER_ID)")?.data()
-			?: throw Exception("Failed to get chapter id")
+		val script = doc.selectFirstOrThrow("script:containsData(const CHAPTER_ID)").data()
 
-		val chapterId = script.substringAfter("const CHAPTER_ID = ").substringBefore(';')
+		val chapterId = script.substringAfter("const CHAPTER_ID = ", "").substringBefore(';', "")
+		check(chapterId.isNotEmpty()) { "Failed to get chapter id" }
 
 		val ajaxUrl = buildString {
 			append("https://")
@@ -204,13 +204,11 @@ internal abstract class LilianaParser(
 
 		val responseJson = webClient.httpGet(ajaxUrl).parseJson()
 
-		if (!responseJson.optBoolean("status", false)) {
-			throw Exception(responseJson.optString("msg"))
-		}
+		check(responseJson.getBooleanOrDefault("status", false)) { responseJson.getString("msg") }
 
-		val pageListDoc = responseJson.getString("html").let(Jsoup::parse)
+		val pageListDoc = Jsoup.parse(responseJson.getString("html"))
 
-		return pageListDoc.select("div").map {
+		return pageListDoc.selectOrThrow("div").map {
 			val url = it.selectFirstOrThrow("img").attr("src")
 			MangaPage(
 				id = generateUid(url),

@@ -86,7 +86,7 @@ internal abstract class LineWebtoonsParser(
 		val episodes = firstResult
 			.getJSONObject("episodeList")
 			.getJSONArray("episode")
-			.toJSONList()
+			.asTypedList<JSONObject>()
 			.toMutableList()
 
 		while (episodes.count() < totalEpisodeCount) {
@@ -94,7 +94,7 @@ internal abstract class LineWebtoonsParser(
 				url = "/lineWebtoon/webtoon/challengeEpisodeList.json?v=2&titleNo=$titleNo&startIndex=${episodes.count()}&pageSize=30",
 			).getJSONObject("episodeList")
 				.getJSONArray("episode")
-				.toJSONList()
+				.asTypedList<JSONObject>()
 
 			episodes.addAll(page)
 		}

@@ -202,7 +202,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			url = "https://api.${domain}/comic/$hid/chapters?limit=$CHAPTERS_LIMIT",
 		).parseJson().getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd")
-		return ja.toJSONList().reversed().mapChapters { _, jo ->
+		return ja.asTypedList<JSONObject>().reversed().mapChapters { _, jo ->
 			val vol = jo.getIntOrDefault("vol", 0)
 			val chap = jo.getFloatOrDefault("chap", 0f)
 			val locale = Locale.forLanguageTag(jo.getString("lang"))
@@ -227,7 +227,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				number = chap,
 				volume = vol,
 				url = jo.getString("hid"),
-				scanlator = jo.optJSONArray("group_name")?.asIterable<String>()?.joinToString()
+				scanlator = jo.optJSONArray("group_name")?.asTypedList<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },
 				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
 				branch = branch,
@@ -270,7 +270,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 	private suspend fun loadTags(): SparseArrayCompat<MangaTag> {
 		val ja = webClient.httpGet("https://api.${domain}/genre").parseJsonArray()
 		val tags = SparseArrayCompat<MangaTag>(ja.length())
-		for (jo in ja.JSONIterator()) {
+		for (jo in ja.asTypedList<JSONObject>()) {
 			tags.append(
 				jo.getInt("id"),
 				MangaTag(

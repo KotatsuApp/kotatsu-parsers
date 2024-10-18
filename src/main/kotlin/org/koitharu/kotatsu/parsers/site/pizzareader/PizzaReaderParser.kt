@@ -8,9 +8,10 @@ import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -209,10 +210,10 @@ internal abstract class PizzaReaderParser(
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val json = webClient.httpGet(fullUrl).parseJson().getJSONObject("comic")
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
-		val chapters = JSONArray(json.getJSONArray("chapters").toJSONList().reversed())
+		val chapters = JSONArray(json.getJSONArray("chapters").asTypedList<JSONObject>().reversed())
 
 		manga.copy(
-			tags = json.getJSONArray("genres").toJSONList().mapNotNullToSet {
+			tags = json.getJSONArray("genres").mapJSONToSet {
 				MangaTag(
 					key = it.getString("slug"),
 					title = it.getString("name"),

@@ -410,9 +410,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		for (i in 0.until(numberOfKeys)) {
 			val keySize = buffer.int
 
-			if (keySize == 0 || keySize > 32) {
-				throw Exception("fatal: !keySize || keySize > 32")
-			}
+			check(keySize in 1..32) { "Invalid key size $keySize" }
 
 			keys.add(uData.sliceArray(buffer.position().until(buffer.position() + keySize)))
 			buffer.position(buffer.position() + keySize)
@@ -482,14 +480,14 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 						title = doc.selectFirstOrThrow("h1").text(),
 						url = id.toString(),
 						coverUrl =
-						"https:" +
-							doc.selectFirstOrThrow("picture > source")
-								.attr("data-srcset")
-								.substringBefore(" "),
+							"https:" +
+								doc.selectFirstOrThrow("picture > source")
+									.attr("data-srcset")
+									.substringBefore(" "),
 						publicUrl =
-						doc.selectFirstOrThrow("h1 > a")
-							.attrAsRelativeUrl("href")
-							.toAbsoluteUrl(domain),
+							doc.selectFirstOrThrow("h1 > a")
+								.attrAsRelativeUrl("href")
+								.toAbsoluteUrl(domain),
 						author = null,
 						tags = emptySet(),
 						isNsfw = true,
@@ -512,37 +510,37 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		return manga.copy(
 			title = json.getString("title"),
 			largeCoverUrl =
-			json.getJSONArray("files").getJSONObject(0).let {
-				val hash = it.getString("hash")
-				val commonId = commonImageId()
-				val imageId = imageIdFromHash(hash)
-				val subDomain = 'a' + subdomainOffset(imageId)
+				json.getJSONArray("files").getJSONObject(0).let {
+					val hash = it.getString("hash")
+					val commonId = commonImageId()
+					val imageId = imageIdFromHash(hash)
+					val subDomain = 'a' + subdomainOffset(imageId)
 
-				"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
-			},
+					"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
+				},
 			author =
-			json.optJSONArray("artists")
-				?.mapJSON { it.getString("artist").toCamelCase() }
-				?.joinToString(),
+				json.optJSONArray("artists")
+					?.mapJSON { it.getString("artist").toCamelCase() }
+					?.joinToString(),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
 			tags =
-			buildSet {
-				json.optJSONArray("characters")
-					?.mapToTags("character")
-					?.let(::addAll)
-				json.optJSONArray("tags")
-					?.mapToTags("tag")
-					?.let(::addAll)
-				json.optJSONArray("artists")
-					?.mapToTags("artist")
-					?.let(::addAll)
-				json.optJSONArray("parodys")
-					?.mapToTags("parody")
-					?.let(::addAll)
-				json.optJSONArray("groups")
-					?.mapToTags("group")
-					?.let(::addAll)
-			},
+				buildSet {
+					json.optJSONArray("characters")
+						?.mapToTags("character")
+						?.let(::addAll)
+					json.optJSONArray("tags")
+						?.mapToTags("tag")
+						?.let(::addAll)
+					json.optJSONArray("artists")
+						?.mapToTags("artist")
+						?.let(::addAll)
+					json.optJSONArray("parodys")
+						?.mapToTags("parody")
+						?.let(::addAll)
+					json.optJSONArray("groups")
+						?.mapToTags("group")
+						?.let(::addAll)
+				},
 			chapters = listOf(
 				MangaChapter(
 					id = generateUid(manga.url),
@@ -566,15 +564,15 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		mapJSON {
 			MangaTag(
 				title =
-				it.getString(key).toCamelCase().let { title ->
-					if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
-						"$title ♀"
-					} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
-						"$title ♂"
-					} else {
-						title
-					}
-				},
+					it.getString(key).toCamelCase().let { title ->
+						if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
+							"$title ♀"
+						} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
+							"$title ♂"
+						} else {
+							title
+						}
+					},
 				key = it.getString("url").tagUrlToTag(),
 				source = source,
 			).let(tags::add)
@@ -681,11 +679,12 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		return hash.replace(Regex("""^.*(..)(.)$"""), "$2/$1")
 	}
 
-	private suspend fun subdomainFromURL(url: String, base: String? = null): String {
+	private suspend fun subdomainFromURL(url: String, base: String?): String {
 		var retval = "b"
 
-		if (!base.isNullOrBlank())
+		if (!base.isNullOrBlank()) {
 			retval = base
+		}
 
 		val regex = Regex("""/[0-9a-f]{61}([0-9a-f]{2})([0-9a-f])""")
 		val hashMatch = regex.find(url) ?: return "a"

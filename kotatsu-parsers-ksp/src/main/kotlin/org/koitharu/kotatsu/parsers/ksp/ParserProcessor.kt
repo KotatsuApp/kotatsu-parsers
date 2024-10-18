@@ -10,7 +10,6 @@ import com.google.devtools.ksp.validate
 import java.io.File
 import java.io.Writer
 import java.util.*
-import kotlin.math.log
 
 class ParserProcessor(
 	private val codeGenerator: CodeGenerator,
@@ -76,7 +75,6 @@ class ParserProcessor(
 			
 			""".trimIndent(),
 		)
-		//language=kotlin
 		sourcesWriter?.write(
 			"""
 			package org.koitharu.kotatsu.parsers.model
