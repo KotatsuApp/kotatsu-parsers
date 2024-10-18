@@ -320,7 +320,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		)
 	}
 
-	private fun JSONObject.firstStringValue() = values().next() as String
+	private fun JSONObject.firstStringValue() = entries<String>().first().value
 
 	private fun JSONObject.selectByLocale(): String? {
 		val preferredLocales = context.getPreferredLocales()
@@ -328,7 +328,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			getStringOrNull(locale.language)?.let { return it }
 			getStringOrNull(locale.toLanguageTag())?.let { return it }
 		}
-		return getStringOrNull(LOCALE_FALLBACK) ?: values().nextOrNull() as? String
+		return getStringOrNull(LOCALE_FALLBACK) ?: entries<String>().firstOrNull()?.value
 	}
 
 	private fun JSONArray.flatten(): JSONObject {
@@ -387,7 +387,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		val json = webClient.httpGet(url).parseJson()
 		if (json.getString("result") == "ok") {
 			return Chapters(
-				data = json.optJSONArray("data")?.toJSONList().orEmpty(),
+				data = json.optJSONArray("data")?.asTypedList<JSONObject>().orEmpty(),
 				total = json.getInt("total"),
 			)
 		} else {
@@ -441,6 +441,16 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			}
 		}
 		return chaptersBuilder.toList()
+	}
+
+	private fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
+		val destination = LinkedHashMap<String, JSONObject>(length())
+		repeat(length()) { i ->
+			val item = getJSONObject(i)
+			val keyValue = item.getString(key)
+			destination[keyValue] = item
+		}
+		return destination
 	}
 
 	private class Chapters(

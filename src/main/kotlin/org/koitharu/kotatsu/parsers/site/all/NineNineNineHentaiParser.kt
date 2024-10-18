@@ -11,10 +11,10 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -364,8 +364,8 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			}
 		}
 
-		val pics = pages.getJSONArray("pics").toJSONList()
-		val picsS = pages.getJSONArray("picsS").toJSONList()
+		val pics = pages.getJSONArray("pics").asTypedList<JSONObject>()
+		val picsS = pages.getJSONArray("picsS").asTypedList<JSONObject>()
 
 		return pics.zip(picsS).map {
 			val img = it.first.getString("url")

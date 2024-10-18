@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -132,7 +132,7 @@ internal abstract class IkenParser(
 		val url = "https://$domain/api/chapters?postId=$seriesId&skip=0&take=1000&order=desc&userid="
 		val json = webClient.httpGet(url).parseJson().getJSONObject("post")
 		val slug = json.getString("slug")
-		val data = json.getJSONArray("chapters").toJSONList()
+		val data = json.getJSONArray("chapters").asTypedList<JSONObject>()
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
 		return manga.copy(
 			chapters = data.mapChapters(reversed = true) { i, it ->

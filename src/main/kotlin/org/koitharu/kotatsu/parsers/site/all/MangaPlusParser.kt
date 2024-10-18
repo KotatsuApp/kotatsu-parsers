@@ -14,10 +14,10 @@ import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.util.*
 
 internal abstract class MangaPlusParser(
@@ -68,7 +68,7 @@ internal abstract class MangaPlusParser(
 
 		return json.getJSONObject("titleRankingView")
 			.getJSONArray("titles")
-			.toJSONList()
+			.asTypedList<JSONObject>()
 			.toMangaList()
 	}
 
@@ -86,7 +86,7 @@ internal abstract class MangaPlusParser(
 		apiCall("/title_list/allV2")
 			.getJSONObject("allTitlesViewV2")
 			.getJSONArray("AllTitlesGroup")
-			.mapJSON { it.getJSONArray("titles").toJSONList() }
+			.mapJSON { it.getJSONArray("titles").asTypedList<JSONObject>() }
 			.flatten()
 	}
 
@@ -169,10 +169,10 @@ internal abstract class MangaPlusParser(
 
 	private fun parseChapters(chapterListGroup: JSONArray, language: String): List<MangaChapter> {
 		val chapterList = chapterListGroup
-			.toJSONList()
+			.asTypedList<JSONObject>()
 			.flatMap {
-				it.optJSONArray("firstChapterList")?.toJSONList().orEmpty() +
-					it.optJSONArray("lastChapterList")?.toJSONList().orEmpty()
+				it.optJSONArray("firstChapterList")?.asTypedList<JSONObject>().orEmpty() +
+					it.optJSONArray("lastChapterList")?.asTypedList<JSONObject>().orEmpty()
 			}
 
 		return chapterList.mapChapters { _, chapter ->
@@ -254,7 +254,7 @@ internal abstract class MangaPlusParser(
 		return checkNotNull(success) {
 			val error = response.getJSONObject("error")
 			val reason = error.getJSONArray("popups")
-				.toJSONList()
+				.asTypedList<JSONObject>()
 				.firstOrNull { it.getStringOrNull("language") == null }
 
 			if (reason?.getStringOrNull("subject") == "Not Found" && url.contains("manga_viewer")) {

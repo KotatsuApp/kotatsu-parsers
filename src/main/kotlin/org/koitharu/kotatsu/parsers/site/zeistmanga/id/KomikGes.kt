@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.zeistmanga.id
 
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -8,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("KOMIKGES", "KomikGes", "id")
@@ -25,12 +26,14 @@ internal class KomikGes(context: MangaLoaderContext) :
 			append("?alt=json&orderby=published&max-results=9999")
 		}
 		val json =
-			webClient.httpGet(url).parseJson().getJSONObject("feed").getJSONArray("entry").toJSONList().reversed()
+			webClient.httpGet(url).parseJson().getJSONObject("feed").getJSONArray("entry").asTypedList<JSONObject>()
+				.reversed()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return json.mapIndexedNotNull { i, j ->
 			val name = j.getJSONObject("title").getString("\$t")
 			val href =
-				j.getJSONArray("link").toJSONList().first { it.getString("rel") == "alternate" }.getString("href")
+				j.getJSONArray("link").asTypedList<JSONObject>().first { it.getString("rel") == "alternate" }
+					.getString("href")
 			val dateText = j.getJSONObject("published").getString("\$t").substringBefore("T")
 			val slug = mangaUrl.substringAfterLast('/')
 			val slugChapter = href.substringAfterLast('/')

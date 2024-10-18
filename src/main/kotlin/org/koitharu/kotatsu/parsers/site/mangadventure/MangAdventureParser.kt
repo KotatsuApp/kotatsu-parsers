@@ -131,7 +131,7 @@ internal abstract class MangAdventureParser(
 				"hiatus" -> MangaState.PAUSED
 				else -> null
 			},
-			chapters = chapters?.optJSONArray("results")?.toJSONList()?.mapChapters { _, it ->
+			chapters = chapters?.optJSONArray("results")?.asTypedList<JSONObject>()?.mapChapters { _, it ->
 				MangaChapter(
 					id = generateUid(it.getLong("id")),
 					name = it.getString("full_title"),

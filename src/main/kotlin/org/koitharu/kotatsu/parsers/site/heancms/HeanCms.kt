@@ -7,9 +7,9 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import org.koitharu.kotatsu.parsers.util.json.unescapeJson
 import java.text.SimpleDateFormat
 import java.util.*
@@ -151,7 +151,7 @@ internal abstract class HeanCms(
 		val seriesId = manga.id
 		val url = "https://$apiPath/chapter/query?page=1&perPage=9999&series_id=$seriesId"
 		val response = webClient.httpGet(url).parseJson()
-		val data = response.getJSONArray("data").toJSONList()
+		val data = response.getJSONArray("data").asTypedList<JSONObject>()
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
 		return manga.copy(
 			chapters = data.mapChapters(reversed = true) { i, it ->

@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.en
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -11,8 +12,8 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -167,7 +168,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 		val seriesKey = baseUrl.substringAfterLast("/").substringBefore("-")
 		val json = JSONArray(
 			webClient.httpGet("https://api.$domain/api/v1/webtoon/chapters/$key-desc").parseRaw(),
-		).toJSONList().reversed()
+		).asTypedList<JSONObject>().reversed()
 		return json.mapChapters { i, j ->
 			val url = "https://$domain/read/webtoon/$seriesKey-${j.getString("id")}-${j.getString("slug")}"
 			val date = j.getString("createdAt").substringBeforeLast("T")

@@ -13,9 +13,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
-import org.koitharu.kotatsu.parsers.util.json.toJSONList
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -36,7 +36,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 			webClient.httpGet("https://$domain/search/objects2.json").parseJson()
 		}.recoverCatchingCancellable {
 			webClient.httpGet("https://$domain/search/objects69.json").parseJson()
-		}.getOrThrow().getJSONArray("manga").toJSONList()
+		}.getOrThrow().getJSONArray("manga").asTypedList<JSONObject>()
 	}
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaiukr.com")

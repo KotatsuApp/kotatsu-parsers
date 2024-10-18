@@ -38,6 +38,10 @@ public inline fun <T> JSONArray.mapJSONNotNull(block: (JSONObject) -> T?): List<
 	return mapJSONNotNullTo(ArrayList(length()), block)
 }
 
+public inline fun <T> JSONArray.mapJSONToSet(mapper: (JSONObject) -> T): Set<T> {
+	return mapJSONTo(ArraySet<T>(length()), mapper)
+}
+
 public fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> {
 	val len = length()
 	val result = ArrayList<T>(len)
@@ -104,30 +108,6 @@ public fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Floa
 	}
 }
 
-@Deprecated("")
-public fun JSONArray.JSONIterator(): Iterator<JSONObject> = JSONIterator(this)
-
-@Deprecated("")
-public fun JSONArray.stringIterator(): Iterator<String> = JSONStringIterator(this)
-
-public inline fun <T> JSONArray.mapJSONToSet(mapper: (JSONObject) -> T): Set<T> {
-	return mapJSONTo(ArraySet<T>(length()), mapper)
-}
-
-@Deprecated("")
-public fun JSONObject.values(): Iterator<Any> = JSONValuesIterator(this)
-
-@Deprecated("")
-public fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
-	val destination = LinkedHashMap<String, JSONObject>(length())
-	repeat(length()) { i ->
-		val item = getJSONObject(i)
-		val keyValue = item.getString(key)
-		destination[keyValue] = item
-	}
-	return destination
-}
-
 public fun JSONArray?.isNullOrEmpty(): Boolean {
 	contract {
 		returns(false) implies (this@isNullOrEmpty != null)
@@ -136,12 +116,14 @@ public fun JSONArray?.isNullOrEmpty(): Boolean {
 	return this == null || this.length() == 0
 }
 
-@Deprecated("")
-public fun JSONArray.toJSONList(): List<JSONObject> {
-	return List(length()) { i -> getJSONObject(i) }
+public fun <T : Any> JSONArray.asTypedList(typeClass: Class<T>): List<T> {
+	return JSONArrayTypedListWrapper(this, typeClass)
 }
 
-@Deprecated("")
-public inline fun <reified T> JSONArray.asIterable(): Iterable<T> = Iterable {
-	JSONTypedIterator(this, T::class.java)
+public inline fun <reified T : Any> JSONArray.asTypedList(): List<T> = asTypedList(T::class.java)
+
+public fun <T : Any> JSONObject.entries(typeClass: Class<T>): Iterable<Map.Entry<String, T>> {
+	return JSONObjectTypedIterableWrapper(this, typeClass)
 }
+
+public inline fun <reified T : Any> JSONObject.entries(): Iterable<Map.Entry<String, T>> = entries(T::class.java)
