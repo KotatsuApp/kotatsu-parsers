@@ -3,8 +3,9 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -12,6 +13,9 @@ import java.util.*
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qw.pro", 36) {
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"doctruyen3qw.pro", "doctruyen3qvip.com", "doctruyen3q.link",
+	)
 
 	override val datePattern = "dd/MM/yyyy"
 
