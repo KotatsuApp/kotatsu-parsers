@@ -120,7 +120,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		}
 		
 		val description = doc.selectFirst("div.summary-content p.detail-summary")?.html().orEmpty()
-		val authorText = doc.selectFirst("li.author.row p.detail-info")?.text()?.trim().orEmpty()
+		val authorText = doc.selectFirst("li.author.row p.detail-info")?.text()?.orEmpty()
 		
 		val author = if (authorText.isNotEmpty() && authorText != "Đang cập nhật") {
 			authorText
@@ -128,14 +128,14 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			null
 		}
 		
-		val altTitleText = doc.selectFirst("li.name-other.row p.detail-info")?.text()?.trim()
+		val altTitleText = doc.selectFirst("li.name-other.row p.detail-info")?.text()
 		val altTitle = if (!altTitleText.isNullOrEmpty() && altTitleText != "Đang cập nhật") {
 			altTitleText
 		} else {
 			null
 		}
 		
-		val stateText = doc.selectFirst("li.status.row p.detail-info span.label")?.text()?.trim()
+		val stateText = doc.selectFirst("li.status.row p.detail-info span.label")?.text()
 		val state = when (stateText) {
 			"Đang cập nhật" -> MangaState.ONGOING
 			"Đã hoàn thành" -> MangaState.FINISHED
@@ -156,10 +156,10 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		return doc.select("li.row:not([style*='display: none'])").mapChapters(reversed = true) { _, element ->
 			val chapterLink = element.selectFirst("a.chapter") ?: return@mapChapters null
 			val href = chapterLink.attr("href")?.toAbsoluteUrl(domain) ?: return@mapChapters null
-			val name = chapterLink.text().trim()
+			val name = chapterLink.text()
 			val number = chapterLink.attr("data-chapter")?.toFloatOrNull() ?: 0f
 			val timeElement = element.select("div.style-chap").firstOrNull()
-			val timeText = timeElement?.text()?.trim()
+			val timeText = timeElement?.text()
 			MangaChapter(
 				id = generateUid(href),
 				name = name,
