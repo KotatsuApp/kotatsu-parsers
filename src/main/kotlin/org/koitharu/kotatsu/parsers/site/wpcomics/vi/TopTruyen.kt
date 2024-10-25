@@ -278,6 +278,6 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		MangaTag("Xuyên Không", "xuyen-khong", source),
 		MangaTag("Yaoi", "yaoi", source),
 		MangaTag("Yuri", "yuri", source),
-		MangaTag("BoyLove", "boylove", source),26
+		MangaTag("BoyLove", "boylove", source),
 	)
 }
