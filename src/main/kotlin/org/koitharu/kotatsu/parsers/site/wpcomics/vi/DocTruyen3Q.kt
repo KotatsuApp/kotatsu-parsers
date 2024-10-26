@@ -13,6 +13,7 @@ import java.util.*
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qw.pro", 36) {
+		
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"doctruyen3qw.pro", "doctruyen3qvip.com", "doctruyen3q.link",
 	)
@@ -86,7 +87,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	private fun parseMangaList(doc: Document): List<Manga> {
 		val tags = availableTags()
 		return doc.select("div.item-manga").mapNotNull { div ->
-			val href = div.selectFirst("h3 a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
+			val href = div.selectFirst("h3 a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
 			val tagElements = div.select("p.info a[href*=tim-truyen]")
 			val mangaTags = tagElements.mapNotNullToSet { a ->
 				val key = a.attr("href").substringAfterLast('/')
