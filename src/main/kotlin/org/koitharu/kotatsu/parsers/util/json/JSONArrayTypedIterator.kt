@@ -13,13 +13,21 @@ internal class JSONArrayTypedIterator<T : Any>(
 
 	override fun hasNext() = index < total
 
-	override fun next(): T = typeClass.cast(array[index++])
+	override fun next(): T {
+		if (!hasNext()) throw NoSuchElementException()
+		return get(index++)
+	}
 
 	override fun hasPrevious(): Boolean = index > 0
 
-	override fun nextIndex(): Int = index + 1
+	override fun nextIndex(): Int = index
 
-	override fun previous(): T = typeClass.cast(array[index--])
+	override fun previous(): T {
+		if (!hasPrevious()) throw NoSuchElementException()
+		return get(--index)
+	}
 
 	override fun previousIndex(): Int = index - 1
+
+	private fun get(i: Int): T = typeClass.cast(array[i])
 }
