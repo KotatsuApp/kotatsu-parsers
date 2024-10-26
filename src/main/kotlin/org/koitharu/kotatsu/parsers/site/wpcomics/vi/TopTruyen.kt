@@ -281,5 +281,6 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		MangaTag("Yaoi", "yaoi", source),
 		MangaTag("Yuri", "yuri", source),
 		MangaTag("BoyLove", "boylove", source),
+		MangaTag("16+", "16", source),
 	)
 }
