@@ -83,7 +83,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 	private fun parseMangaList(doc: Document): List<Manga> {
 		val tags = availableTags()
 		return doc.select("div.item-manga").mapNotNull { div ->
-			val href = div.selectFirst("h3 a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
+			val href = div.selectFirst("h3 a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
 			val tagElements = div.select("p.info a[href*=tim-truyen]")
 			val mangaTags = tagElements.mapNotNullToSet { a ->
 				val key = a.attr("href").substringAfterLast('/')
