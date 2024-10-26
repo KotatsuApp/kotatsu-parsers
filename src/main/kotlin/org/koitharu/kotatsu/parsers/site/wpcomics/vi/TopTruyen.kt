@@ -257,7 +257,6 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		MangaTag("Mecha", "mecha", source),
 		MangaTag("Mystery", "mystery", source),
 		MangaTag("Ngôn Tình", "ngon-tinh", source),
-		MangaTag("NTR", "ntr", source),
 		MangaTag("One shot", "one-shot", source),
 		MangaTag("Psychological", "psychological", source),
 		MangaTag("Romance", "romance", source),
@@ -281,11 +280,6 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		MangaTag("Xuyên Không", "xuyen-khong", source),
 		MangaTag("Yaoi", "yaoi", source),
 		MangaTag("Yuri", "yuri", source),
-		MangaTag("16+", "16", source),
-		MangaTag("18+", "18", source),
-		MangaTag("ABO", "abo", source),
 		MangaTag("BoyLove", "boylove", source),
-		MangaTag("Girl Love", "girl-love", source),
-		MangaTag("Người Thú", "nguoi-thu", source),
 	)
 }
