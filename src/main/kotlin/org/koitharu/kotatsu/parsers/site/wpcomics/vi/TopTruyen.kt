@@ -10,13 +10,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
-internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qw.pro", 36) {
-		
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"doctruyen3qw.pro", "doctruyen3qvip.com", "doctruyen3q.link",
-	)
+@MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
+internal class TopTruyen(context: MangaLoaderContext) :
+	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyenww.pro", 36) {
 
 	override val datePattern = "dd/MM/yyyy"
 
@@ -76,7 +72,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			
 			if (params.isNotEmpty()) {
 				append("?")
-				append(params.joinToString("&"))
+				params.joinTo(this, "&")
 			}
 		}
 		
@@ -136,7 +132,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			altTitleText
 		} else {
 			null
-			}
+		}
 		
 		val stateText = doc.selectFirst("li.status.row p.detail-info span.label")?.text()
 		val state = when (stateText) {
@@ -261,7 +257,6 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		MangaTag("Mecha", "mecha", source),
 		MangaTag("Mystery", "mystery", source),
 		MangaTag("Ngôn Tình", "ngon-tinh", source),
-		MangaTag("NTR", "ntr", source),
 		MangaTag("One shot", "one-shot", source),
 		MangaTag("Psychological", "psychological", source),
 		MangaTag("Romance", "romance", source),
@@ -285,11 +280,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		MangaTag("Xuyên Không", "xuyen-khong", source),
 		MangaTag("Yaoi", "yaoi", source),
 		MangaTag("Yuri", "yuri", source),
-		MangaTag("16+", "16", source),
-		MangaTag("18+", "18", source),
-		MangaTag("ABO", "abo", source),
 		MangaTag("BoyLove", "boylove", source),
-		MangaTag("Girl Love", "girl-love", source),
-		MangaTag("Người Thú", "nguoi-thu", source),
+		MangaTag("16+", "16", source),
 	)
 }

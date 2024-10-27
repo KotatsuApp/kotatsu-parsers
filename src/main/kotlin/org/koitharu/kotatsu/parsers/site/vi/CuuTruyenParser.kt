@@ -29,10 +29,10 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override val configKeyDomain = ConfigKey.Domain(
-		"cuutruyenpip7z.site",
 		"cuutruyen.net",
 		"nettrom.com",
-		"hetcuutruyen.net"
+		"hetcuutruyen.net",
+		"cuutruyenpip7z.site"
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
