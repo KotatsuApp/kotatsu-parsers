@@ -17,7 +17,7 @@ import java.util.*
 @MangaSourceParser("DESUME", "Desu", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.win", "desu.me")
+	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -80,8 +80,8 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				source = MangaParserSource.DESUME,
 				title = jo.getString("russian"),
 				altTitle = jo.getString("name"),
-				coverUrl = cover.getString("preview"),
-				largeCoverUrl = cover.getString("original"),
+				coverUrl = cover.getString("preview").fixUrl(),
+				largeCoverUrl = cover.getString("original").fixUrl(),
 				state = when (jo.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"released" -> MangaState.FINISHED
@@ -198,5 +198,14 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			result[tag.title] = tag
 		}
 		return result
+	}
+
+	private fun String.fixUrl(): String {
+		val pos = lastIndexOf("https://")
+		return if (pos > 0) {
+			substring(pos)
+		} else {
+			this
+		}
 	}
 }
