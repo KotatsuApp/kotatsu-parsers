@@ -169,7 +169,9 @@ public fun String.substringBetweenLast(from: String, to: String, fallbackValue: 
 	}
 }
 
-public fun String.find(regex: Regex) = regex.find(this)?.value
+public fun String.find(regex: Regex): String? = regex.find(this)?.value
+
+public fun String.findGroupValue(regex: Regex): String? = regex.find(this)?.groupValues?.getOrNull(1)
 
 public fun String.removeSuffix(suffix: Char): String {
 	if (lastOrNull() == suffix) {
