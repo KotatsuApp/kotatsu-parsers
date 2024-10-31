@@ -56,7 +56,7 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.body().select(selectAut).text(),
+			author = doc.body().selectFirst(selectAut)?.textOrNull(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
