@@ -54,7 +54,7 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
 		manga.copy(
-			description = doc.selectFirst(selectDesc)?.html().orEmpty(),
+			description = doc.selectFirst(selectDesc)?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.text().orEmpty(),
 			author = doc.body().select(selectAut).text(),
 			state = doc.selectFirst(selectState)?.let {
