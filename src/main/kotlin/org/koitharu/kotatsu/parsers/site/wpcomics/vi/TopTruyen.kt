@@ -155,7 +155,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 			val chapterLink = element.selectFirst("a.chapter") ?: return@mapChapters null
 			val href = chapterLink.attrAsAbsoluteUrlOrNull("href") ?: return@mapChapters null
 			val name = chapterLink.text()
-			val number = chapterLink.attr("data-chapter")?.toFloatOrNull() ?: 0f
+			val number = chapterLink.attr("data-chapter").toFloatOrNull() ?: 0f
 			val timeElement = element.select("div.style-chap").firstOrNull()
 			val timeText = timeElement?.text()
 			MangaChapter(
