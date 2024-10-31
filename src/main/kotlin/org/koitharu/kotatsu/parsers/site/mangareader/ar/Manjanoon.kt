@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANJANOON", "Manjanoon", "ar")
 internal class Manjanoon(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANJANOON, "manjanoon.com", pageSize = 21, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANJANOON, "vrnoin.site", pageSize = 21, searchPageSize = 10) {
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()

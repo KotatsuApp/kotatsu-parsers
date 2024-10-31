@@ -82,26 +82,31 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 				val minutes = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - minutes * 60 * 1000
 			}
+
 			dateText.contains("giờ trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val hours = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - hours * 3600 * 1000
 			}
+
 			dateText.contains("ngày trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val days = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - days * 86400 * 1000
 			}
+
 			dateText.contains("tháng trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val months = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - months * 30 * 86400 * 1000
 			}
+
 			dateText.contains("năm trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val years = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - years * 365 * 86400 * 1000
 			}
+
 			absoluteTimePattern.matches(dateText) -> {
 				val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
 				try {
@@ -111,6 +116,7 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 					0L
 				}
 			}
+
 			else -> 0L
 		}
 	}

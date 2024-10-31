@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
 @MangaSourceParser("NEKOSCANS", "NekoScans", "es")
 internal class NekoScans(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaParserSource.NEKOSCANS, "nekoscanlationlector.blogspot.com")
+	ZeistMangaParser(context, MangaParserSource.NEKOSCANS, "www.nekoscans.org")

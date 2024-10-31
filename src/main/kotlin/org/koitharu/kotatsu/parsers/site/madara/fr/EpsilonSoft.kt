@@ -9,4 +9,5 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class EpsilonSoft(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.EPSILONSOFT, "epsilonsoft.to") {
 	override val datePattern = "dd/MM/yy"
+	override val withoutAjax = true
 }

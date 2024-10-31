@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TOPCOMICPORNO", "TopComicPorno", "es", ContentType.HENTAI)
 internal class TopComicPorno(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TOPCOMICPORNO, "topcomicporno.com", 18) {
+	MadaraParser(context, MangaParserSource.TOPCOMICPORNO, "topcomicporno.net", 18) {
 	override val datePattern = "MMM dd, yy"
 }

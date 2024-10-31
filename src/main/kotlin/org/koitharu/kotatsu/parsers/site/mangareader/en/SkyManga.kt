@@ -9,5 +9,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class SkyManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.SKY_MANGA, "skymanga.work", pageSize = 20, searchPageSize = 20) {
 	override val listUrl = "/manga-list"
-	override val datePattern = "DD-MM-yyy"
+	override val datePattern = "dd-MM-yyy"
 }

@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("EROSSCANS", "ErosScans", "en")
 internal class ErosScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.EROSSCANS, "eros-scans.xyz", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaParserSource.EROSSCANS, "tercoscans.xyz", pageSize = 20, searchPageSize = 10)

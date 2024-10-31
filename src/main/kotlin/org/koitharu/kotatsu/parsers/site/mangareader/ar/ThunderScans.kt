@@ -11,7 +11,7 @@ internal class ThunderScans(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.THUNDERSCANS,
-		"ar-thunderepic.com",
+		"lavascans.com",
 		pageSize = 32,
 		searchPageSize = 10,
 	) {

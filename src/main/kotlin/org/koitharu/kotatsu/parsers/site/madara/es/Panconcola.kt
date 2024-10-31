@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("PANCONCOLA", "Panconcola", "es")
 internal class Panconcola(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.PANCONCOLA, "panconcola.com") {
+	MadaraParser(context, MangaParserSource.PANCONCOLA, "artessupremas.com") {
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "generos-de-manga/"
 }

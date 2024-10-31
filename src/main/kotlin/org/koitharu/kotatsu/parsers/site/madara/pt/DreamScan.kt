@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("DREAMSCAN", "DreamScan", "pt")
 internal class DreamScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.DREAMSCAN, "dreamscan.com.br")
+	MadaraParser(context, MangaParserSource.DREAMSCAN, "fairydream.com.br")

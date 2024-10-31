@@ -11,7 +11,7 @@ internal class TempestfansubParser(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.TEMPESTFANSUB,
-		"tempestfansub.com",
+		"tempestscans.net",
 		pageSize = 25,
 		searchPageSize = 40,
 	) {

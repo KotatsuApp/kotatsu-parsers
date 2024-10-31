@@ -5,8 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("RACKUSREADS", "RackusReads", "en")
-internal class RackusReads(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RACKUSREADS, "rackusreads.com", 20) {
-	override val datePattern = "MM/dd/yyyy"
-}
+@MangaSourceParser("VYVYMANGA", "VyvyManga", "en")
+internal class VyvyManga(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.VYVYMANGA, "vyvymanga.org")

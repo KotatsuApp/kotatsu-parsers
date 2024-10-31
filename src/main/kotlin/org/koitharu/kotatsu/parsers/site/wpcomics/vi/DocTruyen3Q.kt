@@ -13,51 +13,51 @@ import java.util.*
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qw.pro", 36) {
-		
+
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"doctruyen3qw.pro", "doctruyen3qvip.com", "doctruyen3q.link",
 	)
 
 	override val datePattern = "dd/MM/yyyy"
 
-    override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-        SortOrder.UPDATED,
-        SortOrder.POPULARITY,
-    )
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+		SortOrder.UPDATED,
+		SortOrder.POPULARITY,
+	)
 
-    override val filterCapabilities: MangaListFilterCapabilities
-        get() = MangaListFilterCapabilities(
-            isSearchSupported = true,
-            isTagsExclusionSupported = true,
-            isMultipleTagsSupported = false,
-        )
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+			isTagsExclusionSupported = true,
+			isMultipleTagsSupported = false,
+		)
 
-    override suspend fun getFilterOptions(): MangaListFilterOptions {
-        return MangaListFilterOptions(
-            availableTags = availableTags(),
-            availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
-        )
-    }
+	override suspend fun getFilterOptions(): MangaListFilterOptions {
+		return MangaListFilterOptions(
+			availableTags = availableTags(),
+			availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		)
+	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/tim-truyen")
-			
+
 			if (filter.tags.isNotEmpty()) {
 				append("/")
 				append(filter.tags.first().key)
 			}
-			
+
 			val params = mutableListOf<String>()
-			
+
 			when (order) {
 				SortOrder.UPDATED -> params.add("sort=1")
 				SortOrder.POPULARITY -> params.add("sort=2")
-				else -> {} 
+				else -> {}
 			}
-			
+
 			filter.states.oneOrThrowIfMany()?.let { state ->
 				when (state) {
 					MangaState.ONGOING -> params.add("status=0")
@@ -65,21 +65,21 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 					else -> params.add("status=2")
 				}
 			}
-			
+
 			if (filter.query?.isNotEmpty() == true) {
 				params.add("keyword=${filter.query.urlEncoded()}")
 			}
-			
+
 			if (page > 1) {
 				params.add("page=$page")
 			}
-			
+
 			if (params.isNotEmpty()) {
 				append("?")
 				append(params.joinToString("&"))
 			}
 		}
-		
+
 		val doc = webClient.httpGet(url).parseHtml()
 		return parseMangaList(doc)
 	}
@@ -93,7 +93,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				val key = a.attr("href").substringAfterLast('/')
 				tags.find { it.key == key }
 			}
-			
+
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -114,44 +114,44 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		
+
 		val availableTags = availableTags()
 		val tagElements = doc.select("li.category.row p.detail-info a[href*=tim-truyen]")
 		val tags = tagElements.mapNotNullToSet { a ->
 			val key = a.attr("href").substringAfterLast('/')
-				availableTags.find { it.key == key }
+			availableTags.find { it.key == key }
 		}
-		
+
 		val description = doc.selectFirst("div.summary-content p.detail-summary")?.html()
 		val authorText = doc.selectFirst("li.author.row p.detail-info")?.text().orEmpty()
-		
+
 		val author = if (authorText.isNotEmpty() && authorText != "Đang cập nhật") {
 			authorText
 		} else {
 			null
 		}
-		
+
 		val altTitleText = doc.selectFirst("li.name-other.row p.detail-info")?.text()
 		val altTitle = if (!altTitleText.isNullOrEmpty() && altTitleText != "Đang cập nhật") {
 			altTitleText
 		} else {
 			null
-			}
-		
+		}
+
 		val stateText = doc.selectFirst("li.status.row p.detail-info span.label")?.text()
 		val state = when (stateText) {
 			"Đang cập nhật" -> MangaState.ONGOING
 			"Đã hoàn thành" -> MangaState.FINISHED
 			else -> null
 		}
-		
+
 		return manga.copy(
 			author = author,
 			description = description,
 			state = state,
 			tags = tags,
 			chapters = getChapters(doc),
-			altTitle = altTitle
+			altTitle = altTitle,
 		)
 	}
 
@@ -172,7 +172,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				source = source,
 				scanlator = null,
 				branch = null,
-				volume = 0
+				volume = 0,
 			)
 		}
 	}
@@ -189,21 +189,25 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				val minutes = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - minutes * 60 * 1000
 			}
+
 			dateText.contains("giờ trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val hours = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - hours * 3600 * 1000
 			}
+
 			dateText.contains("ngày trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val days = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - days * 86400 * 1000
 			}
+
 			dateText.contains("tuần trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val weeks = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - weeks * 7 * 86400 * 1000
 			}
+
 			absoluteTimePattern.matches(dateText) -> {
 				val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
 				try {
@@ -213,6 +217,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 					0L
 				}
 			}
+
 			else -> 0L
 		}
 	}
@@ -233,7 +238,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 
 	private fun availableTags(): Set<MangaTag> = setOf(
 		MangaTag("Action", "action", source),
-		MangaTag("Adult", "truong-thanh", source), 
+		MangaTag("Adult", "truong-thanh", source),
 		MangaTag("Adventure", "phieu-luu", source),
 		MangaTag("Anime", "anime", source),
 		MangaTag("Chuyển Sinh", "chuyen-sinh", source),

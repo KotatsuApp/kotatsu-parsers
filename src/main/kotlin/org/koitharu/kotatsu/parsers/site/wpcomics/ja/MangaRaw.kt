@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANGARAW", "MangaRaw", "ja")
 internal class MangaRaw(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.MANGARAW, "mangaraw.xyz") {
+	WpComicsParser(context, MangaParserSource.MANGARAW, "mangaraw.best") {
 	override val listUrl = "/search/manga"
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

@@ -11,7 +11,7 @@ internal class SssScanlator(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.SSSSCANLATOR,
-		"sssscanlator.com.br",
+		"ssstoons.com",
 		pageSize = 20,
 		searchPageSize = 10,
 	) {

@@ -1,6 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.madara.es
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -10,6 +14,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import java.util.ArrayList
 
 @MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es", ContentType.HENTAI)
 internal class ManhwaLatino(context: MangaLoaderContext) :
@@ -17,9 +22,35 @@ internal class ManhwaLatino(context: MangaLoaderContext) :
 	override val datePattern = "MM/dd"
 	override val selectPage = "div.page-break img.wp-manga-chapter-img"
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
-		val root2 = doc.body().selectFirstOrThrow("div.content-area")
+		val maxPageChapter = doc.selectLast("div.pagination .page")?.text()?.toInt() ?: 1
+		val url = manga.url.toAbsoluteUrl(domain)
+		return run {
+			if (maxPageChapter == 1) {
+				parseChapters(doc)
+			} else {
+				coroutineScope {
+					val result = ArrayList(parseChapters(doc))
+					result.ensureCapacity(result.size * maxPageChapter)
+					(2..maxPageChapter).map { i ->
+						async {
+							loadChapters(url, i)
+						}
+					}.awaitAll()
+						.flattenTo(result)
+					result
+				}
+			}
+		}
+	}
+
+	private suspend fun loadChapters(url: String, page: Int): List<MangaChapter> {
+		return parseChapters(webClient.httpGet("$url/?t=$page").parseHtml().body())
+	}
+
+	private fun parseChapters(doc: Element): List<MangaChapter> {
+		val root2 = doc.selectFirstOrThrow("div.content-area")
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		return root2.select(selectChapter).mapChapters(reversed = true) { i, li ->
+		return root2.select(selectChapter).mapChapters { i, li ->
 			val a = li.selectFirst("a")
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			val link = href + stylePage

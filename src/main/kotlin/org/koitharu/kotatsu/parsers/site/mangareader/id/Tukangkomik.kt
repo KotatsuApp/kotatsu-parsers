@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("TUKANGKOMIK", "Tukang Komik", "id")
 internal class Tukangkomik(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.TUKANGKOMIK, "tukangkomik.id", pageSize = 20, searchPageSize = 20) {
+	MangaReaderParser(context, MangaParserSource.TUKANGKOMIK, "tukangkomik.co", pageSize = 20, searchPageSize = 20) {
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val filterCapabilities: MangaListFilterCapabilities

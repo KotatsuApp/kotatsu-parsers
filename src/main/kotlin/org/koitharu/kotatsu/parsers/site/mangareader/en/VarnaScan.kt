@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("VARNASCAN", "VarnaScan", "en")
 internal class VarnaScan(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.VARNASCAN, "varnascan.net", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaParserSource.VARNASCAN, "varnascan.xyz", pageSize = 20, searchPageSize = 10)

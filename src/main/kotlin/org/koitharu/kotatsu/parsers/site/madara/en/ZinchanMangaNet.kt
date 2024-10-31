@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ZINCHANMANGA_NET", "ZinchanManga.net", "en")
 internal class ZinchanMangaNet(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ZINCHANMANGA_NET, "zinchanmanga.net", 10)
+	MadaraParser(context, MangaParserSource.ZINCHANMANGA_NET, "zinchangmanga.net", 10)

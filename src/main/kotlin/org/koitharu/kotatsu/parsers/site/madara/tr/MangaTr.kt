@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGATR", "MangaTr", "tr")
 internal class MangaTr(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGATR, "mangatr.net") {
+	MadaraParser(context, MangaParserSource.MANGATR, "mangatr.me") {
 	override val tagPrefix = "tur/"
 }

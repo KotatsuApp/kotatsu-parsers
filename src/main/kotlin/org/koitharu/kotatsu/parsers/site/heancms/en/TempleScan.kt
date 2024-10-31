@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.domain
 @Broken // Not dead, changed template
 @MangaSourceParser("TEMPLESCAN", "TempleScan", "en")
 internal class TempleScan(context: MangaLoaderContext) :
-	HeanCms(context, MangaParserSource.TEMPLESCAN, "templescan.net") {
+	HeanCms(context, MangaParserSource.TEMPLESCAN, "templetoons.com") {
 	override val pathManga = "comic"
 
 	override val apiPath: String

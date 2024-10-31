@@ -47,7 +47,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				val searchUrl = "https://${domain}/timkiem/nangcao/1/0/-1/-1?txt=${filter.query.urlEncoded()}&p=$page"
 				val searchContent = webClient.httpGet(searchUrl).parseHtml()
 					.selectFirst("section.list-manga-bycate > div.list")
-				parseMangaList(searchContent) ?: emptyList()
+				parseMangaList(searchContent)
 			}
 
 			filter.tags.isNotEmpty() -> {
@@ -55,14 +55,14 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 					val categoryAjax =
 						"https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=${tag.key}&orderBy=5&p=$page"
 					val listContent = webClient.httpGet(categoryAjax).parseHtml().selectFirst("div.list")
-					parseMangaList(listContent) ?: emptyList()
+					parseMangaList(listContent)
 				} ?: emptyList()
 			}
 
 			else -> {
 				val url = "https://${domain}/ajax/Category/AjaxLoadMangaByCategory?id=0&orderBy=5&p=$page"
 				val listContent = webClient.httpGet(url).parseHtml().selectFirst("div.list")
-				parseMangaList(listContent) ?: emptyList()
+				parseMangaList(listContent)
 			}
 		}
 	}

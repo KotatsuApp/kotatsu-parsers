@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("AREASCANS", "AreaScans", "ar")
 internal class AreaScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.AREASCANS, "www.areascans.net", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.AREASCANS, "ar.kenmanga.com", pageSize = 20, searchPageSize = 10) {
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(

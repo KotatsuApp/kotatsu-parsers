@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.scan.ScanParser
 
 @MangaSourceParser("MANGAITALIA", "MangaItalia", "pt")
 internal class MangaItalia(context: MangaLoaderContext) :
-	ScanParser(context, MangaParserSource.MANGAITALIA, "manga-italia.com")
+	ScanParser(context, MangaParserSource.MANGAITALIA, "mangaita.io")

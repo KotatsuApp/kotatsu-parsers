@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWAINDOICU", "KomikCinta", "id", ContentType.HENTAI)
 internal class ManhwaIndoIcu(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANHWAINDOICU, "komikcinta.icu", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANHWAINDOICU, "komikdewasa.art", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val listUrl = "/komik"
 }

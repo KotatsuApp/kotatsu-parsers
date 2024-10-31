@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("VOIDSCANS", "HiveToon", "en")
 internal class VoidScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.VOIDSCANS, "hivetoon.net", pageSize = 15, searchPageSize = 10)
+	MangaReaderParser(context, MangaParserSource.VOIDSCANS, "hivetoon.com", pageSize = 15, searchPageSize = 10)

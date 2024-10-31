@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGA_CRAB", "MangaCrab", "es")
 internal class MangaCrab(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGA_CRAB, "wikicrab.xyz") {
+	MadaraParser(context, MangaParserSource.MANGA_CRAB, "toonscrab.com") {
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "manga-genero/"
 	override val listUrl = "series/"

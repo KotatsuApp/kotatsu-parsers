@@ -6,9 +6,15 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("MANGAGEZGINI", "MangaGezgini", "tr")
-internal class MangaGezgini(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.net", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("HYPERIONSCANS", "SeraphManga", "tr")
+internal class HyperionScans(context: MangaLoaderContext) :
+	MangaReaderParser(
+		context,
+		MangaParserSource.HYPERIONSCANS,
+		"www.seraphmanga.com",
+		pageSize = 20,
+		searchPageSize = 10,
+	) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,

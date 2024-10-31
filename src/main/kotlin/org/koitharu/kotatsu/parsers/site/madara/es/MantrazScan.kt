@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 // redirect to @PANCONCOLA
 @MangaSourceParser("MANTRAZSCAN", "MantrazScan", "es")
 internal class MantrazScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANTRAZSCAN, "panconcola.com") {
+	MadaraParser(context, MangaParserSource.MANTRAZSCAN, "artessupremas.com") {
 	override val datePattern = "dd/MM/yyyy"
 	override val tagPrefix = "generos-de-manga/"
 }

@@ -18,7 +18,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override val configKeyDomain = ConfigKey.Domain("teamoney.site")
+	override val configKeyDomain = ConfigKey.Domain("olympustaff.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -28,7 +28,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -45,49 +44,55 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 		val url = buildString {
 			append("https://")
 			append(domain)
-
-			if (order == SortOrder.UPDATED) {
-				if (filter.tags.isNotEmpty() || filter.demographics.isNotEmpty()) {
-					throw IllegalArgumentException("Updated sorting does not support other sorting filters")
-				}
-				append("/?page=")
-				append(page.toString())
-			} else {
-				append("/series?page=")
-				append(page.toString())
-
-				filter.query?.let {
-					append("&search=")
+			when {
+				!filter.query.isNullOrEmpty() -> {
+					append("/?search=")
 					append(filter.query.urlEncoded())
+					append("&page=")
+					append(page)
 				}
 
-				filter.tags.oneOrThrowIfMany()?.let {
-					append("&genre=")
-					append(it.key)
-				}
+				else -> {
 
-				filter.types.forEach {
-					append("&type=")
-					append(
-						when (it) {
-							ContentType.MANGA -> "مانجا ياباني"
-							ContentType.MANHWA -> "مانهوا كورية"
-							ContentType.MANHUA -> "مانها صيني"
-							else -> ""
-						},
-					)
-				}
+					if (order == SortOrder.UPDATED) {
+						if (filter.tags.isNotEmpty() || filter.demographics.isNotEmpty()) {
+							throw IllegalArgumentException("Updated sorting does not support other sorting filters")
+						}
+						append("/?page=")
+						append(page.toString())
+					} else {
+						append("/series?page=")
+						append(page.toString())
 
-				filter.states.oneOrThrowIfMany()?.let {
-					append("status=")
-					append(
-						when (it) {
-							MangaState.ONGOING -> "مستمرة"
-							MangaState.FINISHED -> "مكتمل"
-							MangaState.ABANDONED -> "متوقف"
-							else -> "مستمرة"
-						},
-					)
+						filter.tags.oneOrThrowIfMany()?.let {
+							append("&genre=")
+							append(it.key)
+						}
+
+						filter.types.forEach {
+							append("&type=")
+							append(
+								when (it) {
+									ContentType.MANGA -> "مانجا ياباني"
+									ContentType.MANHWA -> "مانهوا كورية"
+									ContentType.MANHUA -> "مانها صيني"
+									else -> ""
+								},
+							)
+						}
+
+						filter.states.oneOrThrowIfMany()?.let {
+							append("status=")
+							append(
+								when (it) {
+									MangaState.ONGOING -> "مستمرة"
+									MangaState.FINISHED -> "مكتمل"
+									MangaState.ABANDONED -> "متوقف"
+									else -> "مستمرة"
+								},
+							)
+						}
+					}
 				}
 			}
 		}

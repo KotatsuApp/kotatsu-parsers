@@ -228,13 +228,14 @@ internal abstract class KeyoappParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val cdnUrl = doc.selectFirstOrThrow("script:containsData(primaryUrl)").data().substringAfter("https://cdn.")
-			.substringBefore("\${uid}")
 
-		if (cdnUrl.isNotEmpty()) {
-			return doc.select(selectPage).map { img ->
-				val uid = img.attr("uid") ?: img.parseFailed("Image src not found")
-				val url = "https://cdn.$cdnUrl$uid"
+		val cdnUrl = getCdnUrl(doc)
+		doc.select(selectPage)
+			.map { it.attr("uid") }
+			.filter { it.isNotEmpty() }
+			.also { cdnUrl ?: throw Exception("Image url not found") }
+			.map { img ->
+				val url = "$cdnUrl/$img"
 				MangaPage(
 					id = generateUid(url),
 					url = url,
@@ -242,18 +243,32 @@ internal abstract class KeyoappParser(
 					source = source,
 				)
 			}
-		} else {
-			return doc.select(selectPage).map { img ->
-				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
-			}
+			.takeIf { it.isNotEmpty() }
+			?.also { return it }
+
+		return doc.select(selectPage).map { img ->
+			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
 		}
 
+	}
+
+	protected open val cdnRegex = """realUrl\s*=\s*`[^`]+//(?<host>[^/]+)""".toRegex()
+
+	protected open fun getCdnUrl(document: Document): String? {
+		return document.select("script")
+			.firstOrNull { cdnRegex.containsMatchIn(it.html()) }
+			?.let {
+				val cdnHost = cdnRegex.find(it.html())
+					?.groups?.get("host")?.value
+					?.replace(cdnRegex, "")
+				"https://$cdnHost/uploads"
+			}
 	}
 
 	protected fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
