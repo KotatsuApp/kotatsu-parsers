@@ -24,8 +24,8 @@ internal class CatharsisFantasy(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val firstDocs = webClient.httpGet(chapterUrl).parseHtml()
-		val url = firstDocs.selectFirst("iframe")?.src() ?: chapterUrl
-		val docs = webClient.httpGet(url).parseHtml()
+		val urlFinal = firstDocs.selectFirst("iframe")?.src() ?: chapterUrl
+		val docs = webClient.httpGet(urlFinal).parseHtml()
 
 		val test = docs.select(selectTestScript)
 		if (test.isNullOrEmpty() and !encodedSrc) {

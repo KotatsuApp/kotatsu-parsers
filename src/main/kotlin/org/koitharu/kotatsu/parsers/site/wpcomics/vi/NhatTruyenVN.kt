@@ -26,12 +26,6 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 			val href = a.attrAsRelativeUrl("href")
 			val chapterNumber = a.text().substringAfter("Chapter ").substringBefore(" ").toFloatOrNull() ?: (i + 1f)
 			val dateText = li.selectFirst(selectDate)?.text()
-			val findHours = dateText?.contains(":")
-			val dateFormat = if (findHours == true) {
-				SimpleDateFormat("HH:mm dd/MM", sourceLocale)
-			} else {
-				SimpleDateFormat(datePattern, sourceLocale)
-			}
 			MangaChapter(
 				id = generateUid(href),
 				name = a.text(),
