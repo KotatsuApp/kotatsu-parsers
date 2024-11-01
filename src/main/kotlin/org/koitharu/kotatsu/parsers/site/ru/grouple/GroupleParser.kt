@@ -155,7 +155,7 @@ internal abstract class GroupleParser(
 			chapters = chaptersList?.select("a.chapter-link")
 				?.flatMapChapters(reversed = true) { a ->
 					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()
-					val href = a.attrAsRelativeUrl("href").setQueryParam("d", userHash)
+					val href = a.attrAsRelativeUrl("href")
 					val number = tr.attr("data-num").toFloatOrNull()?.div(10f) ?: 0f
 					val volume = tr.attr("data-vol").toIntOrNull() ?: 0
 					if (translations.isNullOrEmpty() || a.attr("data-translations").isEmpty()) {
@@ -170,7 +170,7 @@ internal abstract class GroupleParser(
 								name = a.text().removePrefix(manga.title).trim(),
 								number = number,
 								volume = volume,
-								url = href,
+								url = href.withQueryParam("d", userHash),
 								uploadDate = dateFormat.tryParse(tr.selectFirst("td.date")?.text()),
 								scanlator = translators,
 								source = newSource,
@@ -181,13 +181,13 @@ internal abstract class GroupleParser(
 						val translationData = JSONArray(a.attr("data-translations"))
 						translationData.mapJSON { jo ->
 							val personId = jo.getLong("personId")
-							val link = href.setQueryParam("tran", personId.toString())
+							val link = href.withQueryParam("tran", personId.toString())
 							MangaChapter(
 								id = generateUid(link),
 								name = a.text().removePrefix(manga.title).trim(),
 								number = number,
 								volume = volume,
-								url = link,
+								url = link.withQueryParam("d", userHash),
 								uploadDate = dateFormat.tryParse(jo.getStringOrNull("dateCreated")),
 								scanlator = null,
 								source = newSource,
@@ -499,7 +499,7 @@ internal abstract class GroupleParser(
 		return result
 	}
 
-	private fun String.setQueryParam(name: String, value: String?): String {
+	private fun String.withQueryParam(name: String, value: String?): String {
 		if (value == null) return this
 		return toAbsoluteUrl(domain)
 			.toHttpUrl()

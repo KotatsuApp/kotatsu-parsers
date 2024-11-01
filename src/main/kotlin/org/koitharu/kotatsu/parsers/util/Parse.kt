@@ -5,7 +5,6 @@ package org.koitharu.kotatsu.parsers.util
 import okhttp3.Response
 import okhttp3.ResponseBody
 import okhttp3.internal.closeQuietly
-import org.jetbrains.annotations.Blocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -18,7 +17,7 @@ import java.text.DateFormat
  * @see [parseJson]
  * @see [parseJsonArray]
  */
-@Blocking
+// TODO suspend
 public fun Response.parseHtml(): Document = try {
 	val body = requireBody()
 	val charset = body.contentType()?.charset()?.name()

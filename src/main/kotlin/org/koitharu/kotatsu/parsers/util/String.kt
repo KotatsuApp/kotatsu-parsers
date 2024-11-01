@@ -76,11 +76,11 @@ public fun String.transliterate(skipMissing: Boolean): String {
 	}
 }
 
-public fun String.toFileNameSafe() = this.transliterate(false)
+public fun String.toFileNameSafe(): String = this.transliterate(false)
 	.replace(Regex("[^a-z0-9_\\-]", arraySetOf(RegexOption.IGNORE_CASE)), " ")
 	.replace(Regex("\\s+"), "_")
 
-public fun String.ellipsize(maxLength: Int) = if (this.length > maxLength) {
+public fun String.ellipsize(maxLength: Int): String = if (this.length > maxLength) {
 	this.take(maxLength - 1) + Typography.ellipsis
 } else this
 
@@ -102,7 +102,7 @@ public fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.
 
 public fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
 
-public fun String.nl2br() = replace("\n", "<br>")
+public fun String.nl2br(): String = replace("\n", "<br>")
 
 public fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
@@ -229,7 +229,7 @@ public fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold:
 	return diff < threshold
 }
 
-public fun String.isNumeric() = all { c -> c.isDigit() }
+public fun String.isNumeric(): Boolean = all { c -> c.isDigit() }
 
 internal fun StringBuilder.removeTrailingZero() {
 	if (length > 2 && get(length - 1) == '0') {
