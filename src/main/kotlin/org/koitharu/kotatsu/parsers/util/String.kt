@@ -12,6 +12,8 @@ import java.security.MessageDigest
 import java.util.*
 import kotlin.math.min
 
+private val REGEX_WHITESPACE = Regex("\\s+")
+
 public fun String.removeSurrounding(vararg chars: Char): String {
 	if (isEmpty()) {
 		return this
@@ -78,7 +80,7 @@ public fun String.transliterate(skipMissing: Boolean): String {
 
 public fun String.toFileNameSafe(): String = this.transliterate(false)
 	.replace(Regex("[^a-z0-9_\\-]", arraySetOf(RegexOption.IGNORE_CASE)), " ")
-	.replace(Regex("\\s+"), "_")
+	.replace(REGEX_WHITESPACE, "_")
 
 public fun String.ellipsize(maxLength: Int): String = if (this.length > maxLength) {
 	this.take(maxLength - 1) + Typography.ellipsis
@@ -103,6 +105,8 @@ public fun String.urlEncoded(): String = URLEncoder.encode(this, Charsets.UTF_8.
 public fun String.urlDecode(): String = URLDecoder.decode(this, Charsets.UTF_8.name())
 
 public fun String.nl2br(): String = replace("\n", "<br>")
+
+public fun String.space2plus(): String = trim().replace(REGEX_WHITESPACE, "+")
 
 public fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)

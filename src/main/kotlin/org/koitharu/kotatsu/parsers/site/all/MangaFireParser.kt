@@ -90,7 +90,7 @@ internal abstract class MangaFireParser(
 
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					addQueryParameter("keyword", filter.query)
+					addQueryParameter("keyword", filter.query.space2plus())
 					addQueryParameter(
 						name = "sort",
 						value = when (order) {
