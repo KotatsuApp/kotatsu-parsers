@@ -177,10 +177,10 @@ internal abstract class IkenParser(
 	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/series").parseHtml()
 		return doc.selectLastOrThrow("select").select("option[value]").mapNotNullToSet {
-			val key = it.attr("value") ?: return@mapNotNullToSet null
+			val key = it.attrOrNull("value") ?: return@mapNotNullToSet null
 			MangaTag(
 				key = key,
-				title = it.text() ?: key,
+				title = (it.text() ?: key).toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
