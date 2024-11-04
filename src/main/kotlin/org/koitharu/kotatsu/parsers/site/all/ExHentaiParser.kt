@@ -364,19 +364,6 @@ internal class ExHentaiParser(
 		return result.toString()
 	}
 
-	private fun String.cssUrl(): String? {
-		val fromIndex = indexOf("url(")
-		if (fromIndex == -1) {
-			return null
-		}
-		val toIndex = indexOf(')', startIndex = fromIndex)
-		return if (toIndex == -1) {
-			null
-		} else {
-			substring(fromIndex + 4, toIndex).trim()
-		}
-	}
-
 	private fun Element.parseTags(): Set<MangaTag> {
 
 		fun Element.parseTag() = textOrNull()?.let {

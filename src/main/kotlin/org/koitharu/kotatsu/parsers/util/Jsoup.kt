@@ -180,7 +180,20 @@ public fun Element.src(
 	return null
 }
 
-public fun Element.metaValue(itemprop: String) = getElementsByAttributeValue("itemprop", itemprop)
+public fun Element.metaValue(itemprop: String): String? = getElementsByAttributeValue("itemprop", itemprop)
 	.firstNotNullOfOrNull { element ->
 		element.attrOrNull("content")
 	}
+
+public fun String.cssUrl(): String? {
+	val fromIndex = indexOf("url(")
+	if (fromIndex == -1) {
+		return null
+	}
+	val toIndex = indexOf(')', startIndex = fromIndex)
+	return if (toIndex == -1) {
+		null
+	} else {
+		substring(fromIndex + 4, toIndex).trim()
+	}
+}

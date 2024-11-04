@@ -145,20 +145,6 @@ internal abstract class KeyoappParser(
 		)
 	}
 
-	private fun String.cssUrl(): String? {
-		val fromIndex = indexOf("url(")
-		if (fromIndex == -1) {
-			return null
-		}
-		val toIndex = indexOf(')', startIndex = fromIndex)
-		return if (toIndex == -1) {
-			null
-		} else {
-			substring(fromIndex + 4, toIndex).trim()
-		}
-	}
-
-
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.requireElementById("series_tags_page").select("button").mapNotNullToSet { button ->

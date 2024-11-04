@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
@@ -49,28 +48,30 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					append("/tim-kiem")
 					append("?filter[name]=")
 					append(filter.query.urlEncoded())
-					
+
 					if (page > 1) {
 						append("&page=")
-						append(page.toString())
+						append(page)
 					}
-					
+
 					append("&sort=")
-					append(when (order) {
-						SortOrder.POPULARITY -> "-views"
-						SortOrder.UPDATED -> "-updated_at"
-						SortOrder.NEWEST -> "-created_at"
-						SortOrder.ALPHABETICAL -> "name"
-						SortOrder.ALPHABETICAL_DESC -> "-name"
-						else -> "-updated_at"
-					})
+					append(
+						when (order) {
+							SortOrder.POPULARITY -> "-views"
+							SortOrder.UPDATED -> "-updated_at"
+							SortOrder.NEWEST -> "-created_at"
+							SortOrder.ALPHABETICAL -> "name"
+							SortOrder.ALPHABETICAL_DESC -> "-name"
+							else -> "-updated_at"
+						},
+					)
 				}
 
 				filter.tags.isNotEmpty() -> {
 					val tag = filter.tags.first()
 					append("/the-loai/")
 					append(tag.key)
-					
+
 					append("?page=")
 					append(page)
 				}
@@ -78,14 +79,16 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 				else -> {
 					append("/danh-sach")
 					append("?sort=")
-					append(when (order) {
-						SortOrder.POPULARITY -> "-views"
-						SortOrder.UPDATED -> "-updated_at"
-						SortOrder.NEWEST -> "-created_at"
-						SortOrder.ALPHABETICAL -> "name"
-						SortOrder.ALPHABETICAL_DESC -> "-name"
-						else -> "-updated_at"
-					})
+					append(
+						when (order) {
+							SortOrder.POPULARITY -> "-views"
+							SortOrder.UPDATED -> "-updated_at"
+							SortOrder.NEWEST -> "-created_at"
+							SortOrder.ALPHABETICAL -> "name"
+							SortOrder.ALPHABETICAL_DESC -> "-name"
+							else -> "-updated_at"
+						},
+					)
 					append("&page=")
 					append(page)
 				}
@@ -120,13 +123,12 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		val doc = webClient.httpGet(url).parseHtml()
 
 		return doc.select("div.grid div.relative").map { div ->
-			val href = div.selectFirst("a[href^=/truyen/]")?.attr("href") 
+			val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
 				?: div.parseFailed("Không thể tìm thấy nguồn ảnh của Manga này!")
-			val coverStyle = div.select("div.cover").attr("data-bg")
-			val coverUrl = coverStyle.takeIf { it.isNotEmpty() } ?: div.select("div.cover").attr("style")
-                .substringAfter("url('").substringBefore("')")
-                .replace("s3.lxmanga.top", domain)
-			
+			val coverUrl = div.selectFirstOrThrow("div.cover").let {
+				it.attrOrNull("data-bg") ?: it.attr("style").cssUrl()?.replace("s3.lxmanga.top", domain)
+			}.orEmpty()
+
 			Manga(
 				id = generateUid(href),
 				title = div.select("div.p-2 a.text-ellipsis").text(),
@@ -146,30 +148,30 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		
+
 		return manga.copy(
-			altTitle = root.select("div.grow div:contains(Tên khác) span").lastOrNull()?.text(),
-			state = when (root.select("div.mt-2:contains(Tình trạng) span.text-blue-500").firstOrNull()?.text()?.trim()) {
+			altTitle = root.selectLast("div.grow div:contains(Tên khác) span")?.textOrNull(),
+			state = when (root.selectFirst("div.mt-2:contains(Tình trạng) span.text-blue-500")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Đã hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = root.select("div.mt-2:contains(Thể loại) a.bg-gray-500").mapNotNullToSet { a ->
+			tags = root.select("div.mt-2:contains(Thể loại) a.bg-gray-500").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-					title = a.text().trim(),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+					title = a.text(),
 					source = source,
 				)
 			},
-			author = root.select("div.mt-2:contains(Tác giả) span a").firstOrNull()?.text()?.trim(),
-			description = root.select("meta[name=description]").firstOrNull()?.attr("content")?.trim(),
+			author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull(),
+			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
 				.mapChapters(reversed = true) { i, a ->
-					val href = a.attr("href")
-					val name = a.selectFirst("span.text-ellipsis")?.text() ?: ""
-					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime") ?: ""
-					val scanlator = root.select("div.mt-2:contains(Nhóm dịch) span a").firstOrNull()?.text()?.trim()
-					
+					val href = a.attrAsRelativeUrl("href")
+					val name = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
+					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime").orEmpty()
+					val scanlator = root.selectFirst("div.mt-2:contains(Nhóm dịch) span a")?.textOrNull()
+
 					MangaChapter(
 						id = generateUid(href),
 						name = name,
@@ -191,15 +193,18 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		return doc.select("div.text-center div.lazy")
 			.mapNotNull { div ->
 				val url = div.attr("data-src")
-				if (url.endsWith(".jpg", ignoreCase = true) || 
-					url.endsWith(".png", ignoreCase = true)) {
+				if (url.endsWith(".jpg", ignoreCase = true) ||
+					url.endsWith(".png", ignoreCase = true)
+				) {
 					MangaPage(
 						id = generateUid(url),
 						url = url,
 						preview = null,
 						source = source,
 					)
-				} else null
+				} else {
+					null
+				}
 			}
 	}
 
@@ -274,27 +279,23 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		MangaTag("Xúc Tua", "xuc-tua", source),
 		MangaTag("Y Tá", "y-ta", source),
 		MangaTag("Yaoi", "yaoi", source),
-		MangaTag("Yuri", "yuri", source)
+		MangaTag("Yuri", "yuri", source),
 	)
 
-	private fun parseDateTime(dateStr: String): Long {
-		return try {
-			val parts = dateStr.split(" ")
-			val dateParts = parts[0].split("-")
-			val timeParts = parts[1].split(":")
-			
-			val calendar = Calendar.getInstance()
-			calendar.set(
-				dateParts[0].toInt(),
-				dateParts[1].toInt() - 1,
-				dateParts[2].toInt(),
-				timeParts[0].toInt(),
-				timeParts[1].toInt(),
-				timeParts[2].toInt()
-			)
-			calendar.timeInMillis
-		} catch (e: Exception) {
-			System.currentTimeMillis()
-		}
-	}
+	private fun parseDateTime(dateStr: String): Long = runCatching {
+		val parts = dateStr.split(' ')
+		val dateParts = parts[0].split('-')
+		val timeParts = parts[1].split(':')
+
+		val calendar = Calendar.getInstance()
+		calendar.set(
+			dateParts[0].toInt(),
+			dateParts[1].toInt() - 1,
+			dateParts[2].toInt(),
+			timeParts[0].toInt(),
+			timeParts[1].toInt(),
+			timeParts[2].toInt(),
+		)
+		calendar.timeInMillis
+	}.getOrDefault(0L)
 }
