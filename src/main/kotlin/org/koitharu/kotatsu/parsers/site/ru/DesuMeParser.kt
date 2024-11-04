@@ -80,8 +80,8 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				source = MangaParserSource.DESUME,
 				title = jo.getString("russian"),
 				altTitle = jo.getString("name"),
-				coverUrl = cover.getString("preview").fixUrl(),
-				largeCoverUrl = cover.getString("original").fixUrl(),
+				coverUrl = cover.getString("preview"),
+				largeCoverUrl = cover.getString("original"),
 				state = when (jo.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"released" -> MangaState.FINISHED
@@ -198,14 +198,5 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			result[tag.title] = tag
 		}
 		return result
-	}
-
-	private fun String.fixUrl(): String {
-		val pos = lastIndexOf("https://")
-		return if (pos > 0) {
-			substring(pos)
-		} else {
-			this
-		}
 	}
 }
