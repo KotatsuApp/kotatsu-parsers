@@ -7,7 +7,6 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
@@ -16,13 +15,25 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.ArrayList
 
-@MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es", ContentType.HENTAI)
+@MangaSourceParser("MANHWALATINO", "ManhwaLatino", "es")
 internal class ManhwaLatino(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANHWALATINO, "manhwa-latino.com", 10) {
 	override val datePattern = "MM/dd"
 	override val selectPage = "div.page-break img.wp-manga-chapter-img"
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
-		val maxPageChapter = doc.selectLast("div.pagination .page")?.text()?.toInt() ?: 1
+		val maxPageChapterSelect = doc.select("div.pagination .page a")
+		var maxPageChapter = 1
+		if (!maxPageChapterSelect.isNullOrEmpty()) {
+			maxPageChapterSelect.map {
+				val i = it.attr("href").substringAfterLast("=").toInt()
+				if (i > maxPageChapter) {
+					maxPageChapter = i
+				}
+			}
+		}
+		if (maxPageChapter == 3) {
+			maxPageChapter = 4 // fix some mangas
+		}
 		val url = manga.url.toAbsoluteUrl(domain)
 		return run {
 			if (maxPageChapter == 1) {
@@ -40,7 +51,7 @@ internal class ManhwaLatino(context: MangaLoaderContext) :
 					result
 				}
 			}
-		}
+		}.reversed()
 	}
 
 	private suspend fun loadChapters(url: String, page: Int): List<MangaChapter> {
