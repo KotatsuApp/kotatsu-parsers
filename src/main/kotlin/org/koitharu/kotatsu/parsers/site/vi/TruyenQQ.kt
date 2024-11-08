@@ -10,8 +10,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("TRUYENQQ", "Truyenqq", "vi")
-internal class Truyenqq(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
+@MangaSourceParser("TRUYENQQ", "TruyenQQ", "vi")
+internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
 
