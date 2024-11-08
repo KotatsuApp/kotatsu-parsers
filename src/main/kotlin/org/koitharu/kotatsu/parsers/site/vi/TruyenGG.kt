@@ -14,11 +14,11 @@ import java.util.*
 @MangaSourceParser("TRUYENGG", "TruyenGG", "vi")
 internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENGG, 42) {
 
-  override val configKeyDomain = ConfigKey.Domain("truyengg.com")
+  	override val configKeyDomain = ConfigKey.Domain("truyengg.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-	  super.onCreateConfig(keys)
-	  keys.add(userAgentKey)
+	  	super.onCreateConfig(keys)
+	  	keys.add(userAgentKey)
 	}
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
