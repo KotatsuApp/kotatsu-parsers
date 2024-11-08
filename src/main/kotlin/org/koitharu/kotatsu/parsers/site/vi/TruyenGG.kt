@@ -151,7 +151,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.text(),
 			author = doc.select("p:contains(Tác Giả) + p").joinToString { it.text() }.takeUnless { it.isEmpty() },
-			tags = doc.select("a.clblue").mapNotNullToSet { 
+			tags = doc.select("a.clblue").mapToSet { 
 				MangaTag(
 					key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
 					title = it.text(),
