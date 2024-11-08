@@ -239,5 +239,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
         MangaTag("Webtoon", "74", source),
         MangaTag("Xuyên Không", "75", source),
         MangaTag("Yuri", "76", source),
+		MangaTag("Harem", "78", source),
+		MangaTag("Ecchi", "80", source),
     )
 } 
