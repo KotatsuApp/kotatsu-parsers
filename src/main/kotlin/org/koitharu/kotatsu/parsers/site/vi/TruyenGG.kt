@@ -101,7 +101,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 					}
 
 					append("&category=")
-					append(filter.tags.joinToString(separator = ",") { it.key })
+					filter.tags.joinTo(this, separator = ",") { it.key }
 
 					append("&notcategory=")
 					append(filter.tagsExclude.joinToString(separator = ",") { it.key })
