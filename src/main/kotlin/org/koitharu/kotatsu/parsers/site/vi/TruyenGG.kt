@@ -158,7 +158,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 					source = source,
 				)
 			},
-			description = doc.select("div.story-detail-info").text().trim(),
+			description = doc.select("div.story-detail-info").text(),
 			state = when (doc.select("p:contains(Trạng Thái) + p").text()) {
 				"Đang Cập Nhật" -> MangaState.ONGOING
 				"Hoàn Thành" -> MangaState.FINISHED
