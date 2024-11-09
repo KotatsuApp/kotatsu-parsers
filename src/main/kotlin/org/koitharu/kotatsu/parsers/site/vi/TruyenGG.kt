@@ -40,7 +40,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = availableTags(),
+		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
@@ -198,48 +198,14 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 	}
 
-    private fun availableTags() = arraySetOf(
-        MangaTag("Action", "37", source),
-        MangaTag("Adventure", "38", source),
-        MangaTag("Anime", "39", source), 
-        MangaTag("Cổ Đại", "40", source),
-        MangaTag("Comedy", "41", source),
-        MangaTag("Comic", "42", source),
-        MangaTag("Detective", "43", source),
-        MangaTag("Doujinshi", "44", source),
-        MangaTag("Drama", "45", source),
-        MangaTag("Fantasy", "46", source),
-        MangaTag("Gender Bender", "47", source),
-        MangaTag("Historical", "48", source),
-        MangaTag("Horror", "49", source),
-        MangaTag("Huyền Huyễn", "50", source),
-        MangaTag("Isekai", "51", source),
-        MangaTag("Josei", "52", source),
-        MangaTag("Magic", "53", source),
-        MangaTag("Manhua", "54", source),
-        MangaTag("Manhwa", "55", source),
-        MangaTag("Martial Arts", "56", source),
-        MangaTag("Mystery", "57", source),
-        MangaTag("Ngôn Tình", "58", source),
-        MangaTag("One shot", "59", source),
-        MangaTag("Psychological", "60", source),
-        MangaTag("Romance", "61", source),
-        MangaTag("School Life", "62", source),
-        MangaTag("Sci-fi", "63", source),
-        MangaTag("Seinen", "64", source),
-        MangaTag("Shoujo", "65", source),
-        MangaTag("Shoujo Ai", "66", source),
-        MangaTag("Shounen", "67", source),
-        MangaTag("Shounen Ai", "68", source),
-        MangaTag("Slice of life", "69", source),
-        MangaTag("Sports", "70", source),
-        MangaTag("Supernatural", "71", source),
-        MangaTag("Tragedy", "72", source),
-        MangaTag("Truyện Màu", "73", source),
-        MangaTag("Webtoon", "74", source),
-        MangaTag("Xuyên Không", "75", source),
-        MangaTag("Yuri", "76", source),
-		MangaTag("Harem", "78", source),
-		MangaTag("Ecchi", "80", source),
-    )
+    private suspend fun fetchAvailableTags(): Set<MangaTag> {
+        val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao.html").parseHtml()
+        return doc.select(".advsearch-form div.genre-item").mapToSet {
+            MangaTag(
+                key = it.selectFirstOrThrow("span").attr("data-id"),
+                title = it.text(),
+                source = source,
+            )
+        }
+    }
 } 
