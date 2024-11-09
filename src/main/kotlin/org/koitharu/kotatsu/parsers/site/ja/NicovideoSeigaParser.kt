@@ -96,7 +96,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				tags = item.getElementsByAttributeValueContaining("href", "?category=").mapToSet { a ->
 					MangaTag(
 						key = a.attr("href").substringAfterLast('='),
-						title = a.ownText().trim(),
+						title = a.ownText(),
 						source = source,
 					)
 				},
@@ -187,7 +187,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(item.host ?: domain),
 				title = item.selectFirst(".search_result__item__info > .search_result__item__info--title > a")
-					?.text()?.trim() ?: return@mapNotNull null,
+					?.textOrNull() ?: return@mapNotNull null,
 				altTitle = null,
 				author = null,
 				tags = emptySet(),

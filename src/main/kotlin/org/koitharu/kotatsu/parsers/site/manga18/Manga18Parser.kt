@@ -157,7 +157,7 @@ internal abstract class Manga18Parser(
 		val alt = body.selectFirst(selectAlt)?.text().takeIf { it != "Updating" || it.isNotEmpty() }
 		val author = body.selectFirst(selectAuthor)?.text().takeIf { it != "Updating" }
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),

@@ -164,7 +164,7 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/manga-list/").parseHtml()
-		return doc.select("ul li a.category").mapNotNullToSet { a ->
+		return doc.select("ul li a.category").mapToSet { a ->
 			val name = a.text()
 			val key = name.lowercase().replace(" ", "-").replace("é", "e").replace("è", "e")
 			MangaTag(

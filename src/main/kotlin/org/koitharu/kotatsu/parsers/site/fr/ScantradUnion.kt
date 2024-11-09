@@ -130,7 +130,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 				"Terminé", "Abondonné", "One Shot" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = root.select("div.project-details a[href*=tag]").mapNotNullToSet { a ->
+			tags = root.select("div.project-details a[href*=tag]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),

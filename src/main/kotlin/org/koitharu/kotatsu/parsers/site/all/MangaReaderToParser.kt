@@ -62,7 +62,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 
 		document.select("div.f-genre-item").map {
 			MangaTag(
-				title = it.ownText().trim(),
+				title = it.ownText().toTitleCase(sourceLocale),
 				key = it.attr("data-id"),
 				source = source,
 			)
@@ -176,7 +176,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
 			coverUrl = document.selectFirst(".manga-poster > img")!!.attr("src"),
 			tags = document.select("div.genres > a[href*=/genre/]").mapNotNullToSet {
-				val tag = it.ownText().trim()
+				val tag = it.ownText()
 				if (tag == "Hentai" || tag == "Ecchi") {
 					isNsfw = true
 				}

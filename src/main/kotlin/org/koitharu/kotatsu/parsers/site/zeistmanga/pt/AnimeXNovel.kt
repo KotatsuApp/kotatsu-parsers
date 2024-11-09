@@ -19,7 +19,7 @@ internal class AnimeXNovel(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.requireElementById("LinkList1").select("ul li a").mapNotNullToSet {
+		return doc.requireElementById("LinkList1").select("ul li a").mapToSet {
 			MangaTag(
 				key = it.attr("href").removeSuffix("/").substringAfterLast('/'),
 				title = it.text(),

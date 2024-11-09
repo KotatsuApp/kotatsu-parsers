@@ -103,9 +103,9 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml().requireElementById("menu-header")
-		return doc.select("#menu-item:contains(GÊNERO) ul li a").mapNotNullToSet { a ->
+		return doc.select("#menu-item:contains(GÊNERO) ul li a").mapToSet { a ->
 			MangaTag(
-				key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
+				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 				title = a.text(),
 				source = source,
 			)
@@ -117,9 +117,9 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", sourceLocale)
 		return manga.copy(
 			description = doc.selectFirstOrThrow("div.boxAnimeSobreLast p").html(),
-			tags = doc.selectFirst("ul.genre-list")?.select("li a")?.mapNotNullToSet { a ->
+			tags = doc.selectFirst("ul.genre-list")?.select("li a")?.mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)

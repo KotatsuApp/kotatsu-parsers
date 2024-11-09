@@ -98,7 +98,7 @@ internal abstract class VmpParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		return doc.select("div.tagcloud a").mapNotNullToSet { a ->
+		return doc.select("div.tagcloud a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").removeSuffix("/").substringAfterLast(geneUrl, ""),
 				title = a.text().toTitleCase(),
@@ -112,7 +112,7 @@ internal abstract class VmpParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
 		manga.copy(
-			tags = doc.select("div.tax_box div.links ul:not(.post-categories) li a").mapNotNullToSet { a ->
+			tags = doc.select("div.tax_box div.links ul:not(.post-categories) li a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast(geneUrl, ""),
 					title = a.text().toTitleCase(),

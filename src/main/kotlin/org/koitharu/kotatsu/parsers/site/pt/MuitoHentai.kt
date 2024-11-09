@@ -79,7 +79,7 @@ internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/generos-dos-mangas/").parseHtml()
-		return doc.select("div.content a.profileSideBar").mapNotNullToSet { a ->
+		return doc.select("div.content a.profileSideBar").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
 				title = a.text(),
@@ -92,7 +92,7 @@ internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
 			description = doc.selectFirstOrThrow(".backgroundpost:contains(Sinopse)").html(),
-			tags = doc.select("a.genero_btn").mapNotNullToSet { a ->
+			tags = doc.select("a.genero_btn").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast("/"),
 					title = a.text(),

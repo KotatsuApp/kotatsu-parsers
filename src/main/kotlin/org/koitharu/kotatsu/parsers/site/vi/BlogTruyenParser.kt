@@ -120,7 +120,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 		val tagMap = availableTags().associateBy { it.title }
 		val tags = descriptionElement.select("p > span.category").mapNotNullToSet {
-			val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
+			val tagName = it.selectFirst("a")?.textOrNull() ?: return@mapNotNullToSet null
 			tagMap[tagName]
 		}
 

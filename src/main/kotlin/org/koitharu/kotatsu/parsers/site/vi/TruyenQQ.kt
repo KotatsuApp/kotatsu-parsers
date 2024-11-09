@@ -4,8 +4,8 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -146,7 +146,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao.html").parseHtml()
-		return doc.select(".advsearch-form div.genre-item").mapNotNullToSet {
+		return doc.select(".advsearch-form div.genre-item").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("span").attr("data-id"),
 				title = it.text(),
@@ -160,7 +160,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.text(),
-			tags = doc.select("ul.list01 li").mapNotNullToSet {
+			tags = doc.select("ul.list01 li").mapToSet {
 				val key = it.attr("href").substringAfterLast("-").substringBeforeLast(".")
 				MangaTag(
 					key = key,

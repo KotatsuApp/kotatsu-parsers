@@ -127,8 +127,8 @@ internal abstract class OtakuSanctuaryParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/Home/LoadingGenresMenu").parseHtml()
-		return doc.select(selectBodyTag).mapNotNullToSet { a ->
-			val href = a.attr("href").substringAfterLast("/").substringBefore("?")
+		return doc.select(selectBodyTag).mapToSet { a ->
+			val href = a.attr("href").substringAfterLast('/').substringBefore('?')
 			MangaTag(
 				key = href,
 				title = a.text(),
@@ -165,8 +165,8 @@ internal abstract class OtakuSanctuaryParser(
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
-				val href = a.attr("href").substringAfterLast("/").substringBefore("?")
+			tags = doc.body().select(selectTag).mapToSet { a ->
+				val href = a.attr("href").substringAfterLast('/').substringBefore('?')
 				MangaTag(
 					key = href,
 					title = a.text(),

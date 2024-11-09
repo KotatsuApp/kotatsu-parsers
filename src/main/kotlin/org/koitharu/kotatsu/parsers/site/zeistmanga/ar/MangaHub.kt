@@ -23,7 +23,7 @@ internal class MangaHub(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.requireElementById("Genre").select("div.items-center").mapNotNullToSet {
+		return doc.requireElementById("Genre").select("div.items-center").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("input").attr("value"),
 				title = it.selectFirstOrThrow("label").text().substringBefore(')').toTitleCase(sourceLocale),

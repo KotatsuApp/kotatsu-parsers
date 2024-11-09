@@ -144,7 +144,7 @@ internal abstract class MangaboxParser(
 	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		val tags = doc.select(selectTagMap).drop(1) // remove all tags
-		return tags.mapNotNullToSet { a ->
+		return tags.mapToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast('/')
 			val name = a.attr("title").replace(" Manga", "")
 			MangaTag(
@@ -177,7 +177,7 @@ internal abstract class MangaboxParser(
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
 		val aut = doc.body().select(selectAut).eachText().joinToString()
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast("category=").substringBefore("&"),
 					title = a.text().toTitleCase(),

@@ -186,7 +186,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 				isNsfw = isNsfw,
 				coverUrl = img.orEmpty(),
 				description = div.selectFirst(".mangalist_item_description")?.text().orEmpty(),
-				tags = div.select("div.mb-1 a").mapNotNullToSet {
+				tags = div.select("div.mb-1 a").mapToSet {
 					val key = it.attr("href").substringAfterLast('=')
 					MangaTag(
 						key = key,
@@ -246,7 +246,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 			author = doc.selectFirst("div.show_details span[itemprop=author]")?.text().orEmpty(),
 			description = doc.selectFirst("dd[itemprop=description]")?.text(),
 			rating = doc.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			tags = doc.select("ul.list-unstyled li a.category").mapNotNullToSet {
+			tags = doc.select("ul.list-unstyled li a.category").mapToSet {
 				val key = it.attr("href").substringAfterLast('=')
 				MangaTag(
 					key = key,
@@ -333,7 +333,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/liste-mangas").parseHtml()
-		return doc.select("select.selectpicker option").drop(1).mapNotNullToSet {
+		return doc.select("select.selectpicker option").drop(1).mapToSet {
 			MangaTag(
 				key = it.attr("value"),
 				title = it.text(),

@@ -201,7 +201,7 @@ internal abstract class NepnepParser(
 
 				else -> null
 			},
-			tags = doc.select(".list-group-item:contains(Genre(s):) a").mapNotNullToSet { a ->
+			tags = doc.select(".list-group-item:contains(Genre(s):) a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text(),

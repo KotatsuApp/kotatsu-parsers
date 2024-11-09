@@ -493,7 +493,7 @@ internal abstract class GroupleParser(
 				?: throw ParseException("Genres filter element not found", url)
 		val result = MutableScatterMap<String, String>(properties.size)
 		properties.forEach { li ->
-			val name = li.text().trim().lowercase()
+			val name = li.text().lowercase()
 			val id = li.selectFirstOrThrow("input").id()
 			result[name] = id
 		}

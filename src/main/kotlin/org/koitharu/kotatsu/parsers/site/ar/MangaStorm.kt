@@ -90,7 +90,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		return manga.copy(
 			altTitle = null,
 			state = null,
-			tags = root.select(".flex-wrap a").mapNotNullToSet { a ->
+			tags = root.select(".flex-wrap a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
 					title = a.text(),

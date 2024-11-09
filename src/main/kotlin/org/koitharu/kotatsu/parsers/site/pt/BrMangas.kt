@@ -110,7 +110,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/lista-de-generos-de-manga/").parseHtml()
-		return doc.select(".genres_page a").mapNotNullToSet { a ->
+		return doc.select(".genres_page a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 				title = a.text(),
@@ -124,7 +124,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 		return manga.copy(
 			altTitle = null,
 			state = null,
-			tags = doc.select("div.serie-infos li:contains(Categorias:) a").mapNotNullToSet { a ->
+			tags = doc.select("div.serie-infos li:contains(Categorias:) a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),

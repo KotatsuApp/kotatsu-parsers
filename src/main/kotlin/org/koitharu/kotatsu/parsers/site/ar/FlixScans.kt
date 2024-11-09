@@ -132,7 +132,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 		val doc = webClient.httpGet("https://$domain/search/advance").parseHtml()
 		val json = JSONArray(doc.requireElementById("__NUXT_DATA__").data())
 		val tagsList = json.getJSONArray(3).toString().replace("[", "").replace("]", "").split(",")
-		return tagsList.mapNotNullToSet { idTag ->
+		return tagsList.mapToSet { idTag ->
 			val id = idTag.toInt()
 			val idKey = json.getJSONObject(id).getInt("id")
 			val key = json.getInt(idKey).toString()

@@ -113,7 +113,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 					rating = RATING_UNKNOWN,
 					isNsfw = false,
 					coverUrl = "",
-					tags = div.select("span.tags a").mapNotNullToSet { a ->
+					tags = div.select("span.tags a").mapToSet { a ->
 						MangaTag(
 							key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 							title = a.text(),

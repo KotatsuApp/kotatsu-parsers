@@ -99,9 +99,9 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val tags = webClient.httpGet("https://$domain/manga-list").parseHtml()
 			.selectLastOrThrow(".filter-bx .form-group select.custom-select").select("option").drop(1)
-		return tags.mapNotNullToSet { option ->
+		return tags.mapToSet { option ->
 			MangaTag(
-				key = option.attr("value").substringAfterLast("="),
+				key = option.attr("value").substringAfterLast('='),
 				title = option.text(),
 				source = source,
 			)
@@ -112,7 +112,7 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		return manga.copy(
-			tags = doc.body().select(".genres a").mapNotNullToSet { a ->
+			tags = doc.body().select(".genres a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text(),

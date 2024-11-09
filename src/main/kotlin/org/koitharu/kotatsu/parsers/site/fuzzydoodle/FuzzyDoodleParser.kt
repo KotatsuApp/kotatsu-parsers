@@ -193,7 +193,7 @@ internal abstract class FuzzyDoodleParser(
 			},
 			author = doc.selectFirst(selectAuthor)?.text().orEmpty(),
 			description = doc.select(selectDescription).text(),
-			tags = doc.select(selectTagManga).mapNotNullToSet {
+			tags = doc.select(selectTagManga).mapToSet {
 				val key = it.attr("href").substringAfterLast('=')
 				MangaTag(
 					key = key,

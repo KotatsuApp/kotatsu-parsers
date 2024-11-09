@@ -210,7 +210,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 			.requireElementById("mainer")
 		val details = root.selectFirstOrThrow(".detail-set")
 		val attrs = details.selectFirst(".attr-main")?.select(".attr-item")?.associate {
-			it.child(0).text().trim() to it.child(1)
+			it.child(0).text() to it.child(1)
 		}.orEmpty()
 		return manga.copy(
 			title = root.selectFirst("h3.item-title")?.text() ?: manga.title,
@@ -227,7 +227,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				"Hiatus" -> MangaState.PAUSED
 				else -> manga.state
 			},
-			author = attrs["Authors:"]?.text()?.trim() ?: manga.author,
+			author = attrs["Authors:"]?.textOrNull() ?: manga.author,
 			chapters = root.selectFirst(".episode-list")
 				?.selectFirst(".main")
 				?.children()

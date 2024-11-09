@@ -111,7 +111,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl/type-latest/ctg-all/state-all/page-1").parseHtml()
-		return doc.select("div.panel_category a:not(.ctg_select)").mapNotNullToSet { a ->
+		return doc.select("div.panel_category a:not(.ctg_select)").mapToSet { a ->
 			val key = a.attr("href").substringAfterLast("ctg-").substringBefore("/")
 			val name = a.attr("title").replace("Category ", "")
 			MangaTag(
@@ -139,7 +139,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
 		val aut = doc.body().select(selectAut).eachText().joinToString()
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href")
 						.substringAfterLast("page-"), // Yes the site, it's crashing between page is tag id

@@ -92,7 +92,7 @@ internal class LerMangaOnline(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml().requireElementById("sub-menu")
-		return doc.select("ul.container li a").mapNotNullToSet { a ->
+		return doc.select("ul.container li a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").removePrefix("/"),
 				title = a.text(),

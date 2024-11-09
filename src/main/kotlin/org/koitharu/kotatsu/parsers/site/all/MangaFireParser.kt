@@ -181,7 +181,7 @@ internal abstract class MangaFireParser(
 			coverUrl = document.selectFirstOrThrow("div.manga-detail div.poster img")
 				.attrAsAbsoluteUrl("src"),
 			tags = document.select("div.meta a[href*=/genre/]").mapNotNullToSet {
-				val tag = it.ownText().trim()
+				val tag = it.ownText()
 				if (tag == "Hentai" || tag == "Ecchi") {
 					isNsfw = true
 				}
@@ -189,7 +189,7 @@ internal abstract class MangaFireParser(
 			},
 			isNsfw = isNsfw,
 			state = document.selectFirst(".info > p")?.ownText()?.let {
-				when (it.lowercase().trim()) {
+				when (it.lowercase()) {
 					"releasing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
 					"discontinued" -> MangaState.ABANDONED
@@ -199,7 +199,7 @@ internal abstract class MangaFireParser(
 				}
 			},
 			author = document.select("div.meta a[href*=/author/]")
-				.joinToString { it.ownText().trim() },
+				.joinToString { it.ownText() },
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)

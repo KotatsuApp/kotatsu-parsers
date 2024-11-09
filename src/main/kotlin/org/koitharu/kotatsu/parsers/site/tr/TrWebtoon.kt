@@ -150,7 +150,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 		val tags =
 			webClient.httpGet("https://$domain/webtoon-listesi").parseHtml().requireElementById("collapseExample")
 				.select(".pt-12 a").drop(1)
-		return tags.mapNotNullToSet { a ->
+		return tags.mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").substringAfterLast("genre=").substringBefore("&sort"),
 				title = a.text(),
@@ -162,7 +162,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			tags = doc.body().select("li.movie__year a").mapNotNullToSet { a ->
+			tags = doc.body().select("li.movie__year a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text(),

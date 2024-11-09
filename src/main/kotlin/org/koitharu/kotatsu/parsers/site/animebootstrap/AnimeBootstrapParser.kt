@@ -146,7 +146,7 @@ internal abstract class AnimeBootstrapParser(
 		}
 
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text().toTitleCase().replace(",", ""),

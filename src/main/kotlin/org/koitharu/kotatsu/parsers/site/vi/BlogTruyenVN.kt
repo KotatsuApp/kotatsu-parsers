@@ -135,8 +135,8 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
 		for (tag in tagItems) {
-			val title = tag.text().trim()
-			tagMap[tag.text().trim()] = MangaTag(
+			val title = tag.text()
+			tagMap[title] = MangaTag(
 				title = title,
 				key = tag.attr("data-id"),
 				source = source,
@@ -173,7 +173,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 
 		val tags = cacheTags.getOrNull()?.let { tagMap ->
 			descriptionElement.select("p > span.category").mapNotNullToSet {
-				val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
+				val tagName = it.selectFirst("a")?.textOrNull() ?: return@mapNotNullToSet null
 				tagMap[tagName]
 			}
 		}

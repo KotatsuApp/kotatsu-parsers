@@ -81,7 +81,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 
 	private suspend fun fetchMangaTitle(url: String): String {
 		val doc = webClient.httpGet(url).parseHtml()
-		return doc.selectFirstOrThrow("h1.title").text().trim()
+		return doc.selectFirstOrThrow("h1.title").text()
 	}
 
 	override fun parseMangaList(doc: Document): List<Manga> {

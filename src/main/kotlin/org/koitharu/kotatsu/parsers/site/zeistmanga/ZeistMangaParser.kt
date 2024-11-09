@@ -185,7 +185,7 @@ internal abstract class ZeistMangaParser(
 
 	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.selectFirstOrThrow("div.filter").select("ul li").mapNotNullToSet {
+		return doc.selectFirstOrThrow("div.filter").select("ul li").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("input").attr("value"),
 				title = it.selectFirstOrThrow("label").text().toTitleCase(sourceLocale),
@@ -225,7 +225,7 @@ internal abstract class ZeistMangaParser(
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
 		manga.copy(
 			author = author?.text(),
-			tags = doc.select(selectTags).mapNotNullToSet { a ->
+			tags = doc.select(selectTags).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast("label/").substringBefore("?"),
 					title = a.text().toTitleCase(),

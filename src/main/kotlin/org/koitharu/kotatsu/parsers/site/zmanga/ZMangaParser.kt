@@ -168,7 +168,7 @@ internal abstract class ZMangaParser(
 				altTitle = null,
 				rating = div.selectFirstOrThrow("div.info div.score").ownText().toFloatOrNull()?.div(10f)
 					?: RATING_UNKNOWN,
-				tags = doc.body().select("div.genres a").mapNotNullToSet { span ->
+				tags = doc.body().select("div.genres a").mapToSet { span ->
 					MangaTag(
 						key = span.attr("class"),
 						title = span.text().toTitleCase(),
@@ -225,7 +225,7 @@ internal abstract class ZMangaParser(
 		val aut = doc.body().select(selectAut).text()
 
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase().replace(",", ""),

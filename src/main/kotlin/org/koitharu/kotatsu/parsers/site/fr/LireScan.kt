@@ -94,7 +94,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 				else -> null
 			},
 			tags = root.select("ul.pmovie__list li:contains(Genre:)").text()
-				.replace("Genre:", "").split(" / ").mapNotNullToSet { tag ->
+				.replace("Genre:", "").split(" / ").mapToSet { tag ->
 					MangaTag(
 						key = tag.lowercase(),
 						title = tag,
@@ -142,7 +142,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.select(".nav-menu li a").mapNotNullToSet { a ->
+		return doc.select(".nav-menu li a").mapToSet { a ->
 			val key = a.attr("href").removeSuffix('/').substringAfterLast("manga/", "")
 			MangaTag(
 				key = key,

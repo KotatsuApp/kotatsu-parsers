@@ -96,7 +96,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/browse-comics/").parseHtml()
-		return doc.selectFirstOrThrow("div.genre-select-i").select("label").mapNotNullToSet { label ->
+		return doc.selectFirstOrThrow("div.genre-select-i").select("label").mapToSet { label ->
 			MangaTag(
 				key = label.selectFirstOrThrow("input").attr("value"),
 				title = label.text(),
@@ -115,9 +115,9 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 				"Completed" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = doc.select(".categories ul li a").mapNotNullToSet { a ->
+			tags = doc.select(".categories ul li a").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringAfterLast("="),
+					key = a.attr("href").substringAfterLast('='),
 					title = a.text(),
 					source = source,
 				)

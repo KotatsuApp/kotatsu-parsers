@@ -84,7 +84,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/generos/").parseHtml()
-		return doc.select(".wp-content p a").mapNotNullToSet { a ->
+		return doc.select(".wp-content p a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").removeSuffix("/").substringAfterLast("/", ""),
 				title = a.text(),
@@ -98,7 +98,7 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
 		return manga.copy(
 			description = doc.selectLast(".data p")?.html(),
-			tags = doc.selectFirst(".sgeneros")?.select("a")?.mapNotNullToSet { a ->
+			tags = doc.selectFirst(".sgeneros")?.select("a")?.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast("/", ""),
 					title = a.text(),
