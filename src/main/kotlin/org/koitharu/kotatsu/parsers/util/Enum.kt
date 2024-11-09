@@ -4,7 +4,7 @@ package org.koitharu.kotatsu.parsers.util
 
 import kotlin.enums.EnumEntries
 
-public fun <E : Enum<E>> EnumEntries<E>.names() = Array(size) { i ->
+public fun <E : Enum<E>> EnumEntries<E>.names(): Array<String> = Array(size) { i ->
 	get(i).name
 }
 

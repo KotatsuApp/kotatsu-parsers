@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
 @MangaSourceParser("RIZZCOMIC", "RizzComic", "en")
@@ -37,7 +38,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 
 	private val filterUrl = "/Index/filter_series"
 	private val searchUrl = "/Index/live_search"
-	private var randomPartCache = SuspendLazy(::getRandomPart)
+	private var randomPartCache = suspendLazy(initializer = ::getRandomPart)
 	private val randomPartRegex = Regex("""^(r\d+-)""")
 	private val slugRegex = Regex("""[^a-z0-9]+""")
 	private val searchMangaSelector = ".utao .uta .imgu, .listupd .bs .bsx, .listo .bs .bsx"

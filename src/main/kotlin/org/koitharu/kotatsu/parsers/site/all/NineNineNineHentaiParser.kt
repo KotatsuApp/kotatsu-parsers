@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -72,7 +73,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		return chain.proceed(newRequest)
 	}
 
-	private val cdnHost = SuspendLazy(::getUpdatedCdnHost)
+	private val cdnHost = suspendLazy(initializer = ::getUpdatedCdnHost)
 
 	private suspend fun getUpdatedCdnHost(): String {
 		val url = "https://$domain/manga-home"

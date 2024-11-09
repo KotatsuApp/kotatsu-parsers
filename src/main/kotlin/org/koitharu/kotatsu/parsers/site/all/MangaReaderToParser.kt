@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -56,7 +57,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL,
 	)
 
-	val tags = SoftSuspendLazy {
+	val tags = suspendLazy(soft = true) {
 		val document = webClient.httpGet("https://$domain/filter").parseHtml()
 
 		document.select("div.f-genre-item").map {

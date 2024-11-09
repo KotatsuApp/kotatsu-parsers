@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -52,7 +53,7 @@ internal abstract class LibSocialParser(
 		4, MangaState.PAUSED,
 		5, MangaState.ABANDONED,
 	)
-	private val imageServers = SuspendLazy(::fetchServers)
+	private val imageServers = suspendLazy(initializer = ::fetchServers)
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(true)
 	private val preferredServerKey = ConfigKey.PreferredImageServer(
 		presetValues = mapOf(

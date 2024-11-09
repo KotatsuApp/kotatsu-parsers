@@ -12,6 +12,8 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
 @MangaSourceParser("DESUME", "Desu", "ru")
@@ -41,7 +43,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 
-	private val tagsCache = SuspendLazy(::fetchTags)
+	private val tagsCache = suspendLazy(initializer = ::fetchTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (!filter.query.isNullOrEmpty() && page != searchPaginator.firstPage) {
@@ -68,7 +70,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 			?: throw ParseException("Invalid response", url)
 		val total = json.length()
 		val list = ArrayList<Manga>(total)
-		val tagsMap = tagsCache.tryGet().getOrNull()
+		val tagsMap = tagsCache.getOrNull()
 		for (i in 0 until total) {
 			val jo = json.getJSONObject(i)
 			val cover = jo.getJSONObject("image")

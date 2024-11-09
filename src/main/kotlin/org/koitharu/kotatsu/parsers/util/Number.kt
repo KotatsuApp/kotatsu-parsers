@@ -62,7 +62,6 @@ public inline fun Int.ifZero(defaultVale: () -> Int): Int {
 	contract {
 		callsInPlace(defaultVale, InvocationKind.AT_MOST_ONCE)
 	}
-	@Suppress("KotlinConstantConditions")
 	return if (this == 0) {
 		defaultVale()
 	} else {

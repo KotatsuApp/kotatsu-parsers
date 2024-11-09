@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
@@ -42,7 +43,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 		),
 	)
 
-	private val tagsMap = SuspendLazy(::parseTags)
+	private val tagsMap = suspendLazy(initializer = ::parseTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		when {

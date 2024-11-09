@@ -2,7 +2,6 @@
 
 package org.koitharu.kotatsu.parsers.util
 
-import androidx.annotation.FloatRange
 import androidx.collection.MutableIntList
 import androidx.collection.arraySetOf
 import java.math.BigInteger
@@ -225,7 +224,7 @@ public fun String.levenshteinDistance(other: String): Int {
 /**
  * @param threshold 0 = exact match
  */
-public fun String.almostEquals(other: String, @FloatRange(from = 0.0) threshold: Float): Boolean {
+public fun String.almostEquals(other: String, threshold: Float): Boolean {
 	if (threshold <= 0f) {
 		return equals(other, ignoreCase = true)
 	}

@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -33,7 +34,7 @@ internal abstract class NepnepParser(
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.ALPHABETICAL, SortOrder.POPULARITY, SortOrder.UPDATED)
 
-	private val searchDoc = SoftSuspendLazy {
+	private val searchDoc = suspendLazy(soft = true) {
 		webClient.httpGet("https://$domain/search/").parseHtml()
 	}
 

@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
@@ -60,7 +61,7 @@ internal abstract class MangaFireParser(
 			?: body.parseFailed("Cannot find username")
 	}
 
-	private val tags = SoftSuspendLazy {
+	private val tags = suspendLazy(soft = true) {
 		webClient.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
 				MangaTag(

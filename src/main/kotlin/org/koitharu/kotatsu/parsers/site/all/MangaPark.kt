@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -152,7 +153,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 		}
 	}
 
-	private val tagsMap = SuspendLazy(::parseTags)
+	private val tagsMap = suspendLazy(initializer = ::parseTags)
 
 	private suspend fun parseTags(): Map<String, MangaTag> {
 		val tagElements = webClient.httpGet("https://$domain/search").parseHtml()
