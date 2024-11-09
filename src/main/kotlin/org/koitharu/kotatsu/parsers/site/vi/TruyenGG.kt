@@ -200,7 +200,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 
     private suspend fun fetchAvailableTags(): Set<MangaTag> {
         val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao.html").parseHtml()
-        return doc.select(".advsearch-form div.genre-item").mapNotNullToSet {
+        return doc.select(".advsearch-form div.genre-item").mapToSet {
             MangaTag(
                 key = it.selectFirstOrThrow("span").attr("data-id"),
                 title = it.text(),
