@@ -92,7 +92,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.requireElementById("menu-item-3").select("ul.sub-menu li a").mapNotNullToSet {
+		return doc.requireElementById("menu-item-3").select("ul.sub-menu li a").mapToSet {
 			MangaTag(
 				key = it.attr("href").removeSuffix('/').substringAfterLast('/'),
 				title = it.text(),
@@ -106,7 +106,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 		return manga.copy(
 			description = doc.getElementById("desc")?.text().orEmpty(),
 			rating = doc.selectFirst(".counter")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			tags = doc.body().select(".info .genre a").mapNotNullToSet {
+			tags = doc.body().select(".info .genre a").mapToSet {
 				MangaTag(
 					key = it.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = it.text(),

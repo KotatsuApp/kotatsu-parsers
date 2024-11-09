@@ -119,8 +119,8 @@ internal class Mangaowl(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/10-genres").parseHtml()
-		return doc.select("div.genres-container span.genre-item a").mapNotNullToSet { a ->
-			val key = a.attr("href").removeSuffix('/').substringAfterLast('/').substringBefore("-")
+		return doc.select("div.genres-container span.genre-item a").mapToSet { a ->
+			val key = a.attr("href").removeSuffix('/').substringAfterLast('/').substringBefore('-')
 			MangaTag(
 				key = key,
 				title = a.text(),
@@ -133,9 +133,9 @@ internal class Mangaowl(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		manga.copy(
-			tags = doc.body().select("div.comic-attrs div.column.my-2:contains(Genres) a").mapNotNullToSet { a ->
+			tags = doc.body().select("div.comic-attrs div.column.my-2:contains(Genres) a").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/').substringBefore("-"),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/').substringBefore('-'),
 					title = a.text().toTitleCase().replace(",", ""),
 					source = source,
 				)

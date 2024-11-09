@@ -4,7 +4,7 @@ import org.koitharu.kotatsu.parsers.MangaParser
 
 public class MangaPage(
 	/**
-	 * Unique identifier for manga
+	 * Unique identifier for page
 	 */
 	@JvmField public val id: Long,
 	/**

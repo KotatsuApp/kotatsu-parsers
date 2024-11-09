@@ -114,7 +114,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/popular-comic").parseHtml()
-		return doc.select("li.tag-item a").mapNotNullToSet { a ->
+		return doc.select("li.tag-item a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").substringAfterLast('/'),
 				title = a.text(),
@@ -133,9 +133,9 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 				"Completed" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = doc.select("dt.movie-dt:contains(Genres:) + dd a").mapNotNullToSet { a ->
+			tags = doc.select("dt.movie-dt:contains(Genres:) + dd a").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringAfterLast("/"),
+					key = a.attr("href").substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)

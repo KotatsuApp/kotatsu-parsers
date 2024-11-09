@@ -15,7 +15,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.Base64
+import java.util.*
 
 @MangaSourceParser("ADULT_WEBTOON", "AdultWebtoon", "en", ContentType.HENTAI)
 internal class AdultWebtoon(context: MangaLoaderContext) :
@@ -106,11 +106,11 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 		}
 
 		val alt =
-			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()?.text()
-				?.trim()
+			doc.body().select(".post-content_item:contains(Alt) .summary-content").firstOrNull()?.tableValue()
+				?.textOrNull()
 
 		manga.copy(
-			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
+			tags = doc.body().select(selectGenre).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),

@@ -4,6 +4,7 @@ import androidx.collection.ArrayMap
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -11,9 +12,10 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
 @MangaSourceParser("BLOGTRUYENVN", "BlogTruyenVN", "vi")
@@ -43,7 +45,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 	)
 
 	private val dateFormat = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.US)
-	private var cacheTags = SuspendLazy(::fetchTags)
+	private var cacheTags = suspendLazy(initializer = ::fetchTags)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {
@@ -79,7 +81,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 		return listElements.mapNotNull { el ->
 			val linkTag = el.selectFirst("div.fl-l > a") ?: return@mapNotNull null
 			val relativeUrl = linkTag.attrAsRelativeUrl("href")
-			val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
+			val tags = cacheTags.getOrNull()?.let { tagMap ->
 				el.select("footer > div.category > a").mapNotNullToSet { a ->
 					tagMap[a.text()]
 				}
@@ -133,8 +135,8 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 		val tagItems = doc.select("li[data-id]")
 		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
 		for (tag in tagItems) {
-			val title = tag.text().trim()
-			tagMap[tag.text().trim()] = MangaTag(
+			val title = tag.text()
+			tagMap[title] = MangaTag(
 				title = title,
 				key = tag.attr("data-id"),
 				source = source,
@@ -169,9 +171,9 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			}
 		}
 
-		val tags = cacheTags.tryGet().getOrNull()?.let { tagMap ->
+		val tags = cacheTags.getOrNull()?.let { tagMap ->
 			descriptionElement.select("p > span.category").mapNotNullToSet {
-				val tagName = it.selectFirst("a")?.text()?.trim() ?: return@mapNotNullToSet null
+				val tagName = it.selectFirst("a")?.textOrNull() ?: return@mapNotNullToSet null
 				tagMap[tagName]
 			}
 		}

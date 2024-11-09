@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 import javax.crypto.Mac
 import javax.crypto.spec.SecretKeySpec
@@ -148,12 +149,12 @@ internal abstract class WebtoonsParser(
 			}
 	}
 
-	private val allGenreCache = SuspendLazy {
+	private val allGenreCache = suspendLazy {
 		makeRequest("/lineWebtoon/webtoon/genreList.json").getJSONObject("genreList").getJSONArray("genres")
 			.mapJSON { jo -> parseTag(jo) }.associateBy { tag -> tag.key }
 	}
 
-	private val allTitleCache = SoftSuspendLazy {
+	private val allTitleCache = suspendLazy(soft = true) {
 		makeRequest("/lineWebtoon/webtoon/titleList.json?").getJSONObject("titleList").getJSONArray("titles")
 			.mapJSON { jo ->
 				val titleNo = jo.getLong("titleNo")
@@ -212,6 +213,8 @@ internal abstract class WebtoonsParser(
 								state = null,
 								source = source,
 							),
+							date = 0L,
+							readCount = 0L,
 						)
 					}
 			}
@@ -330,9 +333,9 @@ internal abstract class WebtoonsParser(
 		}
 	}
 
-	private inner class MangaWebtoon(
-		val manga: Manga,
-		@JvmField val date: Long? = null,
-		@JvmField val readCount: Long? = null,
+	private class MangaWebtoon(
+		@JvmField val manga: Manga,
+		@JvmField val date: Long,
+		@JvmField val readCount: Long,
 	)
 }

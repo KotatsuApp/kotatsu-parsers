@@ -7,13 +7,14 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
 public class LinkResolver internal constructor(
 	private val context: MangaLoaderContext,
 	public val link: HttpUrl,
 ) {
 
-	private val source = SuspendLazy(::resolveSource)
+	private val source = suspendLazy(initializer = ::resolveSource)
 
 	public suspend fun getSource(): MangaParserSource? = source.get()
 

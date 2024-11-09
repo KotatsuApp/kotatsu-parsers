@@ -98,7 +98,7 @@ internal class MangaPure(context: MangaLoaderContext) :
 					)
 				}.orEmpty(),
 				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()?.trim()
+				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
 					?.lowercase()) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED

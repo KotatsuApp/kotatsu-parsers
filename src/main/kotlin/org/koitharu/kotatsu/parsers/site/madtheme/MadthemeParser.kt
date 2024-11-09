@@ -123,7 +123,7 @@ internal abstract class MadthemeParser(
 				title = div.selectFirst("div.meta")?.selectFirst("div.title")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("div.meta span.score")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				tags = doc.body().select("div.meta div.genres span").mapNotNullToSet { span ->
+				tags = doc.body().select("div.meta div.genres span").mapToSet { span ->
 					MangaTag(
 						key = span.attr("class"),
 						title = span.text().toTitleCase(),
@@ -179,7 +179,7 @@ internal abstract class MadthemeParser(
 		val nsfw = doc.getElementById("adt-warning") != null
 
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase().replace(",", ""),

@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
@@ -60,7 +61,7 @@ internal abstract class MangaFireParser(
 			?: body.parseFailed("Cannot find username")
 	}
 
-	private val tags = SoftSuspendLazy {
+	private val tags = suspendLazy(soft = true) {
 		webClient.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
 				MangaTag(
@@ -180,7 +181,7 @@ internal abstract class MangaFireParser(
 			coverUrl = document.selectFirstOrThrow("div.manga-detail div.poster img")
 				.attrAsAbsoluteUrl("src"),
 			tags = document.select("div.meta a[href*=/genre/]").mapNotNullToSet {
-				val tag = it.ownText().trim()
+				val tag = it.ownText()
 				if (tag == "Hentai" || tag == "Ecchi") {
 					isNsfw = true
 				}
@@ -188,7 +189,7 @@ internal abstract class MangaFireParser(
 			},
 			isNsfw = isNsfw,
 			state = document.selectFirst(".info > p")?.ownText()?.let {
-				when (it.lowercase().trim()) {
+				when (it.lowercase()) {
 					"releasing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
 					"discontinued" -> MangaState.ABANDONED
@@ -198,7 +199,7 @@ internal abstract class MangaFireParser(
 				}
 			},
 			author = document.select("div.meta a[href*=/author/]")
-				.joinToString { it.ownText().trim() },
+				.joinToString { it.ownText() },
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)

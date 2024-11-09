@@ -15,6 +15,8 @@ import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -35,7 +37,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 	private val framesApi get() = "$urlApi/chapter/frames"
 	private val searchApi get() = "https://search.api.$domain/v2/manga/pattern?query="
 
-	private val imageStorageUrl = SuspendLazy(::fetchCoversBaseUrl)
+	private val imageStorageUrl = suspendLazy(initializer = ::fetchCoversBaseUrl)
 
 	override val configKeyDomain = ConfigKey.Domain("honey-manga.com.ua")
 
@@ -173,7 +175,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val content = webClient.httpGet("$framesApi/${chapter.url}").parseJson().getJSONObject("resourceIds")
-		val baseUrl = imageStorageUrl.tryGet().getOrDefault(IMAGE_BASEURL_FALLBACK)
+		val baseUrl = imageStorageUrl.getOrNull() ?: IMAGE_BASEURL_FALLBACK
 		return List(content.length()) { i ->
 			val item = content.getString(i.toString())
 			MangaPage(id = generateUid(item), "$baseUrl/$item", getCoverUrl(item, 256), source)
@@ -208,7 +210,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getCoverUrl(id: String, w: Int): String {
-		val baseUrl = imageStorageUrl.tryGet().getOrDefault(IMAGE_BASEURL_FALLBACK)
+		val baseUrl = imageStorageUrl.getOrNull() ?: IMAGE_BASEURL_FALLBACK
 		return concatUrl(baseUrl, "$id?optimizer=image&width=$w&height=$w")
 	}
 

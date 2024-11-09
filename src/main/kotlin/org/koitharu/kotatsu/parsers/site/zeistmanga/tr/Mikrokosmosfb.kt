@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 
@@ -22,7 +22,7 @@ internal class Mikrokosmosfb(context: MangaLoaderContext) :
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		val tags = doc.selectFirstOrThrow("script:containsData(label: )").data()
 			.substringAfter("label: [").substringBefore("]").replace("\"", "").split(", ")
-		return tags.mapNotNullToSet {
+		return tags.mapToSet {
 			MangaTag(
 				key = it,
 				title = it,

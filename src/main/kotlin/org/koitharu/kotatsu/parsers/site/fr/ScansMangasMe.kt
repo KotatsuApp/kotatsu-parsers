@@ -97,7 +97,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tous-nos-mangas/").parseHtml()
-		return doc.select("ul.genre li").mapNotNullToSet { li ->
+		return doc.select("ul.genre li").mapToSet { li ->
 			val key = li.selectFirstOrThrow("a").attr("href").removeSuffix('/').substringAfterLast('/')
 			val name = li.selectFirstOrThrow("a").text()
 			MangaTag(
@@ -116,7 +116,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val alt = doc.body().select("div.infox span.alter").text()
 		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "")
 		manga.copy(
-			tags = doc.select("div.spe span:contains(Genres) a").mapNotNullToSet { a ->
+			tags = doc.select("div.spe span:contains(Genres) a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),

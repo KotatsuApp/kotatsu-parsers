@@ -95,7 +95,7 @@ internal class TuManhwas(context: MangaLoaderContext) :
 			state = mangaState,
 			author = null,
 			isNsfw = manga.isNsfw || nsfw,
-			tags = docs.select(".wd-full .mgen > a").mapNotNullToSet { a ->
+			tags = docs.select(".wd-full .mgen > a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text().toTitleCase(),

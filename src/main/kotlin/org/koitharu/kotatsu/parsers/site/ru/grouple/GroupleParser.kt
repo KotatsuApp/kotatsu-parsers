@@ -25,6 +25,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,7 +51,7 @@ internal abstract class GroupleParser(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
 	)
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
-	private val tagsIndex = SuspendLazy(::fetchTagsMap)
+	private val tagsIndex = suspendLazy(initializer = ::fetchTagsMap)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("User-Agent", config[userAgentKey])
@@ -492,7 +493,7 @@ internal abstract class GroupleParser(
 				?: throw ParseException("Genres filter element not found", url)
 		val result = MutableScatterMap<String, String>(properties.size)
 		properties.forEach { li ->
-			val name = li.text().trim().lowercase()
+			val name = li.text().lowercase()
 			val id = li.selectFirstOrThrow("input").id()
 			result[name] = id
 		}

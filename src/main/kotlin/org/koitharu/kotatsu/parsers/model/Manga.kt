@@ -1,6 +1,8 @@
 package org.koitharu.kotatsu.parsers.model
 
+import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.InternalParsersApi
+import org.koitharu.kotatsu.parsers.util.findById
 
 public class Manga(
 	/**
@@ -76,8 +78,26 @@ public class Manga(
 	public val hasRating: Boolean
 		get() = rating > 0f && rating <= 1f
 
-	public fun getChapters(branch: String?): List<MangaChapter>? {
-		return chapters?.filter { x -> x.branch == branch }
+	public fun getChapters(branch: String?): List<MangaChapter> {
+		return chapters?.filter { x -> x.branch == branch }.orEmpty()
+	}
+
+	public fun findChapterById(id: Long): MangaChapter? = chapters?.findById(id)
+
+	public fun requireChapterById(id: Long): MangaChapter = requireNotNull(findChapterById(id)) {
+		"Chapter with id $id not found"
+	}
+
+	public fun getBranches(): Map<String?, Int> {
+		if (chapters.isNullOrEmpty()) {
+			return emptyMap()
+		}
+		val result = ArrayMap<String?, Int>()
+		chapters.forEach {
+			val key = it.branch
+			result[key] = result.getOrDefault(key, 0) + 1
+		}
+		return result
 	}
 
 	@InternalParsersApi

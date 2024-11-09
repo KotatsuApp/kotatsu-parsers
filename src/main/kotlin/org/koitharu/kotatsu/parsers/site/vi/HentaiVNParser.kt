@@ -122,8 +122,8 @@ internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context
 				}
 			},
 			rating = docs.selectFirst("div.page_like")?.let {
-				val like = it.selectFirst("div.but_like")?.text()?.trim()?.toIntOrNull() ?: return@let null
-				val dislike = it.selectFirst("div.but_unlike")?.text()?.trim()?.toIntOrNull() ?: return@let null
+				val like = it.selectFirst("div.but_like")?.text()?.toIntOrNull() ?: return@let null
+				val dislike = it.selectFirst("div.but_unlike")?.text()?.toIntOrNull() ?: return@let null
 				when {
 					like == 0 && dislike == 0 -> RATING_UNKNOWN
 					else -> like.toFloat() / (like + dislike)

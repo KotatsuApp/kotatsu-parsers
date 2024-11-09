@@ -120,7 +120,7 @@ internal class VyManga(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/search").parseHtml()
-		return doc.select("#advance-search .check-genre .d-flex").mapNotNullToSet {
+		return doc.select("#advance-search .check-genre .d-flex").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow(".checkbox-genre").attr("data-value"),
 				title = it.selectFirstOrThrow("label").text(),
@@ -133,7 +133,7 @@ internal class VyManga(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val simpleDateFormat = SimpleDateFormat("MMM dd, yyy", sourceLocale)
 		return manga.copy(
-			tags = doc.select("div.col-md-7 p a[href*=genre]").mapNotNullToSet { a ->
+			tags = doc.select("div.col-md-7 p a[href*=genre]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
 					title = a.text(),

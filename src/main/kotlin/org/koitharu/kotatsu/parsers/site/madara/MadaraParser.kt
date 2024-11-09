@@ -508,7 +508,7 @@ internal abstract class MadaraParser(
 		val keySet = HashSet<String>(list.size)
 		return list.mapNotNullToSet { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNullToSet null
-			val href = a.attr("href").removeSuffix("/").substringAfterLast(tagPrefix, "")
+			val href = a.attr("href").removeSuffix('/').substringAfterLast(tagPrefix, "")
 			if (href.isEmpty() || !keySet.add(href)) {
 				return@mapNotNullToSet null
 			}
@@ -560,12 +560,12 @@ internal abstract class MadaraParser(
 			}
 		}
 
-		val alt = doc.body().select(selectAlt).firstOrNull()?.tableValue()?.text()?.trim()
+		val alt = doc.body().select(selectAlt).firstOrNull()?.tableValue()?.textOrNull()
 
 		manga.copy(
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
-			tags = doc.body().select(selectGenre).mapNotNullToSet { a ->
+			tags = doc.body().select(selectGenre).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 					title = a.text().toTitleCase(),

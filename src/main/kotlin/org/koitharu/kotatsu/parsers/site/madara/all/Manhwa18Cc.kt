@@ -100,8 +100,8 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 			}
 			MangaTag(
 				key = href,
-				title = a.ownText().trim().ifEmpty {
-					a.selectFirst(".menu-image-title")?.text()?.trim() ?: return@mapNotNullToSet null
+				title = a.ownText().ifEmpty {
+					a.selectFirst(".menu-image-title")?.text() ?: return@mapNotNullToSet null
 				}.toTitleCase(),
 				source = source,
 			)

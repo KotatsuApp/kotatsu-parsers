@@ -125,7 +125,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/series").parseHtml()
-		return doc.requireElementById("select_genre").select("option").mapNotNullToSet {
+		return doc.requireElementById("select_genre").select("option").mapToSet {
 			MangaTag(
 				key = it.attr("value"),
 				title = it.text().toTitleCase(sourceLocale),
@@ -155,7 +155,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				"متوقف" -> MangaState.ABANDONED
 				else -> null
 			},
-			tags = doc.select(".review-author-info a").mapNotNullToSet { a ->
+			tags = doc.select(".review-author-info a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast("="),
 					title = a.text(),

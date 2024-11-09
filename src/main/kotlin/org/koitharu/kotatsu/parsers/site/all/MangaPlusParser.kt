@@ -18,6 +18,7 @@ import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
 internal abstract class MangaPlusParser(
@@ -82,7 +83,7 @@ internal abstract class MangaPlusParser(
 	}
 
 	// since search is local, save network calls on related manga call
-	private val allTitleCache = SuspendLazy {
+	private val allTitleCache = suspendLazy {
 		apiCall("/title_list/allV2")
 			.getJSONObject("allTitlesViewV2")
 			.getJSONArray("AllTitlesGroup")

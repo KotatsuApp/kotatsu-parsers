@@ -111,7 +111,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
 		val aut = doc.body().select(selectAut).eachText().joinToString()
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast("category=").substringBefore("&"),
 					title = a.text().toTitleCase(),
@@ -131,7 +131,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		return doc.select(selectTagMap).mapNotNullToSet { a ->
+		return doc.select(selectTagMap).mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").substringAfterLast("category=").substringBefore("&"),
 				title = a.attr("title"),

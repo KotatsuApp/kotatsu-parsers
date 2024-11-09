@@ -6,12 +6,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -26,9 +21,9 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 		val body = doc.body()
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
 		manga.copy(
-			tags = doc.body().select("#section-sinopsis a[href*=genre]").mapNotNullToSet { a ->
+			tags = doc.body().select("#section-sinopsis a[href*=genre]").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)

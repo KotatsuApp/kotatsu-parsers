@@ -159,7 +159,7 @@ internal abstract class FmreaderParser(
 
 	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		return doc.select(selectBodyTag).mapNotNullToSet { a ->
+		return doc.select(selectBodyTag).mapToSet { a ->
 			val href = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html")
 			MangaTag(
 				key = href,
@@ -192,7 +192,7 @@ internal abstract class FmreaderParser(
 		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")
 		val auth = doc.body().selectFirst(selectAut)?.text()
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfter(tagPrefix).substringBeforeLast(".html"),
 					title = a.text().toTitleCase(),

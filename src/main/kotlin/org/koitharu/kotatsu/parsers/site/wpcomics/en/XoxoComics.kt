@@ -130,7 +130,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		}
 		val aut = doc.body().select(selectAut).text()
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),

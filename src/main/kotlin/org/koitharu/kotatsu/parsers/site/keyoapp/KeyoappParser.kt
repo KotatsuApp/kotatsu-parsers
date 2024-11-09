@@ -131,7 +131,7 @@ internal abstract class KeyoappParser(
 			title = div.selectFirstOrThrow("h3").text().orEmpty(),
 			altTitle = null,
 			rating = RATING_UNKNOWN,
-			tags = div.select("div.gap-1 a").mapNotNullToSet { a ->
+			tags = div.select("div.gap-1 a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text().toTitleCase(),
@@ -169,7 +169,7 @@ internal abstract class KeyoappParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
 					title = a.text().toTitleCase(),

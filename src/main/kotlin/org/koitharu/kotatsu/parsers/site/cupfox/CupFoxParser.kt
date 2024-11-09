@@ -126,9 +126,9 @@ internal abstract class CupFoxParser(
 		return manga.copy(
 			altTitle = doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("："),
 			state = null,
-			tags = doc.select(selectMangaDetailsTags).mapNotNullToSet { a ->
+			tags = doc.select(selectMangaDetailsTags).mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)
@@ -198,9 +198,9 @@ internal abstract class CupFoxParser(
 	protected open suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/category/").parseHtml()
 		return doc.select(selectAvailableTags)
-			.mapNotNullToSet { a ->
+			.mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)

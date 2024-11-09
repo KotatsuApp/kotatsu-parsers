@@ -16,7 +16,7 @@ internal class ToonCubus(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/p/genre-list.html").parseHtml()
-		return doc.select(".dzdes-genre ul li a").mapNotNullToSet {
+		return doc.select(".dzdes-genre ul li a").mapToSet {
 			MangaTag(
 				key = it.attr("href").removeSuffix("/").substringAfterLast("/"),
 				title = it.selectFirstOrThrow("span").text(),

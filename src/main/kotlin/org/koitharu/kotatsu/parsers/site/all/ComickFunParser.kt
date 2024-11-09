@@ -12,6 +12,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -256,7 +257,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		return resolver.resolveManga(this, url = slug, id = generateUid(slug))
 	}
 
-	private val tagsArray = SuspendLazy(::loadTags)
+	private val tagsArray = suspendLazy(initializer = ::loadTags)
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val sparseArray = tagsArray.get()

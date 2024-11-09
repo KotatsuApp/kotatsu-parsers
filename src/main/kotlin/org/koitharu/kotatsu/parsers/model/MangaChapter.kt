@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.model
 
+import org.koitharu.kotatsu.parsers.util.formatSimple
+
 public class MangaChapter(
 	/**
 	 * An unique id of chapter
@@ -37,6 +39,18 @@ public class MangaChapter(
 	@JvmField public val branch: String?,
 	@JvmField public val source: MangaSource,
 ) {
+
+	public fun numberString(): String? = if (number > 0f) {
+		number.formatSimple()
+	} else {
+		null
+	}
+
+	public fun volumeString(): String? = if (volume > 0) {
+		volume.toString()
+	} else {
+		null
+	}
 
 	override fun equals(other: Any?): Boolean {
 		if (this === other) return true

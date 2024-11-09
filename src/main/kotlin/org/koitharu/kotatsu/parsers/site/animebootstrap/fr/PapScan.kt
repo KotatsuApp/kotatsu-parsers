@@ -81,7 +81,7 @@ internal class PapScan(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain$listUrl").parseHtml()
-		return doc.select("a.category ").mapNotNullToSet { a ->
+		return doc.select("a.category ").mapToSet { a ->
 			val key = a.attr("href").substringAfterLast('=')
 			val name = a.text()
 			MangaTag(
@@ -103,7 +103,7 @@ internal class PapScan(context: MangaLoaderContext) :
 			MangaState.ONGOING
 		}
 		manga.copy(
-			tags = doc.body().select(selectTag).mapNotNullToSet { a ->
+			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),

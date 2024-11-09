@@ -197,7 +197,7 @@ internal abstract class MmrcmsParser(
 		val auth = doc.body().selectFirst(selectAut)?.nextElementSibling()?.text()
 		val tags = doc.body().selectFirst(selectTag)?.nextElementSibling()?.select("a") ?: emptySet()
 		manga.copy(
-			tags = tags.mapNotNullToSet { a ->
+			tags = tags.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),

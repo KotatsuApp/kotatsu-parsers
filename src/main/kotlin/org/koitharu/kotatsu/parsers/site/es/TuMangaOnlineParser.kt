@@ -176,9 +176,9 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 		val contents = doc.body().selectFirstOrThrow("section.element-header-content")
 		return manga.copy(
 			description = contents.selectFirst("p.element-description")?.html(),
-			tags = contents.select("h6 a").mapNotNullToSet { a ->
+			tags = contents.select("h6 a").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").substringBefore("&").substringAfterLast("="),
+					key = a.attr("href").substringBefore('&').substringAfterLast('='),
 					title = a.text(),
 					source = source,
 				)
@@ -342,7 +342,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/library", getRequestHeaders()).parseHtml()
 		val elements = doc.body().select("div#books-genders > div > div")
-		return elements.mapNotNullToSet { element ->
+		return elements.mapToSet { element ->
 			MangaTag(
 				title = element.select("label").text(),
 				key = element.select("input").attr("value"),

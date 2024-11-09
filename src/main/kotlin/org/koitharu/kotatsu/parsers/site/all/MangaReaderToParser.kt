@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.spec.SecretKeySpec
@@ -56,12 +57,12 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		SortOrder.ALPHABETICAL,
 	)
 
-	val tags = SoftSuspendLazy {
+	val tags = suspendLazy(soft = true) {
 		val document = webClient.httpGet("https://$domain/filter").parseHtml()
 
 		document.select("div.f-genre-item").map {
 			MangaTag(
-				title = it.ownText().trim(),
+				title = it.ownText().toTitleCase(sourceLocale),
 				key = it.attr("data-id"),
 				source = source,
 			)
@@ -175,7 +176,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
 			coverUrl = document.selectFirst(".manga-poster > img")!!.attr("src"),
 			tags = document.select("div.genres > a[href*=/genre/]").mapNotNullToSet {
-				val tag = it.ownText().trim()
+				val tag = it.ownText()
 				if (tag == "Hentai" || tag == "Ecchi") {
 					isNsfw = true
 				}

@@ -143,7 +143,7 @@ internal abstract class MangaWorldParser(
 		return doc.select(".comics-grid .entry").map { div ->
 			val href = div.selectFirstOrThrow("a.thumb").attrAsRelativeUrl("href")
 			val tags = div.select(".genres a[href*=/archive?genre=]")
-				.mapNotNullToSet { MangaTag(it.ownText().toTitleCase(sourceLocale), it.attr("href"), source) }
+				.mapToSet { MangaTag(it.ownText().toTitleCase(sourceLocale), it.attr("href"), source) }
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -155,13 +155,13 @@ internal abstract class MangaWorldParser(
 				tags = tags,
 				author = div.selectFirst(".author a")?.text(),
 				state =
-				when (div.selectFirst(".status a")?.text()?.lowercase()) {
-					"in corso" -> MangaState.ONGOING
-					"finito" -> MangaState.FINISHED
-					"droppato" -> MangaState.ABANDONED
-					"in pausa" -> MangaState.PAUSED
-					else -> null
-				},
+					when (div.selectFirst(".status a")?.text()?.lowercase()) {
+						"in corso" -> MangaState.ONGOING
+						"finito" -> MangaState.FINISHED
+						"droppato" -> MangaState.ABANDONED
+						"in pausa" -> MangaState.PAUSED
+						else -> null
+					},
 				source = source,
 				isNsfw = isNsfwSource,
 			)
@@ -171,7 +171,7 @@ internal abstract class MangaWorldParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		return doc.select("div[aria-labelledby=genresDropdown] a").mapNotNullToSet {
+		return doc.select("div[aria-labelledby=genresDropdown] a").mapToSet {
 			MangaTag(
 				key = it.attr("href").substringAfterLast('='),
 				title = it.text().toTitleCase(sourceLocale),
@@ -184,30 +184,30 @@ internal abstract class MangaWorldParser(
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
 			altTitle =
-			doc.selectFirst(".meta-data .font-weight-bold:contains(Titoli alternativi:)")
-				?.parent()
-				?.ownText()
-				?.substringAfter(": ")
-				?.trim(),
+				doc.selectFirst(".meta-data .font-weight-bold:contains(Titoli alternativi:)")
+					?.parent()
+					?.ownText()
+					?.substringAfter(": ")
+					?.trim(),
 			description = doc.getElementById("noidungm")?.text().orEmpty(),
 			chapters =
-			doc.select(".chapters-wrapper .chapter a").mapChapters(reversed = true) { i, a ->
-				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
-				MangaChapter(
-					id = generateUid(url),
-					name = a.selectFirst("span.d-inline-block")?.text() ?: "Chapter : ${i + 1f}",
-					number = i + 1f,
-					volume = 0,
-					url = "$url?style=list",
-					scanlator = null,
-					uploadDate =
-					SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
-						a.selectFirst(".chap-date")?.text(),
-					),
-					branch = null,
-					source = source,
-				)
-			},
+				doc.select(".chapters-wrapper .chapter a").mapChapters(reversed = true) { i, a ->
+					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
+					MangaChapter(
+						id = generateUid(url),
+						name = a.selectFirst("span.d-inline-block")?.text() ?: "Chapter : ${i + 1f}",
+						number = i + 1f,
+						volume = 0,
+						url = "$url?style=list",
+						scanlator = null,
+						uploadDate =
+							SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
+								a.selectFirst(".chap-date")?.text(),
+							),
+						branch = null,
+						source = source,
+					)
+				},
 		)
 	}
 

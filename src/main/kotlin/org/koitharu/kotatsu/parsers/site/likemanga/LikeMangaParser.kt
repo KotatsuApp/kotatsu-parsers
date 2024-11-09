@@ -127,9 +127,9 @@ internal abstract class LikeMangaParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/genres/").parseHtml()
-		return doc.select("ul.nav-genres li:not(.text-center) a").mapNotNullToSet { a ->
+		return doc.select("ul.nav-genres li:not(.text-center) a").mapToSet { a ->
 			MangaTag(
-				key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 				title = a.text(),
 				source = source,
 			)
@@ -152,9 +152,9 @@ internal abstract class LikeMangaParser(
 		return manga.copy(
 			altTitle = doc.selectFirstOrThrow(".list-info li.othername h2").text(),
 			state = null,
-			tags = doc.select("li.kind a").mapNotNullToSet { a ->
+			tags = doc.select("li.kind a").mapToSet { a ->
 				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text().toTitleCase(),
 					source = source,
 				)

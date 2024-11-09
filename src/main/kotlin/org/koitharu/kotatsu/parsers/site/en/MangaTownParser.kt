@@ -126,7 +126,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 					"completed" -> MangaState.FINISHED
 					else -> null
 				},
-				tags = li.selectFirst("p.keyWord")?.select("a")?.mapNotNullToSet tags@{ x ->
+				tags = li.selectFirst("p.keyWord")?.select("a")?.mapToSet tags@{ x ->
 					MangaTag(
 						title = x.attr("title").toTitleCase(),
 						key = x.attr("href").substringAfter("/directory/0-").substringBefore("-0-"),

@@ -16,6 +16,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -29,7 +30,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)
 
-	private val allManga = SoftSuspendLazy {
+	private val allManga = suspendLazy(soft = true) {
 		runCatchingCancellable {
 			webClient.httpGet("https://$domain/search/objects.json").parseJson()
 		}.recoverCatchingCancellable {

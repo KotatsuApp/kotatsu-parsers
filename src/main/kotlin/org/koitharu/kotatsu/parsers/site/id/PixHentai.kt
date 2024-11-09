@@ -81,7 +81,7 @@ internal class PixHentai(context: MangaLoaderContext) :
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.select("ul.megamenu li").mapNotNullToSet { li ->
+		return doc.select("ul.megamenu li").mapToSet { li ->
 			val key = li.selectFirstOrThrow("a").attr("href").removeSuffix('/').substringAfterLast('/')
 			val name = li.selectFirstOrThrow("a").text()
 			MangaTag(

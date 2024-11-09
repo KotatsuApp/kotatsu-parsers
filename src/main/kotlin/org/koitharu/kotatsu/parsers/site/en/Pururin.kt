@@ -136,7 +136,7 @@ internal class Pururin(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst("p.mb-2")?.text().orEmpty(),
 			rating = doc.selectFirst("td span.rating")?.attr("content")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			tags = doc.body().select("tr:contains(Contents) ul.list-inline a").mapNotNullToSet {
+			tags = doc.body().select("tr:contains(Contents) ul.list-inline a").mapToSet {
 				val href = it.attr("href").substringAfterLast("content/").substringBeforeLast('/')
 				MangaTag(
 					key = href,

@@ -172,7 +172,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH)
 		return manga.copy(
 			altTitle = null,
-			tags = root.select("div.serieGenre span").mapNotNullToSet { span ->
+			tags = root.select("div.serieGenre span").mapToSet { span ->
 				MangaTag(
 					key = span.text(),
 					title = span.text(),
@@ -221,7 +221,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		val script = doc.requireElementById("__NUXT_DATA__").data()
 			.substringAfterLast("\"genres\"").substringBeforeLast("\"comics\"")
 			.split("\",\"").drop(1)
-		return script.mapNotNullToSet { tag ->
+		return script.mapToSet { tag ->
 			MangaTag(
 				key = tag.substringBeforeLast("\",{"),
 				title = tag.substringBeforeLast("\",{"),

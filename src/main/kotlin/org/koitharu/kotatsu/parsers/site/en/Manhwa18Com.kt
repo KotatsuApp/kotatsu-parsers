@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
 @MangaSourceParser("MANHWA18COM", "Manhwa18.com", "en", type = ContentType.HENTAI)
@@ -222,7 +223,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		}
 	}
 
-	private val tagsMap = SuspendLazy(::parseTags)
+	private val tagsMap = suspendLazy(initializer = ::parseTags)
 
 	private suspend fun parseTags(): Map<String, MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem?q=").parseHtml()

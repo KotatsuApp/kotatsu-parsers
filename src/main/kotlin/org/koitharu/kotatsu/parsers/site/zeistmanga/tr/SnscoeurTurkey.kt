@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 
@@ -22,7 +22,7 @@ internal class SnscoeurTurkey(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/p/gelismis-arama.html").parseHtml()
-		return doc.selectFirstOrThrow("div.filter").select("ul li").mapNotNullToSet {
+		return doc.selectFirstOrThrow("div.filter").select("ul li").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("input").attr("value"),
 				title = it.selectFirstOrThrow("label").text(),
