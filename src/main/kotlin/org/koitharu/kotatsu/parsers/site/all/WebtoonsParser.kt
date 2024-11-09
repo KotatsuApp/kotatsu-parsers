@@ -213,6 +213,8 @@ internal abstract class WebtoonsParser(
 								state = null,
 								source = source,
 							),
+							date = 0L,
+							readCount = 0L,
 						)
 					}
 			}
@@ -331,9 +333,9 @@ internal abstract class WebtoonsParser(
 		}
 	}
 
-	private inner class MangaWebtoon(
-		val manga: Manga,
-		@JvmField val date: Long? = null,
-		@JvmField val readCount: Long? = null, // FIXME get rid of boxing
+	private class MangaWebtoon(
+		@JvmField val manga: Manga,
+		@JvmField val date: Long,
+		@JvmField val readCount: Long,
 	)
 }

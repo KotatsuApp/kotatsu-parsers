@@ -632,14 +632,14 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 
 	// / --->
 
-	private var scriptLastRetrieval: Long? = null
+	private var scriptLastRetrieval: Long = -1L
 	private val mutex = Mutex()
 	private var subdomainOffsetDefault = 0
 	private val subdomainOffsetMap = mutableMapOf<Int, Int>()
 	private var commonImageId = ""
 
 	private suspend fun refreshScript() = mutex.withLock {
-		if (scriptLastRetrieval == null || (scriptLastRetrieval!! + 60000) < System.currentTimeMillis()) {
+		if (scriptLastRetrieval == -1L || (scriptLastRetrieval + 60000) < System.currentTimeMillis()) {
 			val ggScript = webClient.httpGet("$ltnBaseUrl/gg.js?_=${System.currentTimeMillis()}").parseRaw()
 
 			subdomainOffsetDefault = Regex("var o = (\\d)").find(ggScript)!!.groupValues[1].toInt()
