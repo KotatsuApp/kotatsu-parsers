@@ -142,6 +142,9 @@ public fun Element.selectFirstParent(query: String): Element? {
 	}
 }
 
+public fun Element.selectFirstParentOrThrow(query: String): Element =
+	selectFirstParent(query) ?: throw ParseException("Cannot find parent \"$query\"", baseUri())
+
 /**
  * Return a first non-empty attribute value of [names] or null if it is missing or empty
  */

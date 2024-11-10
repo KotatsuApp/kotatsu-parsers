@@ -214,8 +214,9 @@ internal class ImHentai(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val totalPages = doc.selectFirstOrThrow(".pages").text().replace("Pages: ", "").toInt()
-		val baseUrl = doc.requireElementById("append_thumbs").selectFirstOrThrow("img").src()
-			?.replace("/1t.", "/\$t.") ?: doc.parseFailed("Base page url not found")
+		val baseImg = doc.requireElementById("append_thumbs").selectFirstOrThrow("img")
+		val baseUrl = baseImg.selectFirstParentOrThrow("a").attrAsRelativeUrl("href").replace("/1/", "/\$/")
+		val baseThumbUrl = baseImg.src()?.replace("/1t.", "/\$t.")
 		val pages = ArrayList<MangaPage>(totalPages)
 		repeat(totalPages) { i ->
 			val url = baseUrl.replace("\$", (i + 1).toString())
@@ -223,11 +224,17 @@ internal class ImHentai(context: MangaLoaderContext) :
 				MangaPage(
 					id = generateUid(url),
 					url = url,
-					preview = null,
+					preview = baseThumbUrl?.replace("\$", (i + 1).toString()),
 					source = source,
 				),
 			)
 		}
 		return pages
+	}
+
+	override suspend fun getPageUrl(page: MangaPage): String {
+		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
+		val img = doc.body().requireElementById("gimg")
+		return img.src() ?: doc.parseFailed("Cannot find image src")
 	}
 }
