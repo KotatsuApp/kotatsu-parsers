@@ -31,7 +31,13 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableLocales = setOf(
-			Locale.ENGLISH, Locale.JAPANESE, Locale("es"), Locale.FRENCH, Locale("kr"), Locale.GERMAN, Locale("ru"),
+			Locale.ENGLISH,
+			Locale.JAPANESE,
+			Locale("es"),
+			Locale.FRENCH,
+			Locale("kr"),
+			Locale.GERMAN,
+			Locale("ru"),
 		),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
@@ -68,7 +74,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 
 					if (filter.tags.isNotEmpty()) {
 						append("&key=")
-						append(filter.tags.joinToString(separator = ",") { it.key })
+						filter.tags.joinTo(this, separator = ",") { it.key }
 					}
 
 					var types = "&m=1&d=1&w=1&i=1&a=1&g=1"
@@ -132,12 +138,12 @@ internal class ImHentai(context: MangaLoaderContext) :
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		return coroutineScope {
 			(1..3).map { page ->
-				async { getTags(page) }
+				async { fetchTagsPage(page) }
 			}
 		}.awaitAll().flattenTo(ArraySet(360))
 	}
 
-	private suspend fun getTags(page: Int): Set<MangaTag> {
+	private suspend fun fetchTagsPage(page: Int): Set<MangaTag> {
 		val url = "https://$domain/tags/popular/?page=$page"
 		val root = webClient.httpGet(url).parseHtml()
 		return root.parseTags()
@@ -158,14 +164,13 @@ internal class ImHentai(context: MangaLoaderContext) :
 		manga.copy(
 			tags = doc.body().select("li:contains(Tags) a.tag").mapNotNullToSet {
 				val href = it.attr("href").substringAfterLast("tag/").substringBeforeLast('/')
-				val name = it.html().substringBeforeLast("<span")
 				MangaTag(
 					key = href,
-					title = name,
+					title = it.ownText().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},
-			author = doc.selectFirst("li:contains(Artists) a.tag")?.html()?.substringBefore("<span"),
+			author = doc.selectFirst("li:contains(Artists) a.tag")?.ownTextOrNull(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -175,7 +180,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 					url = manga.url,
 					scanlator = null,
 					uploadDate = 0,
-					branch = doc.selectFirst("li:contains(Language) a.tag")?.html()?.substringBeforeLast("<span"),
+					branch = doc.selectFirst("li:contains(Language) a.tag")?.ownTextOrNull()?.toTitleCase(sourceLocale),
 					source = source,
 				),
 			),
@@ -208,11 +213,12 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val totalPages = doc.selectFirstOrThrow(".pages").text().replace("Pages: ", "").toInt() + 1
-		val domainImg = doc.requireElementById("append_thumbs").selectFirstOrThrow("img").src()?.replace("1t.jpg", "")
+		val totalPages = doc.selectFirstOrThrow(".pages").text().replace("Pages: ", "").toInt()
+		val baseUrl = doc.requireElementById("append_thumbs").selectFirstOrThrow("img").src()
+			?.replace("/1t.", "/\$t.") ?: doc.parseFailed("Base page url not found")
 		val pages = ArrayList<MangaPage>(totalPages)
-		for (i in 1 until totalPages) {
-			val url = "$domainImg$i.jpg"
+		repeat(totalPages) { i ->
+			val url = baseUrl.replace("\$", (i + 1).toString())
 			pages.add(
 				MangaPage(
 					id = generateUid(url),
