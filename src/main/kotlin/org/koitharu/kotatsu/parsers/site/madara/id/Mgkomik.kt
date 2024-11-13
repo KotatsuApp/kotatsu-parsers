@@ -5,12 +5,19 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import java.util.*
 import kotlin.random.Random
 
 @MangaSourceParser("MGKOMIK", "MgKomik", "id")
 internal class Mgkomik(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MGKOMIK, "mgkomik.id", 20) {
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+		
 	override val tagPrefix = "genres/"
 	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"
