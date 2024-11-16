@@ -98,7 +98,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 
 		return manga.copy(
-			altTitle = doc.selectFirst(".box_info_right h2")?.text(),
+			altTitle = doc.selectFirst(".box_info_right h2")?.textOrNull(),
 			tags = doc.select("ul.list-tag-story li a").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast('/').substringBefore('.'),
