@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.ru.rulib
 import androidx.collection.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -31,7 +32,7 @@ internal abstract class LibSocialParser(
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	final override val configKeyDomain = ConfigKey.Domain("lib.social")
+	final override val configKeyDomain = ConfigKey.Domain(siteDomain)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -68,7 +69,9 @@ internal abstract class LibSocialParser(
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val urlBuilder = urlBuilder("api")
+		val urlBuilder = HttpUrl.Builder()
+			.scheme("https")
+			.host("api.lib.social")
 			.addPathSegment("api")
 			.addPathSegment("manga")
 			.addQueryParameter("site_id[]", siteId.toString())
@@ -122,7 +125,9 @@ internal abstract class LibSocialParser(
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val chapters = async { fetchChapters(manga) }
-		val url = urlBuilder("api")
+		val url = HttpUrl.Builder()
+			.scheme("https")
+			.host("api.lib.social")
 			.addPathSegment("api")
 			.addPathSegment("manga")
 			.addPathSegment(manga.url)
@@ -151,7 +156,7 @@ internal abstract class LibSocialParser(
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = coroutineScope {
 		val pages = async {
 			webClient.httpGet(
-				concatUrl("https://api.$domain/api/manga/", chapter.url),
+				concatUrl("https://api.lib.social/api/manga/", chapter.url),
 			).parseJson().getJSONObject("data")
 		}
 		val servers = imageServers.get()
@@ -176,7 +181,9 @@ internal abstract class LibSocialParser(
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
 		val json = webClient.httpGet(
-			urlBuilder("api")
+			HttpUrl.Builder()
+				.scheme("https")
+				.host("api.lib.social")
 				.addPathSegment("api")
 				.addPathSegment("manga")
 				.addPathSegment(seed.url)
@@ -190,6 +197,7 @@ internal abstract class LibSocialParser(
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
+		keys.remove(configKeyDomain)
 		keys.add(splitTranslationsKey)
 		keys.add(preferredServerKey)
 	}
@@ -225,7 +233,9 @@ internal abstract class LibSocialParser(
 	}
 
 	private suspend fun fetchChapters(manga: Manga): List<MangaChapter> {
-		val url = urlBuilder("api")
+		val url = HttpUrl.Builder()
+			.scheme("https")
+			.host("api.lib.social")
 			.addPathSegment("api")
 			.addPathSegment("manga")
 			.addPathSegment(manga.url)
@@ -267,7 +277,10 @@ internal abstract class LibSocialParser(
 
 	private suspend fun fetchTags(type: String): List<MangaTag> {
 		val data = webClient.httpGet(
-			urlBuilder("api").addPathSegment("api").addPathSegment(type).build(),
+			HttpUrl.Builder()
+				.scheme("https")
+				.host("api.lib.social")
+				.addPathSegment("api").addPathSegment(type).build(),
 		).parseJson().getJSONArray("data")
 		val prefix = type.first().toString()
 		return data.mapJSONNotNull { jo ->
@@ -285,7 +298,9 @@ internal abstract class LibSocialParser(
 
 	private suspend fun fetchServers(): ScatterMap<String, String> {
 		val json = webClient.httpGet(
-			urlBuilder("api")
+			HttpUrl.Builder()
+				.scheme("https")
+				.host("api.lib.social")
 				.addPathSegment("api")
 				.addPathSegment("constants")
 				.addQueryParameter("fields[]", "imageServers")
