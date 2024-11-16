@@ -168,7 +168,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 			"Người Thú", "Tình Cảm", "Yuri", "Oneshot", "Doujinshi", "ABO"
 		).mapToSet { name ->
 			MangaTag(
-				key = name.lowercase().replace(" ", "-"),
+				key = name.lowercase().replace(' ', '-'),
 				title = name,
 				source = source
 			)
