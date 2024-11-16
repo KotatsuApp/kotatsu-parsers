@@ -183,9 +183,10 @@ internal class XoxoComics(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(selectPage).mapNotNull { url ->
 			val img = url.src()?.toRelativeUrl(domain) ?: return@mapNotNull null
+			val originalImage = img.replace("[", "").replace("]", "")
 			MangaPage(
 				id = generateUid(img),
-				url = img,
+				url = originalImage,
 				preview = null,
 				source = source,
 			)
