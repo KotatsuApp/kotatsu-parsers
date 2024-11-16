@@ -111,7 +111,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
                 MangaChapter(
                     id = generateUid(href),
                     name = name,
-                    number = name.substringAfter("#").toFloatOrNull() ?: (i + 1f),
+                    number = name.substringAfter('#').toFloatOrNull() ?: (i + 1f),
                     url = href,
                     scanlator = null,
                     uploadDate = 0L,
