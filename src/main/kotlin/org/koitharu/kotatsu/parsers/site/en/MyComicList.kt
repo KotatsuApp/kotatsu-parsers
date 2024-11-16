@@ -145,7 +145,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
             val key = href.substringAfterLast('/').substringBefore("-comic")
             MangaTag(
                 key = key,
-                title = a.text(),
+                title = a.text().toTitleCase(sourceLocale),
                 source = source
             )
         }
