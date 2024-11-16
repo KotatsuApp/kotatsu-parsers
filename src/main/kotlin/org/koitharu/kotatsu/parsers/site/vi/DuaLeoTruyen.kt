@@ -35,16 +35,10 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
-            isMultipleTagsSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableContentTypes = EnumSet.of(
-			ContentType.MANGA,
-			ContentType.MANHWA,
-			ContentType.MANHUA
-		)
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -112,7 +106,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				else -> null
 			},
 			author = doc.selectFirst(".info-item:has(.fa-user)")?.textOrNull()?.removePrefix("Tác giả: "),
-			description = doc.selectFirst(".story-detail-info")?.text(),
+			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select(".list-chapters .chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow(".chap_name a")
 				val href = a.attrAsRelativeUrl("href")

@@ -102,7 +102,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
                 "completed" -> MangaState.FINISHED
                 else -> null
             },
-            description = doc.selectFirst("div.manga-desc p.pdesc")?.text(),
+            description = doc.selectFirst("div.manga-desc p.pdesc")?.html(),
             chapters = doc.select("ul.basic-list li").mapChapters(reversed = true) { i, li ->
                 val a = li.selectFirst("a.ch-name") ?: return@mapChapters null
                 val href = a.attrAsRelativeUrl("href")
