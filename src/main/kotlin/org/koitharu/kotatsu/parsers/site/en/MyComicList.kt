@@ -128,7 +128,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
         val doc = webClient.httpGet(fullUrl).parseHtml()
         
         return doc.select("img.chapter_img.lazyload").mapNotNull { img ->
-            val imageUrl = img.attr("data-src").takeUnless { it.isNullOrEmpty() } ?: return@mapNotNull null
+            val imageUrl = img.attrOrNull("data-src") ?: return@mapNotNull null
             MangaPage(
                 id = generateUid(imageUrl),
                 url = imageUrl,
