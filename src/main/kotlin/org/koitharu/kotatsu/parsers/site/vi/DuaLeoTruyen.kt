@@ -111,7 +111,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				"Full" -> MangaState.FINISHED
 				else -> null
 			},
-			author = doc.selectFirst(".info-item:has(.fa-user)")?.text()?.removePrefix("Tác giả: "),
+			author = doc.selectFirst(".info-item:has(.fa-user)")?.textOrNull()?.removePrefix("Tác giả: "),
 			description = doc.selectFirst(".story-detail-info")?.text(),
 			chapters = doc.select(".list-chapters .chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow(".chap_name a")
