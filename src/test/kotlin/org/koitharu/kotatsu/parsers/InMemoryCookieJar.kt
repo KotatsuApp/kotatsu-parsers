@@ -4,6 +4,7 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.util.insertCookie
+import org.koitharu.kotatsu.parsers.util.splitByWhitespace
 import org.koitharu.kotatsu.test_util.component6
 import org.koitharu.kotatsu.test_util.component7
 import java.io.InputStream
@@ -32,7 +33,7 @@ class InMemoryCookieJar : CookieJar {
 			if (line.isBlank() || line.startsWith("# ")) {
 				continue
 			}
-			val (host, _, path, secure, expire, name, value) = line.split(Regex("\\s+"))
+			val (host, _, path, secure, expire, name, value) = line.splitByWhitespace()
 			val domain = host.removePrefix("#HttpOnly_").trimStart('.')
 			val httpOnly = host.startsWith("#HttpOnly_")
 			val cookie = Cookie.Builder()

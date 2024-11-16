@@ -38,6 +38,7 @@ internal abstract class MangaFireParser(
 		SortOrder.RATING,
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
+		SortOrder.RELEVANCE,
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -91,7 +92,10 @@ internal abstract class MangaFireParser(
 
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					addQueryParameter("keyword", filter.query.space2plus())
+					val encodedQuery = filter.query.splitByWhitespace().joinToString(separator = "+") { part ->
+						part.urlEncoded()
+					}
+					addEncodedQueryParameter("keyword", encodedQuery)
 					addQueryParameter(
 						name = "sort",
 						value = when (order) {
@@ -100,6 +104,7 @@ internal abstract class MangaFireParser(
 							SortOrder.RATING -> "scores"
 							SortOrder.NEWEST -> "release_date"
 							SortOrder.ALPHABETICAL -> "title_az"
+							SortOrder.RELEVANCE -> "most_relevance"
 							else -> ""
 						},
 					)
@@ -135,6 +140,7 @@ internal abstract class MangaFireParser(
 							SortOrder.RATING -> "scores"
 							SortOrder.NEWEST -> "release_date"
 							SortOrder.ALPHABETICAL -> "title_az"
+							SortOrder.RELEVANCE -> "most_relevance"
 							else -> ""
 						},
 					)

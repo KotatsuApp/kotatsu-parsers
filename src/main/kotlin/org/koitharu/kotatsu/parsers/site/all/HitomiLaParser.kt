@@ -172,7 +172,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 				.trim()
 				.replace(Regex("""^\?"""), "")
 				.lowercase()
-				.split(Regex("\\s+"))
+				.splitByWhitespace()
 				.map {
 					it.replace('_', ' ')
 				}
