@@ -30,9 +30,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 
     override val filterCapabilities: MangaListFilterCapabilities
         get() = MangaListFilterCapabilities(
-            isMultipleTagsSupported = false,
             isSearchSupported = true,
-            isSearchWithFiltersSupported = false,
         )
 
     override suspend fun getFilterOptions() = MangaListFilterOptions(
