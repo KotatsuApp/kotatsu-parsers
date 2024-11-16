@@ -102,7 +102,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 			tags = doc.select("ul.list-tag-story li a").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast("/").substringBefore("."),
-					title = it.text(),
+					title = it.text().toTitleCase(sourceLocale),
 					source = source
 				)
 			},
