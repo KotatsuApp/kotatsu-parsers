@@ -101,7 +101,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 			altTitle = doc.selectFirst(".box_info_right h2")?.text(),
 			tags = doc.select("ul.list-tag-story li a").mapToSet {
 				MangaTag(
-					key = it.attr("href").substringAfterLast("/").substringBefore("."),
+					key = it.attr("href").substringAfterLast('/').substringBefore('.'),
 					title = it.text().toTitleCase(sourceLocale),
 					source = source
 				)
