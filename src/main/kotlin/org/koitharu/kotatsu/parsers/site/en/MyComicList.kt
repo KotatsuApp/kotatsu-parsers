@@ -142,7 +142,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
         val doc = webClient.httpGet("https://$domain").parseHtml()
         return doc.select("div.cr-anime-box.genre-box a.genre-name").mapToSet { a ->
             val href = a.attr("href")
-            val key = href.substringAfterLast("/").substringBefore("-comic")
+            val key = href.substringAfterLast('/').substringBefore("-comic")
             MangaTag(
                 key = key,
                 title = a.text(),
