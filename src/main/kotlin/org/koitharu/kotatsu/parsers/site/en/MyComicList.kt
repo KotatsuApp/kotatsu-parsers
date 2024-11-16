@@ -96,7 +96,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
                     source = source
                 )
             },
-            author = doc.selectFirst("td:contains(Author:) + td")?.text(),
+            author = doc.selectFirst("td:contains(Author:) + td")?.textOrNull(),
             state = when(doc.selectFirst("td:contains(Status:) + td a")?.text()?.lowercase()) {
                 "ongoing" -> MangaState.ONGOING
                 "completed" -> MangaState.FINISHED
