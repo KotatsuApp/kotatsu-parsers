@@ -67,7 +67,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 
         val doc = webClient.httpGet(url).parseHtml()
         return doc.select("div.manga-box").map { div ->
-            val href = div.selectFirst("a")?.attrAsRelativeUrl("href") ?: div.parseFailed("Link not found")
+            val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
             val img = div.selectFirst("img.lazyload")
             Manga(
                 id = generateUid(href),
