@@ -92,7 +92,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
             tags = doc.select("td:contains(Genres:) + td a").mapToSet { a ->
                 MangaTag(
                     key = a.attr("href").substringAfterLast('/').substringBefore("-comic"),
-                    title = a.text(),
+                    title = a.text().toTitleCase(sourceLocale),
                     source = source
                 )
             },
