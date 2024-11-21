@@ -209,7 +209,7 @@ internal abstract class GalleryAdultsParser(
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.requireElementById(idImg).src() ?: doc.parseFailed("Image src not found")
+		return doc.requireElementById(idImg).requireSrc()
 	}
 
 	protected fun String.cleanupTitle() = replace(regexBrackets, "")

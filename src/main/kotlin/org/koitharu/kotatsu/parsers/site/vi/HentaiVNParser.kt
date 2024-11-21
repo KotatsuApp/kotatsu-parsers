@@ -136,7 +136,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val docs = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return docs.select("#image > img").map {
-			val pageUrl = it.src() ?: it.parseFailed("Image src not found")
+			val pageUrl = it.requireSrc()
 			MangaPage(
 				id = generateUid(pageUrl),
 				url = pageUrl,

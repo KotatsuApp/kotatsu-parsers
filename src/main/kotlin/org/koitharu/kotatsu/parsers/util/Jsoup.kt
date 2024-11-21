@@ -9,6 +9,7 @@ import org.jsoup.select.QueryParser
 import org.jsoup.select.Selector
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import kotlin.contracts.contract
 
 public val Element.host: String?
 	get() {
@@ -24,8 +25,7 @@ public val Element.host: String?
  * Return an attribute value or null if it is missing or empty
  * @see [Element.attr] which returns empty string instead of null
  */
-public fun Element.attrOrNull(attributeKey: String) = attr(attributeKey).takeUnless { it.isBlank() }?.trim()
-
+public fun Element.attrOrNull(attributeKey: String): String? = attr(attributeKey).takeUnless { it.isBlank() }?.trim()
 
 /**
  * Return an attribute value or throw an exception if it is missing
@@ -48,7 +48,7 @@ public fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
-	if (attr.startsWith("/")) {
+	if (attr.startsWith('/')) {
 		return attr
 	}
 	val host = baseUri().toHttpUrlOrNull()?.host ?: return null
@@ -90,7 +90,7 @@ public fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
  * @see attrAsRelativeUrlOrNull
  */
 public fun Element.attrAsAbsoluteUrl(attributeKey: String): String {
-	return requireNotNull(attrAsAbsoluteUrlOrNull(attributeKey)) {
+	return parseNotNull(attrAsAbsoluteUrlOrNull(attributeKey)) {
 		"Cannot get absolute url for $attributeKey: \"${attr(attributeKey)}\""
 	}
 }
@@ -107,8 +107,8 @@ public fun Element.styleValueOrNull(property: String): String? {
 /**
  * Like a `expectFirst` but with detailed error message
  */
-public fun Element.selectFirstOrThrow(cssQuery: String): Element {
-	return Selector.selectFirst(cssQuery, this) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
+public fun Element.selectFirstOrThrow(cssQuery: String): Element = parseNotNull(Selector.selectFirst(cssQuery, this)) {
+	"Cannot find \"$cssQuery\""
 }
 
 public fun Element.selectOrThrow(cssQuery: String): Elements {
@@ -117,16 +117,14 @@ public fun Element.selectOrThrow(cssQuery: String): Elements {
 	}
 }
 
-public fun Element.requireElementById(id: String): Element {
-	return getElementById(id) ?: throw ParseException("Cannot find \"#$id\"", baseUri())
+public fun Element.requireElementById(id: String): Element = parseNotNull(getElementById(id)) {
+	"Cannot find \"#$id\""
 }
 
-public fun Element.selectLast(cssQuery: String): Element? {
-	return select(cssQuery).lastOrNull()
-}
+public fun Element.selectLast(cssQuery: String): Element? = select(cssQuery).lastOrNull()
 
-public fun Element.selectLastOrThrow(cssQuery: String): Element {
-	return selectLast(cssQuery) ?: throw ParseException("Cannot find \"$cssQuery\"", baseUri())
+public fun Element.selectLastOrThrow(cssQuery: String): Element = parseNotNull(selectLast(cssQuery)) {
+	"Cannot find \"$cssQuery\""
 }
 
 public fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
@@ -142,8 +140,9 @@ public fun Element.selectFirstParent(query: String): Element? {
 	}
 }
 
-public fun Element.selectFirstParentOrThrow(query: String): Element =
-	selectFirstParent(query) ?: throw ParseException("Cannot find parent \"$query\"", baseUri())
+public fun Element.selectFirstParentOrThrow(query: String): Element = parseNotNull(selectFirstParent(query)) {
+	"Cannot find parent \"$query\""
+}
 
 /**
  * Return a first non-empty attribute value of [names] or null if it is missing or empty
@@ -183,6 +182,11 @@ public fun Element.src(
 	return null
 }
 
+@InternalParsersApi
+public fun Element.requireSrc(): String = parseNotNull(src()) {
+	"Image src not found"
+}
+
 public fun Element.metaValue(itemprop: String): String? = getElementsByAttributeValue("itemprop", itemprop)
 	.firstNotNullOfOrNull { element ->
 		element.attrOrNull("content")
@@ -198,5 +202,18 @@ public fun String.cssUrl(): String? {
 		null
 	} else {
 		substring(fromIndex + 4, toIndex).trim()
+	}
+}
+
+internal inline fun <T : Any> Element.parseNotNull(value: T?, lazyMessage: () -> String): T {
+	contract {
+		returns() implies (value != null)
+	}
+
+	if (value == null) {
+		val message = lazyMessage()
+		throw ParseException(message, baseUri())
+	} else {
+		return value
 	}
 }

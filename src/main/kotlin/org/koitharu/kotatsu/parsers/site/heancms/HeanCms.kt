@@ -178,7 +178,7 @@ internal abstract class HeanCms(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(selectPages).map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,

@@ -217,7 +217,7 @@ internal abstract class MangaWorldParser(
 		val selectMangaPages = "img.img-fluid"
 		val imgSelector = if (doc.select(selectWebtoonPages).isNotEmpty()) selectWebtoonPages else selectMangaPages
 		return doc.select(imgSelector).map { img ->
-			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val urlPage = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(urlPage),
 				url = urlPage,

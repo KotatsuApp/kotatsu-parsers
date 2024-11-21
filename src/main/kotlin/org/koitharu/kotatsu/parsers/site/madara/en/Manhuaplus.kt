@@ -19,7 +19,7 @@ internal class Manhuaplus(context: MangaLoaderContext) :
 		val root = doc.body().selectFirst("div.main-col-inner")?.selectFirst("div.reading-content")
 			?: throw ParseException("Root not found", fullUrl)
 		return root.select("img").map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

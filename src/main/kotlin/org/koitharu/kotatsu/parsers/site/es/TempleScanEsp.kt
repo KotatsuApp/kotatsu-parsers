@@ -85,7 +85,7 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("main.contenedor img.readChapter_image__450v_").map { url ->
-			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
+			val img = url.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(img),
 				url = img,

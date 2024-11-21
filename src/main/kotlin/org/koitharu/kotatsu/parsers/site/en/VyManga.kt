@@ -194,7 +194,7 @@ internal class VyManga(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select("img.d-block").map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,

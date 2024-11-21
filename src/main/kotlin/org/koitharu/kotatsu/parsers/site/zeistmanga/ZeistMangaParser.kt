@@ -341,7 +341,7 @@ internal abstract class ZeistMangaParser(
 
 		} else {
 			doc.select(selectPage).map { img ->
-				val url = img.src() ?: img.parseFailed("Image src not found")
+				val url = img.requireSrc()
 				MangaPage(
 					id = generateUid(url),
 					url = url,

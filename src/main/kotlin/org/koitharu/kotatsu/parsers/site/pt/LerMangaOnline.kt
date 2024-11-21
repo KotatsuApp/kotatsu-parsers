@@ -140,7 +140,7 @@ internal class LerMangaOnline(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(".images img").map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

@@ -233,7 +233,7 @@ internal abstract class MadthemeParser(
 		val result = ArrayList<MangaPage>()
 		// html parisng
 		doc.select(selectPage).forEach { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			if (known.add(url)) {
 				result += MangaPage(
 					id = generateUid(url),

@@ -19,7 +19,7 @@ internal class OlimpoScans(context: MangaLoaderContext) :
 		val fullUrl = ("/" + chapter.url).toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(selectPage).map { img ->
-			val url = ("/proxy.php?link=" + img.src()).toRelativeUrl(domain)
+			val url = ("/proxy.php?link=" + img.requireSrc()).toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

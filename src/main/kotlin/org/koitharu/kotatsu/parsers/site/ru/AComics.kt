@@ -177,6 +177,6 @@ internal class AComics(context: MangaLoaderContext) :
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.requireElementById("mainImage").src() ?: doc.parseFailed("Image src not found")
+		return doc.requireElementById("mainImage").requireSrc()
 	}
 }

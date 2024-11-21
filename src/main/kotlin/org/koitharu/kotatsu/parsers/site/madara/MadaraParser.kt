@@ -684,7 +684,7 @@ internal abstract class MadaraParser(
 				)
 				return root.select(selectPage).flatMap { div ->
 					div.selectOrThrow("img").map { img ->
-						val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+						val url = img.requireSrc().toRelativeUrl(domain)
 						MangaPage(
 							id = generateUid(url),
 							url = url,

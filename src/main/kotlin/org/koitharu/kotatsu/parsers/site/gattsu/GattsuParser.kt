@@ -152,6 +152,6 @@ internal abstract class GattsuParser(
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.selectFirstOrThrow("div.galeria-foto img").src() ?: doc.parseFailed("Image src not found")
+		return doc.selectFirstOrThrow("div.galeria-foto img").requireSrc()
 	}
 }

@@ -33,7 +33,7 @@ internal class FrScan(context: MangaLoaderContext) :
 		} else {
 			return doc.body().selectFirstOrThrow(selectBodyPage).select(selectPage).map { div ->
 				val img = div.selectFirstOrThrow("img")
-				val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+				val url = img.requireSrc().toRelativeUrl(domain)
 				MangaPage(
 					id = generateUid(url),
 					url = url,

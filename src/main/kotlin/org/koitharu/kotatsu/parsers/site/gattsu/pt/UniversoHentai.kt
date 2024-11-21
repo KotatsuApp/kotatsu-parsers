@@ -42,7 +42,7 @@ internal class UniversoHentai(context: MangaLoaderContext) :
 		val images = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml().requireElementById("galeria")
 			.select(".galeria-foto img")
 		return images.map { img ->
-			val urlImages = img.src() ?: img.parseFailed("Image src not found")
+			val urlImages = img.requireSrc()
 			MangaPage(
 				id = generateUid(urlImages),
 				url = urlImages,

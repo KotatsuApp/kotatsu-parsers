@@ -9,16 +9,8 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.CryptoAES
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.src
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import java.util.Base64
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("DARK_SCANS", "DarkScans", "en")
 internal class DarkScans(context: MangaLoaderContext) :
@@ -40,7 +32,7 @@ internal class DarkScans(context: MangaLoaderContext) :
 				)
 				return root.select(selectPage).map { div ->
 					val img = div.selectFirstOrThrow("img")
-					val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+					val url = img.requireSrc().toRelativeUrl(domain)
 					MangaPage(
 						id = generateUid(url),
 						url = url.replace("http:", "https:"),

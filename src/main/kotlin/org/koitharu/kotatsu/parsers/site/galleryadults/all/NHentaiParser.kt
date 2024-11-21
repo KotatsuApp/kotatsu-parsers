@@ -107,7 +107,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body()
-		return root.requireElementById(idImg).selectFirstOrThrow("img").src() ?: root.parseFailed("Image src not found")
+		return root.requireElementById(idImg).selectFirstOrThrow("img").requireSrc()
 	}
 
 	override fun Element.parseTags() = select("a").mapToSet {

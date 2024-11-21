@@ -201,7 +201,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 		val root = doc.body().selectFirstOrThrow(".chapter_content")
 		return root.select("div.page-chapter").map { div ->
 			val img = div.selectFirstOrThrow("img")
-			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

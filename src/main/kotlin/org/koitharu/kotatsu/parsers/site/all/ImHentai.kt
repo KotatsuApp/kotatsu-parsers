@@ -235,6 +235,6 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val img = doc.body().requireElementById("gimg")
-		return img.src() ?: doc.parseFailed("Cannot find image src")
+		return img.requireSrc()
 	}
 }

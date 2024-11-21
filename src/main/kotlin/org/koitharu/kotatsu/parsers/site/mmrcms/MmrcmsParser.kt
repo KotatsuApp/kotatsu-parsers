@@ -242,7 +242,7 @@ internal abstract class MmrcmsParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(selectPage).map { url ->
-			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
+			val img = url.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(img),
 				url = img,

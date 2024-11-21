@@ -187,7 +187,7 @@ internal class Pururin(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(".gallery-preview img").map { url ->
-			val img = url.src()?.toRelativeUrl(domain) ?: url.parseFailed("Image src not found")
+			val img = url.requireSrc().toRelativeUrl(domain)
 			val urlImage = img.replace("t.", ".")
 			MangaPage(
 				id = generateUid(urlImage),

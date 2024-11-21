@@ -115,7 +115,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 				rating = a.selectFirst("div.block  label.ml-1")?.text()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,
-				state = when (a.selectLast("span.status")?.text().orEmpty()) {
+				state = when (a.selectLast("span.status")?.text()) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					"Hiatus" -> MangaState.PAUSED
@@ -147,7 +147,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 			)
 		}
 		tagCache = tagMap
-		return@withLock tagMap
+		tagMap
 	}
 
 	private val regexDate = """(\d+)(st|nd|rd|th)""".toRegex()
@@ -185,8 +185,8 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div > img[alt*=chapter]").map { img ->
-			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+		return doc.selectOrThrow("div.w-full > img.object-cover").map { img ->
+			val urlPage = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(urlPage),
 				url = urlPage,

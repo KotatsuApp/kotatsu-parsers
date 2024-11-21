@@ -94,7 +94,7 @@ internal class Hentai3(context: MangaLoaderContext) :
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.selectFirstOrThrow(idImg).src() ?: doc.parseFailed("Image src not found")
+		return doc.selectFirstOrThrow(idImg).requireSrc()
 	}
 
 	private fun buildQuery(tags: Collection<MangaTag>, language: Locale?): String {

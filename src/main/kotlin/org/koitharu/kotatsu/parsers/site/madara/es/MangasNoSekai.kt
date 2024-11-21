@@ -81,7 +81,7 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 			?: throw ParseException("No image found, try to log in", fullUrl)
 		return root.select(selectPage).map { div ->
 			val img = div.selectFirstOrThrow("img")
-			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

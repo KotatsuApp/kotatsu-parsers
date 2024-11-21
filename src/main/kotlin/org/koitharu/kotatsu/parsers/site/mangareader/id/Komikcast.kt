@@ -158,7 +158,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 		val test = docs.select("script:containsData(ts_reader)")
 		if (test.isNullOrEmpty()) {
 			return docs.select("div#chapter_body img").map { img ->
-				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+				val url = img.requireSrc().toRelativeUrl(domain)
 				MangaPage(
 					id = generateUid(url),
 					url = url,

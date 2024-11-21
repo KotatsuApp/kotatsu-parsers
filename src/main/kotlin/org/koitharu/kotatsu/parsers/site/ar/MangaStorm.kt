@@ -120,7 +120,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml().requireElementById("content")
 		return doc.select("div.text-center .img-fluid").map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

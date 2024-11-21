@@ -108,7 +108,7 @@ internal class TmoManga(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().requireElementById("images_chapter")
 		return root.select("img").map { img ->
-			val url = img.src()?.toRelativeUrl(domain).orEmpty()
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

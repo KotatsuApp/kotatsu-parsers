@@ -144,7 +144,7 @@ internal abstract class VmpParser(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.wp-content img").map { div ->
 			val img = div.selectFirstOrThrow("img")
-			val url = img.src()?.toRelativeUrl(domain) ?: div.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

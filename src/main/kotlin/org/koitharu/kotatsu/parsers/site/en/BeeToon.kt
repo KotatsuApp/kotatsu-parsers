@@ -135,7 +135,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select(".chapter-content-inner center img").map { img ->
-			val urlPage = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val urlPage = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(urlPage),
 				url = urlPage,

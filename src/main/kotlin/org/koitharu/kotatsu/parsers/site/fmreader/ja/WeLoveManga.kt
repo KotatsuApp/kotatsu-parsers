@@ -45,7 +45,7 @@ internal class WeLoveManga(context: MangaLoaderContext) :
 		val cid = doc.selectFirstOrThrow("#chapter").attr("value")
 		val docLoad = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
 		return docLoad.select("img").map { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc().toRelativeUrl(domain)
 
 			MangaPage(
 				id = generateUid(url),

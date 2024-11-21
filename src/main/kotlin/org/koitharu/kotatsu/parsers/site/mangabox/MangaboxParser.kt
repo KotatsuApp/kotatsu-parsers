@@ -233,7 +233,7 @@ internal abstract class MangaboxParser(
 			val doc2 = webClient.httpGet(fullUrl2).parseHtml()
 
 			return doc2.select(selectPage).map { img ->
-				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+				val url = img.requireSrc().toRelativeUrl(domain)
 
 				MangaPage(
 					id = generateUid(url),
@@ -244,7 +244,7 @@ internal abstract class MangaboxParser(
 			}
 		} else {
 			return doc.select(selectPage).map { img ->
-				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+				val url = img.requireSrc().toRelativeUrl(domain)
 
 				MangaPage(
 					id = generateUid(url),

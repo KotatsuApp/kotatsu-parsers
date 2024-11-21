@@ -113,7 +113,7 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow(selectBodyPage)
 		return root.select("img").map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,

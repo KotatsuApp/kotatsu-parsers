@@ -297,7 +297,7 @@ internal abstract class MangaReaderParser(
 		val test = docs.select(selectTestScript)
 		if (test.isNullOrEmpty() and !encodedSrc) {
 			return docs.select(selectPage).map { img ->
-				val url = img.src()?.toRelativeUrl(domain) ?: img.parseFailed("Image src not found")
+				val url = img.requireSrc().toRelativeUrl(domain)
 				MangaPage(
 					id = generateUid(url),
 					url = url,

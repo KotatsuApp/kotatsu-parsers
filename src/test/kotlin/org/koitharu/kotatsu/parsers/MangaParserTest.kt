@@ -190,7 +190,7 @@ internal class MangaParserTest {
 	fun favicon(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val favicons = parser.getFavicons()
-		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg")
+		val types = setOf("png", "svg", "ico", "gif", "jpg", "jpeg", "webp", "avif")
 		assert(favicons.isNotEmpty())
 		favicons.forEach {
 			assert(it.url.isUrlAbsolute()) { "Favicon url is not absolute: ${it.url}" }
