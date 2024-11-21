@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.likemanga.LikeMangaParser
 
 @MangaSourceParser("LIKEMANGA", "LikeManga", "en")
 internal class LikeManga(context: MangaLoaderContext) :
-	LikeMangaParser(context, MangaParserSource.LIKEMANGA, "likemanga.io")
+	LikeMangaParser(context, MangaParserSource.LIKEMANGA, "likemanga.ink")
