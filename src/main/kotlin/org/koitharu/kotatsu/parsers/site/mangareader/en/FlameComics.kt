@@ -8,5 +8,5 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 @MangaSourceParser("FLAMECOMICS", "FlameComics", "en")
 internal class FlameComics(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.FLAMECOMICS, "flamecomics.xyz", pageSize = 24, searchPageSize = 10) {
-	override val listUrl = ""
+	//override val listUrl = ""
 }
