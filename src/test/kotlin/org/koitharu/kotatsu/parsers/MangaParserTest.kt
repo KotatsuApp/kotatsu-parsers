@@ -248,7 +248,9 @@ internal class MangaParserTest {
 		for (item in list) {
 			assert(item.url.isNotEmpty()) { "Url is empty" }
 			assert(!item.url.isUrlAbsolute()) { "Url looks like absolute: ${item.url}" }
-			assert(item.coverUrl.isUrlAbsolute()) { "Cover url is not absolute: ${item.coverUrl}" }
+			if (item.coverUrl.isNotEmpty()) { // TODO nullable cover
+				assert(item.coverUrl.isUrlAbsolute()) { "Cover url is not absolute: ${item.coverUrl}" }
+			}
 			assert(item.title.isNotEmpty()) { "Title for ${item.publicUrl} is empty" }
 			assert(item.publicUrl.isUrlAbsolute())
 		}

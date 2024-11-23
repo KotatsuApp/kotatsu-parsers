@@ -68,3 +68,7 @@ public inline fun Int.ifZero(defaultVale: () -> Int): Int {
 		this
 	}
 }
+
+public fun longOf(a: Int, b: Int): Long {
+	return a.toLong() shl 32 or (b.toLong() and 0xffffffffL)
+}

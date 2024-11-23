@@ -5,4 +5,10 @@ package org.koitharu.kotatsu.parsers
  */
 @Target(AnnotationTarget.CLASS)
 @Retention(AnnotationRetention.SOURCE)
-internal annotation class Broken
+internal annotation class Broken(
+
+	/**
+	 * Reason why this parser is broken
+	 */
+	val message: String = "",
+)
