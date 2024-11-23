@@ -458,7 +458,7 @@ internal abstract class MadaraParser(
 		return doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
 		}.map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			Manga(
 				id = generateUid(href),
@@ -563,6 +563,7 @@ internal abstract class MadaraParser(
 		val alt = doc.body().select(selectAlt).firstOrNull()?.tableValue()?.textOrNull()
 
 		manga.copy(
+			title = doc.selectFirst("h1")?.textOrNull() ?: manga.title,
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
 			tags = doc.body().select(selectGenre).mapToSet { a ->
@@ -587,8 +588,8 @@ internal abstract class MadaraParser(
 	protected open suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
@@ -621,8 +622,8 @@ internal abstract class MadaraParser(
 		}
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
+			val a = li.selectFirstOrThrow("a")
+			val href = a.attrAsRelativeUrl("href")
 			val link = href + stylePage
 			val dateText = li.selectFirst("a.c-new-tag")?.attr("title") ?: li.selectFirst(selectDate)?.text()
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
