@@ -12,7 +12,7 @@ import java.util.EnumSet
 
 @MangaSourceParser("NETTRUYENSSR", "NetTruyenSSR", "vi")
 internal class NetTruyenSSR(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYENSSR, "nettruyenssr.com", 20) {
+	WpComicsParser(context, MangaParserSource.NETTRUYENSSR, "nettruyenok.com", 20) {
 
 	override val listUrl = "/tim-kiem-nang-cao"
 

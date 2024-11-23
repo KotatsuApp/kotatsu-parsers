@@ -14,9 +14,9 @@ import java.util.*
 
 @MangaSourceParser("NHATTRUYENVN", "NhatTruyenVN", "vi")
 internal class NhatTruyenVN(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NHATTRUYENVN, "nhattruyenvn.com", 36) {
+	WpComicsParser(context, MangaParserSource.NHATTRUYENVN, "nhattruyenv.com", 36) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nhattruyenvn.com", "www.nhattruyenss.net")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nhattruyenv.com", "www.nhattruyenss.net")
 
 	private val selectChap = "ul#asc li.row:not(.heading)"
 

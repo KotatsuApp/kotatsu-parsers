@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGARBIC", "MangaArabic", "ar")
 internal class Mangarbic(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGARBIC, "mangarabic.com") {
+	MadaraParser(context, MangaParserSource.MANGARBIC, "lekmanga.net") {
 	override val postReq = true
 	override val datePattern = "yyyy/MM/dd"
 }
