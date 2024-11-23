@@ -12,7 +12,9 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
