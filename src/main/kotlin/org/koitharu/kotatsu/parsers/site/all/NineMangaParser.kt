@@ -102,10 +102,10 @@ internal abstract class NineMangaParser(
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		val root = doc.body().selectFirst("ul.direlist") ?: doc.parseFailed("Cannot find root")
+		val root = doc.body().selectFirstOrThrow("ul.direlist")
 		val baseHost = root.baseUri().toHttpUrl().host
 		return root.select("li").map { node ->
-			val href = node.selectFirst("a")?.absUrl("href") ?: node.parseFailed("Link not found")
+			val href = node.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
 			val relUrl = href.toRelativeUrl(baseHost)
 			val dd = node.selectFirst("dd")
 			Manga(
@@ -114,7 +114,7 @@ internal abstract class NineMangaParser(
 				publicUrl = href,
 				title = dd?.selectFirst("a.bookname")?.text()?.toCamelCase().orEmpty(),
 				altTitle = null,
-				coverUrl = node.selectFirst("img")?.absUrl("src").orEmpty(),
+				coverUrl = node.selectFirst("img")?.src().orEmpty(),
 				rating = RATING_UNKNOWN,
 				author = null,
 				isNsfw = false,
@@ -136,16 +136,17 @@ internal abstract class NineMangaParser(
 		val selectTag = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()?.select("a")
 		val tags = selectTag?.mapNotNullToSet { tagMap[it.text()] }
 		return manga.copy(
+			title = root.selectFirst("h1[itemprop=name]")?.textOrNull()?.removeSuffix("Manga")?.trimEnd()
+				?: manga.title,
 			tags = tags.orEmpty(),
-			author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.text(),
+			author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.textOrNull(),
 			state = parseStatus(infoRoot.select("li a.red").text()),
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()?.html()
 				?.substringAfter("</b>"),
 			chapters = root.selectFirst("div.chapterbox")?.select("ul.sub_vol_ul > li")
 				?.mapChapters(reversed = true) { i, li ->
-					val a = li.selectFirst("a.chapter_list_a")
-					val href =
-						a?.attrAsRelativeUrlOrNull("href")?.replace("%20", " ") ?: li.parseFailed("Link not found")
+					val a = li.selectFirstOrThrow("a.chapter_list_a")
+					val href = a.attrAsRelativeUrl("href").replace("%20", " ")
 					MangaChapter(
 						id = generateUid(href),
 						name = a.text(),
@@ -163,7 +164,7 @@ internal abstract class NineMangaParser(
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.body().getElementById("page")?.select("option")?.map { option ->
+		return doc.body().requireElementById("page").select("option").map { option ->
 			val url = option.attr("value")
 			MangaPage(
 				id = generateUid(url),
@@ -171,13 +172,13 @@ internal abstract class NineMangaParser(
 				preview = null,
 				source = source,
 			)
-		} ?: doc.parseFailed("Pages list not found")
+		}
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body()
-		return root.selectFirst("a.pic_download")?.absUrl("href") ?: doc.parseFailed("Page image not found")
+		return root.selectFirstOrThrow("a.pic_download").attrAsAbsoluteUrl("href")
 	}
 
 	private var tagCache: ArrayMap<String, MangaTag>? = null
