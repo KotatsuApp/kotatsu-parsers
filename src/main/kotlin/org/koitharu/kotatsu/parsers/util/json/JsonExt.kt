@@ -2,9 +2,22 @@ package org.koitharu.kotatsu.parsers.util.json
 
 import androidx.collection.ArraySet
 import org.json.JSONArray
+import org.json.JSONException
 import org.json.JSONObject
 import java.util.*
 import kotlin.contracts.contract
+
+public fun String.toJSONObjectOrNull(): JSONObject? = try {
+	JSONObject(this)
+} catch (_: JSONException) {
+	null
+}
+
+public fun String.toJSONArrayOrNull(): JSONArray? = try {
+	JSONArray(this)
+} catch (_: JSONException) {
+	null
+}
 
 public inline fun <R, C : MutableCollection<in R>> JSONArray.mapJSONTo(
 	destination: C,

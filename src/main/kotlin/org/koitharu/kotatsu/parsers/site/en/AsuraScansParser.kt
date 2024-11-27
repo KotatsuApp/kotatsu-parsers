@@ -11,6 +11,8 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
+import org.koitharu.kotatsu.parsers.util.json.toJSONArrayOrNull
+import org.koitharu.kotatsu.parsers.util.json.toJSONObjectOrNull
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -185,14 +187,36 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.selectOrThrow("div.w-full > img.object-cover").map { img ->
-			val urlPage = img.requireSrc().toRelativeUrl(domain)
+		val data = doc.selectOrThrow("script").mapNotNull { x ->
+			x.data().substringBetween("self.__next_f.push(", ")", "")
+				.trim()
+				.takeUnless { it.isEmpty() }
+		}.flatMap { it.jsonStrings() }
+			.joinToString("")
+			.split('\n')
+			.mapNotNull { x ->
+				x.substringAfter(':').toJSONObjectOrNull()
+			}
+		val pages = data.filter { it.has("order") && it.has("url") }
+			.associate { it.getInt("order") to it.getString("url") }.values
+		return pages.map { url ->
 			MangaPage(
-				id = generateUid(urlPage),
-				url = urlPage,
+				id = generateUid(url),
+				url = url,
 				preview = null,
 				source = source,
 			)
 		}
+	}
+
+	private fun String.jsonStrings(): List<String> {
+		val ja = toJSONArrayOrNull() ?: return emptyList()
+		val result = ArrayList<String>(ja.length())
+		repeat(ja.length()) { i ->
+			(ja.get(i) as? String)?.let { item ->
+				result.add(item)
+			}
+		}
+		return result
 	}
 }
