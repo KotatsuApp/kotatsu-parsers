@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
 internal class TopTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.TOPTRUYEN, 36) {
+	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyenpro1.com", 36) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"www.toptruyento.pro",
