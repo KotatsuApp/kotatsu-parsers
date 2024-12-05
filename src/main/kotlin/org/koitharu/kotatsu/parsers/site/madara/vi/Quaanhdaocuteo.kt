@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("QUAANHDAOCUTEO", "Quaanhdaocuteo", "vi", ContentType.HENTAI)
 internal class Quaanhdaocuteo(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.QUAANHDAOCUTEO, "qadc.xyz") {
+	MadaraParser(context, MangaParserSource.QUAANHDAOCUTEO, "quaanhdaocuteo.xyz") {
 	override val datePattern = "dd/MM/yyyy"
 	override val selectPage = "p img"
 
