@@ -98,7 +98,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("div.image-item img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("div.image-item img")?.src(coverSrcAttrs).orEmpty(),
 				title = div.selectFirst("h3 a")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

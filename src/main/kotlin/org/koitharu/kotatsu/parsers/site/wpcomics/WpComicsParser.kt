@@ -43,6 +43,9 @@ internal abstract class WpComicsParser(
 			isSearchSupported = true,
 		)
 
+	@JvmField
+	protected val coverSrcAttrs = arrayOf("data-original", "src")
+
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
@@ -161,7 +164,7 @@ internal abstract class WpComicsParser(
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = item.selectFirst("div.image a img")?.absUrl("data-original").orEmpty(),
+				coverUrl = item.selectFirst("div.image a img")?.src(coverSrcAttrs).orEmpty(),
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,
