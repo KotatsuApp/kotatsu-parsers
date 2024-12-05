@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.mangareader.en
+package org.koitharu.kotatsu.parsers.site.en
 
 import androidx.collection.ArraySet
 import okhttp3.HttpUrl
