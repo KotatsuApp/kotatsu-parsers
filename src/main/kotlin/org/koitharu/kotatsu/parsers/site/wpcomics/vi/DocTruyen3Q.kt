@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qk.pro", 36) {
+	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"doctruyen3qk.pro", "doctruyen3qw.pro", "doctruyen3qvip.com", "truyen3qvip.com",
