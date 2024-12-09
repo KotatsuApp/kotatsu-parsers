@@ -30,6 +30,9 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 	private val apiDomain
 		get() = "api.$domain"
 
+	private val storageDomain
+		get() = "storage.$domain"
+
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
@@ -68,7 +71,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = jo.getString("thumbnail"),
+					coverUrl = "https://$storageDomain/${jo.getString("thumbnail")}",
 					tags = jo.getJSONArray("tag").mapJSONToSet { tag ->
 						MangaTag(
 							title = tag.getString("name"),
@@ -127,7 +130,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 			.map { url ->
 				MangaPage(
 					id = generateUid(url),
-					url = url,
+					url = "https://$storageDomain/$url",
 					preview = null,
 					source = source,
 				)
