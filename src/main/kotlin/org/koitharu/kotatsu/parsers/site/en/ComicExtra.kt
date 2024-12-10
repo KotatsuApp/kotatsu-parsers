@@ -12,9 +12,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
-internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 25) {
+internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 36) {
 
-	override val configKeyDomain = ConfigKey.Domain("comixextra.com")
+	override val configKeyDomain = ConfigKey.Domain("azcomix.me")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
@@ -50,62 +50,40 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 						append(page.toString())
 					}
 				}
-
 				else -> {
-
-					if (filter.tags.isNotEmpty() && filter.states.isEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(it.key)
-						}
-					} else if (filter.tags.isEmpty() && filter.states.isNotEmpty()) {
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "/ongoing-comic"
-									MangaState.FINISHED -> "/completed-comic"
-									else -> "/ongoing-comic"
-								},
-							)
-						}
-
+					when (order) {
+						SortOrder.POPULARITY -> append("popular-comics")
+						SortOrder.UPDATED -> append("new-comics")
+						SortOrder.NEWEST -> append("recent-comics")
+						else -> append("new-comics")
 					}
-
-					if (filter.tags.isNotEmpty() && filter.states.isNotEmpty()) {
-						throw IllegalArgumentException(ErrorMessages.FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED)
-					} else {
-						when (order) {
-							SortOrder.POPULARITY -> append("popular-comic")
-							SortOrder.UPDATED -> append("new-comic")
-							SortOrder.NEWEST -> append("recent-comic")
-							else -> append("new-comic")
-						}
-					}
-
 					if (page > 1) {
-						append("/")
+						append("?page=")
 						append(page.toString())
 					}
 				}
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select("div.movie-list-index div.cartoon-box").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+		return doc.select("div.eg-box").map { div ->
+			val href = div.selectFirstOrThrow("a.eg-image").attrAsRelativeUrl("href")
 			Manga(
 				id = generateUid(href),
-				title = div.selectFirstOrThrow("h3").text(),
+				title = div.selectFirstOrThrow("a.egb-serie").text(),
 				altTitle = null,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
 				coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
-				tags = emptySet(),
-				state = when (div.selectFirstOrThrow(".detail:contains(Stasus: )").text()) {
-					"Stasus: Ongoing" -> MangaState.ONGOING
-					"Stasus: Completed" -> MangaState.FINISHED
-					else -> null
+				tags = div.select("div.egb-details a").mapToSet { a ->
+					MangaTag(
+						key = a.attr("href").substringAfterLast('/'),
+						title = a.text(),
+						source = source,
+					)
 				},
+				state = null,
 				author = null,
 				source = source,
 			)
@@ -113,8 +91,8 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/popular-comic").parseHtml()
-		return doc.select("li.tag-item a").mapToSet { a ->
+		val doc = webClient.httpGet("https://$domain/genre/marvel").parseHtml()
+		return doc.select("ul.lf-list li a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").substringAfterLast('/'),
 				title = a.text(),
@@ -125,55 +103,65 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val dateFormat = SimpleDateFormat("MM/dd/yy", sourceLocale)
 		return manga.copy(
-			altTitle = doc.selectFirstOrThrow("dt.movie-dt:contains(Alternate name:) + dd").text(),
-			state = when (doc.selectFirstOrThrow("dt.movie-dt:contains(Status:) + dd a").text()) {
+			altTitle = doc.selectFirstOrThrow("div.anime-top h1.title").text(),
+			state = when (doc.selectFirstOrThrow("ul.anime-genres li.status a").text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = doc.select("dt.movie-dt:contains(Genres:) + dd a").mapToSet { a ->
+			tags = doc.select("ul.anime-genres li a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)
 			},
-			author = doc.select("dt.movie-dt:contains(Author:) + dd").text(),
-			description = doc.getElementById("film-content")?.text(),
-			chapters = doc.requireElementById("list").select("tr")
-				.mapChapters(reversed = true) { i, tr ->
-					val a = tr.selectFirstOrThrow("a")
-					val url = a.attrAsRelativeUrl("href") + "/full"
+			author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.text(),
+			description = doc.selectFirstOrThrow("div.detail-desc-content p").text(),
+			chapters = doc.select("ul.basic-list li").let { elements ->
+				elements.mapChapters() { i, li ->
+					val a = li.selectFirstOrThrow("a.ch-name")
+					val url = a.attrAsRelativeUrl("href")
 					val name = a.text()
-					val dateText = tr.select("td").last()?.text()
+					val dateText = li.selectFirst("span")?.text()
+					val date = try {
+						if (!dateText.isNullOrEmpty()) {
+							SimpleDateFormat("MM/dd/yyyy", Locale.US).parse(dateText)?.time ?: 0L
+						} else 0L
+					} catch (e: Exception) {
+						0L
+					}
 					MangaChapter(
 						id = generateUid(url),
 						name = name,
-						number = i + 1f,
+						number = elements.size - i.toFloat(),
 						volume = 0,
 						url = url,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(dateText),
+						uploadDate = date,
 						branch = null,
 						source = source,
 					)
-				},
+				}
+			}.reversed(),
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val fullUrl = chapter.url.toAbsoluteUrl(domain) + "/full"
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".chapter-container img").map { img ->
-			val url = img.requireSrc().toRelativeUrl(domain)
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		
+		return doc.select("div.chapter-container img").mapNotNull { img ->
+			val url = img.attr("src")?.takeUnless { it.isBlank() }?.toAbsoluteUrl(domain)
+			url?.let {
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			}
 		}
 	}
 }
