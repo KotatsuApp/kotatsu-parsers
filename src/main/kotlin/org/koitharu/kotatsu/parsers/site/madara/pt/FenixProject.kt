@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FENIXPROJECT", "FenixProject", "pt")
 internal class FenixProject(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.FENIXPROJECT, "fenixproject.xyz", 10) {
+	MadaraParser(context, MangaParserSource.FENIXPROJECT, "fenixproject.site", 10) {
 	override val datePattern: String = "dd/MM/yyyy"
 }

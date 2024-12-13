@@ -11,7 +11,7 @@ internal class InariPikav(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.INARIPIKAV,
-		"vrinari.org",
+		"clubinari.org",
 		pageSize = 10,
 		searchPageSize = 10,
 	) {

@@ -10,7 +10,7 @@ import java.util.*
 @Broken // Redirect to @XMANHWA
 @MangaSourceParser("INSTAMANHWA", "InstaManhwa", "en", ContentType.HENTAI)
 internal class InstaManhwa(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.xmanhwa.me", 15) {
+	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.manhwaden.com", 15) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val selectPage = "img"
 }

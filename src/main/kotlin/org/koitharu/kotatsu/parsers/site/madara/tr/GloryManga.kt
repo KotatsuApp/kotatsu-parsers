@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @Broken // Redirect to @MANGAGEZGINI
 @MangaSourceParser("GLORYMANGA", "GloryManga", "tr")
 internal class GloryManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.GLORYMANGA, "mangagezgini.dev", 18) {
+	MadaraParser(context, MangaParserSource.GLORYMANGA, "mangagezgini.co", 18) {
 	override val datePattern = "dd/MM/yyyy"
 }

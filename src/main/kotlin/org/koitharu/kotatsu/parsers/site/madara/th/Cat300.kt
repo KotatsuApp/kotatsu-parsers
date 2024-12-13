@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("CAT_300", "Cat300", "th", ContentType.HENTAI)
-internal class Cat300(context: MangaLoaderContext) : MadaraParser(context, MangaParserSource.CAT_300, "cat300.net") {
+internal class Cat300(context: MangaLoaderContext) : MadaraParser(context, MangaParserSource.CAT_300, "cat-300.com") {
 	override val datePattern = "MMMM dd, yyyy"
 }

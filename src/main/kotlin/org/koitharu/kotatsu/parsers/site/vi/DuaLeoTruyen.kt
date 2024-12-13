@@ -1,8 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import org.json.JSONArray
-import org.jsoup.nodes.Document
-import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -17,7 +14,7 @@ import java.util.*
 internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
 
-  	override val configKeyDomain: ConfigKey.Domain
+	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("dualeotruyenomega.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
@@ -29,7 +26,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
-		SortOrder.POPULARITY
+		SortOrder.POPULARITY,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -51,11 +48,13 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 					append("?key=")
 					append(filter.query.urlEncoded())
 				}
+
 				filter.tags.isNotEmpty() -> {
 					append("/the-loai/")
 					append(filter.tags.first().key)
 					append(".html")
 				}
+
 				else -> when (order) {
 					SortOrder.POPULARITY -> append("/top-ngay.html")
 					else -> append("/truyen-moi-cap-nhat.html")
@@ -82,7 +81,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				tags = emptySet(),
 				state = null,
 				author = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -97,7 +96,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				MangaTag(
 					key = it.attr("href").substringAfterLast('/').substringBefore('.'),
 					title = it.text().toTitleCase(sourceLocale),
-					source = source
+					source = source,
 				)
 			},
 			state = when (doc.selectFirst(".info-item:has(.fa-rss)")?.text()?.removePrefix("Tình trang: ")) {
@@ -122,7 +121,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 					source = source,
 					volume = 0,
 				)
-			}
+			},
 		)
 	}
 
@@ -138,8 +137,8 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				form = mapOf(
 					"action" to "update_view_chap",
 					"truyen" to comicsId,
-					"chap" to chapterId
-				)
+					"chap" to chapterId,
+				),
 			)
 		}
 
@@ -149,22 +148,22 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				source = source
+				source = source,
 			)
 		}
 	}
 
-	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+	private fun fetchAvailableTags(): Set<MangaTag> {
 		return listOf(
 			"18+", "Đam Mỹ", "Harem", "Truyện Màu", "BoyLove", "GirlLove",
 			"Phiêu lưu", "Yaoi", "Hài Hước", "Bách Hợp", "Chuyển Sinh", "Drama",
 			"Hành Động", "Kịch Tính", "Cổ Đại", "Ecchi", "Hentai", "Lãng Mạn",
-			"Người Thú", "Tình Cảm", "Yuri", "Oneshot", "Doujinshi", "ABO"
+			"Người Thú", "Tình Cảm", "Yuri", "Oneshot", "Doujinshi", "ABO",
 		).mapToSet { name ->
 			MangaTag(
 				key = name.lowercase().replace(' ', '-'),
 				title = name,
-				source = source
+				source = source,
 			)
 		}
 	}

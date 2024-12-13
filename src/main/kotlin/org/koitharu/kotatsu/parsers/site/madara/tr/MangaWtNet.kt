@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGAWT_NET", "MangaWt.net", "tr")
 internal class MangaWtNet(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGAWT_NET, "mangawt.net")
+	MadaraParser(context, MangaParserSource.MANGAWT_NET, "mangawt.com")

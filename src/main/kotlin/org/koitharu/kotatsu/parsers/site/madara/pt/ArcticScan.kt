@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ARCTICSCAN", "ArcticScan", "pt")
 internal class ArcticScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ARCTICSCAN, "alonescanlator.com.br") {
+	MadaraParser(context, MangaParserSource.ARCTICSCAN, "arcticscan.top") {
 	override val datePattern: String = "yyyy-MM-dd"
 }

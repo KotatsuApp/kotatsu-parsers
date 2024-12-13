@@ -1,10 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.madara.id
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
+@Broken
 @MangaSourceParser("YUBIKIRI", "Yubikiri", "id")
 internal class Yubikiri(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.YUBIKIRI, "yubikiri.my.id", 18) {

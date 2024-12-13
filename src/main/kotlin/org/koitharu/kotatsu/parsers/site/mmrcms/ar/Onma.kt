@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.mmrcms.ar
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -10,6 +11,7 @@ import org.koitharu.kotatsu.parsers.site.mmrcms.MmrcmsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
+@Broken
 @MangaSourceParser("ONMA", "Onma", "ar")
 internal class Onma(context: MangaLoaderContext) :
 	MmrcmsParser(context, MangaParserSource.ONMA, "onma.me") {

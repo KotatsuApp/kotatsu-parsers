@@ -16,7 +16,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"www.toptruyento.pro",
-		"www.toptruyenpro1.com"
+		"www.toptruyenpro1.com",
 	)
 
 	override val datePattern = "dd/MM/yyyy"
@@ -178,7 +178,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		}
 	}
 
-	protected fun parseChapterDate(dateText: String?): Long {
+	private fun parseChapterDate(dateText: String?): Long {
 		if (dateText == null) return 0
 
 		val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")

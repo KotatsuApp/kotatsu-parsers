@@ -12,10 +12,10 @@ import java.util.*
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qk.pro", 36) {
+	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qw.com", 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"doctruyen3qk.pro", "doctruyen3qw.pro", "doctruyen3qvip.com", "truyen3qvip.com",
+		"doctruyen3qw.com", "doctruyen3qk.pro", "doctruyen3qw.pro", "doctruyen3qvip.com", "truyen3qvip.com",
 	)
 
 	override val datePattern = "dd/MM/yyyy"
@@ -177,7 +177,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		}
 	}
 
-	protected fun parseChapterDate(dateText: String?): Long {
+	private fun parseChapterDate(dateText: String?): Long {
 		if (dateText == null) return 0
 
 		val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")
@@ -231,7 +231,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				source = source
+				source = source,
 			)
 		}
 	}

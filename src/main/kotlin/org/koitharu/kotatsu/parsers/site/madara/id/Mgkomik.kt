@@ -11,13 +11,13 @@ import kotlin.random.Random
 
 @MangaSourceParser("MGKOMIK", "MgKomik", "id")
 internal class Mgkomik(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MGKOMIK, "mgkomik.id", 20) {
+	MadaraParser(context, MangaParserSource.MGKOMIK, "mgkomik.org", 20) {
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
-		
+
 	override val tagPrefix = "genres/"
 	override val listUrl = "komik/"
 	override val datePattern = "dd MMM yy"

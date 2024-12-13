@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("CYPHERSCANS", "CypherScans", "en")
 internal class CypherScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.CYPHERSCANS, "cyphscans.xyz", pageSize = 20, searchPageSize = 10)
+	MangaReaderParser(context, MangaParserSource.CYPHERSCANS, "cypheroscans.xyz", pageSize = 20, searchPageSize = 10)

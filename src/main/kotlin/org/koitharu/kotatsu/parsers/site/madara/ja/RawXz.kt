@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RAWXZ", "RawXz", "ja")
 internal class RawXz(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RAWXZ, "rawxz.si") {
+	MadaraParser(context, MangaParserSource.RAWXZ, "rawxz.ac") {
 	override val listUrl = "jp-manga/"
 }

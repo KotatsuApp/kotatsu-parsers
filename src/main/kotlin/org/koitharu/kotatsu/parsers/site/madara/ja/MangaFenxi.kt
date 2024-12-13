@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.madara.ja
 
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -19,6 +20,7 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import java.util.Locale
 
+@Broken
 @MangaSourceParser("MANGAFENXI", "MangaFenxi", "ja")
 internal class MangaFenxi(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANGAFENXI, "mangafenxi.net", 40) {

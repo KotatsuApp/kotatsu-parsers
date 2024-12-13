@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("RAIJINSCANS", "RaijinScans", "fr")
 internal class RaijinScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RAIJINSCANS, "raijinscans.fr") {
+	MadaraParser(context, MangaParserSource.RAIJINSCANS, "raijinscans.net") {
 	override val datePattern = "dd/MM/yyyy"
 }

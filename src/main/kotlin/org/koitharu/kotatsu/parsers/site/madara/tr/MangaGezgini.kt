@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MANGAGEZGINI", "MangaGezgini", "tr")
 internal class MangaGezgini(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.dev", pageSize = 20) {
+	MadaraParser(context, MangaParserSource.MANGAGEZGINI, "mangagezgini.co", pageSize = 20) {
 	override val datePattern = "dd/MM/yyyy"
 }

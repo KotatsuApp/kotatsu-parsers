@@ -191,7 +191,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 					branch = jo.getStringOrNull("language"),
 					source = source,
 				)
-			},
+			}.reversed(),
 		)
 	}
 

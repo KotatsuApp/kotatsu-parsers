@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 
-@Broken
+@Broken // Not dead but changed template
 @MangaSourceParser("MANGAESP", "MangaEsp", "es")
 internal class MangaEsp(context: MangaLoaderContext) :
 	HeanCmsAlt(context, MangaParserSource.MANGAESP, "mangaesp.net", 15) {

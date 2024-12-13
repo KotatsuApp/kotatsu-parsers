@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.sinmh.SinmhParser
 
 @MangaSourceParser("GUFENGMH", "Gufengmh", "zh")
 internal class Gufengmh(context: MangaLoaderContext) :
-	SinmhParser(context, MangaParserSource.GUFENGMH, "www.gufengmh9.com")
+	SinmhParser(context, MangaParserSource.GUFENGMH, "www.gufengmh.com")

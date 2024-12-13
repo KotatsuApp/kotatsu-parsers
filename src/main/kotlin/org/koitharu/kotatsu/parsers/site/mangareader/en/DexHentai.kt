@@ -8,4 +8,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DEXHENTAI", "DexHentai", "en", ContentType.HENTAI)
 internal class DexHentai(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.DEXHENTAI, "dexhentai.com", 40, 36)
+	MangaReaderParser(context, MangaParserSource.DEXHENTAI, "dexhentai.com", 40, 36) {
+	override val listUrl = "/title"
+}

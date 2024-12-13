@@ -13,4 +13,6 @@ internal class PornhwaScans(context: MangaLoaderContext) :
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
 		)
+	override val selectChapter = "div.chapter-list > a.chapter-item"
+
 }

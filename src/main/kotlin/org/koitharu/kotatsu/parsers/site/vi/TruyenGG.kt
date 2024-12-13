@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser

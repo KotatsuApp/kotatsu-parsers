@@ -211,9 +211,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(chapterUrl).parseHtml()
 		return doc.requireElementById("chapter-content").select("img").mapNotNull {
-			val url = it.attrAsRelativeUrlOrNull("data-src")
-				?: it.attrAsRelativeUrlOrNull("src")
-				?: return@mapNotNull null
+			val url = it.src() ?: return@mapNotNull null
 			MangaPage(
 				id = generateUid(url),
 				url = url,

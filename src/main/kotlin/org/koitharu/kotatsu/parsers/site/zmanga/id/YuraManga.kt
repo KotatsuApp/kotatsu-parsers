@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zmanga.ZMangaParser
 
-@Broken // need login for access to advanced-search/
+@Broken
 @MangaSourceParser("YURAMANGA", "YuraManga", "id")
 internal class YuraManga(context: MangaLoaderContext) :
 	ZMangaParser(context, MangaParserSource.YURAMANGA, "www.yuramanga.my.id")

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.zeistmanga.pt
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
@@ -10,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.requireElementById
 
+@Broken
 @MangaSourceParser("GUILDATIERDRAW", "GuildaTierDraw", "pt")
 internal class GuildaTierDraw(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.GUILDATIERDRAW, "www.guildatierdraw.top") {

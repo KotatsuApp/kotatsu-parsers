@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("KLIKMANGA", "KlikManga", "id", ContentType.HENTAI)
 internal class KlikManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.KLIKMANGA, "klikmanga.id", 36) {
+	MadaraParser(context, MangaParserSource.KLIKMANGA, "klikmanga.com", 36) {
 	override val tagPrefix = "genre/"
 	override val datePattern = "MMM d, yyyy"
 }

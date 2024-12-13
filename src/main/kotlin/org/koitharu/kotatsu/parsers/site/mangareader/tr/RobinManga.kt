@@ -8,7 +8,13 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("ROBINMANGA", "RobinManga", "tr")
 internal class RobinManga(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.ROBINMANGA, "robinmanga.com", pageSize = 20, searchPageSize = 25) {
+	MangaReaderParser(
+		context,
+		MangaParserSource.ROBINMANGA,
+		"www.guildknives.com",
+		pageSize = 20,
+		searchPageSize = 25,
+	) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,

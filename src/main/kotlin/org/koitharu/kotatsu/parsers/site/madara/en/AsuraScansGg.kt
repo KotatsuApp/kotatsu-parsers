@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ASURASCANSGG", "AsuraScansGg", "en")
 internal class AsuraScansGg(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ASURASCANSGG, "asurascansgg.com")
+	MadaraParser(context, MangaParserSource.ASURASCANSGG, "asurascans.us")

@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
 internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 25) {
 
-	override val configKeyDomain = ConfigKey.Domain("comixextra.com")
+	override val configKeyDomain = ConfigKey.Domain("azcomix.me")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 

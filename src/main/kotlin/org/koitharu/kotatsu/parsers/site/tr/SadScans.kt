@@ -76,7 +76,7 @@ internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(con
 			chapters = doc.select(".chap-section .chap")
 				.mapChapters(reversed = true) { i, div ->
 					val a = div.selectFirstOrThrow("a")
-					val url = "/" + a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
+					val url = "/" + a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
 						name = a.text(),

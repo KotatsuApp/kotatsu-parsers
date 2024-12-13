@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("KNIGHTNOSCANLATION", "TwoBlueScans", "es")
 internal class KnightnoScanlation(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.KNIGHTNOSCANLATION, "lectorkns.eyudud.net") {
+	MadaraParser(context, MangaParserSource.KNIGHTNOSCANLATION, "kns.cookni.net") {
 	override val listUrl = "sr/"
 	override val tagPrefix = "generos/"
 }

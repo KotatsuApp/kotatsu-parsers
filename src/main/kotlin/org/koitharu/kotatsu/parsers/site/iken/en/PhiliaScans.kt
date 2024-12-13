@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.iken.IkenParser
 
 @MangaSourceParser("PHILIASCANS", "PhiliaScans", "en")
 internal class PhiliaScans(context: MangaLoaderContext) :
-	IkenParser(context, MangaParserSource.PHILIASCANS, "philiascans.com") {
+	IkenParser(context, MangaParserSource.PHILIASCANS, "philiascans.org") {
 	override val selectPages = "main section img"
 }

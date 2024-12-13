@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("NORMOYUN", "MaxLevelTeam", "ar")
+@MangaSourceParser("NORMOYUN", "MangaSwat", "ar")
 internal class Normoyun(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.NORMOYUN, "swatscans.com", pageSize = 42, searchPageSize = 39) {
 

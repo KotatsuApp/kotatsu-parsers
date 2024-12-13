@@ -13,4 +13,5 @@ internal class SirenKomik(context: MangaLoaderContext) :
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
 		)
+	override val selectChapter = ".list-chapter a"
 }

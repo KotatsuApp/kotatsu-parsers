@@ -10,5 +10,5 @@ internal class LimitedTimePoject(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.LIMITEDTIMEPOJECT, "limitedtimeproject.com", 10) {
 	override val listUrl = "manhwa/"
 	override val tagPrefix = "manhwa-genero/"
-	override val datePattern = "dd 'de' MMMMM 'de' yyyy"
+	override val datePattern = "dd/MM/yyyy"
 }

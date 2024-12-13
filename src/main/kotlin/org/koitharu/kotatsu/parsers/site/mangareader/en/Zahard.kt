@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.en
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -10,6 +11,7 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.util.*
 
+@Broken
 @MangaSourceParser("ZAHARD", "Zahard", "en")
 internal class Zahard(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.ZAHARD, "zahard.xyz", pageSize = 20, searchPageSize = 30) {

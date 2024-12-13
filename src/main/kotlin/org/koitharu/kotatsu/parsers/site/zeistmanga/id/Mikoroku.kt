@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.zeistmanga.id
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -8,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.util.*
 
+@Broken
 @MangaSourceParser("MIKOROKU", "Mikoroku", "id", ContentType.HENTAI)
 internal class Mikoroku(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.MIKOROKU, "www.mikoroku.web.id") {

@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("DOUJINKU", "DoujinKu", "id", ContentType.HENTAI)
 internal class DoujinKu(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.DOUJINKU, "doujinku.xyz", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.DOUJINKU, "doujinku.org", pageSize = 20, searchPageSize = 10) {
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(

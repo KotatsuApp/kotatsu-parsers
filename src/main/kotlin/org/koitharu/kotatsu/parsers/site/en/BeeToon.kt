@@ -15,7 +15,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
-	override val configKeyDomain = ConfigKey.Domain("manhwafull.net")
+	override val configKeyDomain = ConfigKey.Domain("bidmanga.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

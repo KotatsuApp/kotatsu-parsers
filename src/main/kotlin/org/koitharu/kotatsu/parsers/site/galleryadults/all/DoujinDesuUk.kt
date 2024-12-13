@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.galleryadults.all
 
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -9,7 +8,6 @@ import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@Broken
 @MangaSourceParser("DOUJINDESUUK", "DoujinDesu.uk", type = ContentType.HENTAI)
 internal class DoujinDesuUk(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.DOUJINDESUUK, "doujindesu.uk", 25) {
