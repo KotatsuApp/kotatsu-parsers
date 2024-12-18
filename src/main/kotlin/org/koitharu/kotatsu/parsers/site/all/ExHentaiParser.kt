@@ -415,7 +415,7 @@ internal class ExHentaiParser(
 			joiner.append(lc.toLanguagePath())
 			joiner.append("\"$")
 		}
-		return joiner.complete().takeUnless { it.isEmpty() }
+		return joiner.complete().nullIfEmpty()
 	}
 
 	private fun Collection<ContentType>.toFCats(): Int = fold(0) { acc, ct ->

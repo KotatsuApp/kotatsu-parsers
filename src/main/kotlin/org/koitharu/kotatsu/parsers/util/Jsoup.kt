@@ -127,9 +127,9 @@ public fun Element.selectLastOrThrow(cssQuery: String): Element = parseNotNull(s
 	"Cannot find \"$cssQuery\""
 }
 
-public fun Element.textOrNull(): String? = text().takeUnless { it.isEmpty() }
+public fun Element.textOrNull(): String? = text().nullIfEmpty()
 
-public fun Element.ownTextOrNull(): String? = ownText().takeUnless { it.isEmpty() }
+public fun Element.ownTextOrNull(): String? = ownText().nullIfEmpty()
 
 public fun Element.selectFirstParent(query: String): Element? {
 	val selector = QueryParser.parse(query)

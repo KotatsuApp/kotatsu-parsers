@@ -10,10 +10,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.*
 
 @Broken
 @MangaSourceParser("FREAKCOMIC", "FreakComic", "en")
@@ -41,7 +38,7 @@ internal class FreakComic(context: MangaLoaderContext) :
 				key = el.attrAsAbsoluteUrl("href")
 					.toHttpUrlOrNull()
 					?.queryParameter("genre")
-					?.takeUnless { it.isEmpty() }
+					?.nullIfEmpty()
 					?: continue,
 				source = source,
 			)

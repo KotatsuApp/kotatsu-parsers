@@ -50,6 +50,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 						append(page.toString())
 					}
 				}
+
 				else -> {
 					when (order) {
 						SortOrder.POPULARITY -> append("popular-comics")
@@ -151,9 +152,9 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain) + "/full"
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		
+
 		return doc.select("div.chapter-container img").mapNotNull { img ->
-			val url = img.attr("src")?.takeUnless { it.isBlank() }?.toAbsoluteUrl(domain)
+			val url = img.attrAsAbsoluteUrlOrNull("src")
 			url?.let {
 				MangaPage(
 					id = generateUid(url),

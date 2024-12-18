@@ -107,6 +107,8 @@ public fun String.nl2br(): String = replace("\n", "<br>")
 
 public fun String.splitByWhitespace(): List<String> = trim().split(REGEX_WHITESPACE)
 
+public fun <T : CharSequence> T.nullIfEmpty(): T? = takeUnless { it.isEmpty() }
+
 public fun ByteArray.byte2HexFormatted(): String {
 	val str = StringBuilder(size * 2)
 	for (i in indices) {

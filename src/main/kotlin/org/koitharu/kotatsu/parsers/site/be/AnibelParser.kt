@@ -9,14 +9,11 @@ import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.getDomain
+import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONIndexed
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
 @Broken
@@ -92,7 +89,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
 					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
-				altTitle = title.optJSONArray("alt")?.optString(0)?.takeUnless(String::isEmpty),
+				altTitle = title.optJSONArray("alt")?.optString(0)?.nullIfEmpty(),
 				author = null,
 				isNsfw = false,
 				rating = jo.getDouble("rating").toFloat() / 10f,
@@ -144,7 +141,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 		).getJSONObject("chapters").getJSONArray("docs")
 		return manga.copy(
 			title = title.getString("be"),
-			altTitle = title.optJSONArray("alt")?.optString(0)?.takeUnless(String::isEmpty),
+			altTitle = title.optJSONArray("alt")?.optString(0)?.nullIfEmpty(),
 			coverUrl = "$poster?width=200&height=280",
 			largeCoverUrl = poster,
 			description = details.getJSONObject("description").getString("be"),
@@ -239,7 +236,7 @@ internal class AnibelParser(context: MangaLoaderContext) : MangaParser(context, 
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
 					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
-				altTitle = title.getString("en").takeUnless(String::isEmpty),
+				altTitle = title.getString("en").nullIfEmpty(),
 				author = null,
 				isNsfw = false,
 				rating = RATING_UNKNOWN,

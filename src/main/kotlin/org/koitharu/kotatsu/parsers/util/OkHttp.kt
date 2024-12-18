@@ -17,7 +17,7 @@ public suspend fun Call.await(): Response = suspendCancellableCoroutine { contin
 }
 
 public val Response.mimeType: String?
-	get() = header("content-type")?.takeUnless { it.isEmpty() }
+	get() = header("content-type")?.nullIfEmpty()
 
 public val Response.contentDisposition: String?
 	get() = header("Content-Disposition")

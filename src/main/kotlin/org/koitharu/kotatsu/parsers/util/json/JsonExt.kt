@@ -4,6 +4,7 @@ import androidx.collection.ArraySet
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import java.util.*
 import kotlin.contracts.contract
 
@@ -67,9 +68,7 @@ public fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> 
 
 public fun JSONObject.getStringOrNull(name: String): String? = opt(name)?.takeUnless {
 	it === JSONObject.NULL
-}?.toString()?.takeUnless {
-	it.isEmpty()
-}
+}?.toString()?.nullIfEmpty()
 
 public fun JSONObject.getBooleanOrDefault(name: String, defaultValue: Boolean): Boolean {
 	return when (val rawValue = opt(name)) {

@@ -190,7 +190,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 		val data = doc.selectOrThrow("script").mapNotNull { x ->
 			x.data().substringBetween("self.__next_f.push(", ")", "")
 				.trim()
-				.takeUnless { it.isEmpty() }
+				.nullIfEmpty()
 		}.flatMap { it.jsonStrings() }
 			.joinToString("")
 			.split('\n')
