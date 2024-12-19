@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.exception
 
+import okio.IOException
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaSource
 
@@ -9,4 +10,4 @@ import org.koitharu.kotatsu.parsers.model.MangaSource
 public class AuthRequiredException @InternalParsersApi @JvmOverloads constructor(
 	public val source: MangaSource,
 	cause: Throwable? = null,
-) : RuntimeException("Authorization required", cause)
+) : IOException("Authorization required", cause)

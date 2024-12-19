@@ -13,6 +13,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import okhttp3.internal.headersContentLength
+import okio.IOException
 import org.json.JSONArray
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -26,6 +27,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -111,7 +113,7 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).checkAuthRequired()
+		val response = webClient.httpGet(manga.url.toAbsoluteUrl(domain))
 		val doc = response.parseHtml()
 		val root = doc.body().requireElementById("mangaBox").run {
 			selectFirst("div.leftContent") ?: this
@@ -205,17 +207,21 @@ internal abstract class GroupleParser(
 			return context.newParserInstance(chapter.source).getPages(chapter)
 		}
 		val url = chapter.url.toAbsoluteUrl(domain).toHttpUrl().newBuilder().setQueryParameter("mtr", "1").build()
-		val doc = webClient.httpGet(url).checkAuthRequired().parseHtml()
+		val doc = webClient.httpGet(url).parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
 			val data = script.html()
 			var pos = data.indexOf("rm_h.readerDoInit(")
 			if (pos != -1) {
-				parsePagesNew(data, pos)?.let { return it }
+				parsePagesV2(data, pos)?.let { return it }
 			}
 			pos = data.indexOf("rm_h.readerInit( 0,")
 			if (pos != -1) {
-				parsePagesOld(data, pos)?.let { return it }
+				parsePagesV1(data, pos)?.let { return it }
+			}
+			pos = data.indexOf(".readerInit(")
+			if (pos != -1) {
+				parsePagesV3(data, pos).let { return it }
 			}
 		}
 		doc.parseFailed("Pages list not found at ${chapter.url}")
@@ -224,7 +230,7 @@ internal abstract class GroupleParser(
 	override suspend fun getPageUrl(page: MangaPage): String {
 		val parts = page.url.split('|')
 		if (parts.size < 2) {
-			throw ParseException("No servers found for page", page.url)
+			return page.url
 		}
 		val path = parts.last()
 		// fast path
@@ -285,7 +291,7 @@ internal abstract class GroupleParser(
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val request = chain.request()
 		if (!request.header(HEADER_ACCEPT).isNullOrEmpty()) {
-			return chain.proceed(request)
+			return chain.proceed(request).checkIfAuthRequired()
 		}
 		val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast('.', "")?.lowercase(Locale.ROOT)
 		return if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp") {
@@ -293,7 +299,7 @@ internal abstract class GroupleParser(
 				request.newBuilder().header(HEADER_ACCEPT, "image/webp,image/png;q=0.9,image/jpeg,*/*;q=0.8").build(),
 			)
 		} else {
-			chain.proceed(request)
+			chain.proceed(request).checkIfAuthRequired()
 		}
 	}
 
@@ -304,7 +310,7 @@ internal abstract class GroupleParser(
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
-		val doc = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).checkAuthRequired().parseHtml()
+		val doc = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.body().requireElementById("mangaBox").select("h4").first { it.ownText() == RELATED_TITLE }
 			.nextElementSibling() ?: doc.parseFailed("Cannot find root")
 		return root.select("div.tile").mapNotNull(::parseManga)
@@ -386,15 +392,6 @@ internal abstract class GroupleParser(
 		}
 	}.getOrDefault(false)
 
-	private fun Response.checkAuthRequired(): Response {
-		val lastPathSegment = request.url.pathSegments.lastOrNull() ?: return this
-		if (lastPathSegment == "login") {
-			closeQuietly()
-			throw AuthRequiredException(source)
-		}
-		return this
-	}
-
 	private fun Response.isPumpkin(): Boolean = request.url.host == "upload.wikimedia.org"
 
 	private fun parseManga(node: Element): Manga? {
@@ -440,7 +437,29 @@ internal abstract class GroupleParser(
 		)
 	}
 
-	private fun parsePagesNew(data: String, pos: Int): List<MangaPage>? {
+	private fun parsePagesV1(data: String, pos: Int): List<MangaPage>? {
+		val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
+		if (json.isEmpty()) {
+			return null
+		}
+		val ja = JSONArray("[$json]")
+		val pages = ja.getJSONArray(1)
+		val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
+		val serversStr = servers.joinToString("|")
+		return (0 until pages.length()).map { i ->
+			val page = pages.getJSONArray(i)
+			val primaryServer = page.getString(0)
+			val url = page.getString(2)
+			MangaPage(
+				id = generateUid(url),
+				url = "$primaryServer|$serversStr|$url",
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
+	private fun parsePagesV2(data: String, pos: Int): List<MangaPage>? {
 		val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
 		if (json.isEmpty()) {
 			return null
@@ -462,22 +481,15 @@ internal abstract class GroupleParser(
 		}
 	}
 
-	private fun parsePagesOld(data: String, pos: Int): List<MangaPage>? {
-		val json = data.substring(pos).substringAfter('(').substringBefore('\n').substringBeforeLast(')')
-		if (json.isEmpty()) {
-			return null
-		}
-		val ja = JSONArray("[$json]")
-		val pages = ja.getJSONArray(1)
-		val servers = ja.getJSONArray(3).mapJSON { it.getString("path") }
-		val serversStr = servers.joinToString("|")
-		return (0 until pages.length()).map { i ->
-			val page = pages.getJSONArray(i)
-			val primaryServer = page.getString(0)
-			val url = page.getString(2)
+	private fun parsePagesV3(data: String, pos: Int): List<MangaPage> {
+		val json = JSONArray(data.substring(pos).substringBetween("(", ")").substringBeforeLast(','))
+		return (0 until json.length()).map { i ->
+			val ja = json.getJSONArray(i)
+			val server = ja.getString(0).ifEmpty { "https://$domain" }
+			val url = ja.getString(2)
 			MangaPage(
 				id = generateUid(url),
-				url = "$primaryServer|$serversStr|$url",
+				url = concatUrl(server, url),
 				preview = null,
 				source = source,
 			)
@@ -509,5 +521,19 @@ internal abstract class GroupleParser(
 			.build()
 			.toString()
 			.toRelativeUrl(domain)
+	}
+
+	@Throws(IOException::class)
+	private fun Response.checkIfAuthRequired(): Response {
+		if (code == HttpURLConnection.HTTP_NOT_FOUND && !isAuthorized) {
+			closeQuietly()
+			throw AuthRequiredException(source)
+		}
+		val lastPathSegment = request.url.pathSegments.lastOrNull()
+		if (lastPathSegment == "login") {
+			closeQuietly()
+			throw AuthRequiredException(source)
+		}
+		return this
 	}
 }

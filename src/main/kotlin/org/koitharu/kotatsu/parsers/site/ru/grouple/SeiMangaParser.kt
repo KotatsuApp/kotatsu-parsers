@@ -15,6 +15,7 @@ internal class SeiMangaParser(
 	companion object {
 
 		val domains = arrayOf(
+			"1.seimanga.me",
 			"seimanga.me",
 		)
 	}
