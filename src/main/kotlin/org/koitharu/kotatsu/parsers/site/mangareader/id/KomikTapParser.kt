@@ -3,25 +3,15 @@ package org.koitharu.kotatsu.parsers.site.mangareader.id
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.requireSrc
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import java.util.ArrayList
-import java.util.Base64
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("KOMIKTAP", "KomikTap", "id", ContentType.HENTAI)
 internal class KomikTapParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.KOMIKTAP, "komiktap.info", pageSize = 25, searchPageSize = 10) {
+
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = false,
@@ -70,10 +60,11 @@ internal class KomikTapParser(context: MangaLoaderContext) :
 
 			val pages = ArrayList<MangaPage>(images.length())
 			for (i in 0 until images.length()) {
+				val url = images.getString(i)
 				pages.add(
 					MangaPage(
-						id = generateUid(images.getString(i)),
-						url = images.getString(i).replace("http:", "https:"),
+						id = generateUid(url),
+						url = url,
 						preview = null,
 						source = source,
 					),
