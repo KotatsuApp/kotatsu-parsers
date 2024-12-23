@@ -525,14 +525,18 @@ internal abstract class GroupleParser(
 
 	@Throws(IOException::class)
 	private fun Response.checkIfAuthRequired(): Response {
-		if (code == HttpURLConnection.HTTP_NOT_FOUND && !isAuthorized) {
-			closeQuietly()
-			throw AuthRequiredException(source)
-		}
 		val lastPathSegment = request.url.pathSegments.lastOrNull()
 		if (lastPathSegment == "login") {
 			closeQuietly()
 			throw AuthRequiredException(source)
+		}
+		if (code == HttpURLConnection.HTTP_NOT_FOUND) {
+			if (!isAuthorized) {
+				closeQuietly()
+				throw AuthRequiredException(source)
+			} else {
+				return newBuilder().code(HttpURLConnection.HTTP_OK).build()
+			}
 		}
 		return this
 	}

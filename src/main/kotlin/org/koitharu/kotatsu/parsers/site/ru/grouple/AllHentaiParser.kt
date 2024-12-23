@@ -6,10 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("ALLHENTAI", "AllHentai", "ru", type = ContentType.HENTAI)
 internal class AllHentaiParser(
@@ -24,6 +21,9 @@ internal class AllHentaiParser(
 		"2023.allhen.online",
 	)
 	override val defaultIsNsfw = true
+
+	override val isAuthorized: Boolean
+		get() = super.isAuthorized || context.cookieJar.getCookies(domain).any { it.name == "remember_me" }
 
 	override val authUrl: String
 		get() {
