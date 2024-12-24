@@ -99,7 +99,8 @@ internal abstract class GroupleParser(
 				"https://$domain/list?sortType=${
 					getSortKey(order)
 				}&offset=${offset upBy PAGE_SIZE}",
-			).parseHtml().body().let { doc -> (doc.getElementById("mangaBox") ?: doc.getElementById("mangaResults")) }
+			).parseHtml().body()
+				.let { doc -> (doc.getElementById("mangaBox") ?: doc.requireElementById("mangaResults")) }
 		} else {
 			advancedSearch(offset, order, filter).parseHtml()
 		}
@@ -164,7 +165,7 @@ internal abstract class GroupleParser(
 					if (translations.isNullOrEmpty() || a.attr("data-translations").isEmpty()) {
 						var translators = ""
 						val translatorElement = a.attr("title")
-						if (!translatorElement.isNullOrBlank()) {
+						if (translatorElement.isNotBlank()) {
 							translators = translatorElement.replace("(Переводчик),", "&").removeSuffix(" (Переводчик)")
 						}
 						listOf(

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ru.grouple
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -8,6 +9,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.util.*
 
+@Broken("Authorization doesn`t work")
 @MangaSourceParser("ALLHENTAI", "AllHentai", "ru", type = ContentType.HENTAI)
 internal class AllHentaiParser(
 	context: MangaLoaderContext,
