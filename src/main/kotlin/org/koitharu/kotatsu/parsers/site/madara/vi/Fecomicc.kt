@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("FECOMICC", "Fecomicc", "vi")
+@MangaSourceParser("FECOMICC", "Fecomic", "vi")
 internal class Fecomicc(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.FECOMICC, "fftruyen.net", 9) {
 	override val listUrl = "comic/"
