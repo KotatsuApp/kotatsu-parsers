@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("TRUYENTRANHDAMMYY", "TruyenTranhDamMyy", "vi")
+@MangaSourceParser("TRUYENTRANHDAMMYY", "Truyện Tranh Đam Mỹ", "vi")
 internal class TruyenTranhDamMyy(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.TRUYENTRANHDAMMYY, "truyentranhdammyy.site") {
 	override val postReq = true

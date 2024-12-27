@@ -15,7 +15,7 @@ import java.util.*
 import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
-@MangaSourceParser("BLOGTRUYEN", "BlogTruyen", "vi")
+@MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 

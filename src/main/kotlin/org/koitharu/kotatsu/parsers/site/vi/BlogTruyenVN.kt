@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @Broken
-@MangaSourceParser("BLOGTRUYENVN", "BlogTruyenVN", "vi")
+@MangaSourceParser("BLOGTRUYENVN", "BlogTruyen.vn (Unofficial)", "vi")
 internal class BlogTruyenVN(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.BLOGTRUYENVN, pageSize = 20) {
 

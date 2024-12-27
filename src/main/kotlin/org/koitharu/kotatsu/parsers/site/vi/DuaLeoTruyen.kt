@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("DUALEOTRUYEN", "DuaLeoTruyen", "vi", type = ContentType.HENTAI)
+@MangaSourceParser("DUALEOTRUYEN", "Dưa Leo Truyện", "vi", type = ContentType.HENTAI)
 internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
 
