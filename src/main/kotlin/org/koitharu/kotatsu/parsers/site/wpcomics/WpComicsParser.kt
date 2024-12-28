@@ -232,7 +232,6 @@ internal abstract class WpComicsParser(
 		)
 	}
 
-
 	protected open val selectDate = "div.col-xs-4"
 	protected open val selectChapter = "div.list-chapter li.row:not(.heading)"
 
