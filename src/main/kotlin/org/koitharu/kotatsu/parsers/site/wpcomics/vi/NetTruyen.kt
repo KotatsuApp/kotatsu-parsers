@@ -22,12 +22,13 @@ import java.util.*
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
 internal class NetTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenww.com", 44) {
+	
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nettruyenww.com", "nettruyenx.com")
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChaps(doc) }
+		val chaptersDeferred = async { getChapters(doc) }
 		val tagMap = getOrCreateTagMap()
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
@@ -44,35 +45,7 @@ internal class NetTruyen(context: MangaLoaderContext) :
 			},
 			tags = mangaTags,
 			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			chapters = chaptersDeferred.await(),
+			chapters = chaptersDeferred.await().reversed(),
 		)
-	}
-
-	private suspend fun getChaps(doc: Document): List<MangaChapter> {
-		return doc.body().select(selectChapter).mapChapters(reversed = false) { i, li ->
-			val a = li.selectFirstOrThrow("a")
-			val href = a.attrAsRelativeUrl("href")
-			val dateText = li.selectFirst(selectDate)?.text()
-			val findHours = dateText?.contains(":")
-			val dateFormat = if (findHours == true) {
-				SimpleDateFormat("HH:mm dd/MM", sourceLocale)
-			} else {
-				SimpleDateFormat(datePattern, sourceLocale)
-			}
-			MangaChapter(
-				id = generateUid(href),
-				name = a.text(),
-				number = i + 1f,
-				volume = 0,
-				url = href,
-				uploadDate = parseChapterDate(
-					dateFormat,
-					dateText,
-				),
-				source = source,
-				scanlator = null,
-				branch = null,
-			)
-		}
 	}
 }
