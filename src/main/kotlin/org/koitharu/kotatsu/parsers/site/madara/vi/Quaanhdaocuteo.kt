@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("QUAANHDAOCUTEO", "Quaanhdaocuteo", "vi", ContentType.HENTAI)
+@MangaSourceParser("QUAANHDAOCUTEO", "Quả Anh Đào Cuteo", "vi", ContentType.HENTAI)
 internal class Quaanhdaocuteo(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.QUAANHDAOCUTEO, "quaanhdaocuteo.xyz") {
 	override val datePattern = "dd/MM/yyyy"

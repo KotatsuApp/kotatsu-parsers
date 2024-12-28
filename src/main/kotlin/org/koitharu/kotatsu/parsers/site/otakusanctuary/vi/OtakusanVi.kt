@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.otakusanctuary.OtakuSanctuaryParser
 
-@MangaSourceParser("OTAKUSAN_VI", "OtakuSan-Vi", "vi")
+@MangaSourceParser("OTAKUSAN_VI", "Otaku Sanctuary (VN)", "vi")
 internal class OtakusanVi(context: MangaLoaderContext) :
 	OtakuSanctuaryParser(context, MangaParserSource.OTAKUSAN_VI, "otakusan.me") {
 	override val selectState = ".table-info tr:contains(Status) td"

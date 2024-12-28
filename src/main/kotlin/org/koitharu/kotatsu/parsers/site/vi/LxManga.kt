@@ -9,10 +9,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("LXMANGA", "LxManga", "vi", type = ContentType.HENTAI)
+@MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.store")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.live")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
