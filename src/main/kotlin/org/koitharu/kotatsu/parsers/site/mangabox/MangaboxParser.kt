@@ -174,8 +174,8 @@ internal abstract class MangaboxParser(
 				else -> null
 			}
 		}
-		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
-		val aut = doc.body().select(selectAut).eachText().joinToString()
+		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
+		val aut = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -189,7 +189,6 @@ internal abstract class MangaboxParser(
 			author = aut,
 			state = state,
 			chapters = chaptersDeferred.await(),
-			isNsfw = manga.isNsfw,
 		)
 	}
 

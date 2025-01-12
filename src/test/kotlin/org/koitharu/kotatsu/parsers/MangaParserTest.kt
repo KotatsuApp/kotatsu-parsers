@@ -248,8 +248,8 @@ internal class MangaParserTest {
 		for (item in list) {
 			assert(item.url.isNotEmpty()) { "Url is empty" }
 			assert(!item.url.isUrlAbsolute()) { "Url looks like absolute: ${item.url}" }
-			if (item.coverUrl.isNotEmpty()) { // TODO nullable cover
-				assert(item.coverUrl.isUrlAbsolute()) { "Cover url is not absolute: ${item.coverUrl}" }
+			item.coverUrl?.let {
+				assert(it.isUrlAbsolute()) { "Cover url is not absolute: ${item.coverUrl}" }
 			}
 			assert(item.title.isNotEmpty()) { "Title for ${item.publicUrl} is empty" }
 			assert(item.publicUrl.isUrlAbsolute())
@@ -258,7 +258,10 @@ internal class MangaParserTest {
 		checkImageRequest(testItem.coverUrl, testItem.source)
 	}
 
-	private suspend fun checkImageRequest(url: String, source: MangaSource) {
+	private suspend fun checkImageRequest(url: String?, source: MangaSource) {
+		if (url == null) {
+			return
+		}
 		context.doRequest(url, source).use {
 			assert(it.isSuccessful) { "Request failed: ${it.code}(${it.message}): $url" }
 			assert(it.mimeType?.startsWith("image/") == true) {

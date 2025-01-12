@@ -190,7 +190,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				else -> null
 			},
 			tags = tags,
-			isNsfw = nsfw,
+			contentRating = if (nsfw) ContentRating.ADULT else ContentRating.SAFE,
 			chapters = doc.body().select("div.group.flex div.px-2").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsRelativeUrl("href")

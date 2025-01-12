@@ -126,7 +126,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
-		val desc = doc.selectFirst(selectDesc)?.html()
+		val desc = doc.selectFirst(selectDesc)?.html()?.nullIfEmpty()
 		val stateDiv = doc.select(selectState).text()
 		val state = stateDiv.let {
 			when (it) {
@@ -136,8 +136,8 @@ internal class Mangairo(context: MangaLoaderContext) :
 			}
 		}
 
-		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "")
-		val aut = doc.body().select(selectAut).eachText().joinToString()
+		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
+		val aut = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -152,7 +152,6 @@ internal class Mangairo(context: MangaLoaderContext) :
 			author = aut,
 			state = state,
 			chapters = chaptersDeferred.await(),
-			isNsfw = manga.isNsfw,
 		)
 	}
 }

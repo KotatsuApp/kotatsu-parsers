@@ -126,7 +126,11 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				STATUS_FINISHED -> MangaState.FINISHED
 				else -> null
 			},
-			isNsfw = contents.select(".icon_adult").isNotEmpty(),
+			contentRating = if (contents.select(".icon_adult").isNotEmpty()) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			chapters = contents.select("#episode_list > ul > li").mapChapters { i, li ->
 				val href = li.selectFirst("div > div.description > div.title > a")
 					?.attrAsRelativeUrl("href") ?: li.parseFailed()

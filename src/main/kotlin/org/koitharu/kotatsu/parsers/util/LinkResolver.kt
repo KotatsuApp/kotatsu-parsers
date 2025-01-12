@@ -50,7 +50,7 @@ public class LinkResolver internal constructor(
 			url = url,
 			publicUrl = link.toString(),
 			rating = RATING_UNKNOWN,
-			isNsfw = false,
+			contentRating = null,
 			coverUrl = "",
 			tags = emptySet(),
 			state = null,
@@ -94,7 +94,7 @@ public class LinkResolver internal constructor(
 				author = seed.author ?: resolved.author,
 				tags = seed.tags + resolved.tags,
 				state = seed.state ?: resolved.state,
-				coverUrl = seed.coverUrl.ifEmpty { resolved.coverUrl },
+				coverUrl = seed.coverUrl ?: resolved.coverUrl,
 				largeCoverUrl = seed.largeCoverUrl ?: resolved.largeCoverUrl,
 				altTitle = seed.altTitle ?: resolved.altTitle,
 			)

@@ -140,11 +140,12 @@ internal abstract class GroupleParser(
 			source = newSource,
 			title = doc.metaValue("name") ?: manga.title,
 			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
+				?.nullIfEmpty()
 				?: manga.altTitle,
 			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
-			largeCoverUrl = coverImg?.attr("data-full"),
-			coverUrl = coverImg?.attr("data-thumb") ?: manga.coverUrl,
+			largeCoverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-full"),
+			coverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-thumb") ?: manga.coverUrl,
 			tags = root.selectFirstOrThrow("div.subject-meta")
 				.getElementsByAttributeValueContaining("href", "/list/genre/").mapTo(manga.tags.toMutableSet()) { a ->
 					MangaTag(
@@ -153,8 +154,14 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
-			author = root.selectFirst("a.person-link")?.text() ?: manga.author,
-			isNsfw = manga.isNsfw || root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) },
+			author = root.selectFirst("a.person-link")?.textOrNull() ?: manga.author,
+			contentRating = if (manga.isNsfw || root.select(".alert-warning")
+					.any { it.ownText().contains(NSFW_ALERT) }
+			) {
+				ContentRating.ADULT
+			} else {
+				manga.contentRating
+			},
 			chapters = chaptersList?.select("a.chapter-link")
 				?.flatMapChapters(reversed = true) { a ->
 					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()

@@ -167,7 +167,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val document = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val availableTags = tags.get()
-		var isNsfw = false
+		var isAdult = false
+		var isSuggestive = false
 
 		return manga.copy(
 			title = document.selectFirst("h2.manga-name")!!.ownText(),
@@ -177,12 +178,18 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 			coverUrl = document.selectFirst(".manga-poster > img")!!.attr("src"),
 			tags = document.select("div.genres > a[href*=/genre/]").mapNotNullToSet {
 				val tag = it.ownText()
-				if (tag == "Hentai" || tag == "Ecchi") {
-					isNsfw = true
+				if (tag == "Hentai") {
+					isAdult = true
+				} else if (tag == "Ecchi") {
+					isSuggestive = true
 				}
 				availableTags[tag]
 			},
-			isNsfw = isNsfw,
+			contentRating = when {
+				isAdult -> ContentRating.ADULT
+				isSuggestive -> ContentRating.SUGGESTIVE
+				else -> ContentRating.SAFE
+			},
 			state = document.selectFirst("div.anisc-info .item:contains(status:) > .name")
 				?.text()?.let {
 					when (it) {

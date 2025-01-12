@@ -152,7 +152,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 				)
 			},
 			rating = rating?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			isNsfw = nsfw,
+			contentRating = if (nsfw) ContentRating.ADULT else ContentRating.SAFE,
 			chapters = chaptersDeferred.await(),
 		)
 	}

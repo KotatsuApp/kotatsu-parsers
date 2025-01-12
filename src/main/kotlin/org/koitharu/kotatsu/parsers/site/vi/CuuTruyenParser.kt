@@ -127,37 +127,41 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-    	val url = "https://" + domain + manga.url
-    	val chapters = async {
-        	webClient.httpGet("$url/chapters").parseJson().getJSONArray("data")
-    	}
-    	val json = webClient.httpGet(url).parseJson().getJSONObject("data")
-    	val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
-        	timeZone = TimeZone.getTimeZone("GMT+7")
-    	}
-    	val tags = json.optJSONArray("tags")?.mapJSONToSet { jo ->
-        	MangaTag(
-            	title = jo.getString("name").toTitleCase(sourceLocale),
-            	key = jo.getString("slug"),
-            	source = source,
-        	)
-    	}.orEmpty()
+		val url = "https://" + domain + manga.url
+		val chapters = async {
+			webClient.httpGet("$url/chapters").parseJson().getJSONArray("data")
+		}
+		val json = webClient.httpGet(url).parseJson().getJSONObject("data")
+		val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+			timeZone = TimeZone.getTimeZone("GMT+7")
+		}
+		val tags = json.optJSONArray("tags")?.mapJSONToSet { jo ->
+			MangaTag(
+				title = jo.getString("name").toTitleCase(sourceLocale),
+				key = jo.getString("slug"),
+				source = source,
+			)
+		}.orEmpty()
 
-    	// Testing: Add custom manga status using available tags
-    	val state = when {
-        	tags.any { it.key == "da-hoan-thanh" } -> MangaState.FINISHED
-        	tags.any { it.key == "dang-tien-hanh" } -> MangaState.ONGOING
-        	else -> null
-    	}
+		// Testing: Add custom manga status using available tags
+		val state = when {
+			tags.any { it.key == "da-hoan-thanh" } -> MangaState.FINISHED
+			tags.any { it.key == "dang-tien-hanh" } -> MangaState.ONGOING
+			else -> null
+		}
 
-    	// Remove old manga status from "tags"
-    	val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
+		// Remove old manga status from "tags"
+		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
 
-    	manga.copy(
-        	title = json.getStringOrNull("name") ?: manga.title,
-        	isNsfw = json.getBooleanOrDefault("is_nsfw", manga.isNsfw),
-			author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(','),
-			description = json.getString("full_description"),
+		manga.copy(
+			title = json.getStringOrNull("name") ?: manga.title,
+			contentRating = if (json.getBooleanOrDefault("is_nsfw", manga.isNsfw)) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
+			author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty(),
+			description = json.getStringOrNull("full_description"),
 			tags = newTags,
 			state = state,
 			chapters = chapters.await().mapJSON { jo ->

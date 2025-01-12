@@ -220,9 +220,9 @@ internal abstract class ZMangaParser(
 			}
 		}
 
-		val alt = doc.body().select(selectAlt).text()
+		val alt = doc.body().selectFirst(selectAlt)?.textOrNull()
 
-		val aut = doc.body().select(selectAut).text()
+		val aut = doc.body().selectFirst(selectAut)?.textOrNull()
 
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
@@ -237,7 +237,11 @@ internal abstract class ZMangaParser(
 			author = aut,
 			state = state,
 			chapters = chaptersDeferred.await(),
-			isNsfw = manga.isNsfw || doc.getElementById("adt-warning") != null,
+			contentRating = if (doc.getElementById("adt-warning") != null) {
+				ContentRating.ADULT
+			} else {
+				manga.contentRating
+			},
 		)
 	}
 

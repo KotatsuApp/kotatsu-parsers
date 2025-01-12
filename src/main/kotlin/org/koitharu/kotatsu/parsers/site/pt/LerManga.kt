@@ -124,7 +124,11 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 					source = source,
 				)
 			}.orEmpty(),
-			isNsfw = doc.select("ul.genre-list li").text().contains("Adulto"),
+			contentRating = if (doc.select("ul.genre-list li").text().contains("Adulto")) {
+				ContentRating.ADULT
+			} else {
+				manga.contentRating
+			},
 			chapters = doc.select("div.manga-chapters div.single-chapter").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
 				val href = a.attrAsAbsoluteUrl("href")

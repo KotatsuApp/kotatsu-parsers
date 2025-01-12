@@ -262,11 +262,11 @@ internal abstract class MangaReaderParser(
 			}
 		}
 
-		val author = tableMode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.text()
-			?: docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.text()
-			?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.text()
-			?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.text()
-			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.text()
+		val author = tableMode?.selectFirst(".infotable td:contains(Author)")?.lastElementSibling()?.textOrNull()
+			?: docs.selectFirst(".tsinfo div:contains(Author)")?.lastElementChild()?.textOrNull()
+			?: docs.selectFirst(".tsinfo div:contains(Auteur)")?.lastElementChild()?.textOrNull()
+			?: docs.selectFirst(".tsinfo div:contains(Artist)")?.lastElementChild()?.textOrNull()
+			?: docs.selectFirst(".tsinfo div:contains(Durum)")?.lastElementChild()?.textOrNull()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
 			|| docs.selectFirst(".info-right .alr") != null
@@ -276,7 +276,11 @@ internal abstract class MangaReaderParser(
 			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
 			author = author,
-			isNsfw = manga.isNsfw || nsfw,
+			contentRating = if (manga.isNsfw || nsfw) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			tags = tags,
 			chapters = chapters,
 		)
@@ -348,14 +352,13 @@ internal abstract class MangaReaderParser(
 
 	protected open suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
-		val tagMap = ArrayMap<String, MangaTag>()
 		val url = listUrl.toAbsoluteUrl(domain)
 		val tagElements = webClient.httpGet(url).parseHtml().select("ul.genrez > li")
+		val tagMap = ArrayMap<String, MangaTag>(tagElements.size)
 		for (el in tagElements) {
-			if (el.text().isEmpty()) continue
 			tagMap[el.text()] = MangaTag(
-				title = el.text(),
-				key = el.selectFirst("input")?.attr("value") ?: continue,
+				title = el.textOrNull()?.toTitleCase(sourceLocale) ?: continue,
+				key = el.selectFirst("input")?.attrOrNull("value") ?: continue,
 				source = source,
 			)
 		}

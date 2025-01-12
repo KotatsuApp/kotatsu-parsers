@@ -89,7 +89,11 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst("div.fs-comic-description")?.html().orEmpty(),
 			chapters = chaptersDeferred,
-			isNsfw = doc.selectFirst(".adult-text") != null,
+			contentRating = if (doc.selectFirst(".adult-text") != null) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 		)
 	}
 

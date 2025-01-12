@@ -166,7 +166,7 @@ internal abstract class MangaFireParser(
 				altTitle = null,
 				largeCoverUrl = null,
 				author = null,
-				isNsfw = false,
+				contentRating = null,
 				rating = RATING_UNKNOWN,
 				state = null,
 				tags = emptySet(),
@@ -177,7 +177,8 @@ internal abstract class MangaFireParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val document = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val availableTags = tags.get()
-		var isNsfw = false
+		var isAdult = false
+		var isSuggestive = false
 
 		return manga.copy(
 			title = document.selectFirstOrThrow(".info > h1").ownText(),
@@ -188,12 +189,18 @@ internal abstract class MangaFireParser(
 				.attrAsAbsoluteUrl("src"),
 			tags = document.select("div.meta a[href*=/genre/]").mapNotNullToSet {
 				val tag = it.ownText()
-				if (tag == "Hentai" || tag == "Ecchi") {
-					isNsfw = true
+				if (tag == "Hentai") {
+					isAdult = true
+				} else if (tag == "Ecchi") {
+					isSuggestive = true
 				}
 				availableTags[tag.toTitleCase(sourceLocale)]
 			},
-			isNsfw = isNsfw,
+			contentRating = when {
+				isAdult -> ContentRating.ADULT
+				isSuggestive -> ContentRating.SUGGESTIVE
+				else -> ContentRating.SAFE
+			},
 			state = document.selectFirst(".info > p")?.ownText()?.let {
 				when (it.lowercase()) {
 					"releasing" -> MangaState.ONGOING
@@ -326,7 +333,7 @@ internal abstract class MangaFireParser(
 					altTitle = null,
 					largeCoverUrl = null,
 					author = null,
-					isNsfw = false,
+					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,
 					tags = emptySet(),
@@ -349,7 +356,7 @@ internal abstract class MangaFireParser(
 					altTitle = null,
 					largeCoverUrl = null,
 					author = null,
-					isNsfw = false,
+					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,
 					tags = emptySet(),

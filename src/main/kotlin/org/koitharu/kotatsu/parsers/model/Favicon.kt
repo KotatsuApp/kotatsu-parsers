@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.model
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 
-public class Favicon(
+public data class Favicon(
 	@JvmField public val url: String,
 	@JvmField public val size: Int,
 	@JvmField internal val rel: String?,
@@ -18,30 +18,6 @@ public class Favicon(
 			return res
 		}
 		return relWeightOf(rel).compareTo(relWeightOf(other.rel))
-	}
-
-	override fun equals(other: Any?): Boolean {
-		if (this === other) return true
-		if (javaClass != other?.javaClass) return false
-
-		other as Favicon
-
-		if (url != other.url) return false
-		if (size != other.size) return false
-		if (rel != other.rel) return false
-
-		return true
-	}
-
-	override fun hashCode(): Int {
-		var result = url.hashCode()
-		result = 31 * result + size
-		result = 31 * result + rel.hashCode()
-		return result
-	}
-
-	override fun toString(): String {
-		return "Favicon(size=$size, type='$type', rel='$rel', url='$url')"
 	}
 
 	private fun relWeightOf(rel: String?) = when (rel) {

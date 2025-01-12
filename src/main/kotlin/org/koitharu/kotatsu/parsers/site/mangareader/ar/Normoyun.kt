@@ -101,7 +101,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 		} else {
 			MangaState.ONGOING
 		}
-		val author = docs.selectFirst("span.author i")?.text()
+		val author = docs.selectFirst("span.author i")?.textOrNull()
 
 		val nsfw = docs.selectFirst(".restrictcontainer") != null
 			|| docs.selectFirst(".info-right .alr") != null
@@ -111,7 +111,11 @@ internal class Normoyun(context: MangaLoaderContext) :
 			description = docs.selectFirst("span.desc")?.html(),
 			state = mangaState,
 			author = author,
-			isNsfw = manga.isNsfw || nsfw,
+			contentRating = if (manga.isNsfw || nsfw) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			tags = emptySet(),
 			chapters = chapters,
 		)

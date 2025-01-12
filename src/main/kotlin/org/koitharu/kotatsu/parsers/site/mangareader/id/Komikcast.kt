@@ -113,7 +113,8 @@ internal class Komikcast(context: MangaLoaderContext) :
 		} else {
 			MangaState.FINISHED
 		}
-		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")?.lastElementChild()?.text()
+		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")
+			?.lastElementChild()?.textOrNull()
 		val nsfw =
 			docs.selectFirst(".restrictcontainer") != null || docs.selectFirst(".info-right .alr") != null || docs.selectFirst(
 				".postbody .alr",
@@ -123,7 +124,11 @@ internal class Komikcast(context: MangaLoaderContext) :
 			description = docs.selectFirst("div.komik_info-description-sinopsis")?.text(),
 			state = mangaState,
 			author = author,
-			isNsfw = manga.isNsfw || nsfw,
+			contentRating = if (manga.isNsfw || nsfw) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			tags = tags,
 			chapters = chapters,
 		)

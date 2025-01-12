@@ -190,7 +190,11 @@ internal abstract class MadthemeParser(
 			altTitle = alt.orEmpty(),
 			state = state,
 			chapters = chaptersDeferred.await(),
-			isNsfw = nsfw || manga.isNsfw,
+			contentRating = if (nsfw || manga.isNsfw) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 		)
 	}
 

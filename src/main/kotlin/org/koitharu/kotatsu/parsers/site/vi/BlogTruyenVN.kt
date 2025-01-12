@@ -180,13 +180,17 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 
 		return manga.copy(
 			tags = tags ?: emptySet(),
-			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.text(),
+			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.textOrNull(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
-			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src().orEmpty(),
+			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src(),
 			state = state,
 			rating = rating ?: RATING_UNKNOWN,
-			isNsfw = doc.getElementById("warningCategory") != null,
+			contentRating = if (doc.getElementById("warningCategory") != null) {
+				ContentRating.ADULT
+			} else {
+				manga.contentRating
+			},
 		)
 	}
 

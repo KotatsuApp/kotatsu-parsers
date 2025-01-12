@@ -214,7 +214,11 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		}.orEmpty()
 		return manga.copy(
 			title = root.selectFirst("h3.item-title")?.text() ?: manga.title,
-			isNsfw = !root.selectFirst("alert")?.getElementsContainingOwnText("NSFW").isNullOrEmpty(),
+			contentRating = if (root.selectFirst("alert")?.getElementsContainingOwnText("NSFW").isNullOrEmpty()) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			largeCoverUrl = details.selectFirst("img[src]")?.absUrl("src"),
 			description = details.getElementById("limit-height-body-summary")
 				?.selectFirst(".limit-html")

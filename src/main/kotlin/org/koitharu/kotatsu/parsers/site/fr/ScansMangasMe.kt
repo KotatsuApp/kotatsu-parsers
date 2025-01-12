@@ -112,9 +112,9 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = getChapters(doc)
-		val desc = doc.selectFirstOrThrow("div.desc").html()
-		val alt = doc.body().select("div.infox span.alter").text()
-		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "")
+		val desc = doc.selectFirstOrThrow("div.desc").html().nullIfEmpty()
+		val alt = doc.body().select("div.infox span.alter").text().nullIfEmpty()
+		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "").nullIfEmpty()
 		manga.copy(
 			tags = doc.select("div.spe span:contains(Genres) a").mapToSet { a ->
 				MangaTag(
@@ -133,7 +133,6 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				else -> null
 			},
 			chapters = chaptersDeferred,
-			isNsfw = manga.isNsfw,
 		)
 	}
 

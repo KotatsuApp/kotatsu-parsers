@@ -91,14 +91,17 @@ internal class TuManhwas(context: MangaLoaderContext) :
 			|| docs.selectFirst(".postbody .alr") != null
 
 		return manga.copy(
-			description = docs.selectFirst("div.entry-content")?.text(),
+			description = docs.selectFirst("div.entry-content")?.html(),
 			state = mangaState,
-			author = null,
-			isNsfw = manga.isNsfw || nsfw,
+			contentRating = if (manga.isNsfw || nsfw) {
+				ContentRating.ADULT
+			} else {
+				ContentRating.SAFE
+			},
 			tags = docs.select(".wd-full .mgen > a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
-					title = a.text().toTitleCase(),
+					title = a.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},
