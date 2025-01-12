@@ -186,8 +186,8 @@ internal abstract class MadthemeParser(
 					source = source,
 				)
 			},
-			description = desc.orEmpty(),
-			altTitle = alt.orEmpty(),
+			description = desc?.nullIfEmpty(),
+			altTitle = alt.nullIfEmpty(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 			contentRating = if (nsfw || manga.isNsfw) {

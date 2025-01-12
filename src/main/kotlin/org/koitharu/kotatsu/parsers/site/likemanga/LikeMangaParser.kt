@@ -150,8 +150,7 @@ internal abstract class LikeMangaParser(
 			}
 		}
 		return manga.copy(
-			altTitle = doc.selectFirstOrThrow(".list-info li.othername h2").text(),
-			state = null,
+			altTitle = doc.selectFirst(".list-info li.othername h2")?.textOrNull(),
 			tags = doc.select("li.kind a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
@@ -159,8 +158,8 @@ internal abstract class LikeMangaParser(
 					source = source,
 				)
 			},
-			author = doc.select("li.author p").last()?.text(),
-			description = doc.requireElementById("summary_shortened").text(),
+			author = doc.selectLast("li.author p")?.textOrNull(),
+			description = doc.requireElementById("summary_shortened").html(),
 			chapters = run {
 				if (maxPageChapter == 1) {
 					parseChapters(doc)

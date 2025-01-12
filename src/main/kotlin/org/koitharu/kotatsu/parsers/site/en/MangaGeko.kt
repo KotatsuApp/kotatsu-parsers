@@ -109,7 +109,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val chaptersDeferred = async { loadChapters(manga.url) }
 		manga.copy(
-			altTitle = doc.selectFirstOrThrow(".alternative-title").text(),
+			altTitle = doc.selectFirstOrThrow(".alternative-title").textOrNull(),
 			state = when (doc.selectFirstOrThrow(".header-stats span:contains(Status) strong").text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED
@@ -122,7 +122,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					source = source,
 				)
 			},
-			author = doc.selectFirstOrThrow(".author").text(),
+			author = doc.selectFirstOrThrow(".author").textOrNull(),
 			description = doc.selectFirstOrThrow(".description").html(),
 			chapters = chaptersDeferred.await(),
 		)

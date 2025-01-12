@@ -35,10 +35,8 @@ internal class Seinagi(context: MangaLoaderContext) :
 		}
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
-			description = desc,
-			altTitle = null,
-			author = author,
-			state = null,
+			description = desc?.nullIfEmpty(),
+			author = author?.nullIfEmpty(),
 			chapters = chapters,
 		)
 	}

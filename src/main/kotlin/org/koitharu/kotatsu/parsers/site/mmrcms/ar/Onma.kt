@@ -57,14 +57,14 @@ internal class Onma(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-		val alt = doc.body().selectFirst(selectAlt)?.text()
-		val auth = doc.body().selectFirst(selectAut)?.text()
+		val alt = doc.body().selectFirst(selectAlt)?.textOrNull()
+		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
 		val tags = doc.body().selectFirst(selectTag)?.select("a") ?: emptySet()
 		manga.copy(
 			tags = tags.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-					title = a.text().toTitleCase(),
+					title = a.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},

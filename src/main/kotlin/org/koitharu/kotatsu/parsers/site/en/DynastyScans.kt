@@ -144,7 +144,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 	private fun Element.parseTags() = select("a").mapToSet {
 		MangaTag(
 			key = it.attr("href").removeSuffix('/').substringAfterLast('/'),
-			title = it.text(),
+			title = it.text().toTitleCase(sourceLocale),
 			source = source,
 		)
 	}
@@ -157,7 +157,6 @@ internal class DynastyScans(context: MangaLoaderContext) :
 			.find { it.ownText() == "This manga has been licensed" }
 			?.nextElementSibling()?.html()
 		return manga.copy(
-			altTitle = null,
 			state = when (root.select("h2.tag-title small").last()?.text()) {
 				"— Ongoing" -> MangaState.ONGOING
 				"— Completed", "— Completed and Licensed" -> MangaState.FINISHED
@@ -165,10 +164,8 @@ internal class DynastyScans(context: MangaLoaderContext) :
 				"— On Hiatus" -> MangaState.PAUSED
 				else -> null
 			},
-			coverUrl = root.selectFirst("img.thumbnail")?.src()
-				.orEmpty(), // It is needed if the manga was found via the search.
+			coverUrl = root.selectFirst("img.thumbnail")?.src(),
 			tags = root.selectFirstOrThrow("div.tag-tags").parseTags(),
-			author = null,
 			description = licensedText,
 			chapters = chapters,
 		)

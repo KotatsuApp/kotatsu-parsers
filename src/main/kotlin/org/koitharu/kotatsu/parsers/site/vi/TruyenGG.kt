@@ -4,8 +4,8 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -149,7 +149,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 
 		return manga.copy(
-			altTitle = doc.selectFirst("h2.other-name")?.text(),
+			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
 			author = doc.select("p:contains(Tác Giả) + p").joinToString { it.text() }.nullIfEmpty(),
 			tags = doc.select("a.clblue").mapToSet {
 				MangaTag(

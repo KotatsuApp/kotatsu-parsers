@@ -193,14 +193,14 @@ internal abstract class MmrcmsParser(
 				else -> null
 			}
 		}
-		val alt = doc.body().selectFirst(selectAlt)?.nextElementSibling()?.text()
-		val auth = doc.body().selectFirst(selectAut)?.nextElementSibling()?.text()
+		val alt = doc.body().selectFirst(selectAlt)?.nextElementSibling()?.textOrNull()
+		val auth = doc.body().selectFirst(selectAut)?.nextElementSibling()?.textOrNull()
 		val tags = doc.body().selectFirst(selectTag)?.nextElementSibling()?.select("a") ?: emptySet()
 		manga.copy(
 			tags = tags.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-					title = a.text().toTitleCase(),
+					title = a.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},

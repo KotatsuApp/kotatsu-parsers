@@ -154,8 +154,8 @@ internal abstract class Manga18Parser(
 				else -> null
 			}
 		}
-		val alt = body.selectFirst(selectAlt)?.text().takeIf { it != "Updating" || it.isNotEmpty() }
-		val author = body.selectFirst(selectAuthor)?.text().takeIf { it != "Updating" }
+		val alt = body.selectFirst(selectAlt)?.textOrNull().takeUnless { it == "Updating" }
+		val author = body.selectFirst(selectAuthor)?.textOrNull()?.takeUnless { it == "Updating" }
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -164,7 +164,7 @@ internal abstract class Manga18Parser(
 					source = source,
 				)
 			},
-			description = desc.orEmpty(),
+			description = desc?.nullIfEmpty(),
 			altTitle = alt,
 			author = author,
 			state = state,

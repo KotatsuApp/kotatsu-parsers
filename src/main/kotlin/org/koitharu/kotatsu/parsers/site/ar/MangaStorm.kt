@@ -88,8 +88,6 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val root = doc.selectFirstOrThrow(".card-body .col-lg-9")
 		return manga.copy(
-			altTitle = null,
-			state = null,
 			tags = root.select(".flex-wrap a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
@@ -97,8 +95,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 					source = source,
 				)
 			},
-			author = null,
-			description = root.selectFirstOrThrow(".card-text").text(),
+			description = root.selectFirstOrThrow(".card-text").html(),
 			chapters = doc.select(".card-body a.btn-fixed-width").mapChapters(reversed = true) { i, a ->
 				val url = a.attrAsRelativeUrl("href")
 				MangaChapter(

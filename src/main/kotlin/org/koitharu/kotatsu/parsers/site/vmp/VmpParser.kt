@@ -119,10 +119,6 @@ internal abstract class VmpParser(
 					source = source,
 				)
 			},
-			description = null,
-			altTitle = null,
-			author = null,
-			state = null,
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

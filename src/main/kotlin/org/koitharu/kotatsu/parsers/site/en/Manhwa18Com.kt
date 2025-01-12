@@ -147,6 +147,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 		val author = cardInfoElement?.selectFirst(".info-name:contains(Author)")?.parent()
 			?.select("a")
 			?.joinToString(", ") { it.text() }
+			?.nullIfEmpty()
 		val availableTags = tagsMap.get()
 		val tags = cardInfoElement?.selectFirst(".info-name:contains(Genre)")?.parent()
 			?.select("a")
@@ -163,7 +164,8 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 			}
 
 		return manga.copy(
-			altTitle = cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownText()?.removePrefix(": "),
+			altTitle = cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
+				?.removePrefix(": "),
 			author = author,
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),

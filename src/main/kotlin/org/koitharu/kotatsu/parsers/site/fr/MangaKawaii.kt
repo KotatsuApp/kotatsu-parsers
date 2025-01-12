@@ -99,8 +99,8 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 		val firstChapter = doc.selectFirst("tr[class*='volume-'] a")?.attr("href")
 		val chaptersDeferred = async { loadChapters(firstChapter) }
 		manga.copy(
-			description = doc.selectFirst("dd.text-justify.text-break")?.text().orEmpty(),
-			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " },
+			description = doc.selectFirst("dd.text-justify.text-break")?.html(),
+			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " }.nullIfEmpty(),
 			author = doc.select("a[href*=author]").text(),
 			state = when (doc.selectFirst("span.badge.bg-success.text-uppercase")?.text()) {
 				"En Cours" -> MangaState.ONGOING

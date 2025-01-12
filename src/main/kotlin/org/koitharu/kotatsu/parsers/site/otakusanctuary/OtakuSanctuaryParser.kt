@@ -159,8 +159,8 @@ internal abstract class OtakuSanctuaryParser(
 			}
 		}
 
-		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")
-		val auth = doc.body().selectFirst(selectAut)?.text()
+		val alt = doc.body().selectFirst(selectAlt)?.textOrNull()?.replace("Other names", "")?.nullIfEmpty()
+		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 

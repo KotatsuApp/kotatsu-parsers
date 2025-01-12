@@ -216,9 +216,9 @@ internal abstract class WpComicsParser(
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
 		manga.copy(
-			description = doc.selectFirst(selectDesc)?.html().orEmpty(),
-			altTitle = doc.selectFirst("h2.other-name")?.text().orEmpty(),
-			author = doc.body().select(selectAut).text(),
+			description = doc.selectFirst(selectDesc)?.html(),
+			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			author = doc.body().select(selectAut).textOrNull(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

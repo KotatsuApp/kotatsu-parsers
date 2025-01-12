@@ -87,7 +87,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 		return manga.copy(
 			altTitle = root.select("ul.pmovie__list li:contains(Nom Alternatif:)").text()
-				.replace("Nom Alternatif:", ""),
+				.replace("Nom Alternatif:", "").nullIfEmpty(),
 			state = when (root.select("ul.pmovie__list li:contains(Status:)").text()) {
 				"Status: OnGoing", "Status: En cours" -> MangaState.ONGOING
 				"Status: Fini" -> MangaState.FINISHED
@@ -97,11 +97,13 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 				.replace("Genre:", "").split(" / ").mapToSet { tag ->
 					MangaTag(
 						key = tag.lowercase(),
-						title = tag,
+						title = tag.toTitleCase(sourceLocale),
 						source = source,
 					)
 				},
-			author = root.select("ul.pmovie__list li:contains(Artist(s):)").text().replace("Artist(s):", ""),
+			author = root.select("ul.pmovie__list li:contains(Artist(s):)").text()
+				.replace("Artist(s):", "")
+				.nullIfEmpty(),
 			description = root.selectFirst("div.pmovie__text")?.html(),
 			chapters = root.select("ul li div.chapter")
 				.mapChapters(reversed = true) { i, div ->

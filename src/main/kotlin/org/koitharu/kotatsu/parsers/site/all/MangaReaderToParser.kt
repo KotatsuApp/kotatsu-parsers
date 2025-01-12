@@ -172,10 +172,10 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 
 		return manga.copy(
 			title = document.selectFirst("h2.manga-name")!!.ownText(),
-			altTitle = document.selectFirst("div.manga-name-or")?.ownText(),
+			altTitle = document.selectFirst("div.manga-name-or")?.ownTextOrNull(),
 			rating = document.selectFirst("div.anisc-info .item:contains(score:) > .name")
 				?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
-			coverUrl = document.selectFirst(".manga-poster > img")!!.attr("src"),
+			coverUrl = document.selectFirst(".manga-poster > img")?.attrAsAbsoluteUrlOrNull("src"),
 			tags = document.select("div.genres > a[href*=/genre/]").mapNotNullToSet {
 				val tag = it.ownText()
 				if (tag == "Hentai") {
@@ -202,8 +202,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 					}
 				},
 			author = document.select("div.anisc-info a[href*=/author/]")
-				.joinToString { it.ownText().replace(", ", " ") },
-			description = document.select("div.description").text(),
+				.joinToString { it.ownText().replace(", ", " ") }.nullIfEmpty(),
+			description = document.select("div.description").html(),
 			chapters = parseChapters(document),
 			source = source,
 		)

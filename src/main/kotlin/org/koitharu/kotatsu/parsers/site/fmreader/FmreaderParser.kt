@@ -189,8 +189,8 @@ internal abstract class FmreaderParser(
 				else -> null
 			}
 		}
-		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")
-		val auth = doc.body().selectFirst(selectAut)?.text()
+		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")?.nullIfEmpty()
+		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(

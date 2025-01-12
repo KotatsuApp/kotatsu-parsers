@@ -96,9 +96,9 @@ internal class PixHentai(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return manga.copy(
-			description = doc.selectFirst("div.entry-content p")?.text().orEmpty(),
-			altTitle = doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.text().orEmpty(),
-			author = doc.selectFirst("div.entry-content ul li:contains(Artists :) em")?.text().orEmpty(),
+			description = doc.selectFirst("div.entry-content p")?.html(),
+			altTitle = doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.textOrNull(),
+			author = doc.selectFirst("div.entry-content ul li:contains(Artists :) em")?.textOrNull(),
 			state = null,
 			chapters = listOf(
 				MangaChapter(

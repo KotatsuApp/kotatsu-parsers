@@ -148,7 +148,6 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 			}
 		}
 		return manga.copy(
-			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".full-list-info:contains(الحالة:) a").text()) {
 				"مستمرة" -> MangaState.ONGOING
 				"مكتمل" -> MangaState.FINISHED
@@ -162,8 +161,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 					source = source,
 				)
 			},
-			author = null,
-			description = doc.selectFirstOrThrow(".review-content").text(),
+			description = doc.selectFirstOrThrow(".review-content").html(),
 			chapters = run {
 				if (maxPageChapter == 1) {
 					parseChapters(doc)

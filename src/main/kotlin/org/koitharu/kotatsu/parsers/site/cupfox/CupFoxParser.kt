@@ -124,8 +124,7 @@ internal abstract class CupFoxParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			altTitle = doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("："),
-			state = null,
+			altTitle = doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("：")?.nullIfEmpty(),
 			tags = doc.select(selectMangaDetailsTags).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
@@ -133,9 +132,8 @@ internal abstract class CupFoxParser(
 					source = source,
 				)
 			},
-			author = doc.selectFirst(selectMangaDetailsAuthor)?.text()?.substringAfter("："),
-			description = doc.selectFirst(selectMangaDescription)
-				?.html(),
+			author = doc.selectFirst(selectMangaDetailsAuthor)?.text()?.substringAfter("：")?.nullIfEmpty(),
+			description = doc.selectFirst(selectMangaDescription)?.html(),
 			chapters = doc.select(selectMangaChapters)
 				.mapChapters { i, li ->
 					val a = li.selectFirstOrThrow("a")

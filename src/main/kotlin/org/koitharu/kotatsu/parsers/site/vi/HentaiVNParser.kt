@@ -112,8 +112,9 @@ internal class HentaiVNParser(context: MangaLoaderContext) : MangaParser(context
 		val stateDoc = stateDocDeferred.await()
 		manga.copy(
 			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")
-				?.joinToString { it.text() },
-			author = infoEl.select("p:contains(Tác giả:) a").text(),
+				?.joinToString { it.text() }
+				?.nullIfEmpty(),
+			author = infoEl.select("p:contains(Tác giả:) a").textOrNull(),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tags,
 			state = stateDoc.select("p:contains(Tình Trạng:) a").firstOrNull()?.text()?.let {

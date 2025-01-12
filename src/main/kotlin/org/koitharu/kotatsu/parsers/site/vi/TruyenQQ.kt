@@ -159,7 +159,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 		return manga.copy(
-			altTitle = doc.selectFirst("h2.other-name")?.text(),
+			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
 			tags = doc.select("ul.list01 li").mapToSet {
 				val key = it.attr("href").substringAfterLast("-").substringBeforeLast(".")
 				MangaTag(

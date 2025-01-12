@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
@@ -96,7 +95,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 		return doc.select("ul.lf-list li a").mapToSet { a ->
 			MangaTag(
 				key = a.attr("href").substringAfterLast('/'),
-				title = a.text(),
+				title = a.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
@@ -105,7 +104,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			altTitle = doc.selectFirstOrThrow("div.anime-top h1.title").text(),
+			altTitle = doc.selectFirstOrThrow("div.anime-top h1.title").textOrNull(),
 			state = when (doc.selectFirstOrThrow("ul.anime-genres li.status a").text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED
@@ -114,14 +113,14 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 			tags = doc.select("ul.anime-genres li a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
-					title = a.text(),
+					title = a.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},
-			author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.text(),
-			description = doc.selectFirstOrThrow("div.detail-desc-content p").text(),
+			author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.textOrNull(),
+			description = doc.selectFirstOrThrow("div.detail-desc-content p").html(),
 			chapters = doc.select("ul.basic-list li").let { elements ->
-				elements.mapChapters() { i, li ->
+				elements.mapChapters { i, li ->
 					val a = li.selectFirstOrThrow("a.ch-name")
 					val url = a.attrAsRelativeUrl("href")
 					val name = a.text()

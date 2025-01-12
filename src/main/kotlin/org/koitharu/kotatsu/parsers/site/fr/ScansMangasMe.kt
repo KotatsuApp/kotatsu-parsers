@@ -113,7 +113,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = getChapters(doc)
 		val desc = doc.selectFirstOrThrow("div.desc").html().nullIfEmpty()
-		val alt = doc.body().select("div.infox span.alter").text().nullIfEmpty()
+		val alt = doc.body().select("div.infox span.alter").textOrNull()
 		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "").nullIfEmpty()
 		manga.copy(
 			tags = doc.select("div.spe span:contains(Genres) a").mapToSet { a ->

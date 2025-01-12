@@ -182,7 +182,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		var alt = ""
 		comic.getJSONArray("md_titles").mapJSON { alt += it.getString("title") + " - " }
 		return manga.copy(
-			altTitle = alt.ifEmpty { comic.getStringOrNull("title") },
+			altTitle = alt.ifEmpty { comic.getStringOrNull("title") }?.nullIfEmpty(),
 			contentRating = if (jo.getBooleanOrDefault("matureContent", false)
 				|| comic.getBooleanOrDefault("hentai", false)
 			) {
@@ -199,7 +199,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = jo.getJSONArray("artists").optJSONObject(0)?.getString("name"),
+			author = jo.getJSONArray("artists").optJSONObject(0)?.getStringOrNull("name"),
 			chapters = getChapters(comic.getString("hid")),
 		)
 	}

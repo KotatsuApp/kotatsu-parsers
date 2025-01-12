@@ -124,7 +124,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 
 		return manga.copy(
-			altTitle = root.select(".divider2:contains(Noms associés :)").firstOrNull()?.text(),
+			altTitle = root.select(".divider2:contains(Noms associés :)").firstOrNull()?.textOrNull(),
 			state = when (root.select(".label.label-primary")[2].text()) {
 				"En cours" -> MangaState.ONGOING
 				"Terminé", "Abondonné", "One Shot" -> MangaState.FINISHED
@@ -137,7 +137,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = root.select("div.project-details a[href*=auteur]").text(),
+			author = root.select("div.project-details a[href*=auteur]").textOrNull(),
 			description = root.selectFirst("p.sContent")?.html(),
 			chapters = root.select("div.chapter-list li")
 				.mapChapters(reversed = true) { i, li ->

@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
@@ -161,15 +162,14 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 		val slug = manga.url.substringAfterLast("/")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
 		return manga.copy(
-			altTitle = null,
 			state = when (jsonManga.getString("status")) {
 				"0" -> MangaState.ONGOING
 				"1" -> MangaState.FINISHED
 				"3" -> MangaState.ABANDONED
 				else -> null
 			},
-			author = jsonManga.getString("author"),
-			description = jsonManga.getString("description"),
+			author = jsonManga.getStringOrNull("author"),
+			description = jsonManga.getStringOrNull("description"),
 			chapters = chapters.mapChapters { i, it ->
 				val id = it.substringAfter("\"chapter\":").substringBefore(",")
 				val url = "https://$domain/api/get/chapter/$slug/$id"

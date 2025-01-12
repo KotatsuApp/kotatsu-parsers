@@ -182,7 +182,7 @@ internal abstract class MangaFireParser(
 
 		return manga.copy(
 			title = document.selectFirstOrThrow(".info > h1").ownText(),
-			altTitle = document.selectFirst(".info > h6")?.ownText(),
+			altTitle = document.selectFirst(".info > h6")?.ownTextOrNull(),
 			rating = document.selectFirst("div.rating-box")?.attr("data-score")
 				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
 			coverUrl = document.selectFirstOrThrow("div.manga-detail div.poster img")
@@ -212,7 +212,7 @@ internal abstract class MangaFireParser(
 				}
 			},
 			author = document.select("div.meta a[href*=/author/]")
-				.joinToString { it.ownText() },
+				.joinToString { it.ownText() }.nullIfEmpty(),
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)

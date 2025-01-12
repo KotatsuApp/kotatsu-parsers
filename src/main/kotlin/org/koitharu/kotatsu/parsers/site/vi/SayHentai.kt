@@ -87,8 +87,8 @@ internal class SayHentai(context: MangaLoaderContext) : PagedMangaParser(context
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			altTitle = doc.selectFirst("h2.other-name")?.text(),
-			author = doc.selectFirst("div.summary-heading:contains(Tác giả) + div.summary-content")?.text(),
+			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			author = doc.selectFirst("div.summary-heading:contains(Tác giả) + div.summary-content")?.textOrNull(),
 			tags = doc.select("div.genres-content a[rel=tag]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),

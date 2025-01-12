@@ -145,7 +145,7 @@ internal abstract class LibSocialParser(
 		}
 		manga.copy(
 			title = json.getStringOrNull("rus_name") ?: manga.title,
-			altTitle = json.getString("name"),
+			altTitle = json.getStringOrNull("name"),
 			tags = tagsSetOf(tags, genres),
 			author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name"),
 			description = json.getString("summary").nl2br(),

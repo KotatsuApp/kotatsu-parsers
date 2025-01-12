@@ -63,15 +63,14 @@ internal class Po2Scans(context: MangaLoaderContext) : SinglePageMangaParser(con
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd MMM, yy", Locale.ENGLISH)
 		return manga.copy(
-			altTitle = null,
 			state = when (doc.select(".status span").last()?.text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Done" -> MangaState.FINISHED
 				else -> null
 			},
 			tags = emptySet(),
-			author = doc.select(".author span").last()?.text(),
-			description = doc.selectFirstOrThrow(".summary").text(),
+			author = doc.selectLast(".author span")?.textOrNull(),
+			description = doc.selectFirstOrThrow(".summary").html(),
 			chapters = doc.select(".chap-section .chap")
 				.mapChapters(reversed = true) { i, div ->
 					val a = div.selectFirstOrThrow("a")

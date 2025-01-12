@@ -128,7 +128,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-		val aut = doc.body().select(selectAut).text()
+		val aut = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -138,7 +138,6 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			altTitle = null,
 			author = aut,
 			state = state,
 			chapters = chaptersDeferred.await(),

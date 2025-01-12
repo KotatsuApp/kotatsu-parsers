@@ -171,7 +171,6 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH)
 		return manga.copy(
-			altTitle = null,
 			tags = root.select("div.serieGenre span").mapToSet { span ->
 				MangaTag(
 					key = span.text(),
@@ -179,8 +178,8 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			coverUrl = root.selectFirst("div.serieImg img")?.attr("src").orEmpty(),
-			author = root.select("div.serieAdd p:contains(Auteur:) strong").text(),
+			coverUrl = root.selectFirst("div.serieImg img")?.attr("src"),
+			author = root.select("div.serieAdd p:contains(Auteur:) strong").textOrNull(),
 			description = root.selectFirst("div.serieDescription div")?.html(),
 			chapters = root.select("div.chapterList a")
 				.mapChapters(reversed = true) { i, a ->

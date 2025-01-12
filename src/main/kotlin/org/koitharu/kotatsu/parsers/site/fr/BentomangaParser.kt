@@ -148,7 +148,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		val root = webClient.httpGet(mangaUrl).parseHtml()
 			.requireElementById("container_manga_show")
 		return manga.copy(
-			altTitle = root.selectFirst(".component-manga-title_alt")?.text(),
+			altTitle = root.selectFirst(".component-manga-title_alt")?.textOrNull(),
 			description = root.selectFirst(".datas_synopsis")?.html().assertNotNull("description")
 				?: manga.description,
 			state = when (root.selectFirst(".datas_more-status-data")?.textOrNull().assertNotNull("status")) {

@@ -100,9 +100,9 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 		val firstChapter = doc.selectFirst("tr[class*='volume-'] a")?.attr("href")
 		val chaptersDeferred = async { loadChapters(firstChapter) }
 		manga.copy(
-			description = doc.selectFirst("dd.text-justify.text-break")?.text().orEmpty(),
-			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " },
-			author = doc.select("a[href*=author]").text(),
+			description = doc.selectFirst("dd.text-justify.text-break")?.html(),
+			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " }.nullIfEmpty(),
+			author = doc.select("a[href*=author]").textOrNull(),
 			state = when (doc.selectFirst("span.badge.bg-success.text-uppercase")?.text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"" -> MangaState.FINISHED

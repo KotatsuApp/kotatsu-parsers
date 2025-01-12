@@ -34,10 +34,8 @@ internal class Pzykosis666hFansub(context: MangaLoaderContext) :
 		}
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
-			description = desc.orEmpty(),
-			altTitle = null,
-			author = author.orEmpty(),
-			state = null,
+			description = desc?.nullIfEmpty(),
+			author = author?.nullIfEmpty(),
 			chapters = chapters,
 		)
 	}

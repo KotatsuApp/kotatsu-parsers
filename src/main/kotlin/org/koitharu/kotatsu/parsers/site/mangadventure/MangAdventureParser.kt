@@ -107,7 +107,7 @@ internal abstract class MangAdventureParser(
 			.addEncodedQueryParameter("date_format", "timestamp").get()
 		return manga.copy(
 			description = details.getStringOrNull("description"),
-			altTitle = details.getJSONArray("aliases").joinToString(),
+			altTitle = details.getJSONArray("aliases").joinToString().nullIfEmpty(),
 			author = buildString {
 				val authors = details.getJSONArray("authors")
 				val artists = details.getJSONArray("artists")

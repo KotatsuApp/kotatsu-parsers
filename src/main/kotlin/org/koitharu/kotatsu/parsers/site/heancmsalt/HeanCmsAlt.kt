@@ -89,7 +89,7 @@ internal abstract class HeanCmsAlt(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return manga.copy(
-			altTitle = doc.selectFirst(selectAlt)?.text().orEmpty(),
+			altTitle = doc.selectFirst(selectAlt)?.textOrNull(),
 			description = doc.selectFirst(selectDesc)?.html(),
 			chapters = doc.select(selectChapter)
 				.mapChapters(reversed = true) { i, a ->

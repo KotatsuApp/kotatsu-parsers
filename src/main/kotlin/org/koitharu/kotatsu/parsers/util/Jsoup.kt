@@ -129,6 +129,8 @@ public fun Element.selectLastOrThrow(cssQuery: String): Element = parseNotNull(s
 
 public fun Element.textOrNull(): String? = text().nullIfEmpty()
 
+public fun Elements.textOrNull(): String? = text().nullIfEmpty()
+
 public fun Element.ownTextOrNull(): String? = ownText().nullIfEmpty()
 
 public fun Element.selectFirstParent(query: String): Element? {

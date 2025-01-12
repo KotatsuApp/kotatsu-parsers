@@ -183,7 +183,7 @@ internal abstract class FuzzyDoodleParser(
 		}
 
 		manga.copy(
-			altTitle = doc.selectLast(selectAltTitle)?.text(),
+			altTitle = doc.selectLast(selectAltTitle)?.textOrNull(),
 			state = when (doc.selectFirst(selectState)?.text()?.lowercase().orEmpty()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
@@ -191,8 +191,8 @@ internal abstract class FuzzyDoodleParser(
 				in paused -> MangaState.PAUSED
 				else -> null
 			},
-			author = doc.selectFirst(selectAuthor)?.text().orEmpty(),
-			description = doc.select(selectDescription).text(),
+			author = doc.selectFirst(selectAuthor)?.textOrNull(),
+			description = doc.select(selectDescription).html(),
 			tags = doc.select(selectTagManga).mapToSet {
 				val key = it.attr("href").substringAfterLast('=')
 				MangaTag(

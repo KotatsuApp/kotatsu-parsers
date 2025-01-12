@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -105,9 +106,9 @@ internal class YugenMangas(context: MangaLoaderContext) :
 		return manga.copy(
 			description = detailManga.getString("synopsis"),
 			coverUrl = detailManga.getString("cover"),
-			altTitle = detailManga.getString("alternative_names"),
-			author = detailManga.getString("author"),
-			state = detailManga.getString("status")?.let {
+			altTitle = detailManga.getStringOrNull("alternative_names"),
+			author = detailManga.getStringOrNull("author"),
+			state = detailManga.getStringOrNull("status")?.let {
 				when (it) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED

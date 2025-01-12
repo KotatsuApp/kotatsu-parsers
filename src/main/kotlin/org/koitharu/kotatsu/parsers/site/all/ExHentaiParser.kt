@@ -197,7 +197,7 @@ internal class ExHentaiParser(
 
 		return manga.copy(
 			title = title?.getElementById("gn")?.text()?.cleanupTitle() ?: manga.title,
-			altTitle = title?.getElementById("gj")?.text()?.cleanupTitle() ?: manga.altTitle,
+			altTitle = (title?.getElementById("gj")?.text()?.cleanupTitle() ?: manga.altTitle)?.nullIfEmpty(),
 			publicUrl = doc.baseUri().ifEmpty { manga.publicUrl },
 			rating = root.getElementById("rating_label")?.text()
 				?.substringAfterLast(' ')

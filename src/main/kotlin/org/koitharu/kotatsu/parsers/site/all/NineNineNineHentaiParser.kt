@@ -269,7 +269,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			altTitle = name,
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
-			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() },
+			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() }?.nullIfEmpty(),
 			contentRating = ContentRating.ADULT,
 			tags = tags?.mapToSet {
 				MangaTag(

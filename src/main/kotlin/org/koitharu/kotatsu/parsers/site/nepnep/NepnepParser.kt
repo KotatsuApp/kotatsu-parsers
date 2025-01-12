@@ -184,7 +184,6 @@ internal abstract class NepnepParser(
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", sourceLocale)
 
 		return manga.copy(
-			altTitle = null,
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
 				"Ongoing (Scan)", "Ongoing (Publish)",
 					-> MangaState.ONGOING
@@ -204,12 +203,12 @@ internal abstract class NepnepParser(
 			tags = doc.select(".list-group-item:contains(Genre(s):) a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('='),
-					title = a.text(),
+					title = a.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},
-			author = doc.select(".list-group-item:contains(Author(s):) a").text(),
-			description = doc.selectFirstOrThrow(".top-5.Content").text(),
+			author = doc.select(".list-group-item:contains(Author(s):) a").textOrNull(),
+			description = doc.selectFirstOrThrow(".top-5.Content").textOrNull(),
 
 			chapters = chapter.mapJSONIndexed { i, j ->
 				val indexChapter = j.getString("Chapter")!!

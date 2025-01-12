@@ -27,9 +27,9 @@ internal class ScanIta(context: MangaLoaderContext) :
 			rating = doc.selectFirst(".card-series-detail .rate-value span")?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = tags,
-			author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div")?.text(),
-			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2")?.text().orEmpty(),
-			description = doc.selectFirst(".card div.col-12.mb-4 p")?.html().orEmpty(),
+			author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div")?.textOrNull(),
+			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2")?.textOrNull(),
+			description = doc.selectFirst(".card div.col-12.mb-4 p")?.html(),
 			chapters = chaptersDeferred.await(),
 		)
 	}

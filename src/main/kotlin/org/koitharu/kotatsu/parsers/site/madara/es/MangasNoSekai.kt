@@ -28,11 +28,11 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Autor)) p a")?.text()
-				.orEmpty(),
+			author = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Autor)) p a")
+				?.textOrNull(),
 			description = body.selectFirst("#section-sinopsis p")?.text().orEmpty(),
-			altTitle = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Otros nombres)) p")?.text()
-				.orEmpty(),
+			altTitle = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Otros nombres)) p")
+				?.textOrNull(),
 			state = body.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Estado)) p")
 				?.let {
 					when (it.text()) {
