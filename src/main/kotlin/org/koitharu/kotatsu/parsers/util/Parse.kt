@@ -12,6 +12,9 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import java.text.DateFormat
 
+private val REGEX_SCHEME_PREFIX = Regex("^\\w{2,6}://", RegexOption.IGNORE_CASE)
+private const val SCHEME_HTTPS = "https"
+
 /**
  * Parse [Response] body as html document using Jsoup
  * @see [parseJson]
@@ -76,10 +79,10 @@ public fun String.toRelativeUrl(domain: String): String {
  * @return an absolute url with [domain] if this is relative
  */
 public fun String.toAbsoluteUrl(domain: String): String = when {
-	this.startsWith("//") -> "https:$this"
-	this.startsWith('/') -> "https://$domain$this"
-	this.startsWith("https://") -> this
-	else -> "https://$domain/$this"
+	startsWith("//") -> "$SCHEME_HTTPS:$this"
+	startsWith('/') -> "$SCHEME_HTTPS://$domain$this"
+	REGEX_SCHEME_PREFIX.containsMatchIn(this) -> this
+	else -> "$SCHEME_HTTPS://$domain/$this"
 }
 
 public fun concatUrl(host: String, path: String): String {

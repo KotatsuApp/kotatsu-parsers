@@ -79,7 +79,7 @@ public fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
-	return (baseUri().toHttpUrlOrNull()?.newBuilder(attr) ?: return null).toString()
+	return (baseUri().toHttpUrlOrNull()?.resolve(attr) ?: return null).toString()
 }
 
 /**
