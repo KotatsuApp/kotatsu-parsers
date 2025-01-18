@@ -17,7 +17,22 @@ import java.util.*
 internal class MangaPark(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
-	override val configKeyDomain = ConfigKey.Domain("mangapark.net")
+	override val configKeyDomain = ConfigKey.Domain(
+		"mangapark.net",
+		"mangapark.com",
+		"mangapark.org",
+		"mangapark.me",
+		"mangapark.io",
+		"mangapark.to",
+		"comicpark.org",
+		"comicpark.to",
+		"readpark.org",
+		"readpark.net",
+		"parkmanga.com",
+		"parkmanga.net",
+		"parkmanga.org",
+		"mpark.to"
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
