@@ -6,6 +6,8 @@ import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
 import java.util.*
 
+public fun Collection<*>?.sizeOrZero(): Int = this?.size ?: 0
+
 public fun <T> MutableCollection<T>.replaceWith(subject: Iterable<T>) {
 	clear()
 	addAll(subject)
@@ -65,4 +67,23 @@ public fun <K> MutableMap<K, Int>.incrementAndGet(key: K): Int {
 	value++
 	put(key, value)
 	return value
+}
+
+public inline fun <T> MutableSet(size: Int, init: (index: Int) -> T): MutableSet<T> {
+	val set = ArraySet<T>(size)
+	repeat(size) { index -> set.add(init(index)) }
+	return set
+}
+
+public inline fun <T> Set(size: Int, init: (index: Int) -> T): Set<T> = when (size) {
+	0 -> emptySet()
+	1 -> Collections.singleton(init(0))
+	else -> MutableSet(size, init)
+}
+
+@Suppress("UNCHECKED_CAST")
+public inline fun <T, reified R> Collection<T>.mapToArray(transform: (T) -> R): Array<R> {
+	val result = arrayOfNulls<R>(size)
+	forEachIndexed { index, t -> result[index] = transform(t) }
+	return result as Array<R>
 }

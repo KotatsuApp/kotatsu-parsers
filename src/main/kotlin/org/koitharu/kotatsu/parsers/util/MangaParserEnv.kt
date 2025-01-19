@@ -18,7 +18,7 @@ import org.koitharu.kotatsu.parsers.model.*
  */
 @InternalParsersApi
 public fun MangaParser.generateUid(url: String): Long {
-	var h = 1125899906842597L
+	var h = LONG_HASH_SEED
 	source.name.forEach { c ->
 		h = 31 * h + c.code
 	}
@@ -37,7 +37,7 @@ public fun MangaParser.generateUid(url: String): Long {
  */
 @InternalParsersApi
 public fun MangaParser.generateUid(id: Long): Long {
-	var h = 1125899906842597L
+	var h = LONG_HASH_SEED
 	source.name.forEach { c ->
 		h = 31 * h + c.code
 	}
@@ -82,9 +82,7 @@ private fun <T> Set<T>?.oneOrThrowIfMany(msg: String): T? = when {
 }
 
 public val MangaParser.domain: String
-	get() {
-		return config[configKeyDomain]
-	}
+	get() = config[configKeyDomain]
 
 @InternalParsersApi
 public fun MangaParser.getDomain(subdomain: String): String {
@@ -95,6 +93,6 @@ public fun MangaParser.getDomain(subdomain: String): String {
 @InternalParsersApi
 public fun MangaParser.urlBuilder(subdomain: String? = null): HttpUrl.Builder {
 	return HttpUrl.Builder()
-		.scheme("https")
+		.scheme(SCHEME_HTTPS)
 		.host(if (subdomain == null) domain else "$subdomain.$domain")
 }

@@ -13,7 +13,7 @@ import org.koitharu.kotatsu.parsers.InternalParsersApi
 import java.text.DateFormat
 
 private val REGEX_SCHEME_PREFIX = Regex("^\\w{2,6}://", RegexOption.IGNORE_CASE)
-private const val SCHEME_HTTPS = "https"
+internal const val SCHEME_HTTPS = "https"
 
 /**
  * Parse [Response] body as html document using Jsoup
