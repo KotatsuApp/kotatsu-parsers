@@ -15,7 +15,13 @@ public interface SuspendLazy<T> {
 	public fun peek(): T?
 }
 
-public suspend fun <T> SuspendLazy<T>.getOrNull(): T? = runCatchingCancellable { get() }.getOrNull()
+public suspend fun <T> SuspendLazy<T>.getOrNull(): T? = runCatchingCancellable {
+	get()
+}.getOrNull()
+
+public suspend fun <R, T : R> SuspendLazy<T>.getOrDefault(defaultValue: R): R = runCatchingCancellable {
+	get()
+}.getOrDefault(defaultValue)
 
 public fun <T> suspendLazy(
 	context: CoroutineContext = EmptyCoroutineContext,

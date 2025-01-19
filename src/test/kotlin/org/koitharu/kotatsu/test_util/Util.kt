@@ -5,6 +5,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.util.LONG_HASH_SEED
 import org.koitharu.kotatsu.parsers.util.toRelativeUrl
 
 private val PATTERN_URL_ABSOLUTE = Regex("^https?://[\\s\\S]+", setOf(RegexOption.IGNORE_CASE))
@@ -55,7 +56,7 @@ inline operator fun <T> List<T>.component7(): T = get(6)
 
 fun mangaOf(source: MangaParserSource, url: String): Manga {
 	val httpUrl = url.toHttpUrlOrNull()
-	var id = 1125899906842597L
+	var id = LONG_HASH_SEED
 	source.name.forEach { c -> id = 31 * id + c.code }
 	url.forEach { c -> id = 31 * id + c.code }
 	return Manga(

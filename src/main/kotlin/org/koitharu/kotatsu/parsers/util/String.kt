@@ -3,15 +3,17 @@
 package org.koitharu.kotatsu.parsers.util
 
 import androidx.collection.MutableIntList
-import androidx.collection.arraySetOf
 import java.math.BigInteger
 import java.net.URLDecoder
 import java.net.URLEncoder
 import java.security.MessageDigest
 import java.util.*
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 import kotlin.math.min
 
 private val REGEX_WHITESPACE = Regex("\\s+")
+internal const val LONG_HASH_SEED = 1125899906842597L
 
 public fun String.removeSurrounding(vararg chars: Char): String {
 	if (isEmpty()) {
@@ -23,6 +25,22 @@ public fun String.removeSurrounding(vararg chars: Char): String {
 		}
 	}
 	return this
+}
+
+public inline fun <C : R, R : CharSequence?> C?.ifNullOrEmpty(defaultValue: () -> R): R {
+	contract {
+		callsInPlace(defaultValue, InvocationKind.AT_MOST_ONCE)
+	}
+	return if (this.isNullOrEmpty()) defaultValue() else this
+}
+
+public fun String.longHashCode(): Long {
+	var h = LONG_HASH_SEED
+	val len: Int = this.length
+	for (i in 0 until len) {
+		h = 31 * h + this[i].code
+	}
+	return h
 }
 
 public fun String.toCamelCase(): String {
@@ -44,6 +62,8 @@ public fun String.toCamelCase(): String {
 	return result.toString()
 }
 
+public fun String.digits(): String = filter { it.isDigit() }
+
 public fun String.toTitleCase(): String {
 	return replaceFirstChar { x -> x.uppercase() }
 }
@@ -51,35 +71,6 @@ public fun String.toTitleCase(): String {
 public fun String.toTitleCase(locale: Locale): String {
 	return replaceFirstChar { x -> x.uppercase(locale) }
 }
-
-public fun String.transliterate(skipMissing: Boolean): String {
-	val cyr = charArrayOf(
-		'а', 'б', 'в', 'г', 'д', 'е', 'ж', 'з', 'и', 'й', 'к', 'л', 'м', 'н', 'о', 'п',
-		'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ъ', 'ы', 'ь', 'э', 'ю', 'я', 'ё', 'ў',
-	)
-	val lat = arrayOf(
-		"a", "b", "v", "g", "d", "e", "zh", "z", "i", "y", "k", "l", "m", "n", "o", "p",
-		"r", "s", "t", "u", "f", "h", "ts", "ch", "sh", "sch", "", "i", "", "e", "ju", "ja", "jo", "w",
-	)
-	return buildString(length + 5) {
-		for (c in this@transliterate) {
-			val p = cyr.binarySearch(c.lowercaseChar())
-			if (p in lat.indices) {
-				if (c.isUpperCase()) {
-					append(lat[p].uppercase())
-				} else {
-					append(lat[p])
-				}
-			} else if (!skipMissing) {
-				append(c)
-			}
-		}
-	}
-}
-
-public fun String.toFileNameSafe(): String = this.transliterate(false)
-	.replace(Regex("[^a-z0-9_\\-]", arraySetOf(RegexOption.IGNORE_CASE)), " ")
-	.replace(REGEX_WHITESPACE, "_")
 
 public fun String.ellipsize(maxLength: Int): String = if (this.length > maxLength) {
 	this.take(maxLength - 1) + Typography.ellipsis

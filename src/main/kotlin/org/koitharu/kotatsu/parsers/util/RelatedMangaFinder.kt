@@ -13,8 +13,6 @@ public class RelatedMangaFinder(
 	private val parsers: Collection<MangaParser>,
 ) {
 
-	private val regexWhitespace = Regex("\\s+")
-
 	public suspend operator fun invoke(seed: Manga): List<Manga> = coroutineScope {
 		parsers.singleOrNull()?.let { parser ->
 			findRelatedImpl(this, parser, seed)
@@ -27,9 +25,9 @@ public class RelatedMangaFinder(
 
 	private suspend fun findRelatedImpl(scope: CoroutineScope, parser: MangaParser, seed: Manga): List<Manga> {
 		val words = HashSet<String>()
-		words += seed.title.split(regexWhitespace)
+		words += seed.title.splitByWhitespace()
 		seed.altTitle?.let {
-			words += it.split(regexWhitespace)
+			words += it.splitByWhitespace()
 		}
 		if (words.isEmpty()) {
 			return emptyList()

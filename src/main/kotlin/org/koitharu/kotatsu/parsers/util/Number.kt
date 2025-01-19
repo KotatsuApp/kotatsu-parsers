@@ -58,12 +58,23 @@ public fun Number.formatSimple(): String {
 	}
 }
 
-public inline fun Int.ifZero(defaultVale: () -> Int): Int {
+public inline fun Int.ifZero(defaultValue: () -> Int): Int {
 	contract {
-		callsInPlace(defaultVale, InvocationKind.AT_MOST_ONCE)
+		callsInPlace(defaultValue, InvocationKind.AT_MOST_ONCE)
 	}
 	return if (this == 0) {
-		defaultVale()
+		defaultValue()
+	} else {
+		this
+	}
+}
+
+public inline fun Long.ifZero(defaultValue: () -> Long): Long {
+	contract {
+		callsInPlace(defaultValue, InvocationKind.AT_MOST_ONCE)
+	}
+	return if (this == 0L) {
+		defaultValue()
 	} else {
 		this
 	}

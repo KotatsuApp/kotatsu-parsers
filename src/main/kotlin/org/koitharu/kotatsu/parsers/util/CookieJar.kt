@@ -6,8 +6,6 @@ import okhttp3.Cookie
 import okhttp3.CookieJar
 import okhttp3.HttpUrl
 
-private const val SCHEME_HTTPS = "https"
-
 public fun CookieJar.insertCookies(domain: String, vararg cookies: String) {
 	val url = safeUrlOf(domain) ?: return
 	saveFromResponse(

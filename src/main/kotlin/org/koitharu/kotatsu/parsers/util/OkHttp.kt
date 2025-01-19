@@ -3,10 +3,7 @@
 package org.koitharu.kotatsu.parsers.util
 
 import kotlinx.coroutines.suspendCancellableCoroutine
-import okhttp3.Call
-import okhttp3.Headers
-import okhttp3.Response
-import okhttp3.ResponseBody
+import okhttp3.*
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
@@ -19,9 +16,8 @@ public suspend fun Call.await(): Response = suspendCancellableCoroutine { contin
 public val Response.mimeType: String?
 	get() = header("content-type")?.substringBefore(';')?.trim()?.nullIfEmpty()?.lowercase()
 
-@Deprecated("")
-public val Response.contentDisposition: String?
-	get() = header("Content-Disposition")
+public val HttpUrl.isHttpOrHttps: Boolean
+	get() = scheme.equals("https", ignoreCase = true) || scheme.equals("http", ignoreCase = true)
 
 public fun Headers.Builder.mergeWith(other: Headers, replaceExisting: Boolean): Headers.Builder {
 	for ((name, value) in other) {
@@ -51,4 +47,24 @@ public inline fun Response.map(mapper: (ResponseBody) -> ResponseBody): Response
 			.body(mapper(responseBody))
 			.build()
 	} ?: this
+}
+
+public fun Cookie.newBuilder(): Cookie.Builder = Cookie.Builder().also { c ->
+	c.name(name)
+	c.value(value)
+	if (persistent) {
+		c.expiresAt(expiresAt)
+	}
+	if (hostOnly) {
+		c.hostOnlyDomain(domain)
+	} else {
+		c.domain(domain)
+	}
+	c.path(path)
+	if (secure) {
+		c.secure()
+	}
+	if (httpOnly) {
+		c.httpOnly()
+	}
 }
