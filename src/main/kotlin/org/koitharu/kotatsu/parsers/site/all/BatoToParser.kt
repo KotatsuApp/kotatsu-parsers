@@ -115,6 +115,8 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		"zbato.com",
 		"zbato.net",
 		"zbato.org",
+		"fto.to",
+		"jto.to"
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

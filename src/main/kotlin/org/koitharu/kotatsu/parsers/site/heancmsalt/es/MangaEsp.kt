@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 @Broken // Not dead but changed template
 @MangaSourceParser("MANGAESP", "MangaEsp", "es")
 internal class MangaEsp(context: MangaLoaderContext) :
-	HeanCmsAlt(context, MangaParserSource.MANGAESP, "mangaesp.net", 15) {
+	HeanCmsAlt(context, MangaParserSource.MANGAESP, "mangaesp.topmanhuas.org", 15) {
 
 	override val listUrl = "/comic"
 

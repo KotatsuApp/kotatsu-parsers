@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("FECOMICC", "Fecomic", "vi")
 internal class Fecomicc(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.FECOMICC, "fftruyen.net", 9) {
+	MadaraParser(context, MangaParserSource.FECOMICC, "mangasup.net", 9) {
 	override val listUrl = "comic/"
 	override val tagPrefix = "the-loai/"
 	override val datePattern = "dd/MM/yyyy"
