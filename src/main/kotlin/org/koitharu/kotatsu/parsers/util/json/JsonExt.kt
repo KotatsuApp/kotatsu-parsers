@@ -120,6 +120,17 @@ public fun JSONObject.getFloatOrDefault(name: String, defaultValue: Float): Floa
 	}
 }
 
+public fun <E : Enum<E>> JSONObject.getEnumValueOrNull(name: String, enumClass: Class<E>): E? {
+	val enumName = getStringOrNull(name) ?: return null
+	return enumClass.enumConstants?.find { x ->
+		enumName.equals(x.name, ignoreCase = true)
+	}
+}
+
+public fun <E : Enum<E>> JSONObject.getEnumValueOrDefault(name: String, defaultValue: E): E {
+	return getEnumValueOrNull(name, defaultValue.javaClass) ?: defaultValue
+}
+
 public fun JSONArray?.isNullOrEmpty(): Boolean {
 	contract {
 		returns(false) implies (this@isNullOrEmpty != null)
