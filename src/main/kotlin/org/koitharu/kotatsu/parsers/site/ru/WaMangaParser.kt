@@ -38,10 +38,9 @@ internal class WaMangaParser(
 
 	private fun parseMangaTag(doc: JSONObject): MangaTag {
 		return MangaTag(
-			doc.getString("name")
-				.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() },
+			doc.getString("name").toTitleCase(sourceLocale),
 			doc.getString("slug"),
-			MangaParserSource.WAMANGA,
+			source,
 		)
 	}
 
@@ -52,11 +51,11 @@ internal class WaMangaParser(
 			url = url,
 			title = doc.getString("title"),
 			altTitle = null,
-			publicUrl = "https://$domain$url",
+			publicUrl = url.toAbsoluteUrl(domain),
 			rating = doc.getFloatOrDefault("rating", 0f),
 			coverUrl = doc.getString("thumbnail_small"),
 			tags = doc.getJSONArray("genres").mapJSONToSet { tag -> parseMangaTag(tag) },
-			state = when (doc.getString("status").lowercase(Locale.getDefault())) {
+			state = when (doc.getString("status").lowercase(sourceLocale)) {
 				"продолжается" -> MangaState.ONGOING
 				"окончен" -> MangaState.FINISHED
 				"закончен" -> MangaState.FINISHED
@@ -87,12 +86,11 @@ internal class WaMangaParser(
 
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sourceLocale)
 		return manga.copy(
-			id = generateUid(manga.url),
 			url = doc.getString("url"),
 			title = doc.getString("title"),
 			largeCoverUrl = thumbnailUrl,
-			description = doc.getString("description") ?: manga.description,
-			chapters = doc.getJSONArray("chapters").mapJSONNotNull {
+			description = doc.getStringOrNull("description") ?: manga.description,
+			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters { _, it ->
 				val chapterPrefix = it.getString("slug_lang_vol_ch_sub")
 				val chapterName = chapters.first { chap -> chap.startsWith(chapterPrefix) }
 				val chapterUrl = "$mangaFolderUrl/$chapterName"
@@ -100,7 +98,7 @@ internal class WaMangaParser(
 					id = generateUid(chapterUrl),
 					url = chapterUrl,
 					source = source,
-					number = it.getIntOrDefault("chapter", 0).toFloat(),
+					number = it.getFloatOrDefault("chapter", 0f),
 					volume = it.getIntOrDefault("volume", 0),
 					name = it.getStringOrNull("full_title") ?: manga.title,
 					scanlator = it.getJSONArray("teams").optJSONObject(0, null)?.getStringOrNull("name"),
@@ -118,14 +116,14 @@ internal class WaMangaParser(
 		return images
 			.drop(1) // drop first, because of first is "Parent directory" link
 			.map { img ->
-			val imageUrl = "${chapter.url}$img"
-			MangaPage(
-				id = generateUid(imageUrl),
-				url = imageUrl,
-				preview = null,
-				source = source,
-			)
-		}.toList()
+				val imageUrl = "${chapter.url}$img"
+				MangaPage(
+					id = generateUid(imageUrl),
+					url = imageUrl,
+					preview = null,
+					source = source,
+				)
+			}
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
