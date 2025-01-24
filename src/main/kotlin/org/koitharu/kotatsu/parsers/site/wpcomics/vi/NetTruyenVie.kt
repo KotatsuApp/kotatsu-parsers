@@ -13,9 +13,9 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.util.*
 
-@MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
-internal class NetTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenvie.com", 36) {
+@MangaSourceParser("NETTRUYENVIE", "NetTruyenVie", "vi")
+internal class NetTruyenVie(context: MangaLoaderContext) :
+	WpComicsParser(context, MangaParserSource.NETTRUYENVIE, "nettruyenvie.com", 36) {
 
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
