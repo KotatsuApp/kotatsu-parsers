@@ -17,7 +17,7 @@ import java.util.*
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
 internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("yurineko.click")
+		get() = ConfigKey.Domain("yurineko.site")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
