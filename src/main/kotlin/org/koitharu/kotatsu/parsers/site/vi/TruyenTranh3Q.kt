@@ -108,9 +108,8 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
-		// Detect NSFW by Manga Tags (Still in progress, not completed...)
+		// Detect NSFW by Manga Tags
 		val nsfwTags = setOf("18+", "Adult", "Ecchi", "16+", "NTR", "Smut")
-		
 		return doc.select("ul.list_grid.grid > li").map { element ->
 			val aTag = element.selectFirstOrThrow("h3 a")
 			val tags = element.select(".genre-item").map {
@@ -120,7 +119,9 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 					source = source
 				)
 			}.toSet()
-			
+
+			val isNsfw = if (tags.any { it.title in nsfwTags }) true else false
+
 			Manga(
 				id = generateUid(aTag.attr("href")),
 				title = aTag.text(),
@@ -128,7 +129,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 				url = aTag.attrAsRelativeUrl("href"),
 				publicUrl = aTag.attr("href").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = tags.any { it.title in nsfwTags }, // Scan tags title with nsfwTags (Failed)
+				isNsfw = isNsfw,
 				coverUrl = element.selectFirst(".book_avatar a img")?.src().orEmpty(),
 				tags = tags,
 				state = null,
@@ -154,8 +155,8 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 			tags = tags,
 			description = doc.select("div.story-detail-info").text(),
 			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {
-				"Đang Cập Nhật" -> MangaState.ONGOING
-				"Hoàn Thành" -> MangaState.FINISHED
+				"Đang tiến hành" -> MangaState.ONGOING
+				"Hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
 			chapters = doc.select("div.list_chapter div.works-chapter-item").mapChapters(reversed = true) { i, div ->
