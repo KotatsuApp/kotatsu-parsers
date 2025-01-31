@@ -16,14 +16,23 @@ internal class ManhwaIndoParser(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
 		val docs = webClient.httpGet(chapterUrl).parseHtml()
-		return docs.select(selectPage).map { img ->
-			val url = img.attr("data-src").toRelativeUrl(domain)
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+		return docs.select(selectPage).mapNotNull { img ->
+			val url = img.attr("data-src").takeIf { it.isNotBlank() }?.toRelativeUrl(domain) ?: return@mapNotNull null
+			try {
+				val response = webClient.httpHead(url)
+				if (response.headers["Content-Type"]?.startsWith("image/") == true) {
+					MangaPage(
+						id = generateUid(url),
+						url = url,
+						preview = null,
+						source = source,
+					)
+				} else {
+					null
+				}
+			} catch (e: Exception) {
+				null
+			}
 		}
 	}
 }
