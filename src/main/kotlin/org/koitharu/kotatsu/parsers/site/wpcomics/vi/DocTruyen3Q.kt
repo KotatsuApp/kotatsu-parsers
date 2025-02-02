@@ -16,6 +16,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"doctruyen3qui.com", // Main repo
+		"doctruyen3qll.net",
 		"doctruyen3q3.net",
 		"doctruyen3qw.com",
 		"doctruyen3qk.pro",
