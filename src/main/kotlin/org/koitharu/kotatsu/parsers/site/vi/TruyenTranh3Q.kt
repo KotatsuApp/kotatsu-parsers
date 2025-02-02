@@ -10,7 +10,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRUYENTRANH3Q", "TruyenTranh3Q", "vi")
-internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENTRANH3Q, 42) {
+internal class TruyenTranh3Q(context: MangaLoaderContext) :
+	PagedMangaParser(context, MangaParserSource.TRUYENTRANH3Q, 42) {
+
+	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")
+	private val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
 
 	override val configKeyDomain = ConfigKey.Domain("truyentranh3q.com")
 
@@ -45,9 +49,9 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 			append("https://")
 			append(domain)
 			append("/tim-kiem-nang-cao")
-			
+
 			append("?")
-			
+
 			if (page > 1) {
 				append("page=")
 				append(page)
@@ -68,38 +72,28 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 					SortOrder.POPULARITY -> "2"
 					SortOrder.RATING -> "6"
 					else -> "0"
-				}
+				},
 			)
 
 			append("&status=")
-			if (filter.states.isNotEmpty()) {
-				filter.states.oneOrThrowIfMany()?.let {
-					append(
-						when (it) {
-							MangaState.ONGOING -> "1"
-							MangaState.FINISHED -> "2"
-							else -> "0"
-						}
-					)
-				}
-			} else {
-				append("0")
-			}
+			append(
+				when (filter.states.oneOrThrowIfMany()) {
+					MangaState.ONGOING -> "1"
+					MangaState.FINISHED -> "2"
+					else -> "0"
+				},
+			)
 
 			append("&country=")
-			if (filter.types.isNotEmpty()) {
-				filter.types.oneOrThrowIfMany()?.let {
-					append(
-						when (it) {
-							ContentType.MANGA -> "manga"
-							ContentType.MANHWA -> "manhwa"
-							ContentType.MANHUA -> "manhua"
-							ContentType.OTHER -> "other"
-							else -> "all"
-						}
-					)
-				}
-			} else append("all")
+			append(
+				when (filter.types.oneOrThrowIfMany()) {
+					ContentType.MANGA -> "manga"
+					ContentType.MANHWA -> "manhwa"
+					ContentType.MANHUA -> "manhua"
+					ContentType.OTHER -> "other"
+					else -> "all"
+				},
+			)
 
 			if (filter.tags.isNotEmpty()) {
 				append("&categories=")
@@ -112,25 +106,26 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 		val nsfwTags = setOf("18+", "Adult", "Ecchi", "16+", "NTR", "Smut")
 		return doc.select("ul.list_grid.grid > li").map { element ->
 			val aTag = element.selectFirstOrThrow("h3 a")
-			val tags = element.select(".genre-item").map {
+			val tags = element.select(".genre-item").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
-					title = it.text(),
-					source = source
+					title = it.text().toTitleCase(sourceLocale),
+					source = source,
 				)
-			}.toSet()
+			}
 
-			val isNsfw = if (tags.any { it.title in nsfwTags }) true else false
+			val isNsfw = tags.any { it.title in nsfwTags }
+			val href = aTag.attrAsRelativeUrl("href")
 
 			Manga(
-				id = generateUid(aTag.attr("href")),
+				id = generateUid(href),
 				title = aTag.text(),
 				altTitle = null,
-				url = aTag.attrAsRelativeUrl("href"),
-				publicUrl = aTag.attr("href").toAbsoluteUrl(domain),
+				url = href,
+				publicUrl = aTag.attrAsAbsoluteUrl("href"),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfw,
-				coverUrl = element.selectFirst(".book_avatar a img")?.src().orEmpty(),
+				coverUrl = element.selectFirst(".book_avatar a img")?.src(),
 				tags = tags,
 				state = null,
 				author = null,
@@ -144,16 +139,16 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 		val tags = doc.select("ul.list01 li").mapToSet {
 			MangaTag(
 				key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
-				title = it.text(),
+				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}
 
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.select("li.author a").text(),
+			author = doc.selectFirst("li.author a")?.textOrNull(),
 			tags = tags,
-			description = doc.select("div.story-detail-info").text(),
+			description = doc.selectFirst("div.story-detail-info")?.html(),
 			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Hoàn thành" -> MangaState.FINISHED
@@ -195,9 +190,6 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 
 	private fun parseChapterDate(dateText: String?): Long {
 		if (dateText == null) return 0
-
-		val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")
-		val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
 
 		return when {
 			dateText.contains("phút trước") -> {
@@ -244,8 +236,8 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) : PagedMangaParser(con
 		return elements.mapIndexed { index, element ->
 			MangaTag(
 				key = (index + 1).toString(),
-				title = element.text(),
-				source = source
+				title = element.text().toTitleCase(sourceLocale),
+				source = source,
 			)
 		}.toSet()
 	}
