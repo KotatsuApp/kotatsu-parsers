@@ -45,7 +45,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("cmangag.com")
+		get() = ConfigKey.Domain("cmangax.com")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)

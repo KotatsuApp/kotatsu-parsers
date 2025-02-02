@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.info")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.cloud")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
