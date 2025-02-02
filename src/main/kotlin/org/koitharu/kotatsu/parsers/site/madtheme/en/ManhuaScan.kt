@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 @Broken
 @MangaSourceParser("MANHUASCAN", "kaliscan.io", "en")
 internal class ManhuaScan(context: MangaLoaderContext) :
-	MadthemeParser(context, MangaParserSource.MANHUASCAN, "manhuascan.io")
+	MadthemeParser(context, MangaParserSource.MANHUASCAN, "kaliscan.io")
