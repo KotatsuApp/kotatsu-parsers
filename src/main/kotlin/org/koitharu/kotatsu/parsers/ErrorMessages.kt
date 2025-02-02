@@ -15,4 +15,5 @@ public object ErrorMessages {
 	public const val FILTER_BOTH_STATES_GENRES_NOT_SUPPORTED: String =
 		"Filtering by both genres and states is not supported by this source"
 	public const val SEARCH_NOT_SUPPORTED: String = "Search is not supported by this source"
+	public const val RESPONSE_NULL_BODY: String = "Response has no body"
 }

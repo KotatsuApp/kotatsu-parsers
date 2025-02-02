@@ -4,11 +4,11 @@ package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.Response
 import okhttp3.ResponseBody
-import okhttp3.internal.closeQuietly
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import java.text.DateFormat
 
@@ -21,12 +21,10 @@ internal const val SCHEME_HTTPS = "https"
  * @see [parseJsonArray]
  */
 // TODO suspend
-public fun Response.parseHtml(): Document = try {
-	val body = requireBody()
+public fun Response.parseHtml(): Document = use { response ->
+	val body = response.requireBody()
 	val charset = body.contentType()?.charset()?.name()
-	Jsoup.parse(body.byteStream(), charset, request.url.toString())
-} finally {
-	closeQuietly()
+	Jsoup.parse(body.byteStream(), charset, response.request.url.toString())
 }
 
 /**
@@ -34,10 +32,8 @@ public fun Response.parseHtml(): Document = try {
  * @see [parseJsonArray]
  * @see [parseHtml]
  */
-public fun Response.parseJson(): JSONObject = try {
-	JSONObject(requireBody().string())
-} finally {
-	closeQuietly()
+public fun Response.parseJson(): JSONObject = use { response ->
+	JSONObject(response.requireBody().string())
 }
 
 /**
@@ -45,22 +41,16 @@ public fun Response.parseJson(): JSONObject = try {
  * @see [parseJson]
  * @see [parseHtml]
  */
-public fun Response.parseJsonArray(): JSONArray = try {
-	JSONArray(requireBody().string())
-} finally {
-	closeQuietly()
+public fun Response.parseJsonArray(): JSONArray = use { response ->
+	JSONArray(response.requireBody().string())
 }
 
-public fun Response.parseRaw(): String = try {
-	requireBody().string()
-} finally {
-	closeQuietly()
+public fun Response.parseRaw(): String = use { response ->
+	response.requireBody().string()
 }
 
-public fun Response.parseBytes(): ByteArray = try {
-	requireBody().bytes()
-} finally {
-	closeQuietly()
+public fun Response.parseBytes(): ByteArray = use { response ->
+	response.requireBody().bytes()
 }
 
 /**
@@ -110,4 +100,6 @@ public fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
 	}.getOrDefault(0L)
 }
 
-public fun Response.requireBody(): ResponseBody = requireNotNull(body) { "Response body is null" }
+public fun Response.requireBody(): ResponseBody = requireNotNull(body) {
+	ErrorMessages.RESPONSE_NULL_BODY
+}
