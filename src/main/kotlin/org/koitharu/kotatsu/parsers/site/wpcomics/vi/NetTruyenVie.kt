@@ -4,7 +4,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
@@ -15,11 +14,6 @@ import org.koitharu.kotatsu.parsers.util.*
 @MangaSourceParser("NETTRUYENVIE", "NetTruyenVie", "vi")
 internal class NetTruyenVie(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENVIE, "nettruyenvie.com", 36) {
-
-    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
