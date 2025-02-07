@@ -135,14 +135,10 @@ internal class NetTruyenSSR(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select(selectPage).map { url ->
-			var img = url.requireSrc().toRelativeUrl(domain)
-			var imgFinal = img.replace("ntcdn242.wibu.asia/qq", "ntcdn160.wibu.asia/bt")
-				.replace("i2.netcdn.one", "i2.wp.com/i2.netcdn.one")
-				.replace("i2.netcdn.one", "manga-covers.vercel.app/api/proxy?url=https://i2.netcdn.one")
-				.replace("i2.netcdn.one", "https://wsrv.nl/?url=https://i2.netcdn.one")
+			var img = url.attr("data-original").toRelativeUrl(domain)
 			MangaPage(
-				id = generateUid(imgFinal),
-				url = imgFinal,
+				id = generateUid(img),
+				url = img,
 				preview = null,
 				source = source,
 			)

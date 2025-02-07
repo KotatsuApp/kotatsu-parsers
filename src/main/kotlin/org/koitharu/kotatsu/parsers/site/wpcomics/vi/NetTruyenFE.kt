@@ -137,8 +137,8 @@ internal class NetTruyenFE(context: MangaLoaderContext) :
 		return doc.select(selectPage).map { url ->
 			var img = url.attr("data-original").toRelativeUrl(domain)
 			MangaPage(
-				id = generateUid(imgFinal),
-				url = imgFinal,
+				id = generateUid(img),
+				url = img,
 				preview = null,
 				source = source,
 			)
