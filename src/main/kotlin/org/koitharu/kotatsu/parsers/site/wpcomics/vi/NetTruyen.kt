@@ -39,7 +39,7 @@ internal class NetTruyen(context: MangaLoaderContext) :
 			},
 			tags = mangaTags,
 			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			chapters = chaptersDeferred.await().reversed(),
+			chapters = chaptersDeferred.await(),
 		)
 	}
 }

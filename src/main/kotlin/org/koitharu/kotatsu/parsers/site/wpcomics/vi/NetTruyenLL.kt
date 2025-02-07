@@ -1,5 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import org.jsoup.nodes.Element
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -130,4 +134,30 @@ internal class NetTruyenLL(context: MangaLoaderContext) :
 		tagCache = result
 		result
 	}
+
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		return coroutineScope {
+			doc.select(selectPage).map { img ->
+				async { fetchPage(img) }
+			}.awaitAll().filterNotNull()
+		}
+	}
+
+	private suspend fun fetchPage(img: Element): MangaPage? = runCatchingCancellable {
+		val url = img.attrAsRelativeUrlOrNull("data-original") ?: return@runCatchingCancellable null
+		webClient.httpHead(url).use { response ->
+			if (response.mimeType?.startsWith("image/") == true) {
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			} else {
+				null
+			}
+		}
+	}.getOrNull()
 }
