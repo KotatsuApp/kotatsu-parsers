@@ -23,7 +23,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
 		manga.copy(
-			description = doc.selectFirst(selectDesc)?.html(),
+			description = doc.selectFirst("div.detail-content > div")?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
 			author = doc.body().select(selectAut).textOrNull(),
 			state = doc.selectFirst(selectState)?.let {
@@ -35,7 +35,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 			},
 			tags = mangaTags,
 			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			chapters = chaptersDeferred.await().reversed(),
+			chapters = chaptersDeferred.await(),
 		)
 	}
 }
