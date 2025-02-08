@@ -3,9 +3,9 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
@@ -158,8 +158,8 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getChapters(doc: Document): List<MangaChapter> {
-		return doc.select("li.row:not([style*='display: none'])").mapChapters(reversed = true) { _, element ->
+	override suspend fun getChapters(doc: Document, reversed: Boolean): List<MangaChapter> {
+		return doc.select("li.row:not([style*='display: none'])").mapChapters(reversed) { _, element ->
 			val chapterLink = element.selectFirst("a.chapter") ?: return@mapChapters null
 			val href = chapterLink.attrAsAbsoluteUrlOrNull("href") ?: return@mapChapters null
 			val name = chapterLink.text()
@@ -213,12 +213,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 
 			absoluteTimePattern.matches(dateText) -> {
 				val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-				try {
-					val parsedDate = formatter.parse(dateText)
-					parsedDate?.time ?: 0L
-				} catch (e: Exception) {
-					0L
-				}
+				formatter.tryParse(dateText)
 			}
 
 			else -> 0L

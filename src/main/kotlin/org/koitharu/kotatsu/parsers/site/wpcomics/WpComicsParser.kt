@@ -235,8 +235,8 @@ internal abstract class WpComicsParser(
 	protected open val selectDate = "div.col-xs-4"
 	protected open val selectChapter = "div.list-chapter li.row:not(.heading)"
 
-	protected open suspend fun getChapters(doc: Document): List<MangaChapter> {
-		return doc.body().select(selectChapter).mapChapters(reversed = true) { i, li ->
+	protected open suspend fun getChapters(doc: Document, reversed: Boolean = true): List<MangaChapter> {
+		return doc.body().select(selectChapter).mapChapters(reversed) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.selectFirst(selectDate)?.text()
