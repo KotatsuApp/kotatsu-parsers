@@ -90,23 +90,6 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 		}
 	}
 
-	private suspend fun getAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.select("a.py-2[href^=/the-loai-]").mapNotNull { element ->
-			val href = element.attr("href")
-			val key = href.removePrefix("/")
-			val title = element.text()
-			
-			if (key.isNotEmpty() && title.isNotEmpty()) {
-				MangaTag(
-					key = key,
-					title = title,
-					source = source
-				)
-			} else null
-		}.toSet()
-	}
-
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         return manga.copy(
@@ -172,5 +155,22 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 				)
 			} else null
 		}
+	}
+
+    private suspend fun getAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain").parseHtml()
+		return doc.select("a.py-2[href^=/the-loai-]").mapNotNull { element ->
+			val href = element.attr("href")
+			val key = href.removePrefix("/")
+			val title = element.text()
+			
+			if (key.isNotEmpty() && title.isNotEmpty()) {
+				MangaTag(
+					key = key,
+					title = title,
+					source = source
+				)
+			} else null
+		}.toSet()
 	}
 }
