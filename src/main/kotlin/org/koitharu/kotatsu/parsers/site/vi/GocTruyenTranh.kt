@@ -138,6 +138,11 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
             } else {
                 emptySet()
             }
+
+			// Check NSFW manga by tags, API / Site not have this information
+            val checkNsfw = tags.any { tag ->
+                tag.key in setOf("25", "39", "41", "43", "57", "63")
+            }
             
             Manga(
                 id = generateUid(mangaUrl),
@@ -147,7 +152,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
                 altTitle = item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() },
                 description = item.optString("content"),
                 rating = RATING_UNKNOWN,
-                isNsfw = isNsfwSource,
+                isNsfw = checkNsfw || isNsfwSource,
                 coverUrl = item.optString("thumbnail"),
                 tags = tags,
                 state = when (item.optString("status")) {
