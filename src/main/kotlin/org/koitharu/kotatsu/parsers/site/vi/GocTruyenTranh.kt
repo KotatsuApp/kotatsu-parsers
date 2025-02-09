@@ -144,7 +144,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
                 url = "/$slug",
                 publicUrl = mangaUrl,
                 title = item.getString("name"),
-                altTitle = item.optString("origin_name").takeIf { it.isNotEmpty() },
+                altTitle = item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() },
                 description = item.optString("content"),
                 rating = RATING_UNKNOWN,
                 isNsfw = isNsfwSource,
@@ -165,7 +165,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
         val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         return manga.copy(
             rating = doc.selectFirst("div > span.leading-none")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-            author = doc.selectFirst("div:contains(Tác giả) + div")?.text()?.takeIf { it.isNotEmpty() },
+            author = doc.selectFirst("aside p:contains(Tác giả:) a[href^='/tac-gia/']")?.text(),
             chapters = doc.select("ul[itemtype='https://schema.org/ItemList'] li").mapChapters(reversed = true) { i, li ->
                 val a = li.selectFirstOrThrow("a")
                 val href = a.attrAsRelativeUrl("href")
