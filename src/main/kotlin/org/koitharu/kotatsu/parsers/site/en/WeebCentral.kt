@@ -233,7 +233,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				SAFE
 			},
 			coverUrl = sectionLeft.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
-			tags = sectionRight.select("ul > li:has(strong:contains(Tag)) a").mapToSet {
+			tags = sectionLeft.select("ul > li:has(strong:contains(Tag)) a").mapToSet {
 				MangaTag(
 					title = it.text(),
 					key = it.text(),
@@ -287,22 +287,24 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 			mangaDocument
 		}
 
-		return document.select("div[x-data] > a").mapChapters(reversed = true) { _, element ->
+		return document.select("div[x-data] > a").mapChapters(reversed = true) { i, element ->
 			val chapterId = element.attrAsAbsoluteUrl("href")
 				.toHttpUrl()
 				.pathSegments[1]
+			val name = element.selectFirstOrThrow("span.flex > span").text()
 
 			MangaChapter(
 				id = generateUid(chapterId),
 				url = chapterId,
-				name = element.selectFirstOrThrow("span.flex > span").text(),
-				number = element.selectFirstOrThrow("span.flex > span").text().let {
-					Regex("""(\d+(\.\d+)?)""").find(it)!!.groupValues[1].toFloat()
-				},
-				volume = 0,
+				name = name,
+				number = Regex("""(?<!S)\b(\d+(\.\d+)?)\b""").find(name)
+					?.groupValues?.get(1)?.toFloatOrNull()
+					?: i.toFloat(),
+				volume = Regex("""(?:S|vol(?:ume)?)\s*(\d+)""").find(name)
+					?.groupValues?.get(1)?.toInt()
+					?: 0,
 				scanlator = when (element.selectFirst("svg")?.attr("stroke")) {
 					"#d8b4fe" -> "Official"
-					"#4C4D54" -> "Unofficial"
 					else -> null
 				},
 				uploadDate = dateFormat.tryParse(
