@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.ArrayMap
-import androidx.collection.ArraySet
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -24,7 +23,11 @@ import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getCookies
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.parseJsonArray
 import org.koitharu.kotatsu.parsers.util.parseRaw
@@ -34,7 +37,6 @@ import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.tryParse
 import org.koitharu.kotatsu.parsers.util.urlBuilder
 import java.text.SimpleDateFormat
-import java.time.Instant
 import java.util.EnumSet
 import java.util.Locale
 
@@ -141,27 +143,25 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			webClient.httpGet(url).parseJsonArray()
 		}
 
-		return mangaList.mapJSON { jo ->
+		return mangaList.mapJSONNotNull { jo ->
 			val info = jo.parseJson("info")
-			val slug = info.getString("url")
-			val id = info.getLong("id")
+			val slug = info.getStringOrNull("url") ?: return@mapJSONNotNull null
+			val id = info.optLong("id").takeIf { it != 0L } ?: return@mapJSONNotNull null
 			val relativeUrl = "/album/$slug-$id"
-			val mangaTags = ArraySet<MangaTag>()
-			info.getJSONArray("tags").asTypedList<String>().forEach {
-				tags.get()[it.lowercase()]?.let { mangaTags.add(it) }
-			}
 
 			Manga(
 				id = generateUid(id),
-				title = info.getString("name").toTitleCase(),
-				altTitle = info.getJSONArray("name_other").asTypedList<String>().joinToString(),
+				title = info.optString("name").toTitleCase(),
+				altTitle = info.optJSONArray("name_other")?.asTypedList<String>()?.joinToString()?.nullIfEmpty(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
 				coverUrl = "/assets/tmp/album/${info.getString("avatar")}".toAbsoluteUrl(domain),
-				tags = mangaTags,
-				state = when (info.getString("status")) {
+				tags = info.optJSONArray("tags")?.asTypedList<String>()
+					?.mapNotNullToSet { tags.get()[it.lowercase()] }
+					.orEmpty(),
+				state = when (info.optString("status")) {
 					"doing" -> MangaState.ONGOING
 					else -> null // can't find any manga with other status than on going
 				},
