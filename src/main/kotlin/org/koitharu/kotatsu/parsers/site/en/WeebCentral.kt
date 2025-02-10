@@ -233,7 +233,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				SAFE
 			},
 			coverUrl = sectionLeft.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
-			tags = sectionRight.select("ul > li:has(strong:contains(Tag)) a").mapToSet {
+			tags = sectionLeft.select("ul > li:has(strong:contains(Tag)) a").mapToSet {
 				MangaTag(
 					title = it.text(),
 					key = it.text(),
