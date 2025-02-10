@@ -168,7 +168,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 				},
 				author = null,
 				largeCoverUrl = null,
-				description = info.optString("detail"),
+				description = info.getStringOrNull("detail")?.replace("\\\"", "\""),
 				chapters = emptyList(),
 				source = source,
 			)
