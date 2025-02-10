@@ -94,11 +94,11 @@ internal class CMangaParser(context: MangaLoaderContext) :
 				.mapJSON { jo ->
 					val chapterId = jo.getLong("id_chapter")
 					val info = jo.parseJson("info")
-					val chapterNumber = info.getInt("num")
+					val chapterNumber = info.getString("num")
 					MangaChapter(
 						id = generateUid(chapterId),
 						name = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
-						number = chapterNumber + 1f,
+						number = chapterNumber.toFloatOrNull()?.plus(1) ?: 0f,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",
 						uploadDate = df.tryParse(info.getString("last_update")),
@@ -163,7 +163,8 @@ internal class CMangaParser(context: MangaLoaderContext) :
 					.orEmpty(),
 				state = when (info.optString("status")) {
 					"doing" -> MangaState.ONGOING
-					else -> null // can't find any manga with other status than on going
+					"done" -> MangaState.FINISHED
+					else -> null
 				},
 				author = null,
 				largeCoverUrl = null,
