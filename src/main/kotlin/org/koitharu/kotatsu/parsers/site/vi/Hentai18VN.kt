@@ -50,9 +50,9 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 
                 val keyword = filter.query
                 // val body = JSONObject().apply { put("keyword", filter.query) }
-                val url = "$domain/search/html/1".toHttpUrl()
+                val url = "http://$domain/search/html/1"
                 val headers = Headers.Builder().add("X-Requested-With", "XMLHttpRequest").build()
-                val response = webClient.httpPost(url, payload = "keyword=$keyword", headers).parseHtml()
+                val response = webClient.httpPost(url.toHttpUrl(), payload = "keyword=$keyword", headers).parseHtml()
                 parseMangaSearch(response)
             }
 
@@ -98,20 +98,20 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
     }
 
     private fun parseMangaSearch(doc: Document): List<Manga> {
-        return doc.select("ul li a.item").map { a ->
+        return doc.select("a.item").map { a ->
             val href = a.attr("href")
-            val img = a.selectFirst("img")!!
+            val mangaInfo = a.selectFirst("img")
             Manga(
                 id = generateUid(href),
                 url = href,
                 publicUrl = href.toAbsoluteUrl(domain),
-                title = img.attr("alt"),
+                title = mangaInfo.attr("alt"),
                 altTitle = null,
                 author = null,
                 tags = emptySet(),
                 rating = RATING_UNKNOWN,
                 state = null,
-                coverUrl = img.attr("src"),
+                coverUrl = mangaInfo.requireSrc(),
                 isNsfw = isNsfwSource,
                 source = source
             )
