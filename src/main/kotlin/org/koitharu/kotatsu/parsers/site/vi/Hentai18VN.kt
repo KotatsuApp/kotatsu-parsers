@@ -47,17 +47,12 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 if (page > 1) {
                     return emptyList()
                 }
-                val url = buildString {
-                    append("http://")
-                    append(domain)
-                    append("/search/html/1")
-                }.toHttpUrl()
-                val body = JSONObject().apply {
-                    put("keyword", filter.query)
-                }
-                
+
+                val keyword = filter.query
+                // val body = JSONObject().apply { put("keyword", filter.query) }
+                val url = "$domain/search/html/1".toHttpUrl()
                 val headers = Headers.Builder().add("X-Requested-With", "XMLHttpRequest").build()
-                val response = webClient.httpPost(url, body, headers).parseHtml()
+                val response = webClient.httpPost(url, payload = "keyword=$keyword", headers).parseHtml()
                 parseMangaSearch(response)
             }
 
@@ -222,11 +217,7 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 val a = li.selectFirst("a") ?: return@mapNotNull null
                 val title = a.selectFirst("h3.tag-name")?.text()?.trim() ?: return@mapNotNull null
                 val url = a.attr("href")
-                MangaTag(
-                    title = title,
-                    key = url.substringAfterLast("/"),
-                    source = source
-                )
+                MangaTag( title = title, key = url.substringAfterLast("/"), source = source )
             }
         }.toSet()
     }
