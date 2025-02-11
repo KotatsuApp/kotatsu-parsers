@@ -24,6 +24,10 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
+    override fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("X-Requested-With", "XMLHttpRequest")
+		.build()
+
     override val filterCapabilities: MangaListFilterCapabilities 
         get() = MangaListFilterCapabilities(
             isSearchSupported = true,
@@ -43,15 +47,16 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 if (page > 1) {
                     return emptyList()
                 }
-                val url = "https://$domain/search/html/1".toHttpUrl()
+                val url = buildString {
+                    append("http://")
+                    append(domain)
+                    append("/search/html/1")
+                }.toHttpUrl()
                 val body = JSONObject().apply {
-                    put("keyword", filter.query.urlEncoded())
+                    put("keyword", filter.query)
                 }
                 
-                val headers = Headers.Builder()
-                    .add("X-Requested-With", "XMLHttpRequest")
-                    .build()
-                    
+                val headers = Headers.Builder().add("X-Requested-With", "XMLHttpRequest").build()
                 val response = webClient.httpPost(url, body, headers).parseHtml()
                 parseMangaSearch(response)
             }
@@ -186,16 +191,6 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
         )
     }
 
-    private fun parseChapterDate(date: String?): Long {
-        if (date == null) return 0
-        return try {
-            val now = SimpleDateFormat("dd/MM/yyyy", Locale.US)
-            now.parse(date)?.time ?: 0L
-        } catch (e: Exception) {
-            0L
-        }
-    }
-
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
         return doc.select("div.chapter-content div.item-photo img").mapNotNull { img ->
@@ -210,34 +205,39 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
     }
 
     private suspend fun fetchAvailableTags(): Set<MangaTag> {
-        val tags = arraySetOf<MangaTag>()
         val firstPage = webClient.httpGet("https://$domain/tim-the-loai").parseHtml()
         val lastPage = firstPage.selectFirst("a[aria-label=Last]")
             ?.attr("href")
             ?.substringAfter("page=")
             ?.toIntOrNull() ?: 1
 
-        for (page in 1..lastPage) {
+        return (1..lastPage).flatMap { page ->
             val doc = if (page == 1) {
                 firstPage
             } else {
                 webClient.httpGet("https://$domain/tim-the-loai?page=$page").parseHtml()
             }
 
-            doc.select("ul.list-tags li").forEach { li ->
-                val a = li.selectFirst("a") ?: return@forEach
-                val title = a.selectFirst("h3.tag-name")?.text()?.trim() ?: return@forEach
+            doc.select("ul.list-tags li").mapNotNull { li ->
+                val a = li.selectFirst("a") ?: return@mapNotNull null
+                val title = a.selectFirst("h3.tag-name")?.text()?.trim() ?: return@mapNotNull null
                 val url = a.attr("href")
-                tags.add(
-                    MangaTag(
-                        title = title,
-                        key = url.substringAfterLast("/"),
-                        source = source
-                    )
+                MangaTag(
+                    title = title,
+                    key = url.substringAfterLast("/"),
+                    source = source
                 )
             }
-        }
+        }.toSet()
+    }
 
-        return tags
+    private fun parseChapterDate(date: String?): Long {
+        if (date == null) return 0
+        return try {
+            val now = SimpleDateFormat("dd/MM/yyyy", Locale.US)
+            now.parse(date)?.time ?: 0L
+        } catch (e: Exception) {
+            0L
+        }
     }
 }
