@@ -38,7 +38,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 			when {				
 				!filter.tags.isNullOrEmpty() -> {
 					val tag = filter.tags.first()
-					append(tag.href)
+					append(tag.key)
 					if (page > 1) {
 						append("?page=")
 						append(page)
@@ -159,10 +159,8 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
     private suspend fun getAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		return doc.select("a.py-2[href^=/the-loai-]").mapNotNull { element ->
-			val href = element.attr("href")
-			val key = href.removePrefix("/")
+			val key = element.attr("href")
 			val title = element.text()
-			
 			if (key.isNotEmpty() && title.isNotEmpty()) {
 				MangaTag(
 					key = key,
