@@ -38,7 +38,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 			when {				
 				!filter.tags.isNullOrEmpty() -> {
 					val tag = filter.tags.first()
-					append("/")
+					append("/the-loai-")
 					append(tag.key)
 					if (page > 1) {
 						append("?page=")
