@@ -24,11 +24,6 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
-    // Testing...
-    // override fun getRequestHeaders(): Headers = Headers.Builder()
-	// 	.add("X-Requested-With", "XMLHttpRequest")
-	// 	.build()
-
     override val filterCapabilities: MangaListFilterCapabilities 
         get() = MangaListFilterCapabilities(
             isSearchSupported = true,
