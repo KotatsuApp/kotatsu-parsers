@@ -24,10 +24,6 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 		keys.add(userAgentKey)
 	}
 
-    override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("X-Requested-With", "XMLHttpRequest")
-		.build()
-
     override val filterCapabilities: MangaListFilterCapabilities 
         get() = MangaListFilterCapabilities(
             isSearchSupported = true,
@@ -49,7 +45,6 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 }
 
                 val keyword = filter.query
-                // val body = JSONObject().apply { put("keyword", filter.query) }
                 val url = "http://$domain/search/html/1"
                 val headers = Headers.Builder().add("X-Requested-With", "XMLHttpRequest").build()
                 val response = webClient.httpPost(url.toHttpUrl(), payload = "keyword=$keyword", headers).parseHtml()
@@ -120,8 +115,8 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 
     private fun parseMangaList(doc: Document): List<Manga> {
         return doc.select("div.visual").map { div ->
-            val a = div.selectFirst("div.main_text h3.title a")!!
-            val img = div.selectFirst("div.hentai-cover img")!!
+            val a = div.selectFirst("div.main_text h3.title a")
+            val img = div.selectFirst("div.hentai-cover img")
             val mangaUrl = a.attr("href")
             Manga(
                 id = generateUid(mangaUrl),
@@ -152,13 +147,12 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 )
             }.toSet()
 
-        val chapters = doc.select("ul#chapter-list li.citem").map { li ->
-            val a = li.selectFirst("a")!!
-            val number = a.text().substringAfter("Chap ").toFloatOrNull() ?: 0f
+        val chapters = doc.select("ul#chapter-list li.citem").mapChapters(reversed=true) { i, li ->
+            val a = li.selectFirst("a")
             MangaChapter(
                 id = generateUid(a.attr("href")),
                 name = a.text(),
-                number = number,
+                number = i + 1f,
                 url = a.attr("href").removePrefix("https://$domain"),
                 uploadDate = parseChapterDate(li.selectFirst(".time")?.text()),
                 source = source,
@@ -178,7 +172,7 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 
         return manga.copy(
             tags = tags,
-            author = author?.takeUnless { it == "Đang cập nhật" },
+            author = author,
             altTitle = altTitle,
             state = state,
             chapters = chapters,
@@ -216,8 +210,8 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
             doc.select("ul.list-tags li").mapNotNull { li ->
                 val a = li.selectFirst("a") ?: return@mapNotNull null
                 val title = a.selectFirst("h3.tag-name")?.text()?.trim() ?: return@mapNotNull null
-                val url = a.attr("href")
-                MangaTag( title = title, key = url.substringAfterLast("/"), source = source )
+                val key = a.attr("href").substringAfterLast("/")
+                MangaTag( title = title, key = key, source = source )
             }
         }.toSet()
     }
