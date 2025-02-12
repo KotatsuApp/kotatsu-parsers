@@ -118,20 +118,22 @@ internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		val data = doc.selectFirstOrThrow("script:containsData(var arr = [)").data()
-		val images = data.substringAfter("[").substringBefore("];").replace("\"", "").split(",")
-		val src = images.map { url ->
-			if (url.startsWith("https://$domain/https")) {
-				url.toRelativeUrl(domain)
-			} else url
-		}
+		val script = doc.selectFirstOrThrow("script:containsData(var arr =)").data()
+		val src = script.substringAfter("var arr = [").substringBefore("];").replace("\"", "").split(",")
+			.map { it.trim() }
+			.filter { it.isNotEmpty() }
+			.map { url ->
+				if (url.startsWith("https://$domain/")) {
+					url.substringAfter("$domain/")
+				} else url	
+			}
 
-		return src.map { img ->
+		return src.map { url ->
 			MangaPage(
-				id = generateUid(img),
-				url = img.toRelativeUrl(domain),
+				id = generateUid(url),
+				url = url.takeUnless { it.startsWith("https://") }?.let { "https://$domain/$it" } ?: url,
 				preview = null,
-				source = source,
+				source = source
 			)
 		}
 	}
