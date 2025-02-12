@@ -120,7 +120,15 @@ internal class MuitoHentai(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val data = doc.selectFirstOrThrow("script:containsData(var arr = [)").data()
 		val images = data.substringAfter("[").substringBefore("];").replace("\"", "").split(",")
-		return images.map { img ->
+		val src = images.map { url ->
+			if (url.startsWith("$domain/http") || url.startsWith("$domain/https")) {
+				url.substringAfter(domain).trimStart('/')
+			} else {
+				url.toRelativeUrl(domain)
+			}
+		}
+
+		return src.map { img ->
 			MangaPage(
 				id = generateUid(img),
 				url = img,
