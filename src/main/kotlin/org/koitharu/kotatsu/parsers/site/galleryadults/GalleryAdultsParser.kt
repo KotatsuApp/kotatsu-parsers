@@ -152,6 +152,7 @@ internal abstract class GalleryAdultsParser(
 		)
 	}
 
+	protected open val selectTitle = "h1.title"
 	protected open val selectTag = "div.tags:contains(Tags:) .tag_list"
 	protected open val selectAuthor = "ul.artists a.tag_btn"
 	protected open val selectLanguageChapter = "div.tags:contains(Languages:) .tag_list a span.tag"
@@ -166,7 +167,7 @@ internal abstract class GalleryAdultsParser(
 		}
 		return manga.copy(
 			tags = tag.orEmpty(),
-			title = doc.selectFirst("h1.title")?.textOrNull()?.cleanupTitle() ?: manga.title,
+			title = doc.selectFirst(selectTitle)?.textOrNull()?.cleanupTitle() ?: manga.title,
 			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
 			chapters = listOf(
 				MangaChapter(
