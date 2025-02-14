@@ -19,7 +19,7 @@ internal class HamTruyen(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val chaptersDeferred = async { getChapters(doc, reversed = false) }
+		val chaptersDeferred = async { getChapters(doc, reversed = true) }
 		val tagMap = getOrCreateTagMap()
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
@@ -36,7 +36,7 @@ internal class HamTruyen(context: MangaLoaderContext) :
 			},
 			tags = mangaTags,
 			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-			chapters = chaptersDeferred.await().reversed(),
+			chapters = chaptersDeferred.await(),
 		)
 	}
 }
