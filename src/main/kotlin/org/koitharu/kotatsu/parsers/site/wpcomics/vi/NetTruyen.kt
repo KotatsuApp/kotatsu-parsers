@@ -18,8 +18,10 @@ import java.text.SimpleDateFormat
 internal class NetTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenrr.com", 36) {
 
-	override val configKeyDomain: ConfigKey.Domain =
-		ConfigKey.Domain("nettruyenrr.com", "nettruyenww.com", "nettruyenx.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"nettruyenrr.com",
+		"nettruyenx.com"
+	)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

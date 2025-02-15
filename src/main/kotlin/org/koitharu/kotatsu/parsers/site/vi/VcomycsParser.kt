@@ -50,7 +50,7 @@ import javax.crypto.spec.SecretKeySpec
 internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VCOMYCS, 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("vivicomi.store")
+		get() = ConfigKey.Domain("vivicomi.shop")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)

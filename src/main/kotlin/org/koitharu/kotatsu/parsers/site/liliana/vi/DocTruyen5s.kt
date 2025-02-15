@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
 
 @MangaSourceParser("DOCTRUYEN5S", "DocTruyen5s", "vi")
 internal class DocTruyen5s(context: MangaLoaderContext) :
-	LilianaParser(context, MangaParserSource.DOCTRUYEN5S, "manga.io.vn", pageSize = 42) {
+	LilianaParser(context, MangaParserSource.DOCTRUYEN5S, "manga.io.vn", 42) {
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
