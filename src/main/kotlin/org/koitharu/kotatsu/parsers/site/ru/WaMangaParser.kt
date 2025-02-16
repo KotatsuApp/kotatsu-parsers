@@ -73,27 +73,14 @@ internal class WaMangaParser(
 		val url = "https://$domain/api${manga.url}"
 		val doc = webClient.httpGet(url).parseJson().getJSONObject("comic")
 
-		val thumbnailUrl = doc.getString("thumbnail")
-		val mangaNamePath =
-			thumbnailUrl.slice(thumbnailUrl.indexOf(doc.getString("slug"))..<thumbnailUrl.length).split('/')[0]
-
-		val mangaFolderUrl = "https://$domain/public/storage/comics/$mangaNamePath"
-		val chapters = webClient
-			.httpGet(mangaFolderUrl)
-			.parseHtml()
-			.getElementsByTag("a")
-			.map { it.ownText() }
-
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sourceLocale)
 		return manga.copy(
 			url = doc.getString("url"),
 			title = doc.getString("title"),
-			largeCoverUrl = thumbnailUrl,
+			largeCoverUrl = doc.getString("thumbnail"),
 			description = doc.getStringOrNull("description") ?: manga.description,
 			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters { _, it ->
-				val chapterPrefix = it.getString("slug_lang_vol_ch_sub")
-				val chapterName = chapters.first { chap -> chap.startsWith(chapterPrefix) }
-				val chapterUrl = "$mangaFolderUrl/$chapterName"
+				val chapterUrl = it.getString("url")
 				MangaChapter(
 					id = generateUid(chapterUrl),
 					url = chapterUrl,
@@ -110,16 +97,15 @@ internal class WaMangaParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url).parseHtml()
-		val images = doc.getElementsByTag("a").map { it.ownText() }
-
-		return images
-			.drop(1) // drop first, because of first is "Parent directory" link
+		return webClient.httpGet("https://$domain/api${chapter.url}")
+			.parseJson()
+			.getJSONObject("chapter")
+			.getJSONArray("pages")
+			.asTypedList<String>()
 			.map { img ->
-				val imageUrl = "${chapter.url}$img"
 				MangaPage(
-					id = generateUid(imageUrl),
-					url = imageUrl,
+					id = generateUid(img),
+					url = img,
 					preview = null,
 					source = source,
 				)
