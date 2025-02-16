@@ -32,6 +32,8 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isMultipleTagsSupported = true,
+			isSearchSupported = true,
+			isSearchWithFiltersSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
@@ -61,7 +63,7 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 
 					val joiner = StringUtil.StringJoiner("+")
 					tags.forEach { tag ->
-						joiner.add(tag.key.replace(" ","-"))
+						joiner.add(tag.title)
 					}
 
 					if(!filter.query.isNullOrEmpty()) {
