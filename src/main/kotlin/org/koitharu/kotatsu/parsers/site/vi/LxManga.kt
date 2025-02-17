@@ -213,7 +213,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		val doc = webClient.httpGet(url).parseHtml()
 		
 		return doc.select("nav.grid.grid-cols-3.md\\:grid-cols-8 button").map { button ->
-			val key = button.attr("wire:click").substringAfterLast("'").substringBeforeLast("'")
+			val key = button.attr("wire:click").substringAfterLast(", '").substringBeforeLast("')")
 			MangaTag(
 				key = key,
 				title = button.select("span.text-ellipsis").text(),

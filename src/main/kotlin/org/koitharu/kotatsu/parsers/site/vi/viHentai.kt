@@ -190,7 +190,7 @@ internal class viHentai(context: MangaLoaderContext) : PagedMangaParser(context,
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.text-center img.lazy").mapNotNull { img ->
-			val url = img.attr("data-src")
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,
