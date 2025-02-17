@@ -9,10 +9,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
-internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
+@MangaSourceParser("VIHENTAI", "viHentai", "vi", type = ContentType.HENTAI)
+internal class viHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VIHENTAI, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.cloud")
+	override val configKeyDomain = ConfigKey.Domain("vi-hentai.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -125,9 +125,8 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		return doc.select("div.grid div.relative").map { div ->
 			val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
 				?: div.parseFailed("Không thể tìm thấy nguồn ảnh của Manga này!")
-			val coverUrl = div.selectFirstOrThrow("div.cover").let {
-				it.attrOrNull("data-bg") ?: it.attr("style").cssUrl()?.replace("s3.lxmanga.top", domain)
-			}.orEmpty()
+			val coverUrl = div.selectFirst("div.cover")?.attr("style")
+				?.substringAfter("url('")?.substringBefore("')")
 
 			Manga(
 				id = generateUid(href),
@@ -137,7 +136,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = true,
-				coverUrl = coverUrl,
+				coverUrl = coverUrl.orEmpty(),
 				tags = setOf(),
 				state = null,
 				author = null,
@@ -190,36 +189,15 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.text-center div.lazy")
-			.mapNotNull { div ->
-				val url = div.attr("data-src")
-				if (url.endsWith(".jpg", ignoreCase = true) ||
-					url.endsWith(".png", ignoreCase = true)
-				) {
-					MangaPage(
-						id = generateUid(url),
-						url = url,
-						preview = null,
-						source = source,
-					)
-				} else {
-					null
-				}
-			}
-	}
-
-	private suspend fun availableTags(): Set<MangaTag> {
-		val url = "https://$domain/the-loai"
-		val doc = webClient.httpGet(url).parseHtml()
-		
-		return doc.select("nav.grid.grid-cols-3.md\\:grid-cols-8 button").map { button ->
-			val key = button.attr("wire:click").substringAfterLast(", '").substringBeforeLast("')")
-			MangaTag(
-				key = key,
-				title = button.select("span.text-ellipsis").text(),
-				source = source
+		return doc.select("div.text-center img.lazy").mapNotNull { img ->
+			val url = img.requireSrc()
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
 			)
-		}.toSet()
+		}
 	}
 
 	private fun parseDateTime(dateStr: String): Long = runCatching {
@@ -238,4 +216,15 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		)
 		calendar.timeInMillis
 	}.getOrDefault(0L)
+
+    private suspend fun availableTags(): Set<MangaTag> {
+        val doc = webClient.httpGet("https://$domain").parseHtml()
+        return doc.select("ul.grid.grid-cols-2 a").mapToSet { a ->
+            MangaTag(
+                key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+                title = a.text(),
+                source = source,
+            )
+        }
+    }
 }

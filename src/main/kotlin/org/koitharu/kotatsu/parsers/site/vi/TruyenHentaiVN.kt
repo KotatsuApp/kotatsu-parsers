@@ -1,18 +1,21 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.arraySetOf
+import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("TRUYENHENTAIVN", "TruyenHentaiVN", "vi", type = ContentType.HENTAI)
 internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENHENTAIVN, 30) {
 
+	private var cacheTags = suspendLazy(initializer = ::fetchTags)
 	override val configKeyDomain = ConfigKey.Domain("truyenhentaivn.live")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -26,7 +29,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 			isSearchWithFiltersSupported = false
 		)
 
-    override suspend fun getFilterOptions() = MangaListFilterOptions(availableTags = getAvailableTags())
+    override suspend fun getFilterOptions() = MangaListFilterOptions(availableTags = cacheTags.get().values.toSet())
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
@@ -38,7 +41,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 			when {				
 				!filter.tags.isNullOrEmpty() -> {
 					val tag = filter.tags.first()
-					append(tag.key) // Testing...
+					append(tag.key)
 					if (page > 1) {
 						append("?page=")
 						append(page)
@@ -156,12 +159,17 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 		}
 	}
 
-    private suspend fun getAvailableTags(): Set<MangaTag> {
+	private suspend fun fetchTags(): Map<String, MangaTag> {
+		// Remove cached tags, avoid "Connection errors"
+		// Remake this function from site/vi/BlogTruyenVN.kt
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.select("a.py-2[href^=/the-loai-]").mapNotNull { a ->
-			val key = a.attr("href")
-			val title = a.text()
-			MangaTag( key = key, title = title, source = source )
-		}.toSet()
+		val tagItems = doc.select("a.py-2[href^=/the-loai-]")
+		val tagMap = ArrayMap<String, MangaTag>(tagItems.size)
+		for (tag in tagItems) {
+			val key = tag.attr("href")
+			val title = tag.text()
+			tagMap[key] = MangaTag(key = key, title = title, source = source)
+		}
+		return tagMap
 	}
 }
