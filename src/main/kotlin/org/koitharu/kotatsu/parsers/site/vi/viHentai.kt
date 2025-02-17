@@ -9,10 +9,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
-internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
+@MangaSourceParser("VIHENTAI", "viHentai", "vi", type = ContentType.HENTAI)
+internal class viHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VIHENTAI, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.cloud")
+	override val configKeyDomain = ConfigKey.Domain("vi-hentai.com")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -208,20 +208,6 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 			}
 	}
 
-	private suspend fun availableTags(): Set<MangaTag> {
-		val url = "$domain/the-loai"
-		val doc = webClient.httpGet(url).parseHtml()
-		
-		return doc.select("nav.grid.grid-cols-3.md\\:grid-cols-8 button").map { button ->
-			val key = button.attr("wire:click").substringAfterLast("'").substringBeforeLast("'")
-			MangaTag(
-				key = key,
-				title = button.select("span.text-ellipsis").text(),
-				source = source
-			)
-		}.toSet()
-	}
-
 	private fun parseDateTime(dateStr: String): Long = runCatching {
 		val parts = dateStr.split(' ')
 		val dateParts = parts[0].split('-')
@@ -238,4 +224,15 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 		)
 		calendar.timeInMillis
 	}.getOrDefault(0L)
+
+    private suspend fun availableTags(): Set<MangaTag> {
+        val doc = webClient.httpGet("https://$domain").parseHtml()
+        return doc.select("ul.grid.grid-cols-2 a").mapToSet { a ->
+            MangaTag(
+                key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+                title = a.text(),
+                source = source,
+            )
+        }
+    }
 }
