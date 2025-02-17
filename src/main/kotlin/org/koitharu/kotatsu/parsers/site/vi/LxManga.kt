@@ -209,7 +209,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	}
 
 	private suspend fun availableTags(): Set<MangaTag> {
-		val url = "$domain/the-loai"
+		val url = "https://$domain/the-loai"
 		val doc = webClient.httpGet(url).parseHtml()
 		
 		return doc.select("nav.grid.grid-cols-3.md\\:grid-cols-8 button").map { button ->
