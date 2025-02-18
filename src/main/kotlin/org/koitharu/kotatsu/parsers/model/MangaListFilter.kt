@@ -15,6 +15,7 @@ public data class MangaListFilter(
 	@JvmField val year: Int = YEAR_UNKNOWN,
 	@JvmField val yearFrom: Int = YEAR_UNKNOWN,
 	@JvmField val yearTo: Int = YEAR_UNKNOWN,
+	@JvmField val author: String? = null,
 ) {
 
 	private fun isNonSearchOptionsEmpty(): Boolean = tags.isEmpty() &&
@@ -27,7 +28,8 @@ public data class MangaListFilter(
 		yearFrom == YEAR_UNKNOWN &&
 		yearTo == YEAR_UNKNOWN &&
 		types.isEmpty() &&
-		demographics.isEmpty()
+		demographics.isEmpty() &&
+		author.isNullOrEmpty()
 
 	public fun isEmpty(): Boolean = isNonSearchOptionsEmpty() && query.isNullOrEmpty()
 

@@ -19,6 +19,7 @@ import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
 import java.util.*
 import java.util.Collections.emptyList
 import java.util.concurrent.TimeUnit
@@ -54,6 +55,7 @@ internal class ExHentaiParser(
 			isTagsExclusionSupported = true,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override val isAuthorized: Boolean
@@ -172,8 +174,8 @@ internal class ExHentaiParser(
 				url = href,
 				publicUrl = a.absUrl("href"),
 				rating = td2.selectFirst("div.ir")?.parseRating() ?: RATING_UNKNOWN,
-				isNsfw = true,
-				coverUrl = td1.selectFirst("img")?.absUrl("src").orEmpty(),
+				contentRating = ContentRating.ADULT,
+				coverUrl = td1.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
 				tags = tagsDiv.parseTags(),
 				state = null,
 				author = tagsDiv.getElementsContainingOwnText("artist:").first()
@@ -190,9 +192,18 @@ internal class ExHentaiParser(
 		val title = root.getElementById("gd2")
 		val tagList = root.getElementById("taglist")
 		val tabs = doc.body().selectFirst("table.ptt")?.selectFirst("tr")
-		val lang = root.getElementById("gd3")
+		val gd3 = root.getElementById("gd3")
+		val lang = gd3
 			?.selectFirst("tr:contains(Language)")
 			?.selectFirst(".gdt2")?.ownTextOrNull()
+		val uploadDate = gd3
+			?.selectFirst("tr:contains(Posted)")
+			?.selectFirst(".gdt2")?.ownTextOrNull()
+			.let { SimpleDateFormat("yyyy-MM-dd HH:mm", sourceLocale).tryParse(it) }
+		val uploader = gd3
+			?.getElementsByAttributeValueContaining("href", "/uploader/")
+			?.firstOrNull()
+			?.ownTextOrNull()
 		val tags = tagList?.parseTags().orEmpty()
 
 		return manga.copy(
@@ -223,9 +234,9 @@ internal class ExHentaiParser(
 						number = i.toFloat(),
 						volume = 0,
 						url = url,
-						uploadDate = 0L,
+						uploadDate = uploadDate,
 						source = source,
-						scanlator = null,
+						scanlator = uploader,
 						branch = lang,
 					)
 				}
@@ -413,6 +424,11 @@ internal class ExHentaiParser(
 		locale?.let { lc ->
 			joiner.add("language:\"")
 			joiner.append(lc.toLanguagePath())
+			joiner.append("\"$")
+		}
+		if (!author.isNullOrEmpty()) {
+			joiner.add("artist:\"")
+			joiner.append(author)
 			joiner.append("\"$")
 		}
 		return joiner.complete().nullIfEmpty()

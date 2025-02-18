@@ -103,12 +103,13 @@ internal abstract class GroupleParser(
 		} else {
 			advancedSearch(offset, order, filter).parseHtml()
 		}
-		val tiles =
-			root.selectFirst("div.tiles.row") ?: if (root.select(".alert").any { it.ownText() == NOTHING_FOUND }) {
+		val tiles = root.selectFirst("div.tiles.row")
+		if (tiles == null) {
+			if (!root.getElementsContainingOwnText(NOTHING_FOUND).isNullOrEmpty()) {
 				return emptyList()
-			} else {
-				root.parseFailed("No tiles found")
 			}
+			root.parseFailed("No tiles found")
+		}
 		return tiles.select("div.tile").mapNotNull(::parseManga)
 	}
 
