@@ -6,6 +6,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.search.*
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Include
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Match
+import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -37,6 +41,89 @@ internal class Mangairo(context: MangaLoaderContext) :
 			isMultipleTagsSupported = false,
 			isSearchWithFiltersSupported = false,
 		)
+
+	override val searchQueryCapabilities: MangaSearchQueryCapabilities
+		get() = MangaSearchQueryCapabilities(
+			capabilities = setOf(
+				SearchCapability(field = TAG, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
+				SearchCapability(field = TITLE_NAME, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = false),
+				SearchCapability(field = STATE, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
+			),
+		)
+
+	private fun Any?.toQueryParam(): String = when (this) {
+		is String -> replace(" ", "_").urlEncoded()
+		is MangaTag -> key
+		is MangaState -> when (this) {
+			MangaState.ONGOING -> "ongoing"
+			MangaState.FINISHED -> "completed"
+			else -> "all"
+		}
+		is SortOrder -> when (this) {
+			SortOrder.POPULARITY -> "topview"
+			SortOrder.UPDATED -> "latest"
+			SortOrder.NEWEST -> "newest"
+			else -> "latest"
+		}
+		else -> this.toString().urlEncoded()
+	}
+
+	override suspend fun searchPageManga(searchQuery: MangaSearchQuery): List<Manga> {
+		var titleSearchUrl: String? = null
+		var category = "all"
+		var state = "all"
+
+		val url = buildString {
+			append("https://${domain}${listUrl}")
+			append("/type-${(searchQuery.order ?: defaultSortOrder).toQueryParam()}")
+
+			searchQuery.criteria.forEach { criterion ->
+				when (criterion) {
+					is Include<*> -> {
+						when (criterion.field) {
+							TAG -> category = criterion.values.first().toQueryParam()
+							STATE -> state = criterion.values.first().toQueryParam()
+							else -> Unit
+						}
+					}
+					is Match<*> -> {
+						if (criterion.field == TITLE_NAME) {
+							criterion.value.toQueryParam().takeIf { it.isNotBlank() }?.let { titleName ->
+								titleSearchUrl = "https://${domain}${searchUrl}${titleName}/" +
+									"?page=${searchQuery.offset ?: 0}"
+							}
+						}
+					}
+					else -> {
+						// Not supported
+					}
+				}
+			}
+			append("/ctg-$category")
+			append("/state-$state")
+			append("/page-${searchQuery.offset ?: 0}")
+		}
+
+		val doc = webClient.httpGet(titleSearchUrl ?: url).parseHtml()
+
+		return doc.select("div.story-item").map { div ->
+			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			Manga(
+				id = generateUid(href),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				title = (div.selectFirst("h2")?.text() ?: div.selectFirst("h3")?.text()).orEmpty(),
+				altTitle = null,
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				authors = emptySet(),
+				state = null,
+				source = source,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else ContentRating.SAFE,
+			)
+		}
+	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
