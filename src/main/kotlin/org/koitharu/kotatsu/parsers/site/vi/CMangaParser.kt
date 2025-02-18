@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.ArrayMap
+import androidx.collection.arraySetOf
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -28,6 +29,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
 import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.parseJsonArray
 import org.koitharu.kotatsu.parsers.util.parseRaw
@@ -40,7 +42,7 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 
-private const val PAGE_SIZE = 50
+private const val PAGE_SIZE = 20
 
 @MangaSourceParser("CMANGA", "CManga", "vi")
 internal class CMangaParser(context: MangaLoaderContext) :
@@ -50,16 +52,29 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		get() = ConfigKey.Domain("cmangax.com")
 
 	override val availableSortOrders: Set<SortOrder>
-		get() = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.NEWEST)
+		get() = EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.NEWEST,
+			SortOrder.POPULARITY,
+			SortOrder.POPULARITY_TODAY,
+			SortOrder.POPULARITY_WEEK,
+			SortOrder.POPULARITY_MONTH,
+			SortOrder.RELEVANCE,
+		)
 
 	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(isSearchSupported = true)
+		get() = MangaListFilterCapabilities(
+			isSearchSupported = true,
+			isMultipleTagsSupported = true,
+			isSearchWithFiltersSupported = true,
+		)
 
 	private val tags = suspendLazy(initializer = this::getTags)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
 		return MangaListFilterOptions(
 			availableTags = tags.get().values.toSet(),
+			availableStates = arraySetOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 		)
 	}
 
@@ -111,38 +126,51 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val mangaList = if (filter.query.isNullOrEmpty()) {
-			val url = urlBuilder()
-				.addPathSegments("api/home_album_list")
-				.addQueryParameter("num_chapter", "0")
-				.addQueryParameter("sort", "update")
-				.addQueryParameter(
-					"type",
-					when (order) {
-						SortOrder.UPDATED -> "new"
-						SortOrder.POPULARITY -> "trending"
-						SortOrder.NEWEST -> "hot"
-						else -> throw IllegalArgumentException("Order not supported ${order.name}")
+		val url = urlBuilder().apply {
+			if (filter.query.isNullOrEmpty() && (order == SortOrder.RELEVANCE ||
+					order == SortOrder.POPULARITY_TODAY ||
+					order == SortOrder.POPULARITY_WEEK ||
+					order == SortOrder.POPULARITY_MONTH
+				)
+			) {
+				addPathSegments("api/home_album_top")
+			} else {
+				addPathSegments("api/home_album_list")
+				addQueryParameter("num_chapter", "0")
+				addQueryParameter("team", "0")
+				addQueryParameter("sort", "update")
+				addQueryParameter("tag", filter.tags.joinToString(separator = ",") { it.key })
+				addQueryParameter("string", filter.query.orEmpty())
+				addQueryParameter(
+					"status",
+					when (filter.states.oneOrThrowIfMany()) {
+						MangaState.ONGOING -> "doing"
+						MangaState.FINISHED -> "done"
+						MangaState.PAUSED -> "drop"
+						else -> "all"
 					},
 				)
-				.addQueryParameter("tag", if (filter.tags.isEmpty()) "" else filter.tags.first().key)
-				.addQueryParameter("limit", PAGE_SIZE.toString())
-				.addQueryParameter("page", page.toString())
-				.build()
-			webClient.httpGet(url).parseJson().getJSONArray("data")
-		} else {
-			if (page > 1) {
-				return emptyList()
 			}
 
-			val url = urlBuilder()
-				.addPathSegments("api/search")
-				.addQueryParameter("child_protect", "off")
-				.addQueryParameter("string", filter.query)
-				.build()
-			webClient.httpGet(url).parseJsonArray()
-		}
+			addQueryParameter("file", "image")
+			addQueryParameter("limit", PAGE_SIZE.toString())
+			addQueryParameter("page", page.toString())
+			addQueryParameter(
+				"type",
+				when (order) {
+					SortOrder.UPDATED -> "update"
+					SortOrder.POPULARITY -> "hot"
+					SortOrder.NEWEST -> "new"
+					SortOrder.POPULARITY_TODAY -> "day"
+					SortOrder.POPULARITY_WEEK -> "week"
+					SortOrder.POPULARITY_MONTH -> "month"
+					SortOrder.RELEVANCE -> "fire" // return duplicate manga so the app won't load second page
+					else -> throw IllegalArgumentException("Order not supported ${order.name}")
+				},
+			)
+		}.build()
 
+		val mangaList = webClient.httpGet(url).parseJson().getJSONArray("data")
 		return mangaList.mapJSONNotNull { jo ->
 			val info = jo.parseJson("info")
 			val slug = info.getStringOrNull("url") ?: return@mapJSONNotNull null
@@ -196,14 +224,15 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getTags(): Map<String, MangaTag> {
-		val tagsResponse = webClient.httpGet("api/data?data=album_tags".toAbsoluteUrl(domain)).parseJson()
+		val tagList = webClient.httpGet("assets/json/album_tags_image.json".toAbsoluteUrl(domain)).parseJson()
+			.getJSONObject("list")
 		val tags = ArrayMap<String, MangaTag>()
-		for (key in tagsResponse.keys()) {
-			val jo = tagsResponse.getJSONObject(key)
-			val title = jo.getString("name")
-			tags[title.lowercase()] = MangaTag(
-				title = title,
-				key = jo.getString("url"),
+		for (key in tagList.keys()) {
+			val jo = tagList.getJSONObject(key)
+			val name = jo.getString("name")
+			tags[name.lowercase()] = MangaTag(
+				title = name.toTitleCase(),
+				key = name,
 				source = source,
 			)
 		}
