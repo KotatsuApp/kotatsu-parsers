@@ -231,7 +231,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			val jo = tagList.getJSONObject(key)
 			val name = jo.getString("name")
 			tags[name.lowercase()] = MangaTag(
-				title = name,
+				title = name.toTitleCase(),
 				key = name,
 				source = source,
 			)
