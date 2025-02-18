@@ -11,6 +11,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -70,6 +71,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
 			isOriginalLocaleSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
@@ -130,7 +132,13 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 					}
 				}
-			} else append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
+			} else {
+				append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
+			}
+
+			if (!filter.author.isNullOrEmpty()) {
+				append("&authorOrArtist=").append(getAuthorId(filter.author))
+			}
 
 			append("&order")
 			append(
@@ -288,9 +296,11 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			url = id,
 			publicUrl = "https://$domain/title/$id",
 			rating = RATING_UNKNOWN,
-			isNsfw = when (attrs.getStringOrNull("contentRating")) {
-				"erotica", "pornographic" -> true
-				else -> false
+			contentRating = when (attrs.getStringOrNull("contentRating")) {
+				"pornographic" -> ContentRating.ADULT
+				"erotica", "suggestive" -> ContentRating.SUGGESTIVE
+				"safe" -> ContentRating.SAFE
+				else -> null
 			},
 			coverUrl = cover?.plus(".256.jpg").orEmpty(),
 			largeCoverUrl = cover,
@@ -395,6 +405,22 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				jo.getString("detail")
 			}.joinToString("\n")
 			throw ParseException(error, url)
+		}
+	}
+
+	private suspend fun getAuthorId(name: String): String {
+		val url = urlBuilder("api")
+			.addPathSegment("author")
+			.addQueryParameter("name", name)
+			.addQueryParameter("limit", "1")
+			.build()
+		val json = webClient.httpGet(url).parseJson()
+			.getJSONArray("data")
+			.getJSONObject(0)
+		if (json.getJSONObject("attributes").getString("name").equals(name, ignoreCase = true)) {
+			return json.getString("id")
+		} else {
+			throw NotFoundException("Author $name not found", url.toString())
 		}
 	}
 
