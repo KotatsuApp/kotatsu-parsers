@@ -125,7 +125,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 						else -> throw IllegalArgumentException("Order not supported ${order.name}")
 					},
 				)
-				.addQueryParameter("tag", if (filter.tags.isEmpty()) "all" else filter.tags.first().key)
+				.addQueryParameter("tag", if (filter.tags.isEmpty()) "" else filter.tags.first().key)
 				.addQueryParameter("limit", PAGE_SIZE.toString())
 				.addQueryParameter("page", page.toString())
 				.build()
