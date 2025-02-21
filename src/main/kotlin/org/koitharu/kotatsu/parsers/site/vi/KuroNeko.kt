@@ -9,8 +9,8 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("VIHENTAI", "viHentai", "vi", type = ContentType.HENTAI)
-internal class viHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VIHENTAI, 60) {
+@MangaSourceParser("KURONEKO", "Việt Hentai", "vi", type = ContentType.HENTAI)
+internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("vi-hentai.com")
 
