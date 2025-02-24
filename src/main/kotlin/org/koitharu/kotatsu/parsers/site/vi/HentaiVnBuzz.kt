@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi")
+@MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi", type = ContentType.HENTAI)
 internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentaivn.buzz")
