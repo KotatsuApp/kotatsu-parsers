@@ -12,17 +12,11 @@ import java.util.*
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qui2.com", 36) {
+	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "truyen3qvip.com", 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"doctruyen3qui2.com", // Main domain
-		"doctruyen3qll.net",
-		"doctruyen3q3.net",
-		"doctruyen3qw.com",
-		"doctruyen3qk.pro",
-		"doctruyen3qw.pro",
-		"doctruyen3qvip.com",
-		"truyen3qvip.com", // Backup domain
+		"truyen3qvip.com",
+		"doctruyen3qui.pro", // Main domain
 	)
 
 	override val datePattern = "dd/MM/yyyy"
