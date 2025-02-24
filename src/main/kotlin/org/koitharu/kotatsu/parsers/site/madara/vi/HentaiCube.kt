@@ -6,10 +6,13 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("HENTAICUBE", "CBHentai", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
@@ -18,8 +21,11 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	override val configKeyDomain = ConfigKey.Domain("hentaicb.love", "hentaicube.xyz")
 
 	override val datePattern = "dd/MM/yyyy"
-	override val tagPrefix = "the-loai/"
 	override val postReq = true
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableTags = fetchTags(),
+	)
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -35,5 +41,19 @@ internal class HentaiCube(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
+	}
+
+	private suspend fun fetchTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/the-loai-genres").parseHtml()
+		val elements = doc.select("ul.list-unstyled li a")
+		return elements.mapToSet { element ->
+			val href = element.attr("href")
+			val key = href.substringAfter("/the-loai/").removeSuffix("/")
+			MangaTag(
+				key = key,
+				title = element.text().toTitleCase(sourceLocale),
+				source = source,
+			)
+		}.toSet()
 	}
 }
