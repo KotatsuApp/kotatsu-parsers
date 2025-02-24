@@ -16,9 +16,9 @@ import java.util.*
 
 @MangaSourceParser("HENTAICUBE", "CBHentai", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicb.love") {
+	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicube.xyz") {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaicb.love", "hentaicube.xyz")
+	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz", "hentaicb.love") // hentaicb.love broken
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
@@ -49,9 +49,10 @@ internal class HentaiCube(context: MangaLoaderContext) :
 		return elements.mapToSet { element ->
 			val href = element.attr("href")
 			val key = href.substringAfter("/the-loai/").removeSuffix("/")
+			val title = element.text().replace(Regex("\\(\\d+\\)"), "")
 			MangaTag(
 				key = key,
-				title = element.text().toTitleCase(sourceLocale),
+				title = title.toTitleCase(sourceLocale),
 				source = source,
 			)
 		}.toSet()
