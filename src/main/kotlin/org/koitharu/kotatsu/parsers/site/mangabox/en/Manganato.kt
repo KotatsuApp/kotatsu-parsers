@@ -16,5 +16,6 @@ internal class Manganato(context: MangaLoaderContext) :
 	)
 	override val otherDomain = "chapmanganato.to"
 
+	override val authorUrl = "/author/story"
 	override val selectPage = ".container-chapter-reader > img"
 }

@@ -11,9 +11,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
+import org.koitharu.kotatsu.parsers.model.search.SearchCapability
+import org.koitharu.kotatsu.parsers.model.search.SearchableField
+import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
@@ -74,6 +79,70 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			isAuthorSearchSupported = true,
 		)
 
+	override val searchQueryCapabilities: MangaSearchQueryCapabilities
+		get() = MangaSearchQueryCapabilities(
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class, Exclude::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = AUTHOR,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = CONTENT_TYPE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = CONTENT_RATING,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = DEMOGRAPHIC,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = ORIGINAL_LANGUAGE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = LANGUAGE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = PUBLICATION_YEAR,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+		)
+
 	override suspend fun getFilterOptions(): MangaListFilterOptions = coroutineScope {
 		val localesDeferred = async { fetchAvailableLocales() }
 		val tagsDeferred = async { fetchAvailableTags() }
@@ -97,119 +166,120 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		)
 	}
 
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val domain = domain
+	private fun SearchableField.toParamName(): String = when (this) {
+		TITLE_NAME -> "title"
+		TAG -> "includedTags[]"
+		AUTHOR -> "authors[]"
+		STATE -> "status[]"
+		CONTENT_TYPE -> "contentType[]"
+		CONTENT_RATING -> "contentRating[]"
+		DEMOGRAPHIC -> "publicationDemographic[]"
+		ORIGINAL_LANGUAGE -> "originalLanguage[]"
+		LANGUAGE -> "availableTranslatedLanguage[]"
+		PUBLICATION_YEAR -> "year"
+	}
+
+	private fun Any?.toQueryParam(): String = when (this) {
+		is String -> urlEncoded()
+		is Locale -> if (language == "in") "id" else language
+		is MangaTag -> key
+		is MangaState -> when (this) {
+			MangaState.ONGOING -> "ongoing"
+			MangaState.FINISHED -> "completed"
+			MangaState.ABANDONED -> "cancelled"
+			MangaState.PAUSED -> "hiatus"
+			else -> ""
+		}
+
+		is ContentRating -> when (this) {
+			ContentRating.SAFE -> "safe"
+			// quick fix for double value
+			ContentRating.SUGGESTIVE -> "suggestive&contentRating[]=erotica"
+			ContentRating.ADULT -> "pornographic"
+		}
+
+		is Demographic -> when (this) {
+			Demographic.SHOUNEN -> "shounen"
+			Demographic.SHOUJO -> "shoujo"
+			Demographic.SEINEN -> "seinen"
+			Demographic.JOSEI -> "josei"
+			Demographic.NONE -> "none"
+			else -> ""
+		}
+
+		is SortOrder -> when (this) {
+			SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
+			SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
+			SortOrder.RATING -> "[rating]=desc"
+			SortOrder.RATING_ASC -> "[rating]=asc"
+			SortOrder.ALPHABETICAL -> "[title]=asc"
+			SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
+			SortOrder.NEWEST -> "[year]=desc"
+			SortOrder.NEWEST_ASC -> "[year]=asc"
+			SortOrder.POPULARITY -> "[followedCount]=desc"
+			SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
+			SortOrder.ADDED -> "[createdAt]=desc"
+			SortOrder.ADDED_ASC -> "[createdAt]=asc"
+			SortOrder.RELEVANCE -> "&order[relevance]=desc"
+			else -> "[latestUploadedChapter]=desc"
+		}
+
+		else -> this.toString().urlEncoded()
+	}
+
+	private fun StringBuilder.appendCriterion(field: SearchableField, value: Any?, paramName: String? = null) {
+		val param = paramName ?: field.toParamName()
+		if (param.isNotBlank()) {
+			append("&$param=")
+			append(value.toQueryParam())
+		}
+	}
+
+	override suspend fun getList(query: MangaSearchQuery): List<Manga> {
 		val url = buildString {
-			append("https://api.")
-			append(domain)
-			append("/manga?limit=")
-			append(PAGE_SIZE)
-			append("&offset=")
-			append(offset)
-			append("&includes[]=cover_art&includes[]=author&includes[]=artist")
+			append("https://api.$domain/manga?limit=$PAGE_SIZE&offset=${query.offset}")
+				.append("&includes[]=cover_art&includes[]=author&includes[]=artist&includedTagsMode=AND&excludedTagsMode=OR")
 
-			filter.query?.let {
-				append("&title=")
-				append(filter.query.urlEncoded())
-			}
+			var hasContentRating = false
 
-			filter.tags.forEach {
-				append("&includedTags[]=")
-				append(it.key)
-			}
+			query.criteria.forEach { criterion ->
+				when (criterion) {
+					is Include<*> -> {
+						if (criterion.field == CONTENT_RATING) {
+							hasContentRating = true
+						}
+						criterion.values.forEach { appendCriterion(criterion.field, it) }
+					}
 
-			filter.tagsExclude.forEach {
-				append("&excludedTags[]=")
-				append(it.key)
-			}
+					is Exclude<*> -> {
+						criterion.values.forEach { appendCriterion(criterion.field, it, "excludedTags[]") }
+					}
 
-			if (filter.contentRating.isNotEmpty()) {
-				filter.contentRating.forEach {
-					when (it) {
-						ContentRating.SAFE -> append("&contentRating[]=safe")
-						ContentRating.SUGGESTIVE -> append("&contentRating[]=suggestive&contentRating[]=erotica")
-						ContentRating.ADULT -> append("&contentRating[]=pornographic")
+					is Match<*> -> {
+						appendCriterion(criterion.field, criterion.value)
+					}
 
+					else -> {
+						// Not supported
 					}
 				}
-			} else {
+			}
+
+			// If contentRating is not provided, add default values
+			if (!hasContentRating) {
 				append("&contentRating[]=safe&contentRating[]=suggestive&contentRating[]=erotica&contentRating[]=pornographic")
 			}
 
-			if (!filter.author.isNullOrEmpty()) {
-				append("&authorOrArtist=").append(getAuthorId(filter.author))
-			}
-
 			append("&order")
-			append(
-				when (order) {
-					SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
-					SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
-					SortOrder.RATING -> "[rating]=desc"
-					SortOrder.RATING_ASC -> "[rating]=asc"
-					SortOrder.ALPHABETICAL -> "[title]=asc"
-					SortOrder.ALPHABETICAL_DESC -> "[title]=desc"
-					SortOrder.NEWEST -> "[year]=desc"
-					SortOrder.NEWEST_ASC -> "[year]=asc"
-					SortOrder.POPULARITY -> "[followedCount]=desc"
-					SortOrder.POPULARITY_ASC -> "[followedCount]=asc"
-					SortOrder.ADDED -> "[createdAt]=desc"
-					SortOrder.ADDED_ASC -> "[createdAt]=asc"
-					SortOrder.RELEVANCE -> "&order[relevance]=desc"
-					else -> "[latestUploadedChapter]=desc"
-				},
-			)
-
-			filter.states.forEach {
-				append("&status[]=")
-				when (it) {
-					MangaState.ONGOING -> append("ongoing")
-					MangaState.FINISHED -> append("completed")
-					MangaState.ABANDONED -> append("cancelled")
-					MangaState.PAUSED -> append("hiatus")
-					else -> append("")
-				}
-			}
-
-			filter.demographics.forEach {
-				append("&publicationDemographic[]=")
-				append(
-					when (it) {
-						Demographic.SHOUNEN -> "shounen"
-						Demographic.SHOUJO -> "shoujo"
-						Demographic.SEINEN -> "seinen"
-						Demographic.JOSEI -> "josei"
-						Demographic.NONE -> "none"
-						else -> ""
-					},
-				)
-			}
-
-			filter.locale?.let {
-				append("&availableTranslatedLanguage[]=")
-				if (it.language == "in") {
-					append("id")
-				} else {
-					append(it.language)
-				}
-			}
-
-			filter.originalLocale?.let {
-				append("&originalLanguage[]=")
-				if (it.language == "in") {
-					append("id")
-				} else {
-					append(it.language)
-				}
-			}
-
-			if (filter.year != 0) {
-				append("&year=")
-				append(filter.year)
-			}
+			append((query.order ?: defaultSortOrder).toQueryParam())
 		}
+
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
 		return json.mapJSON { jo -> jo.fetchManga(null) }
+	}
+
+	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		return queryManga(convertToMangaSearchQuery(offset, order, filter))
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -282,11 +352,22 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		val attrs = getJSONObject("attributes")
 		val relations = getJSONArray("relationships").associateByKey("type")
 		val cover = relations["cover_art"]
+			?.firstOrNull()
 			?.getJSONObject("attributes")
 			?.getString("fileName")
 			?.let {
 				"https://uploads.$domain/covers/$id/$it"
 			}
+		val authors: Set<MangaTag> = (relations["author"] ?: relations["artist"])
+			?.mapNotNullToSet {
+				val key = it.getStringOrNull("id")
+				val title = it.getJSONObject("attributes")?.getStringOrNull("name")
+
+				key?.let { k ->
+					title?.let { t -> MangaTag(key = k, title = t, source = source) }
+				}
+			}.orEmpty()
+
 		return Manga(
 			id = generateUid(id),
 			title = requireNotNull(attrs.getJSONObject("title").selectByLocale()) {
@@ -322,9 +403,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				"cancelled" -> MangaState.ABANDONED
 				else -> null
 			},
-			author = (relations["author"] ?: relations["artist"])
-				?.getJSONObject("attributes")
-				?.getStringOrNull("name"),
+			authors = authors,
 			chapters = chapters,
 			source = source,
 		)
@@ -408,22 +487,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	private suspend fun getAuthorId(name: String): String {
-		val url = urlBuilder("api")
-			.addPathSegment("author")
-			.addQueryParameter("name", name)
-			.addQueryParameter("limit", "1")
-			.build()
-		val json = webClient.httpGet(url).parseJson()
-			.getJSONArray("data")
-			.getJSONObject(0)
-		if (json.getJSONObject("attributes").getString("name").equals(name, ignoreCase = true)) {
-			return json.getString("id")
-		} else {
-			throw NotFoundException("Author $name not found", url.toString())
-		}
-	}
-
 	private fun mapChapters(list: List<JSONObject>): List<MangaChapter> {
 		// 2022-01-02T00:27:11+00:00
 		val dateFormat = SimpleDateFormat(
@@ -443,7 +506,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 			val lc = locale?.getDisplayName(locale)?.toTitleCase(locale)
 			val relations = jo.getJSONArray("relationships").associateByKey("type")
-			val team = relations["scanlation_group"]?.optJSONObject("attributes")?.getStringOrNull("name")
+			val team =
+				relations["scanlation_group"]?.firstOrNull()?.optJSONObject("attributes")?.getStringOrNull("name")
 			val branch = (list.indices).firstNotNullOf { i ->
 				val b = if (i == 0) lc else "$lc ($i)"
 				if (branchedChapters[b]?.get(volume to number) == null) b else null
@@ -469,12 +533,12 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		return chaptersBuilder.toList()
 	}
 
-	private fun JSONArray.associateByKey(key: String): Map<String, JSONObject> {
-		val destination = LinkedHashMap<String, JSONObject>(length())
+	private fun JSONArray.associateByKey(key: String): Map<String, List<JSONObject>> {
+		val destination = LinkedHashMap<String, MutableList<JSONObject>>(length())
 		repeat(length()) { i ->
 			val item = getJSONObject(i)
 			val keyValue = item.getString(key)
-			destination[keyValue] = item
+			destination.computeIfAbsent(keyValue) { mutableListOf() }.add(item)
 		}
 		return destination
 	}

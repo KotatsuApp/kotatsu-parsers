@@ -7,6 +7,12 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
+import org.koitharu.kotatsu.parsers.model.search.SearchCapability
+import org.koitharu.kotatsu.parsers.model.search.SearchableField
+import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -38,6 +44,34 @@ internal abstract class MangaboxParser(
 			isSearchWithFiltersSupported = true,
 		)
 
+	override val searchQueryCapabilities: MangaSearchQueryCapabilities
+		get() = MangaSearchQueryCapabilities(
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class, Exclude::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = AUTHOR,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = false,
+			),
+		)
+
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
@@ -59,64 +93,88 @@ internal abstract class MangaboxParser(
 	)
 
 	protected open val listUrl = "/advanced_search"
+	protected open val authorUrl = "/search/author"
 	protected open val searchUrl = "/search/story/"
 	protected open val datePattern = "MMM dd,yy"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			append(listUrl)
-			append("/?s=all")
+	private fun SearchableField.toParamName(): String = when (this) {
+		TITLE_NAME, AUTHOR -> "keyw"
+		TAG -> "g_i"
+		STATE -> "sts"
+		else -> ""
+	}
 
-			filter.query?.let {
-				append("&keyw=")
-				append(filter.query.replace(" ", "_").urlEncoded())
-			}
-
-			if (filter.tags.isNotEmpty()) {
-				append("&g_i=")
-				filter.tags.forEach {
-					append("_")
-					append(it.key)
-					append("_")
-				}
-			}
-
-			if (filter.tagsExclude.isNotEmpty()) {
-				append("&g_e=")
-				filter.tagsExclude.forEach {
-					append("_")
-					append(it.key)
-					append("_")
-				}
-			}
-
-			filter.states.oneOrThrowIfMany()?.let {
-				append("&sts=")
-				append(
-					when (it) {
-						MangaState.ONGOING -> "ongoing"
-						MangaState.FINISHED -> "completed"
-						else -> ""
-					},
-				)
-			}
-
-			append("&orby=")
-			when (order) {
-				SortOrder.POPULARITY -> append("topview")
-				SortOrder.UPDATED -> append("")
-				SortOrder.NEWEST -> append("newest")
-				SortOrder.ALPHABETICAL -> append("az")
-				else -> append("")
-			}
-
-			append("&page=")
-			append(page.toString())
+	private fun Any?.toQueryParam(): String = when (this) {
+		is String -> replace(" ", "_").urlEncoded()
+		is MangaTag -> key
+		is MangaState -> when (this) {
+			MangaState.ONGOING -> "ongoing"
+			MangaState.FINISHED -> "completed"
+			else -> ""
 		}
 
-		val doc = webClient.httpGet(url).parseHtml()
+		is SortOrder -> when (this) {
+			SortOrder.ALPHABETICAL -> "az"
+			SortOrder.NEWEST -> "newest"
+			SortOrder.POPULARITY -> "topview"
+			else -> ""
+		}
+
+		else -> this.toString().replace(" ", "_").urlEncoded()
+	}
+
+	private fun StringBuilder.appendCriterion(field: SearchableField, value: Any?, paramName: String? = null) {
+		val param = paramName ?: field.toParamName()
+		if (param.isNotBlank()) {
+			append("&$param=")
+			append(value.toQueryParam())
+		}
+	}
+
+	private val authorKeyRegex by lazy {
+		Regex("[^/]+\$", RegexOption.IGNORE_CASE)
+	}
+
+	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
+		var authorSearchUrl: String? = null
+		val url = buildString {
+			val pageQueryParameter = "page=$page"
+			append("https://${domain}${listUrl}/?s=all")
+
+			query.criteria.forEach { criterion ->
+				when (criterion) {
+					is Include<*> -> {
+						if (criterion.field == AUTHOR) {
+							criterion.values.firstOrNull()?.toQueryParam()?.takeIf { it.isNotBlank() }
+								?.let { authorKey ->
+									authorSearchUrl = "https://${domain}${authorUrl}/${authorKey}/?$pageQueryParameter"
+								}
+						}
+
+						criterion.field.toParamName().takeIf { it.isNotBlank() }?.let { param ->
+							append("&$param=${criterion.values.joinToString("_") { it.toQueryParam() }}")
+						}
+					}
+
+					is Exclude<*> -> {
+						append("&g_e=${criterion.values.joinToString("_") { it.toQueryParam() }}")
+					}
+
+					is Match<*> -> {
+						appendCriterion(criterion.field, criterion.value)
+					}
+
+					else -> {
+						// Not supported
+					}
+				}
+			}
+
+			append("&${pageQueryParameter}")
+			append("&orby=${(query.order ?: defaultSortOrder).toQueryParam()}")
+		}
+
+		val doc = webClient.httpGet(authorSearchUrl ?: url).parseHtml()
 
 		return doc.select("div.content-genres-item, div.list-story-item").ifEmpty {
 			doc.select("div.search-story-item")
@@ -131,12 +189,16 @@ internal abstract class MangaboxParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else ContentRating.SAFE,
 			)
 		}
+	}
+
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		return queryManga(convertToMangaSearchQuery(page, order, filter))
 	}
 
 	protected open val selectTagMap = "div.panel-genres-list a:not(.genres-select)"
@@ -175,7 +237,14 @@ internal abstract class MangaboxParser(
 			}
 		}
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
-		val aut = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
+		val authors = doc.body().select(selectAut).mapToSet {
+			MangaTag(
+				key = it.attribute("href").value.find(authorKeyRegex) ?: it.text(),
+				title = it.text(),
+				source = source,
+			)
+		}
+
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -186,7 +255,8 @@ internal abstract class MangaboxParser(
 			},
 			description = desc,
 			altTitle = alt,
-			author = aut,
+			authors = authors,
+			author = authors.firstOrNull()?.title,
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)
