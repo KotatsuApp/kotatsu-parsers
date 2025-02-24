@@ -4,8 +4,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
@@ -19,14 +19,15 @@ public class LinkResolver internal constructor(
 	public suspend fun getSource(): MangaParserSource? = source.get()
 
 	public suspend fun getManga(): Manga? {
-		val parser = context.newParserInstance(source.get() ?: return null)
+		val parser = context.newParserInstance(source.get() ?: return null) as? AbstractMangaParser
+			?: return null
 		return parser.resolveLink(this, link) ?: resolveManga(parser)
 	}
 
 	private suspend fun resolveSource(): MangaParserSource? = runInterruptible(Dispatchers.Default) {
 		val domains = setOfNotNull(link.host, link.topPrivateDomain())
 		for (s in MangaParserSource.entries) {
-			val parser = context.newParserInstance(s)
+			val parser = context.newParserInstance(s) as AbstractMangaParser
 			for (d in parser.configKeyDomain.presetValues) {
 				if (d in domains) {
 					return@runInterruptible s
@@ -37,7 +38,7 @@ public class LinkResolver internal constructor(
 	}
 
 	internal suspend fun resolveManga(
-		parser: MangaParser,
+		parser: AbstractMangaParser,
 		url: String = link.toString().toRelativeUrl(link.host),
 		id: Long = parser.generateUid(url),
 		title: String = STUB_TITLE,
@@ -62,7 +63,7 @@ public class LinkResolver internal constructor(
 		),
 	)
 
-	private suspend fun resolveBySeed(parser: MangaParser, s: Manga): Manga? {
+	private suspend fun resolveBySeed(parser: AbstractMangaParser, s: Manga): Manga? {
 		val seed = parser.getDetails(s)
 		if (!parser.filterCapabilities.isSearchSupported) {
 			return seed.takeUnless { it.chapters.isNullOrEmpty() }

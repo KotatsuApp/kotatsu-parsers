@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("NUDEMOON", "Nude-Moon", "ru", type = ContentType.HENTAI)
 internal class NudeMoonParser(
 	context: MangaLoaderContext,
-) : MangaParser(context, MangaParserSource.NUDEMOON), MangaParserAuthProvider {
+) : AbstractMangaParser(context, MangaParserSource.NUDEMOON), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"b.nude-moon.fun",

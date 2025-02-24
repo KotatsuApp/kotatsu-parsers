@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.ru.multichan
 import okhttp3.HttpUrl
 import org.jsoup.internal.StringUtil
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
@@ -14,7 +14,7 @@ import java.util.*
 internal abstract class ChanParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : MangaParser(context, source), MangaParserAuthProvider {
+) : AbstractMangaParser(context, source), MangaParserAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,

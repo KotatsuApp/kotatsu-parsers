@@ -81,4 +81,9 @@ public data class MangaSearchQuery private constructor(
 			return uniqueCriteria.values.toSet()
 		}
 	}
+
+	public companion object {
+
+		public val EMPTY: MangaSearchQuery = MangaSearchQuery(emptySet(), null, 0, false)
+	}
 }

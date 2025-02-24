@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.nepnep
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -20,7 +20,7 @@ internal abstract class NepnepParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-) : MangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

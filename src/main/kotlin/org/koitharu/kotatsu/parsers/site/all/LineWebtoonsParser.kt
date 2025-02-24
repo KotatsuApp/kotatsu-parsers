@@ -6,7 +6,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec
 internal abstract class LineWebtoonsParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : MangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(

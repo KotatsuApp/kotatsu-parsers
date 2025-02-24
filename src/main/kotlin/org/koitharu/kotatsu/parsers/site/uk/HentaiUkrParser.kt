@@ -8,7 +8,7 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -25,7 +25,7 @@ private const val PAGE_SIZE = 60
 
 // NOTE High profile focus
 @MangaSourceParser("HENTAIUKR", "HentaiUkr", "uk", ContentType.HENTAI)
-internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HENTAIUKR),
+internal class HentaiUkrParser(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.HENTAIUKR),
 	Interceptor {
 
 	private val date = SimpleDateFormat("yyyy-MM-dd", Locale.US)

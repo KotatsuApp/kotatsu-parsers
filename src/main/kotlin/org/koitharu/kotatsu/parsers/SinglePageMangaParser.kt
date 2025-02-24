@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.convertToMangaListFilter
 public abstract class SinglePageMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : MangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 
 	final override suspend fun getList(query: MangaSearchQuery): List<Manga> {

@@ -8,7 +8,7 @@ import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -34,7 +34,7 @@ private const val SERVER_DATA = "data"
 private const val SERVER_DATA_SAVER = "data-saver"
 
 @MangaSourceParser("MANGADEX", "MangaDex")
-internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.MANGADEX) {
+internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.MANGADEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangadex.org")
 

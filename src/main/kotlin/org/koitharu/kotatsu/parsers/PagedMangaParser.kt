@@ -16,7 +16,7 @@ public abstract class PagedMangaParser(
 	source: MangaParserSource,
 	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField public val pageSize: Int,
 	searchPageSize: Int = pageSize,
-) : MangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 	@JvmField
 	protected val paginator: Paginator = Paginator(pageSize)

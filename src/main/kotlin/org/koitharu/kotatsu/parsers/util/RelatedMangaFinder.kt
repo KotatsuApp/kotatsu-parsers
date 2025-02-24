@@ -6,8 +6,10 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
+import org.koitharu.kotatsu.parsers.model.search.SearchableField
 
 public class RelatedMangaFinder(
 	private val parsers: Collection<MangaParser>,
@@ -34,7 +36,12 @@ public class RelatedMangaFinder(
 		}
 		val results = words.map { keyword ->
 			scope.async {
-				val result = parser.getList(0, SortOrder.RELEVANCE, MangaListFilter(query = keyword))
+				val result = parser.queryManga(
+					MangaSearchQuery.Builder()
+						.order(SortOrder.RELEVANCE)
+						.criterion(QueryCriteria.Match(SearchableField.TITLE_NAME, keyword))
+						.build(),
+				)
 				result.filter { it.id != seed.id && it.containKeyword(keyword) }
 			}
 		}.awaitAll()

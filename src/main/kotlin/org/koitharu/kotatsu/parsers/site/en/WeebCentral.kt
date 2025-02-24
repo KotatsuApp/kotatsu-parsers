@@ -16,7 +16,7 @@ import java.util.EnumSet
 import java.util.Locale
 
 @MangaSourceParser("WEEBCENTRAL", "Weeb Central", "en")
-internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.WEEBCENTRAL),
+internal class WeebCentral(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.WEEBCENTRAL),
 	MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("weebcentral.com")
