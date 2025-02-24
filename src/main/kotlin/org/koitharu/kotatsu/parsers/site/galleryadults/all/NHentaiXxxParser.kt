@@ -20,10 +20,10 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 	override val pathTagUrl = "/tags/popular?page="
 	override val selectTitle = "h1"
 	override val selectTags = "div.tags_items"
-	override val selectTag = ".tags:contains(Tags:)"
-	override val selectAuthor = ".tags:contains(Artists:) span.tag_name"
+	override val selectTag = ".tags:contains(Tags)"
+	override val selectAuthor = ".tags:contains(Artists) span.tag_name"
 	override val selectLanguageChapter =
-		".tags:contains(Languages:) a:not([href=\"/language/translated/\"]) span.tag_name"
+		".tags:contains(Languages) a:not([href=\"/language/translated/\"]) span.tag_name"
 	override val idImg = "fimg"
 
 	override val availableSortOrders: Set<SortOrder> =
