@@ -20,7 +20,7 @@ internal class SssScanlator(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val chapters = docs.select(selectChapter).mapChapters(reversed = true) { index, element ->
+		val chapters = docs.select(selectChapter).mapChapters { index, element ->
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			val name = element.selectFirst(".chapternum")?.text() ?: "Chapter ${index + 1}"
 			val numChap = findNumChap(name)
