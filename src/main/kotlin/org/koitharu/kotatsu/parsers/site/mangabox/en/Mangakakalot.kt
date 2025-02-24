@@ -31,10 +31,23 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
-			capabilities = setOf(
-				SearchCapability(field = TAG, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
-				SearchCapability(field = TITLE_NAME, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = false),
-				SearchCapability(field = STATE, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = false,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
 			),
 		)
 
@@ -53,18 +66,21 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				.replace(" ", "_")
 				.urlEncoded()
 		}
+
 		is MangaTag -> key
 		is MangaState -> when (this) {
 			MangaState.ONGOING -> "ongoing"
 			MangaState.FINISHED -> "completed"
 			else -> "all"
 		}
+
 		is SortOrder -> when (this) {
 			SortOrder.POPULARITY -> "topview"
 			SortOrder.UPDATED -> "latest"
 			SortOrder.NEWEST -> "newest"
 			else -> ""
 		}
+
 		else -> this.toString().replace(" ", "_").urlEncoded()
 	}
 
@@ -80,19 +96,20 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		Regex("[^A-Za-z0-9 ]")
 	}
 
-	override suspend fun searchPageManga(searchQuery: MangaSearchQuery): List<Manga> {
+	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
 		var titleSearchUrl: String? = null
 		val url = buildString {
-			val pageQueryParameter = "page=${searchQuery.offset ?: 0}"
+			val pageQueryParameter = "page=$page"
 			append("https://$domain/?")
 
-			searchQuery.criteria.forEach { criterion ->
+			query.criteria.forEach { criterion ->
 				when (criterion) {
 					is Include<*> -> {
 						criterion.field.toParamName().takeIf { it.isNotBlank() }?.let { param ->
 							append("&$param=${criterion.values.first().toQueryParam()}")
 						}
 					}
+
 					is Match<*> -> {
 						if (criterion.field == TITLE_NAME) {
 							criterion.value.toQueryParam().takeIf { it.isNotBlank() }?.let { titleName ->
@@ -102,6 +119,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 						}
 						appendCriterion(criterion.field, criterion.value)
 					}
+
 					else -> {
 						// Not supported
 					}
@@ -109,7 +127,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 			}
 
 			append("&$pageQueryParameter")
-			append("&type=${(searchQuery.order ?: defaultSortOrder).toQueryParam()}")
+			append("&type=${(query.order ?: defaultSortOrder).toQueryParam()}")
 		}
 
 		val doc = webClient.httpGet(titleSearchUrl ?: url).parseHtml()

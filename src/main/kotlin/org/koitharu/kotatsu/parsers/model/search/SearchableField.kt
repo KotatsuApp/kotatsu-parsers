@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers.model.search
 
 import org.koitharu.kotatsu.parsers.model.*
-import java.util.Locale
+import java.util.*
 
 /**
  * Represents the various fields that can be used for searching manga.

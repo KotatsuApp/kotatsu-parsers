@@ -14,16 +14,16 @@ public abstract class SinglePageMangaParser(
 ) : MangaParser(context, source) {
 
 
-	final override suspend fun validatedMangaSearch(searchQuery: MangaSearchQuery): List<Manga> {
-		if (searchQuery.offset != null && searchQuery.offset > 0) {
+	final override suspend fun getList(query: MangaSearchQuery): List<Manga> {
+		if (query.offset > 0) {
 			return emptyList()
 		}
-		return searchSinglePageManga(searchQuery)
+		return searchSinglePageManga(query)
 	}
 
 	public open suspend fun searchSinglePageManga(searchQuery: MangaSearchQuery): List<Manga> {
 		return getList(
-			searchQuery.offset ?: 0,
+			searchQuery.offset,
 			searchQuery.order ?: defaultSortOrder,
 			convertToMangaListFilter(searchQuery),
 		)

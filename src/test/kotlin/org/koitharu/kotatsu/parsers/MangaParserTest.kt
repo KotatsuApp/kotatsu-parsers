@@ -38,8 +38,9 @@ internal class MangaParserTest {
 		if (parser is SinglePageMangaParser) {
 			return@runTest
 		}
-		val page1 = parser.searchManga(MangaSearchQuery.builder().offset(0).order(parser.defaultSortOrder).build())
-		val page2 = parser.searchManga(MangaSearchQuery.builder().offset(page1.size).order(parser.defaultSortOrder).build())
+		val page1 = parser.queryManga(MangaSearchQuery.Builder().offset(0).order(parser.defaultSortOrder).build())
+		val page2 =
+			parser.queryManga(MangaSearchQuery.Builder().offset(page1.size).order(parser.defaultSortOrder).build())
 		if (parser is PagedMangaParser) {
 			assert(parser.pageSize >= page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
@@ -58,19 +59,19 @@ internal class MangaParserTest {
 	@MangaSources
 	fun searchByTitleName(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val subject = parser.searchManga(
-			MangaSearchQuery.builder()
+		val subject = parser.queryManga(
+			MangaSearchQuery.Builder()
 				.offset(0)
 				.order(parser.defaultSortOrder)
-				.build()
+				.build(),
 		).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
-		val list = parser.searchManga(
-			MangaSearchQuery.builder()
+		val list = parser.queryManga(
+			MangaSearchQuery.Builder()
 				.order(SortOrder.RELEVANCE)
 				.criterion(QueryCriteria.Match(TITLE_NAME, query))
 				.build(),
@@ -102,8 +103,8 @@ internal class MangaParserTest {
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.searchManga(
-			MangaSearchQuery.builder()
+		val list = parser.queryManga(
+			MangaSearchQuery.Builder()
 				.offset(0)
 				.order(parser.defaultSortOrder)
 				.criterion(Include(TAG, setOf(tag)))
@@ -120,8 +121,8 @@ internal class MangaParserTest {
 		if (!parser.filterCapabilities.isMultipleTagsSupported) return@runTest
 		val tags = parser.getFilterOptions().availableTags.shuffled().take(2).toSet()
 
-		val list = parser.searchManga(
-			MangaSearchQuery.builder()
+		val list = parser.queryManga(
+			MangaSearchQuery.Builder()
 				.offset(0)
 				.order(parser.defaultSortOrder)
 				.criterion(Include(TAG, tags))
@@ -141,8 +142,8 @@ internal class MangaParserTest {
 			return@runTest
 		}
 		val locale = locales.random()
-		val list = parser.searchManga(
-			MangaSearchQuery.builder()
+		val list = parser.queryManga(
+			MangaSearchQuery.Builder()
 				.offset(0)
 				.order(parser.defaultSortOrder)
 				.criterion(Include(LANGUAGE, setOf(locale)))
@@ -159,7 +160,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.searchManga(MangaSearchQuery.builder().offset(0).order(parser.defaultSortOrder).build())
+		val list = parser.queryManga(MangaSearchQuery.Builder().offset(0).order(parser.defaultSortOrder).build())
 
 		val manga = list[0]
 		parser.getDetails(manga).apply {
@@ -190,7 +191,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.searchManga(MangaSearchQuery.builder().offset(0).order(parser.defaultSortOrder).build())
+		val list = parser.queryManga(MangaSearchQuery.Builder().offset(0).order(parser.defaultSortOrder).build())
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
@@ -245,7 +246,8 @@ internal class MangaParserTest {
 	@MangaSources
 	fun link(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val manga = parser.searchManga(MangaSearchQuery.builder().offset(0).order(parser.defaultSortOrder).build()).first()
+		val manga =
+			parser.queryManga(MangaSearchQuery.Builder().offset(0).order(parser.defaultSortOrder).build()).first()
 		val resolved = context.newLinkResolver(manga.publicUrl).getManga()
 		Assertions.assertNotNull(resolved)
 		resolved ?: return@runTest

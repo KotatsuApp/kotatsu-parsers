@@ -3,10 +3,14 @@ package org.koitharu.kotatsu.parsers.util
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.ContentType.*
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.ContentType.MANGA
+import org.koitharu.kotatsu.parsers.model.ContentType.MANHUA
 import org.koitharu.kotatsu.parsers.model.Demographic.SEINEN
-import org.koitharu.kotatsu.parsers.model.search.*
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import java.util.*
@@ -22,7 +26,7 @@ class ConvertToMangaListFilterTest {
 		val contentTypes = setOf(MANGA, MANHUA)
 		val demographics = setOf(SEINEN)
 
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Match(TITLE_NAME, "title_name"))
 			.criterion(Include(TAG, tags))
 			.criterion(Exclude(TAG, excludedTags))
@@ -57,7 +61,7 @@ class ConvertToMangaListFilterTest {
 		val tags1 = setOf(buildMangaTag("tag1"), buildMangaTag("tag2"))
 		val tags2 = setOf(buildMangaTag("tag3"), buildMangaTag("tag4"))
 
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Include(TAG, tags1))
 			.criterion(Include(TAG, tags2))
 			.build()
@@ -69,11 +73,11 @@ class ConvertToMangaListFilterTest {
 
 	@Test
 	fun convertToMangaListFilterWithUnsupportedFieldTest() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Include(AUTHOR, setOf(buildMangaTag("author"))))
 			.build()
 
-		val exception = assertThrows<UnsupportedOperationException> {
+		val exception = assertThrows<IllegalArgumentException> {
 			convertToMangaListFilter(query)
 		}
 

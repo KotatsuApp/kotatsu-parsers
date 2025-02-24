@@ -24,9 +24,9 @@ public abstract class PagedMangaParser(
 	@JvmField
 	protected val searchPaginator: Paginator = Paginator(searchPageSize)
 
-	final override suspend fun validatedMangaSearch(searchQuery: MangaSearchQuery): List<Manga> {
+	final override suspend fun getList(query: MangaSearchQuery): List<Manga> {
 		var containTitleNameCriteria = false
-		searchQuery.criteria.forEach {
+		query.criteria.forEach {
 			if (it.field == SearchableField.TITLE_NAME) {
 				containTitleNameCriteria = true
 			}
@@ -38,15 +38,15 @@ public abstract class PagedMangaParser(
 			} else {
 				searchPaginator
 			},
-			searchQuery = searchQuery,
+			query = query,
 		)
 	}
 
-	public open suspend fun searchPageManga(searchQuery: MangaSearchQuery): List<Manga> {
-		return getList(
-			searchQuery.offset ?: 0,
-			searchQuery.order ?: defaultSortOrder,
-			convertToMangaListFilter(searchQuery),
+	public open suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
+		return getListPage(
+			page = page,
+			order = query.order ?: defaultSortOrder,
+			filter = convertToMangaListFilter(query),
 		)
 	}
 
@@ -81,16 +81,11 @@ public abstract class PagedMangaParser(
 
 	private suspend fun searchManga(
 		paginator: Paginator,
-		searchQuery: MangaSearchQuery,
+		query: MangaSearchQuery,
 	): List<Manga> {
-		val offset: Int = searchQuery.offset ?: 0
+		val offset: Int = query.offset
 		val page = paginator.getPage(offset)
-		val list = searchPageManga(
-			MangaSearchQuery.builder()
-				.copy(searchQuery)
-				.offset(page)
-				.build(),
-		)
+		val list = getListPage(query, page)
 		paginator.onListReceived(offset, page, list.size)
 		return list
 	}

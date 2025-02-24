@@ -34,12 +34,12 @@ class ListFilterToSearchQueryConverterTest {
 			demographics = demographics,
 			year = 2020,
 			yearFrom = 1997,
-			yearTo = 2024
+			yearTo = 2024,
 		)
 
 		val searchQuery = convertToMangaSearchQuery(0, SortOrder.NEWEST, filter)
 
-		val expectedQuery = MangaSearchQuery.builder()
+		val expectedQuery = MangaSearchQuery.Builder()
 			.offset(0)
 			.order(SortOrder.NEWEST)
 			.criterion(Match(TITLE_NAME, "title_name"))
@@ -64,14 +64,14 @@ class ListFilterToSearchQueryConverterTest {
 
 		val searchQuery = convertToMangaSearchQuery(0, SortOrder.NEWEST, filter)
 
-		assertEquals(MangaSearchQuery.builder().offset(0).order(SortOrder.NEWEST).build(), searchQuery)
+		assertEquals(MangaSearchQuery.Builder().offset(0).order(SortOrder.NEWEST).build(), searchQuery)
 	}
 
 	private fun buildMangaTag(name: String): MangaTag {
 		return MangaTag(
 			key = "${name}Key",
 			title = name,
-			source = MangaParserSource.DUMMY
+			source = MangaParserSource.DUMMY,
 		)
 	}
 }

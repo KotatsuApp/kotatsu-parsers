@@ -6,9 +6,11 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.*
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Include
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Match
+import org.koitharu.kotatsu.parsers.model.search.SearchCapability
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -44,10 +46,23 @@ internal class Mangairo(context: MangaLoaderContext) :
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
-			capabilities = setOf(
-				SearchCapability(field = TAG, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
-				SearchCapability(field = TITLE_NAME, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = false),
-				SearchCapability(field = STATE, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = true),
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = false,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
 			),
 		)
 
@@ -59,25 +74,27 @@ internal class Mangairo(context: MangaLoaderContext) :
 			MangaState.FINISHED -> "completed"
 			else -> "all"
 		}
+
 		is SortOrder -> when (this) {
 			SortOrder.POPULARITY -> "topview"
 			SortOrder.UPDATED -> "latest"
 			SortOrder.NEWEST -> "newest"
 			else -> "latest"
 		}
+
 		else -> this.toString().urlEncoded()
 	}
 
-	override suspend fun searchPageManga(searchQuery: MangaSearchQuery): List<Manga> {
+	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
 		var titleSearchUrl: String? = null
 		var category = "all"
 		var state = "all"
 
 		val url = buildString {
 			append("https://${domain}${listUrl}")
-			append("/type-${(searchQuery.order ?: defaultSortOrder).toQueryParam()}")
+			append("/type-${(query.order ?: defaultSortOrder).toQueryParam()}")
 
-			searchQuery.criteria.forEach { criterion ->
+			query.criteria.forEach { criterion ->
 				when (criterion) {
 					is Include<*> -> {
 						when (criterion.field) {
@@ -86,14 +103,16 @@ internal class Mangairo(context: MangaLoaderContext) :
 							else -> Unit
 						}
 					}
+
 					is Match<*> -> {
 						if (criterion.field == TITLE_NAME) {
 							criterion.value.toQueryParam().takeIf { it.isNotBlank() }?.let { titleName ->
 								titleSearchUrl = "https://${domain}${searchUrl}${titleName}/" +
-									"?page=${searchQuery.offset ?: 0}"
+									"?page=${query.offset}"
 							}
 						}
 					}
+
 					else -> {
 						// Not supported
 					}
@@ -101,7 +120,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 			}
 			append("/ctg-$category")
 			append("/state-$state")
-			append("/page-${searchQuery.offset ?: 0}")
+			append("/page-$page")
 		}
 
 		val doc = webClient.httpGet(titleSearchUrl ?: url).parseHtml()

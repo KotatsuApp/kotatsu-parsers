@@ -11,11 +11,13 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.*
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
+import org.koitharu.kotatsu.parsers.model.search.SearchCapability
+import org.koitharu.kotatsu.parsers.model.search.SearchableField
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -79,17 +81,65 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
-			capabilities = setOf(
-				SearchCapability(field = TAG, criteriaTypes = setOf(Include::class, Exclude::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = TITLE_NAME, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = true),
-				SearchCapability(field = STATE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = AUTHOR, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = CONTENT_TYPE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = CONTENT_RATING, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = DEMOGRAPHIC, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = ORIGINAL_LANGUAGE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = LANGUAGE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = PUBLICATION_YEAR, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = true),
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class, Exclude::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = AUTHOR,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = CONTENT_TYPE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = CONTENT_RATING,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = DEMOGRAPHIC,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = ORIGINAL_LANGUAGE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = LANGUAGE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = PUBLICATION_YEAR,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
 			),
 		)
 
@@ -127,7 +177,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		ORIGINAL_LANGUAGE -> "originalLanguage[]"
 		LANGUAGE -> "availableTranslatedLanguage[]"
 		PUBLICATION_YEAR -> "year"
-		else -> ""
 	}
 
 	private fun Any?.toQueryParam(): String = when (this) {
@@ -141,13 +190,14 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			MangaState.PAUSED -> "hiatus"
 			else -> ""
 		}
+
 		is ContentRating -> when (this) {
 			ContentRating.SAFE -> "safe"
 			// quick fix for double value
 			ContentRating.SUGGESTIVE -> "suggestive&contentRating[]=erotica"
 			ContentRating.ADULT -> "pornographic"
-			else -> ""
 		}
+
 		is Demographic -> when (this) {
 			Demographic.SHOUNEN -> "shounen"
 			Demographic.SHOUJO -> "shoujo"
@@ -156,6 +206,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			Demographic.NONE -> "none"
 			else -> ""
 		}
+
 		is SortOrder -> when (this) {
 			SortOrder.UPDATED -> "[latestUploadedChapter]=desc"
 			SortOrder.UPDATED_ASC -> "[latestUploadedChapter]=asc"
@@ -172,6 +223,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			SortOrder.RELEVANCE -> "&order[relevance]=desc"
 			else -> "[latestUploadedChapter]=desc"
 		}
+
 		else -> this.toString().urlEncoded()
 	}
 
@@ -183,14 +235,14 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	override suspend fun validatedMangaSearch(searchQuery: MangaSearchQuery): List<Manga> {
+	override suspend fun getList(query: MangaSearchQuery): List<Manga> {
 		val url = buildString {
-			append("https://api.$domain/manga?limit=$PAGE_SIZE&offset=${searchQuery.offset ?: 0}")
+			append("https://api.$domain/manga?limit=$PAGE_SIZE&offset=${query.offset}")
 				.append("&includes[]=cover_art&includes[]=author&includes[]=artist&includedTagsMode=AND&excludedTagsMode=OR")
 
 			var hasContentRating = false
 
-			searchQuery.criteria.forEach { criterion ->
+			query.criteria.forEach { criterion ->
 				when (criterion) {
 					is Include<*> -> {
 						if (criterion.field == CONTENT_RATING) {
@@ -198,12 +250,15 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 						}
 						criterion.values.forEach { appendCriterion(criterion.field, it) }
 					}
+
 					is Exclude<*> -> {
 						criterion.values.forEach { appendCriterion(criterion.field, it, "excludedTags[]") }
 					}
+
 					is Match<*> -> {
 						appendCriterion(criterion.field, criterion.value)
 					}
+
 					else -> {
 						// Not supported
 					}
@@ -216,7 +271,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			}
 
 			append("&order")
-			append((searchQuery.order ?: defaultSortOrder).toQueryParam())
+			append((query.order ?: defaultSortOrder).toQueryParam())
 		}
 
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
@@ -224,7 +279,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 	}
 
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return searchManga(convertToMangaSearchQuery(offset, order, filter))
+		return queryManga(convertToMangaSearchQuery(offset, order, filter))
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -304,15 +359,14 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				"https://uploads.$domain/covers/$id/$it"
 			}
 		val authors: Set<MangaTag> = (relations["author"] ?: relations["artist"])
-			?.mapNotNull {
+			?.mapNotNullToSet {
 				val key = it.getStringOrNull("id")
 				val title = it.getJSONObject("attributes")?.getStringOrNull("name")
 
 				key?.let { k ->
 					title?.let { t -> MangaTag(key = k, title = t, source = source) }
 				}
-			}
-			?.toSet() ?: emptySet()
+			}.orEmpty()
 
 		return Manga(
 			id = generateUid(id),
@@ -452,7 +506,8 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			val locale = attrs.getStringOrNull("translatedLanguage")?.let { Locale.forLanguageTag(it) }
 			val lc = locale?.getDisplayName(locale)?.toTitleCase(locale)
 			val relations = jo.getJSONArray("relationships").associateByKey("type")
-			val team = relations["scanlation_group"]?.firstOrNull()?.optJSONObject("attributes")?.getStringOrNull("name")
+			val team =
+				relations["scanlation_group"]?.firstOrNull()?.optJSONObject("attributes")?.getStringOrNull("name")
 			val branch = (list.indices).firstNotNullOf { i ->
 				val b = if (i == 0) lc else "$lc ($i)"
 				if (branchedChapters[b]?.get(volume to number) == null) b else null

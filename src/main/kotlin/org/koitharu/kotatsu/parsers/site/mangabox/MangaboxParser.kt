@@ -46,11 +46,29 @@ internal abstract class MangaboxParser(
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
-			capabilities = setOf(
-				SearchCapability(field = TAG, criteriaTypes = setOf(Include::class, Exclude::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = TITLE_NAME, criteriaTypes = setOf(Match::class), multiValue = false, otherCriteria = true),
-				SearchCapability(field = STATE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true),
-				SearchCapability(field = AUTHOR, criteriaTypes = setOf(Include::class), multiValue = false, otherCriteria = false),
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class, Exclude::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = true,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = AUTHOR,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = false,
 			),
 		)
 
@@ -94,12 +112,14 @@ internal abstract class MangaboxParser(
 			MangaState.FINISHED -> "completed"
 			else -> ""
 		}
+
 		is SortOrder -> when (this) {
 			SortOrder.ALPHABETICAL -> "az"
 			SortOrder.NEWEST -> "newest"
 			SortOrder.POPULARITY -> "topview"
 			else -> ""
 		}
+
 		else -> this.toString().replace(" ", "_").urlEncoded()
 	}
 
@@ -115,31 +135,35 @@ internal abstract class MangaboxParser(
 		Regex("[^/]+\$", RegexOption.IGNORE_CASE)
 	}
 
-	override suspend fun searchPageManga(searchQuery: MangaSearchQuery): List<Manga> {
+	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
 		var authorSearchUrl: String? = null
 		val url = buildString {
-			val pageQueryParameter = "page=${searchQuery.offset ?: 0}"
+			val pageQueryParameter = "page=$page"
 			append("https://${domain}${listUrl}/?s=all")
 
-			searchQuery.criteria.forEach { criterion ->
+			query.criteria.forEach { criterion ->
 				when (criterion) {
 					is Include<*> -> {
 						if (criterion.field == AUTHOR) {
-							criterion.values.firstOrNull()?.toQueryParam()?.takeIf { it.isNotBlank() }?.let { authorKey ->
-								authorSearchUrl = "https://${domain}${authorUrl}/${authorKey}/?$pageQueryParameter"
-							}
+							criterion.values.firstOrNull()?.toQueryParam()?.takeIf { it.isNotBlank() }
+								?.let { authorKey ->
+									authorSearchUrl = "https://${domain}${authorUrl}/${authorKey}/?$pageQueryParameter"
+								}
 						}
 
 						criterion.field.toParamName().takeIf { it.isNotBlank() }?.let { param ->
 							append("&$param=${criterion.values.joinToString("_") { it.toQueryParam() }}")
 						}
 					}
+
 					is Exclude<*> -> {
 						append("&g_e=${criterion.values.joinToString("_") { it.toQueryParam() }}")
 					}
+
 					is Match<*> -> {
 						appendCriterion(criterion.field, criterion.value)
 					}
+
 					else -> {
 						// Not supported
 					}
@@ -147,7 +171,7 @@ internal abstract class MangaboxParser(
 			}
 
 			append("&${pageQueryParameter}")
-			append("&orby=${(searchQuery.order ?: defaultSortOrder).toQueryParam()}")
+			append("&orby=${(query.order ?: defaultSortOrder).toQueryParam()}")
 		}
 
 		val doc = webClient.httpGet(authorSearchUrl ?: url).parseHtml()
@@ -174,7 +198,7 @@ internal abstract class MangaboxParser(
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return searchManga(convertToMangaSearchQuery(page, order, filter))
+		return queryManga(convertToMangaSearchQuery(page, order, filter))
 	}
 
 	protected open val selectTagMap = "div.panel-genres-list a:not(.genres-select)"
@@ -215,7 +239,7 @@ internal abstract class MangaboxParser(
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
 		val authors = doc.body().select(selectAut).mapToSet {
 			MangaTag(
-				key = it.attribute("href").value.find(authorKeyRegex)?: it.text(),
+				key = it.attribute("href").value.find(authorKeyRegex) ?: it.text(),
 				title = it.text(),
 				source = source,
 			)

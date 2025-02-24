@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
-import java.util.Locale
+import java.util.*
 
 class MangaSearchQueryCapabilitiesTest {
 
@@ -18,12 +18,12 @@ class MangaSearchQueryCapabilitiesTest {
 			SearchCapability(TAG, setOf(Include::class, Exclude::class), multiValue = true, otherCriteria = true),
 			SearchCapability(PUBLICATION_YEAR, setOf(Range::class), multiValue = false, otherCriteria = true),
 			SearchCapability(STATE, setOf(Include::class), multiValue = false, otherCriteria = true),
-		)
+		),
 	)
 
 	@Test
 	fun validateValidSingleCriterionQuery() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Match(TITLE_NAME, "title"))
 			.build()
 
@@ -32,7 +32,7 @@ class MangaSearchQueryCapabilitiesTest {
 
 	@Test
 	fun validateUnsupportedFieldThrowsException() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Include(ORIGINAL_LANGUAGE, setOf(Locale.ENGLISH)))
 			.build()
 
@@ -41,7 +41,7 @@ class MangaSearchQueryCapabilitiesTest {
 
 	@Test
 	fun validateUnsupportedMultiValueThrowsException() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Include(STATE, setOf(MangaState.ONGOING, MangaState.FINISHED)))
 			.build()
 
@@ -50,7 +50,7 @@ class MangaSearchQueryCapabilitiesTest {
 
 	@Test
 	fun validateMultipleCriteriaWithOtherCriteriaAllowed() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Include(TAG, setOf(buildTag("tag1"), buildTag("tag2"))))
 			.criterion(Exclude(TAG, setOf(buildTag("tag3"))))
 			.build()
@@ -60,7 +60,7 @@ class MangaSearchQueryCapabilitiesTest {
 
 	@Test
 	fun validateMultipleCriteriaWithStrictCapabilityThrowsException() {
-		val query = MangaSearchQuery.builder()
+		val query = MangaSearchQuery.Builder()
 			.criterion(Match(TITLE_NAME, "title"))
 			.criterion(Range(PUBLICATION_YEAR, 1990, 2000))
 			.build()
@@ -68,5 +68,5 @@ class MangaSearchQueryCapabilitiesTest {
 		assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
 	}
 
-	private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source =  MangaParserSource.DUMMY)
+	private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source = MangaParserSource.DUMMY)
 }
