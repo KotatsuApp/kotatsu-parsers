@@ -41,26 +41,23 @@ internal abstract class MangaboxParser(
 			SearchCapability(
 				field = TAG,
 				criteriaTypes = setOf(Include::class, Exclude::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiValue = true,
 			),
 			SearchCapability(
 				field = TITLE_NAME,
 				criteriaTypes = setOf(Match::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiValue = false,
 			),
 			SearchCapability(
 				field = STATE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiValue = true,
 			),
 			SearchCapability(
 				field = AUTHOR,
 				criteriaTypes = setOf(Include::class),
-				multiValue = false,
-				otherCriteria = false,
+				isMultiValue = false,
+				isExclusive = true,
 			),
 		)
 

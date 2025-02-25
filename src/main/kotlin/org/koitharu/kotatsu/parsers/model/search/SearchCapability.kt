@@ -14,10 +14,10 @@ import kotlin.reflect.KClass
  *      Example values:
  *      - `setOf(Include::class, Exclude::class)` selected field supports inclusion/exclusion criteria.
  *      - `setOf(Range::class)` selected field support numerical range criteria.
- * @property multiValue Indicates whether the field supports multiple values.
+ * @property isMultiValue Indicates whether the field supports multiple values.
  *      - `true` if multiple values can be provided (e.g., multiple tags or authors).
  *      - `false` if only a single value is allowed (e.g., only one tag or author).
- * @property otherCriteria Specifies whether the field can be used alongside other criteria.
+ * @property isExclusive Specifies whether the field can be used alongside other criteria.
  *      - `true` if this field can be used with other search criteria.
  *      - `false` if using this field requires it to be the only criterion in query.
  */
@@ -29,8 +29,8 @@ public data class SearchCapability (
 	@JvmField public val criteriaTypes: Set<KClass<out QueryCriteria<*>>>,
 
 	/** Indicates whether the field supports multiple values. */
-	@JvmField public val multiValue: Boolean,
+	@JvmField public val isMultiValue: Boolean,
 
 	/** Specifies whether the field can be used alongside other criteria. */
-	@JvmField public val otherCriteria: Boolean,
+	@JvmField public val isExclusive: Boolean = false,
 )
