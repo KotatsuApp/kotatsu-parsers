@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MILASUB", "MilaSub", "tr")
 internal class MilaSub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MILASUB, "www.milasub.co", 20) {
+	MadaraParser(context, MangaParserSource.MILASUB, "www.milasub.biz", 20) {
 	override val datePattern = "d MMMM yyyy"
 }
