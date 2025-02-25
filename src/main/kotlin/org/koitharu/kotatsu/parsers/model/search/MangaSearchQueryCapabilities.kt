@@ -14,7 +14,7 @@ public data class MangaSearchQueryCapabilities internal constructor(
 
 	@InternalParsersApi
 	public fun validate(query: MangaSearchQuery) {
-		val strictFields = capabilities.filter { !it.otherCriteria }.mapToSet { it.field }
+		val strictFields = capabilities.filter { it.isExclusive }.mapToSet { it.field }
 		val usedStrictFields = query.criteria.mapToSet { it.field }.intersect(strictFields)
 
 		if (usedStrictFields.isNotEmpty() && query.criteria.size > 1) {
@@ -33,8 +33,8 @@ public data class MangaSearchQueryCapabilities internal constructor(
 				)
 			}
 
-			// Ensure single value per criterion if supportMultiValue is false
-			if (!capability.multiValue) {
+			// Ensure single value per criterion if isMultiValue is false
+			if (!capability.isMultiValue) {
 				when (criterion) {
 					is Include<*> -> if (criterion.values.size > 1)
 						throw IllegalArgumentException("Multiple values are not allowed for field ${criterion.field}")
