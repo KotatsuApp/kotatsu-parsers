@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @Broken // Redirect to @WEBTOONHATTI
 @MangaSourceParser("CLOVERMANGA", "CloverManga", "tr")
 internal class CloverManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.CLOVERMANGA, "webtoonhatti.net", 20)
+	MadaraParser(context, MangaParserSource.CLOVERMANGA, "webtoonhatti.me", 20)
