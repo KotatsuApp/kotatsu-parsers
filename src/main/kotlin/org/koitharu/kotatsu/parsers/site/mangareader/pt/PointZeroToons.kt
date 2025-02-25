@@ -9,9 +9,9 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("SSSSCANLATOR", "YomuComics", "pt")
-internal class SssScanlator(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.SSSSCANLATOR, "yomucomics.com", pageSize = 20, searchPageSize = 10) {
+@MangaSourceParser("POINTZEROTOONS", "PointZero Toons", "pt")
+internal class PointZeroToons(context: MangaLoaderContext) :
+	MangaReaderParser(context, MangaParserSource.POINTZEROTOONS, "pointzerotoons.com", pageSize = 20, searchPageSize = 10) {
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
