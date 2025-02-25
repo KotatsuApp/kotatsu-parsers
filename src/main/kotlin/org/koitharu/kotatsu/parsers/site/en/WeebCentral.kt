@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import kotlinx.coroutines.*
+import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.*
 import org.koitharu.kotatsu.parsers.*
@@ -169,7 +170,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 		val document = webClient.httpGet(url).parseHtml()
 
 		return document.select("article:has(section)").map { element ->
-			val mangaId = element.selectFirstOrThrow("div > a")
+			val mangaId = element.selectFirstOrThrow("a")
 				.attrAsAbsoluteUrl("href")
 				.toHttpUrl()
 				.pathSegments[1]
@@ -177,7 +178,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				id = generateUid(mangaId),
 				url = mangaId,
 				publicUrl = "https://$domain/series/$mangaId",
-				title = element.selectFirstOrThrow("div > a").text(),
+				title = element.selectFirstOrThrow("abbr[title] > a").text(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				contentRating = if (element.selectFirst("svg:has(style:containsData(ff0000))") == null) {
@@ -273,7 +274,6 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					desc.append("<br><strong>Links:</strong>")
 					desc.appendChild(ul)
 				}
-
 			}.outerHtml(),
 			chapters = chapters.await(),
 			source = source
@@ -339,5 +339,11 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				source = source
 			)
 		}
+	}
+
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val mangaId = link.pathSegments[1]
+
+		return resolver.resolveManga(this, mangaId)
 	}
 }
