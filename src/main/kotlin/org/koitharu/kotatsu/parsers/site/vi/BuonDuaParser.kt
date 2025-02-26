@@ -29,7 +29,6 @@ import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.tryParse
 import org.koitharu.kotatsu.parsers.util.urlBuilder
-import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 
@@ -76,7 +75,7 @@ internal class BuonDuaParser(context: MangaLoaderContext) : MangaParser(context,
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
 			when {
-				!filter.query.isNullOrEmpty() -> addQueryParameter("search", filter.query.urlEncoded())
+				!filter.query.isNullOrEmpty() -> addQueryParameter("search", filter.query)
 				filter.tags.isNotEmpty() -> addPathSegments(filter.tags.first().key)
 				order == SortOrder.POPULARITY -> addPathSegment("hot")
 			}
@@ -87,8 +86,8 @@ internal class BuonDuaParser(context: MangaLoaderContext) : MangaParser(context,
 		val content = webClient.httpGet(url).parseHtml()
 		val currentPage = content.selectFirst("a.pagination-link.is-current")?.text()?.toIntOrNull()
 		val titlePage = content.selectFirst("head > title")?.text()
-			?.substringBefore("page ")
-			?.substringAfter(" ")
+			?.substringAfter("page ", "")
+			?.substringBefore(" ", "")
 			?.toIntOrNull()
 
 		if (titlePage != null && currentPage != titlePage) return emptyList()
