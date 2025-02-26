@@ -125,10 +125,10 @@ internal class ImHentai(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -161,6 +161,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val author = doc.selectFirst("li:contains(Artists) a.tag")?.ownTextOrNull()
 		manga.copy(
 			tags = doc.body().select("li:contains(Tags) a.tag").mapNotNullToSet {
 				val href = it.attr("href").substringAfterLast("tag/").substringBeforeLast('/')
@@ -170,7 +171,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = doc.selectFirst("li:contains(Artists) a.tag")?.ownTextOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -202,10 +203,10 @@ internal class ImHentai(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = false,
+				contentRating = null,
 			)
 		}
 	}

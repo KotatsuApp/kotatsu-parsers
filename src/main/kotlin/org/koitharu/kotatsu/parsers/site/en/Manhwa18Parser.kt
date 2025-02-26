@@ -129,11 +129,11 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 					url = absUrl.toRelativeUrl(domain),
 					publicUrl = absUrl,
 					rating = RATING_UNKNOWN,
-					isNsfw = true,
+					contentRating = ContentRating.ADULT,
 					coverUrl = it.selectFirst("div.img-in-ratio")?.attrAsAbsoluteUrl("data-bg"),
 					tags = emptySet(),
 					state = null,
-					author = null,
+					authors = emptySet(),
 					largeCoverUrl = null,
 					description = null,
 					source = MangaParserSource.MANHWA18,
@@ -166,7 +166,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 		return manga.copy(
 			altTitle = cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
 				?.removePrefix(": "),
-			author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),
 			state = state,

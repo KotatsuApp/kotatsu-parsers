@@ -77,6 +77,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.select("li.novel-item").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val author = div.selectFirstOrThrow("h6").text().removePrefix("Author(S): ").nullIfEmpty()
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h4").text(),
@@ -84,11 +85,11 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
-				author = div.selectFirstOrThrow("h6").text().removePrefix("Author(S): ").nullIfEmpty(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				source = source,
 			)
 		}
@@ -108,6 +109,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val chaptersDeferred = async { loadChapters(manga.url) }
+		val author = doc.selectFirstOrThrow(".author").textOrNull()
 		manga.copy(
 			altTitle = doc.selectFirstOrThrow(".alternative-title").textOrNull(),
 			state = when (doc.selectFirstOrThrow(".header-stats span:contains(Status) strong").text()) {
@@ -122,7 +124,7 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 					source = source,
 				)
 			},
-			author = doc.selectFirstOrThrow(".author").textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirstOrThrow(".description").html(),
 			chapters = chaptersDeferred.await(),
 		)

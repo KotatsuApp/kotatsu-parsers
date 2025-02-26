@@ -71,10 +71,10 @@ internal class PixHentai(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -95,10 +95,11 @@ internal class PixHentai(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val author = doc.selectFirst("div.entry-content ul li:contains(Artists :) em")?.textOrNull()
 		return manga.copy(
 			description = doc.selectFirst("div.entry-content p")?.html(),
 			altTitle = doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.textOrNull(),
-			author = doc.selectFirst("div.entry-content ul li:contains(Artists :) em")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = null,
 			chapters = listOf(
 				MangaChapter(

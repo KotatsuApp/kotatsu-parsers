@@ -110,14 +110,14 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
 					?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = when (doc.selectLast(".row .col-xl-4 .mt-2 .rounded-pill")?.text()) {
 					"Devam Ediyor", "Güncel" -> MangaState.ONGOING
 					"Tamamlandı" -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -134,14 +134,14 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = when (doc.selectFirst("d-inline .badge")?.text()) {
 					"Devam Ediyor", "Güncel" -> MangaState.ONGOING
 					"Tamamlandı" -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

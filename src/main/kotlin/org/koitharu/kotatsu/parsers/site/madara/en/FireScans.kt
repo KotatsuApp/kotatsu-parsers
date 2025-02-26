@@ -3,10 +3,7 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
@@ -20,6 +17,7 @@ internal class FireScans(context: MangaLoaderContext) :
 		}.map { div ->
 			val href = div.selectFirst("h3 a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
+			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -36,7 +34,7 @@ internal class FireScans(context: MangaLoaderContext) :
 						source = source,
 					)
 				}.orEmpty(),
-				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = when (
 					summary?.selectFirst(".mg_status")
 						?.selectFirst(".summary-content")
@@ -50,7 +48,7 @@ internal class FireScans(context: MangaLoaderContext) :
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

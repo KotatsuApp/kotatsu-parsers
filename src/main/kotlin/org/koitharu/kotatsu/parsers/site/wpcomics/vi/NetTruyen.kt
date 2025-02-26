@@ -31,10 +31,11 @@ internal class NetTruyen(context: MangaLoaderContext) :
 		val doc = docDeferred.await()
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
+		val author = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.body().select(selectAut).textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

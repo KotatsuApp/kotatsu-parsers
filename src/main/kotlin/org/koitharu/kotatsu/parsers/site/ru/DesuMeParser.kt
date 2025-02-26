@@ -91,7 +91,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				},
 				rating = jo.getDouble("score").toFloat().coerceIn(0f, 1f),
 				id = generateUid(id),
-				isNsfw = false,
+				contentRating = null,
 				tags = if (!tagsMap.isNullOrEmpty()) {
 					genres.mapNotNullToSet { g ->
 						tagsMap[g.trim().toTitleCase()]
@@ -99,7 +99,7 @@ internal class DesuMeParser(context: MangaLoaderContext) : PagedMangaParser(cont
 				} else {
 					emptySet()
 				},
-				author = null,
+				authors = emptySet(),
 				description = jo.getString("description"),
 			)
 		}

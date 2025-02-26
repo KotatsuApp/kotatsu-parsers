@@ -105,21 +105,22 @@ internal abstract class MangAdventureParser(
 		val details = requireNotNull(url.get())
 		val chapters = url.addEncodedPathSegment("chapters")
 			.addEncodedQueryParameter("date_format", "timestamp").get()
+		val author = buildString {
+			val authors = details.getJSONArray("authors")
+			val artists = details.getJSONArray("artists")
+			if (authors.length() > 0 && artists.length() > 0) {
+				authors.joinTo(this, postfix = ", ")
+				artists.joinTo(this)
+			} else if (authors.length() > 0) {
+				authors.joinTo(this)
+			} else if (artists.length() > 0) {
+				artists.joinTo(this)
+			}
+		}
 		return manga.copy(
 			description = details.getStringOrNull("description"),
 			altTitle = details.getJSONArray("aliases").joinToString().nullIfEmpty(),
-			author = buildString {
-				val authors = details.getJSONArray("authors")
-				val artists = details.getJSONArray("artists")
-				if (authors.length() > 0 && artists.length() > 0) {
-					authors.joinTo(this, postfix = ", ")
-					artists.joinTo(this)
-				} else if (authors.length() > 0) {
-					authors.joinTo(this)
-				} else if (artists.length() > 0) {
-					artists.joinTo(this)
-				}
-			},
+			authors = setOf(author),
 			tags = details.getJSONArray("categories").mapTo(HashSet()) {
 				val name = it as String
 				MangaTag(name, name, source)
@@ -191,11 +192,11 @@ internal abstract class MangAdventureParser(
 				url = path,
 				publicUrl = publicUrl,
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = it.getString("cover"),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		} ?: emptyList()

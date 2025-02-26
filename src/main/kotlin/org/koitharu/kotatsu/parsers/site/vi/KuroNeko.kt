@@ -135,11 +135,11 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = true,
+				contentRating = ContentRating.ADULT,
 				coverUrl = coverUrl.orEmpty(),
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -147,6 +147,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
 			altTitle = root.selectLast("div.grow div:contains(Tên khác) span")?.textOrNull(),
@@ -162,7 +163,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 					source = source,
 				)
 			},
-			author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
 				.mapChapters(reversed = true) { i, a ->

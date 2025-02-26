@@ -90,11 +90,11 @@ internal class DynastyScans(context: MangaLoaderContext) :
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
-					isNsfw = false,
+					contentRating = null,
 					coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
 					tags = setOf(),
 					state = null,
-					author = null,
+					authors = emptySet(),
 					source = source,
 				)
 			}
@@ -111,7 +111,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
-					isNsfw = false,
+					contentRating = null,
 					coverUrl = null,
 					tags = div.select("span.tags a").mapToSet { a ->
 						MangaTag(
@@ -121,7 +121,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 						)
 					},
 					state = null,
-					author = null,
+					authors = emptySet(),
 					source = source,
 				)
 			}

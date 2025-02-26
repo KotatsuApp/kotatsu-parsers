@@ -76,11 +76,11 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = li.selectFirst("img")?.absUrl("data-src").orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -89,6 +89,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+		val author = doc.selectFirst(".info-item:has(.fa-user)")?.textOrNull()?.removePrefix("Tác giả: ")
 
 		return manga.copy(
 			altTitle = doc.selectFirst(".box_info_right h2")?.textOrNull(),
@@ -104,7 +105,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				"Full" -> MangaState.FINISHED
 				else -> null
 			},
-			author = doc.selectFirst(".info-item:has(.fa-user)")?.textOrNull()?.removePrefix("Tác giả: "),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select(".list-chapters .chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow(".chap_name a")

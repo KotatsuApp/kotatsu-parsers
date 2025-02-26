@@ -99,11 +99,11 @@ internal abstract class CupFoxParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = li.selectFirst(selectMangasCover)?.src(),
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -122,6 +122,7 @@ internal abstract class CupFoxParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst(selectMangaDetailsAuthor)?.text()?.substringAfter("：")?.nullIfEmpty()
 		return manga.copy(
 			altTitle = doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("：")?.nullIfEmpty(),
 			tags = doc.select(selectMangaDetailsTags).mapToSet { a ->
@@ -131,7 +132,7 @@ internal abstract class CupFoxParser(
 					source = source,
 				)
 			},
-			author = doc.selectFirst(selectMangaDetailsAuthor)?.text()?.substringAfter("：")?.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst(selectMangaDescription)?.html(),
 			chapters = doc.select(selectMangaChapters)
 				.mapChapters { i, li ->
@@ -164,11 +165,11 @@ internal abstract class CupFoxParser(
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
-					isNsfw = false,
+					contentRating = null,
 					coverUrl = li.selectFirst(selectMangasCover)?.src(),
 					tags = setOf(),
 					state = null,
-					author = null,
+					authors = emptySet(),
 					source = source,
 				)
 			}

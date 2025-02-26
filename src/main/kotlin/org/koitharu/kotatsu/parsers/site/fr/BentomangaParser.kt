@@ -111,6 +111,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		return root.select(".manga[data-manga]").map { div ->
 			val header = div.selectFirstOrThrow(".manga_header")
 			val href = header.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val isNsfwSource = div.selectFirst(".badge-adult_content") != null
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirst("h1")?.text().orEmpty(),
@@ -123,7 +124,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 					?.toFloatOrNull()
 					?.div(10f)
 					?: RATING_UNKNOWN,
-				isNsfw = div.selectFirst(".badge-adult_content") != null,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = div.selectFirst("img")?.src().assertNotNull("src"),
 				tags = div.selectFirst(".component-manga-categories")
 					.assertNotNull("tags")
@@ -136,7 +137,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 						)
 					}.orEmpty(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				description = div.selectFirst(".manga_synopsis")?.html().assertNotNull("description"),
 				source = source,
 			)
@@ -147,6 +148,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		val mangaUrl = manga.url.toAbsoluteUrl(domain)
 		val root = webClient.httpGet(mangaUrl).parseHtml()
 			.requireElementById("container_manga_show")
+		val author = root.selectFirst(".datas_more-authors-people")?.textOrNull()
 		return manga.copy(
 			altTitle = root.selectFirst(".component-manga-title_alt")?.textOrNull(),
 			description = root.selectFirst(".datas_synopsis")?.html().assertNotNull("description")
@@ -158,7 +160,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
-			author = root.selectFirst(".datas_more-authors-people")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = run {
 				val input = root.selectFirst("input[name=\"limit\"]") ?: return@run parseChapters(root)
 				val max = input.attr("max").toInt()

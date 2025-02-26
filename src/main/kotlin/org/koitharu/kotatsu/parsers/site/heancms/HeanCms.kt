@@ -129,7 +129,7 @@ internal abstract class HeanCms(
 				publicUrl = publicUrl.toAbsoluteUrl(domain),
 				description = it.getString("description"),
 				rating = it.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = cover,
 				tags = emptySet(),
 				state = when (it.getString("status")) {
@@ -139,7 +139,7 @@ internal abstract class HeanCms(
 					"Hiatus" -> MangaState.PAUSED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

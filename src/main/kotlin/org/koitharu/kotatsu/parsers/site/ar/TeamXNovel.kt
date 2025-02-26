@@ -108,7 +108,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").src()?.replace("thumbnail_", ""),
 				tags = emptySet(),
 				state = when (div.selectFirst(".status")?.text()) {
@@ -117,7 +117,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 					"متوقف" -> MangaState.ABANDONED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

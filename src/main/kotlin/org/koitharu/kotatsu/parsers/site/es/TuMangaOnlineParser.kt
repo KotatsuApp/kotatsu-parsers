@@ -151,6 +151,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 		val doc = webClient.httpGet(url, getRequestHeaders()).parseHtml()
 		val items = doc.body().select("div.element")
 		return items.mapNotNull { item ->
+			val isNsfwSource = item.select("i").hasClass("fas fa-heartbeat fa-2x")
 			val href =
 				item.selectFirst("a")?.attrAsRelativeUrlOrNull("href")?.substringAfter(' ') ?: return@mapNotNull null
 			Manga(
@@ -158,10 +159,10 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 				title = item.selectFirst("h4.text-truncate")?.text() ?: return@mapNotNull null,
 				coverUrl = item.select("style").toString().substringAfter("('").substringBeforeLast("')"),
 				altTitle = null,
-				author = null,
+				authors = emptySet(),
 				rating = item.selectFirst("span.score")?.text()?.toFloatOrNull()?.div(10F) ?: RATING_UNKNOWN,
 				url = href,
-				isNsfw = item.select("i").hasClass("fas fa-heartbeat fa-2x"),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				tags = emptySet(),
 				state = null,
 				publicUrl = href.toAbsoluteUrl(doc.host ?: domain),
@@ -174,6 +175,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val contents = doc.body().selectFirstOrThrow("section.element-header-content")
+		val author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", ")
 		return manga.copy(
 			description = contents.selectFirst("p.element-description")?.html(),
 			tags = contents.select("h6 a").mapToSet { a ->
@@ -185,7 +187,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 			},
 			largeCoverUrl = contents.selectFirst(".book-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
-			author = contents.selectFirst("h5.card-title")?.attr("title")?.substringAfter(", "),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = if (doc.select("div.chapters").isEmpty()) {
 				doc.select(oneShotChapterListSelector).mapChapters(reversed = true) { _, item ->
 					oneShotChapterFromElement(item)

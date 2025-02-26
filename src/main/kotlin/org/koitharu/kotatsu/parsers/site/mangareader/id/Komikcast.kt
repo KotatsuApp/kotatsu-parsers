@@ -123,7 +123,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 		return manga.copy(
 			description = docs.selectFirst("div.komik_info-description-sinopsis")?.text(),
 			state = mangaState,
-			author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {
@@ -147,11 +147,11 @@ internal class Komikcast(context: MangaLoaderContext) :
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = it.selectFirst("img.ts-post-image")?.src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

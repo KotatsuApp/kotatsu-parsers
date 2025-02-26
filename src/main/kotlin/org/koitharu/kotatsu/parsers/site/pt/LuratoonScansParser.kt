@@ -52,10 +52,10 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = false,
+				contentRating = null,
 			)
 		}
 	}
@@ -65,6 +65,8 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 		val summaryContainer = doc.selectFirstOrThrow(".sumario__container")
 		// 1 de Maio de 2024 às 20:15
 		val dateFormat = SimpleDateFormat("dd 'de' MMM 'de' YYYY 'às' HH:mm", sourceLocale)
+		val author = summaryContainer.getElementsContainingOwnText("Autor(es)").firstOrNull()
+			?.nextElementSibling()?.textOrNull()
 		return manga.copy(
 			title = doc.selectFirst("h1.desc__titulo__comic")?.textOrNull() ?: manga.title,
 			altTitle = summaryContainer.getElementsContainingOwnText("Alternativo").firstOrNull()
@@ -83,8 +85,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 				"finalizado" -> MangaState.FINISHED
 				else -> null
 			},
-			author = summaryContainer.getElementsContainingOwnText("Autor(es)").firstOrNull()
-				?.nextElementSibling()?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			largeCoverUrl = doc.selectFirst("img.sumario__img")?.attrAsAbsoluteUrlOrNull("src"),
 			description = summaryContainer.selectFirst(".sumario__sinopse__texto")?.html(),
 			chapters = doc.selectFirstOrThrow("ul.capitulos__lista")

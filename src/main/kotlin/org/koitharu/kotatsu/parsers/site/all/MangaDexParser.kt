@@ -287,6 +287,9 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			?.let {
 				"https://uploads.$domain/covers/$id/$it"
 			}
+		val author = (relations["author"] ?: relations["artist"])
+			?.getJSONObject("attributes")
+			?.getStringOrNull("name")
 		return Manga(
 			id = generateUid(id),
 			title = requireNotNull(attrs.getJSONObject("title").selectByLocale()) {
@@ -322,9 +325,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				"cancelled" -> MangaState.ABANDONED
 				else -> null
 			},
-			author = (relations["author"] ?: relations["artist"])
-				?.getJSONObject("attributes")
-				?.getStringOrNull("name"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = chapters,
 			source = source,
 		)

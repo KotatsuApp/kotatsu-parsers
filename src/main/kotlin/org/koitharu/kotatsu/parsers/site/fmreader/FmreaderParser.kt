@@ -147,10 +147,10 @@ internal abstract class FmreaderParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -190,7 +190,7 @@ internal abstract class FmreaderParser(
 			}
 		}
 		val alt = doc.body().selectFirst(selectAlt)?.text()?.replace("Other names", "")?.nullIfEmpty()
-		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
+		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -201,7 +201,7 @@ internal abstract class FmreaderParser(
 			},
 			description = desc,
 			altTitle = alt,
-			author = auth,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

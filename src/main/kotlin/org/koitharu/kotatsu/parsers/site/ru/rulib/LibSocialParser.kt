@@ -143,11 +143,12 @@ internal abstract class LibSocialParser(
 		val tags = json.getJSONArray("genres").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "t" + jo.getInt("id"), source = source)
 		}
+		val author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name")
 		manga.copy(
 			title = json.getStringOrNull("rus_name") ?: manga.title,
 			altTitle = json.getStringOrNull("name"),
 			tags = tagsSetOf(tags, genres),
-			author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = json.getString("summary").nl2br(),
 			chapters = chapters.await(),
 		)
@@ -204,6 +205,7 @@ internal abstract class LibSocialParser(
 
 	private fun parseManga(jo: JSONObject): Manga {
 		val cover = jo.getJSONObject("cover")
+		val isNsfwSource = jo.getJSONObject("ageRestriction").getIntOrDefault("id", 0) >= 3
 		return Manga(
 			id = generateUid(jo.getLong("id")),
 			title = jo.getString("rus_name").ifEmpty { jo.getString("name") },
@@ -212,11 +214,11 @@ internal abstract class LibSocialParser(
 			publicUrl = "https://$siteDomain/ru/manga/" + jo.getString("slug_url"),
 			rating = jo.optJSONObject("rating")
 				?.getFloatOrDefault("average", RATING_UNKNOWN * 10f)?.div(10f) ?: RATING_UNKNOWN,
-			isNsfw = jo.getJSONObject("ageRestriction").getIntOrDefault("id", 0) >= 3,
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			coverUrl = cover.getString("thumbnail"),
 			tags = setOf(),
 			state = statesMap[jo.optJSONObject("status")?.getIntOrDefault("id", -1) ?: -1],
-			author = null,
+			authors = emptySet(),
 			largeCoverUrl = cover.getString("default"),
 			source = source,
 		)

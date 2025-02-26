@@ -126,11 +126,11 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = li.selectFirst("img")?.src().orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -150,6 +150,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+		val author = doc.selectFirst("li.author a")?.text()
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
 			tags = doc.select("ul.list01 li").mapToSet {
@@ -165,7 +166,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 				"Hoàn Thành" -> MangaState.FINISHED
 				else -> null
 			},
-			author = doc.selectFirst("li.author a")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select("div.list_chapter div.works-chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")

@@ -50,11 +50,11 @@ internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(con
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").src()?.toAbsoluteUrl(domain).orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -63,6 +63,7 @@ internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(con
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd MMM, yy", Locale.ENGLISH)
+		val author = doc.selectLast(".author span")?.textOrNull()
 		return manga.copy(
 			state = when (doc.select(".status span").last()?.text()) {
 				"Devam ediyor" -> MangaState.ONGOING
@@ -70,7 +71,7 @@ internal class SadScans(context: MangaLoaderContext) : SinglePageMangaParser(con
 				else -> null
 			},
 			tags = emptySet(),
-			author = doc.selectLast(".author span")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirstOrThrow(".summary").html(),
 			chapters = doc.select(".chap-section .chap")
 				.mapChapters(reversed = true) { i, div ->

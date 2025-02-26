@@ -102,10 +102,10 @@ internal abstract class ScanParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 
@@ -140,13 +140,14 @@ internal abstract class ScanParser(
 		val selectTag =
 			doc.select(".card-series-detail .col-6:contains(Categorie) div, .card-series-about .mb-3:contains(Categorie) a, .card-series-about .mb-3:contains(Categorias) a")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
+		val author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
+			?.textOrNull()
 		return manga.copy(
 			rating = doc.selectFirst(".card-series-detail .rate-value span, .card-series-about .rate-value span")
 				?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = tags,
-			author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
-				?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2, .card-series-about .h6")?.textOrNull(),
 			description = doc.selectFirst(".card div.col-12.mb-4 p, .card-series-desc .mb-4 p")?.html(),
 			chapters = doc.select(".chapters-list .col-chapter, .card-list-chapter .col-chapter")

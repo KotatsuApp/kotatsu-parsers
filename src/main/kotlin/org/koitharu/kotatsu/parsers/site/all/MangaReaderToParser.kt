@@ -132,8 +132,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				coverUrl = thumb.attr("src"),
 				source = source,
 				altTitle = null,
-				author = null,
-				isNsfw = false,
+				authors = emptySet(),
+				contentRating = null,
 				rating = RATING_UNKNOWN,
 				state = null,
 				tags = emptySet(),
@@ -155,7 +155,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 					coverUrl = thumb.attrAsAbsoluteUrlOrNull("src"),
 					source = source,
 					altTitle = null,
-					author = null,
+					authors = emptySet(),
 					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,
@@ -169,6 +169,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		val availableTags = tags.get()
 		var isAdult = false
 		var isSuggestive = false
+		val author = document.select("div.anisc-info a[href*=/author/]")
+			.joinToString { it.ownText().replace(", ", " ") }.nullIfEmpty()
 
 		return manga.copy(
 			title = document.selectFirst("h2.manga-name")!!.ownText(),
@@ -201,8 +203,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 						else -> null
 					}
 				},
-			author = document.select("div.anisc-info a[href*=/author/]")
-				.joinToString { it.ownText().replace(", ", " ") }.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = document.select("div.description").html(),
 			chapters = parseChapters(document),
 			source = source,

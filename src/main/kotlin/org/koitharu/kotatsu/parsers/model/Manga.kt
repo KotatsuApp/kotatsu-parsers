@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.model
 
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.util.findById
+import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 
 public data class Manga constructor(
@@ -49,9 +50,9 @@ public data class Manga constructor(
 	 */
 	@JvmField public val state: MangaState?,
 	/**
-	 * Author of the manga, may be null
+	 * Authors of the manga
 	 */
-	@JvmField public val author: String?,
+	@JvmField public val authors: Set<String>,
 	/**
 	 * Large cover url (absolute), null if is no large cover
 	 * @see coverUrl
@@ -70,41 +71,12 @@ public data class Manga constructor(
 	 */
 	@JvmField public val source: MangaSource,
 ) {
-
-	@Deprecated("Prefer constructor with contentRating instead of isNsfw")
-	public constructor(
-		id: Long,
-		title: String,
-		altTitle: String?,
-		url: String,
-		publicUrl: String,
-		rating: Float,
-		isNsfw: Boolean,
-		coverUrl: String?,
-		tags: Set<MangaTag>,
-		state: MangaState?,
-		author: String?,
-		largeCoverUrl: String? = null,
-		description: String? = null,
-		chapters: List<MangaChapter>? = null,
-		source: MangaSource,
-	) : this(
-		id = id,
-		title = title,
-		altTitle = altTitle?.nullIfEmpty(),
-		url = url,
-		publicUrl = publicUrl,
-		rating = rating,
-		contentRating = if (isNsfw) ContentRating.ADULT else null,
-		coverUrl = coverUrl?.nullIfEmpty(),
-		tags = tags,
-		state = state,
-		author = author?.nullIfEmpty(),
-		largeCoverUrl = largeCoverUrl?.nullIfEmpty(),
-		description = description?.nullIfEmpty(),
-		chapters = chapters,
-		source = source,
-	)
+	/**
+	 * Author of the manga, may be null
+	 */
+	@Deprecated("Please use authors")
+	public val author: String?
+		get() = authors.firstOrNull()
 
 	/**
 	 * Return if manga has a specified rating

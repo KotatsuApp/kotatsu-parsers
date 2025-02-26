@@ -84,8 +84,8 @@ internal abstract class GattsuParser(
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}
@@ -111,12 +111,12 @@ internal abstract class GattsuParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val urlChapter = doc.selectFirstOrThrow("ul.post-fotos li a, ul.paginaPostBotoes a").attrAsAbsoluteUrl("href")
+		val author = doc.selectFirst(".post-itens li:contains(Autor) a, .paginaPostInfo li:contains(Artista) a")?.text()
 		return manga.copy(
 			description = doc.selectFirst("div.post-texto")?.html(),
 			tags = doc.selectFirst(".post-itens li:contains(Tags), .paginaPostInfo li:contains(Categorias)")
 				?.parseTags().orEmpty(),
-			author = doc.selectFirst(".post-itens li:contains(Autor) a, .paginaPostInfo li:contains(Artista) a")
-				?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

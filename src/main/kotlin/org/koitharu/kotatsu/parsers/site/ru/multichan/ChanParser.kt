@@ -50,16 +50,17 @@ internal abstract class ChanParser(
 				?: return@mapNotNull null
 			val href = a.attrAsRelativeUrl("href")
 			val title = a.text().parseTitle()
+			val author = row.getElementsByAttributeValueStarting(
+				"href",
+				"/mangaka",
+			).firstOrNull()?.text()
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitle = title.second,
 				title = title.first,
-				author = row.getElementsByAttributeValueStarting(
-					"href",
-					"/mangaka",
-				).firstOrNull()?.text(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				coverUrl = row.selectFirst("div.manga_images")?.selectFirst("img")
 					?.absUrl("src").orEmpty(),
 				tags = runCatching {
@@ -73,7 +74,7 @@ internal abstract class ChanParser(
 				}.getOrNull().orEmpty(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}
@@ -165,21 +166,22 @@ internal abstract class ChanParser(
 			val a = info.selectFirst("a") ?: return@mapNotNull null
 			val href = a.attrAsRelativeUrl("href")
 			val title = a.text().parseTitle()
+			val author = info.getElementsByAttributeValueStarting(
+				"href",
+				"/mangaka",
+			).firstOrNull()?.text()
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitle = title.second,
 				title = title.first,
-				author = info.getElementsByAttributeValueStarting(
-					"href",
-					"/mangaka",
-				).firstOrNull()?.text(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				coverUrl = div.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

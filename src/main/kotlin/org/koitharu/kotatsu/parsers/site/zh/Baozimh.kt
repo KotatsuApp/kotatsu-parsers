@@ -111,6 +111,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 	private fun parseMangaList(json: JSONArray): List<Manga> {
 		return json.mapJSON { j ->
 			val href = "https://$domain/comic/" + j.getString("comic_id")
+			val author = j.getString("author")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -120,10 +121,10 @@ internal class Baozimh(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = j.getString("author"),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -140,10 +141,10 @@ internal class Baozimh(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

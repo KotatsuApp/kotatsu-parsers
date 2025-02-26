@@ -179,6 +179,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				.attrAsAbsoluteUrl("href")
 				.toHttpUrl()
 				.pathSegments[1]
+			val author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty()
 			Manga(
 				id = generateUid(mangaId),
 				url = mangaId,
@@ -210,7 +211,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					"Hiatus" -> PAUSED
 					else -> null
 				},
-				author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				largeCoverUrl = null,
 				chapters = null,
 				source = source,
@@ -226,6 +227,8 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 
 		val sectionLeft = document.select("section[x-data] > section")[0]
 		val sectionRight = document.select("section[x-data] > section")[1]
+		val author = sectionLeft.select("ul > li:has(strong:contains(Author)) > span > a")
+			.eachText().joinToString()
 
 		manga.copy(
 			title = sectionRight.selectFirstOrThrow("h1").text(),
@@ -253,8 +256,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				"Hiatus" -> PAUSED
 				else -> null
 			},
-			author = sectionLeft.select("ul > li:has(strong:contains(Author)) > span > a")
-				.eachText().joinToString(),
+			authors = setOf(author),
 			description = Element("div").also { desc ->
 				sectionRight.selectFirst("li:has(strong:contains(Description)) > p")?.let {
 					desc.appendChild(it)

@@ -72,11 +72,11 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.selectFirstOrThrow(".item__rating").ownText().toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -85,6 +85,9 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
+		val author = root.select("ul.pmovie__list li:contains(Artist(s):)").text()
+			.replace("Artist(s):", "")
+			.nullIfEmpty()
 		return manga.copy(
 			altTitle = root.select("ul.pmovie__list li:contains(Nom Alternatif:)").text()
 				.replace("Nom Alternatif:", "").nullIfEmpty(),
@@ -101,9 +104,7 @@ internal class LireScan(context: MangaLoaderContext) : PagedMangaParser(context,
 						source = source,
 					)
 				},
-			author = root.select("ul.pmovie__list li:contains(Artist(s):)").text()
-				.replace("Artist(s):", "")
-				.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = root.selectFirst("div.pmovie__text")?.html(),
 			chapters = root.select("ul li div.chapter")
 				.mapChapters(reversed = true) { i, div ->

@@ -63,6 +63,9 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 			.mapJSON { jo ->
 				val id = jo.getLong("id")
 				val relativeUrl = "/manga/$id"
+				val author = jo.getJSONArray("author")
+					.mapJSON { author -> author.getString("name") }
+					.joinToString { it }
 				Manga(
 					id = generateUid(id),
 					title = jo.getString("originalName"),
@@ -70,7 +73,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
-					isNsfw = true,
+					contentRating = ContentRating.ADULT,
 					coverUrl = "https://$storageDomain/${jo.getString("thumbnail")}",
 					tags = jo.getJSONArray("tag").mapJSONToSet { tag ->
 						MangaTag(
@@ -85,9 +88,7 @@ internal class YurinekoParser(context: MangaLoaderContext) : PagedMangaParser(co
 						5, 6, 7 -> MangaState.ABANDONED
 						else -> null
 					},
-					author = jo.getJSONArray("author")
-						.mapJSON { author -> author.getString("name") }
-						.joinToString { it },
+					authors = setOf(author),
 					description = jo.getStringOrNull("description"),
 					source = source,
 				)

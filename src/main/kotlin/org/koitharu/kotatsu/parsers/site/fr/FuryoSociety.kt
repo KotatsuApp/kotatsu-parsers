@@ -74,10 +74,10 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = false,
+				contentRating = null,
 			)
 		}
 	}

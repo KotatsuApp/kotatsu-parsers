@@ -115,10 +115,10 @@ internal abstract class OtakuSanctuaryParser(
 				altTitle = null,
 				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -160,7 +160,7 @@ internal abstract class OtakuSanctuaryParser(
 		}
 
 		val alt = doc.body().selectFirst(selectAlt)?.textOrNull()?.replace("Other names", "")?.nullIfEmpty()
-		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
+		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 
@@ -175,7 +175,7 @@ internal abstract class OtakuSanctuaryParser(
 			},
 			description = desc,
 			altTitle = alt,
-			author = auth,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = doc.body().requireElementById("chapter").select("tr.chapter")
 				.mapChapters(reversed = true) { i, tr ->

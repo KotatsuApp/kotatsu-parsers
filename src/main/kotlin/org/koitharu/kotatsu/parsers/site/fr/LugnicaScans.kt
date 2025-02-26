@@ -111,11 +111,11 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
 				rating = j.getFloatOrDefault("manga_rate", RATING_UNKNOWN).div(5f),
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = img,
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -132,7 +132,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
 				rating = j.getString("rate").toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = img,
 				tags = setOf(),
 				state = when (j.getString("status")) {
@@ -141,7 +141,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 					"3" -> MangaState.ABANDONED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -161,6 +161,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 		}
 		val slug = manga.url.substringAfterLast("/")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
+		val author = jsonManga.getStringOrNull("author")
 		return manga.copy(
 			state = when (jsonManga.getString("status")) {
 				"0" -> MangaState.ONGOING
@@ -168,7 +169,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				"3" -> MangaState.ABANDONED
 				else -> null
 			},
-			author = jsonManga.getStringOrNull("author"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = jsonManga.getStringOrNull("description"),
 			chapters = chapters.mapChapters { i, it ->
 				val id = it.substringAfter("\"chapter\":").substringBefore(",")

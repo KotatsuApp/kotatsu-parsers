@@ -91,7 +91,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = cover,
 				tags = emptySet(),
 				state = when (j.getString("status")) {
@@ -101,7 +101,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 					"droped" -> MangaState.ABANDONED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

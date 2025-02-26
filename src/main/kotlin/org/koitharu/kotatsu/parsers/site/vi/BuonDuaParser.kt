@@ -113,7 +113,7 @@ internal class BuonDuaParser(context: MangaLoaderContext) : MangaParser(context,
 					)
 				},
 				state = MangaState.FINISHED,
-				author = null,
+				authors = emptySet(),
 				largeCoverUrl = null,
 				description = null,
 				chapters = null,

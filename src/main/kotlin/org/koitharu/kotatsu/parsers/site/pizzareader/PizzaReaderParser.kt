@@ -175,6 +175,12 @@ internal abstract class PizzaReaderParser(
 	}
 
 	private fun addManga(href: String, j: JSONObject): Manga {
+		val isNsfwSource = when (j.getString("adult").toInt()) {
+			0 -> false
+			1 -> true
+			else -> true
+		}
+		val author = j.getString("author")
 		return Manga(
 			id = generateUid(href),
 			url = href,
@@ -189,7 +195,7 @@ internal abstract class PizzaReaderParser(
 			rating = j.getString("rating").toFloatOrNull()?.div(10f)
 				?: RATING_UNKNOWN,
 			tags = emptySet(),
-			author = j.getString("author"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (j.getString("status").lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
@@ -198,11 +204,7 @@ internal abstract class PizzaReaderParser(
 				else -> null
 			},
 			source = source,
-			isNsfw = when (j.getString("adult").toInt()) {
-				0 -> false
-				1 -> true
-				else -> true
-			},
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 		)
 	}
 

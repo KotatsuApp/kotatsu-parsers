@@ -113,11 +113,11 @@ internal abstract class GalleryAdultsParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = div.selectFirst(selectGalleryImg)?.src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -165,10 +165,11 @@ internal abstract class GalleryAdultsParser(
 		val branch = doc.select(selectLanguageChapter).joinToString(separator = " / ") {
 			it.html().substringBefore("<")
 		}
+		val author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span")
 		return manga.copy(
 			tags = tag.orEmpty(),
 			title = doc.selectFirst(selectTitle)?.textOrNull()?.cleanupTitle() ?: manga.title,
-			author = doc.selectFirst(selectAuthor)?.html()?.substringBefore("<span"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

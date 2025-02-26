@@ -82,6 +82,7 @@ internal class MangaPure(context: MangaLoaderContext) :
 		}.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
+			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -97,7 +98,7 @@ internal class MangaPure(context: MangaLoaderContext) :
 						source = source,
 					)
 				}.orEmpty(),
-				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
 					?.lowercase()) {
 					"ongoing" -> MangaState.ONGOING
@@ -105,7 +106,7 @@ internal class MangaPure(context: MangaLoaderContext) :
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

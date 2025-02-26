@@ -31,6 +31,8 @@ internal abstract class OneMangaParser(
 		val url = "https://$domain"
 		val doc = webClient.httpGet(url).parseHtml()
 		val manga = ArrayList<Manga>()
+		val author = doc.selectFirst("div.elementor-widget-text-editor ul li:contains(Auteur(s))")?.text()
+			?.replace("Auteur(s): ", "").orEmpty()
 		manga.add(
 			Manga(
 				id = generateUid(url),
@@ -42,12 +44,11 @@ internal abstract class OneMangaParser(
 					?.text()?.replace("Nom(s) Alternatif(s) :", "").orEmpty(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = doc.selectFirst("div.elementor-widget-text-editor ul li:contains(Auteur(s))")?.text()
-					?.replace("Auteur(s): ", "").orEmpty(),
+				authors = setOf(author),
 				description = doc.selectLast("div.elementor-widget-text-editor ul li")?.text().orEmpty(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			),
 		)
 		return manga

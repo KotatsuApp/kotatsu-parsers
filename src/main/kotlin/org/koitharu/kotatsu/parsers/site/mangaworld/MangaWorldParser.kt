@@ -144,6 +144,7 @@ internal abstract class MangaWorldParser(
 			val href = div.selectFirstOrThrow("a.thumb").attrAsRelativeUrl("href")
 			val tags = div.select(".genres a[href*=/archive?genre=]")
 				.mapToSet { MangaTag(it.ownText().toTitleCase(sourceLocale), it.attr("href"), source) }
+			val author = div.selectFirst(".author a")?.text()
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -153,7 +154,7 @@ internal abstract class MangaWorldParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = tags,
-				author = div.selectFirst(".author a")?.text(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state =
 					when (div.selectFirst(".status a")?.text()?.lowercase()) {
 						"in corso" -> MangaState.ONGOING
@@ -163,7 +164,7 @@ internal abstract class MangaWorldParser(
 						else -> null
 					},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

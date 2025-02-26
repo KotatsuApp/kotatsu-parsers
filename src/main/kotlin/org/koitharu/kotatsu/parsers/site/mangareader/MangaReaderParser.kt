@@ -163,11 +163,11 @@ internal abstract class MangaReaderParser(
 				altTitle = null,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = it.selectFirst(selectMangaListImg)?.src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -275,7 +275,7 @@ internal abstract class MangaReaderParser(
 		return manga.copy(
 			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
-			author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

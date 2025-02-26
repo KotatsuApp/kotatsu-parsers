@@ -206,7 +206,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 				cover == null -> null
 				else -> "https://${cdnHost.get()}/$cover"
 			},
-			author = null,
+			authors = emptySet(),
 			contentRating = ContentRating.ADULT,
 			url = id,
 			publicUrl = "/hchapter/$id".toAbsoluteUrl(domain),
@@ -264,12 +264,13 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 				type = it.getStringOrNull("tagType"),
 			)
 		}
+		val author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() }?.nullIfEmpty()
 		return manga.copy(
 			title = name.replace(shortenTitleRegex, "").trim(),
 			altTitle = name,
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
-			author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() }?.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			contentRating = ContentRating.ADULT,
 			tags = tags?.mapToSet {
 				MangaTag(

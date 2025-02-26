@@ -165,7 +165,7 @@ internal abstract class MangaFireParser(
 				source = source,
 				altTitle = null,
 				largeCoverUrl = null,
-				author = null,
+				authors = emptySet(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,
 				state = null,
@@ -179,6 +179,8 @@ internal abstract class MangaFireParser(
 		val availableTags = tags.get()
 		var isAdult = false
 		var isSuggestive = false
+		val author = document.select("div.meta a[href*=/author/]")
+			.joinToString { it.ownText() }.nullIfEmpty()
 
 		return manga.copy(
 			title = document.selectFirstOrThrow(".info > h1").ownText(),
@@ -211,8 +213,7 @@ internal abstract class MangaFireParser(
 					else -> null
 				}
 			},
-			author = document.select("div.meta a[href*=/author/]")
-				.joinToString { it.ownText() }.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)
@@ -332,7 +333,7 @@ internal abstract class MangaFireParser(
 					source = source,
 					altTitle = null,
 					largeCoverUrl = null,
-					author = null,
+					authors = emptySet(),
 					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,
@@ -355,7 +356,7 @@ internal abstract class MangaFireParser(
 					source = source,
 					altTitle = null,
 					largeCoverUrl = null,
-					author = null,
+					authors = emptySet(),
 					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,

@@ -74,7 +74,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
 				tags = div.select("div.egb-details a").mapToSet { a ->
 					MangaTag(
@@ -84,7 +84,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 					)
 				},
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -103,6 +103,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.textOrNull()
 		return manga.copy(
 			altTitle = doc.selectFirstOrThrow("div.anime-top h1.title").textOrNull(),
 			state = when (doc.selectFirstOrThrow("ul.anime-genres li.status a").text()) {
@@ -117,7 +118,7 @@ internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(contex
 					source = source,
 				)
 			},
-			author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirstOrThrow("div.detail-desc-content p").html(),
 			chapters = doc.select("ul.basic-list li").let { elements ->
 				elements.mapChapters { i, li ->

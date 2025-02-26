@@ -96,8 +96,8 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}
@@ -118,8 +118,8 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

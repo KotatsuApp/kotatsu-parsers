@@ -78,14 +78,14 @@ internal class BeeToon(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = div.selectFirst(".counter")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = when (div.selectLastOrThrow(".status span").text()) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -103,6 +103,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst(".info .author a")?.text()
 		return manga.copy(
 			description = doc.getElementById("desc")?.text().orEmpty(),
 			rating = doc.selectFirst(".counter")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
@@ -113,7 +114,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = doc.selectFirst(".info .author a")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = doc.select(".items-chapters  a").mapChapters(reversed = true) { i, a ->
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(

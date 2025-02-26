@@ -126,11 +126,11 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(cont
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = coverUrl,
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -148,11 +148,11 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(cont
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = coverUrl,
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -160,9 +160,10 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(cont
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty()
 		return manga.copy(
 			altTitle = null,
-			author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = doc.select("div.mb-1 span a").mapToSet { element ->
 				MangaTag(
 					key = element.attr("href").substringAfter("/the-loai/"),

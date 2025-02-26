@@ -115,11 +115,11 @@ internal abstract class LikeMangaParser(
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -149,6 +149,7 @@ internal abstract class LikeMangaParser(
 				}
 			}
 		}
+		val author = doc.selectLast("li.author p")?.textOrNull()
 		return manga.copy(
 			altTitle = doc.selectFirst(".list-info li.othername h2")?.textOrNull(),
 			tags = doc.select("li.kind a").mapToSet { a ->
@@ -158,7 +159,7 @@ internal abstract class LikeMangaParser(
 					source = source,
 				)
 			},
-			author = doc.selectLast("li.author p")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.requireElementById("summary_shortened").html(),
 			chapters = run {
 				if (maxPageChapter == 1) {

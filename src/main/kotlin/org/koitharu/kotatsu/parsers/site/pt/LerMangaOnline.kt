@@ -83,8 +83,8 @@ internal class LerMangaOnline(context: MangaLoaderContext) :
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

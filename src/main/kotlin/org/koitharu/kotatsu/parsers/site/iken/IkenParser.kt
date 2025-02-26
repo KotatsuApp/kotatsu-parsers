@@ -101,6 +101,8 @@ internal abstract class IkenParser(
 	protected open fun parseMangaList(json: JSONObject): List<Manga> {
 		return json.getJSONArray("posts").mapJSON {
 			val url = "/series/${it.getString("slug")}"
+			val isNsfwSource = it.getBooleanOrDefault("hot", false)
+			val author = it.getString("author")
 			Manga(
 				id = it.getLong("id"),
 				url = url,
@@ -111,7 +113,7 @@ internal abstract class IkenParser(
 				description = it.getString("postContent"),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = it.getString("author"),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = when (it.getString("seriesStatus")) {
 					"ONGOING" -> MangaState.ONGOING
 					"COMPLETED" -> MangaState.FINISHED
@@ -120,7 +122,7 @@ internal abstract class IkenParser(
 					else -> null
 				},
 				source = source,
-				isNsfw = it.getBooleanOrDefault("hot", false),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

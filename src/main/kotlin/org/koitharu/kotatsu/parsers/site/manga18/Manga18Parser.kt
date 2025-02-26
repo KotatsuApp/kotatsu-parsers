@@ -112,10 +112,10 @@ internal abstract class Manga18Parser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -166,7 +166,7 @@ internal abstract class Manga18Parser(
 			},
 			description = desc?.nullIfEmpty(),
 			altTitle = alt,
-			author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

@@ -90,10 +90,10 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -128,7 +128,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				else -> null
 			}
 		}
-		val aut = doc.body().select(selectAut).textOrNull()
+		val author = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -138,7 +138,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			author = aut,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

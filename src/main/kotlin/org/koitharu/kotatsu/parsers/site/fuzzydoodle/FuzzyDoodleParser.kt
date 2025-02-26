@@ -152,10 +152,10 @@ internal abstract class FuzzyDoodleParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -181,6 +181,7 @@ internal abstract class FuzzyDoodleParser(
 				}
 			}
 		}
+		val author = doc.selectFirst(selectAuthor)?.textOrNull()
 
 		manga.copy(
 			altTitle = doc.selectLast(selectAltTitle)?.textOrNull(),
@@ -191,7 +192,7 @@ internal abstract class FuzzyDoodleParser(
 				in paused -> MangaState.PAUSED
 				else -> null
 			},
-			author = doc.selectFirst(selectAuthor)?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.select(selectDescription).html(),
 			tags = doc.select(selectTagManga).mapToSet {
 				val key = it.attr("href").substringAfterLast('=')

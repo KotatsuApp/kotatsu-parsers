@@ -121,6 +121,8 @@ internal abstract class LineWebtoonsParser(
 		makeRequest("/lineWebtoon/webtoon/challengeTitleInfo.json?v=2&titleNo=${titleNo}")
 			.getJSONObject("titleInfo")
 			.let { jo ->
+				val isNsfwSource = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource)
+				val author = jo.getStringOrNull("writingAuthorName")
 				Manga(
 					id = generateUid(titleNo),
 					title = jo.getString("title"),
@@ -128,11 +130,11 @@ internal abstract class LineWebtoonsParser(
 					url = "$titleNo",
 					publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=${titleNo}",
 					rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-					isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+					contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 					coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 					largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
 					tags = setOf(parseTag(jo.getJSONObject("genreInfo"))),
-					author = jo.getStringOrNull("writingAuthorName"),
+					authors = author?.let { setOf(it) } ?: emptySet(),
 					description = jo.getString("synopsis"),
 					// I don't think the API provides this info
 					state = null,
@@ -150,6 +152,7 @@ internal abstract class LineWebtoonsParser(
 					.getJSONArray("titleList")
 					.mapJSON { jo ->
 						val titleNo = jo.getLong("titleNo")
+						val author = jo.getStringOrNull("writingAuthorName")
 
 						Manga(
 							id = generateUid(titleNo),
@@ -158,11 +161,11 @@ internal abstract class LineWebtoonsParser(
 							url = titleNo.toString(),
 							publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 							rating = RATING_UNKNOWN,
-							isNsfw = isNsfwSource,
+							contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 							coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 							largeCoverUrl = null,
 							tags = emptySet(),
-							author = jo.getStringOrNull("writingAuthorName"),
+							authors = author?.let { setOf(it) } ?: emptySet(),
 							description = null,
 							state = null,
 							source = source,
@@ -194,6 +197,8 @@ internal abstract class LineWebtoonsParser(
 					.getJSONArray("titles")
 					.mapJSON { jo ->
 						val titleNo = jo.getLong("titleNo")
+						val isNsfwSource = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource)
+						val author = jo.getStringOrNull("writingAuthorName")
 
 						Manga(
 							id = generateUid(titleNo),
@@ -202,11 +207,11 @@ internal abstract class LineWebtoonsParser(
 							url = titleNo.toString(),
 							publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 							rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
-							isNsfw = jo.getBooleanOrDefault("ageGradeNotice", isNsfwSource),
+							contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 							coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 							largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
 							tags = setOfNotNull(genres[jo.getString("representGenre")]),
-							author = jo.getStringOrNull("writingAuthorName"),
+							authors = author?.let { setOf(it) } ?: emptySet(),
 							description = jo.getString("synopsis"),
 							// I don't think the API provides this info
 							state = null,

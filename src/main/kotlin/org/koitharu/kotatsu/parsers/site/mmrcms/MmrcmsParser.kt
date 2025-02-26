@@ -131,10 +131,10 @@ internal abstract class MmrcmsParser(
 				altTitle = null,
 				rating = div.selectFirst("span")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -152,10 +152,10 @@ internal abstract class MmrcmsParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -194,7 +194,7 @@ internal abstract class MmrcmsParser(
 			}
 		}
 		val alt = doc.body().selectFirst(selectAlt)?.nextElementSibling()?.textOrNull()
-		val auth = doc.body().selectFirst(selectAut)?.nextElementSibling()?.textOrNull()
+		val author = doc.body().selectFirst(selectAut)?.nextElementSibling()?.textOrNull()
 		val tags = doc.body().selectFirst(selectTag)?.nextElementSibling()?.select("a") ?: emptySet()
 		manga.copy(
 			tags = tags.mapToSet { a ->
@@ -204,7 +204,7 @@ internal abstract class MmrcmsParser(
 					source = source,
 				)
 			},
-			author = auth,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = desc,
 			altTitle = alt,
 			state = state,

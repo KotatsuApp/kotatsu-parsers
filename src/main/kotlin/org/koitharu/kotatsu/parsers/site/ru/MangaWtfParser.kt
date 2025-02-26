@@ -125,6 +125,15 @@ internal class MangaWtfParser(
 					.addPathSegment("books")
 					.addPathSegment(manga.url)
 			val jo = webClient.httpGet(url.build()).parseJson()
+			val isNsfwSource = jo.getStringOrNull("contentStatus").isNsfw()
+			val author =
+				jo.getJSONArray("relations").asTypedList<JSONObject>().firstNotNullOfOrNull {
+					if (it.getStringOrNull("type") == "AUTHOR") {
+						it.getJSONObject("publisher").getStringOrNull("name")
+					} else {
+						null
+					}
+				}
 			Manga(
 				id = generateUid(jo.getString("id")),
 				title = jo.getJSONObject("name").getString("ru"),
@@ -132,18 +141,11 @@ internal class MangaWtfParser(
 				url = jo.getString("id"),
 				publicUrl = "https://$domain/manga/${jo.getString("slug")}",
 				rating = jo.getFloatOrDefault("averageRating", -10f) / 10f,
-				isNsfw = jo.getStringOrNull("contentStatus").isNsfw(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = jo.getString("poster"),
 				tags = jo.getJSONArray("labels").mapJSONToSet { it.toMangaTag() },
 				state = jo.getStringOrNull("status")?.toMangaState(),
-				author =
-				jo.getJSONArray("relations").asTypedList<JSONObject>().firstNotNullOfOrNull {
-					if (it.getStringOrNull("type") == "AUTHOR") {
-						it.getJSONObject("publisher").getStringOrNull("name")
-					} else {
-						null
-					}
-				},
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				source = source,
 				largeCoverUrl = null,
 				description = jo.getString("description").nl2br(),
@@ -256,19 +258,21 @@ internal class MangaWtfParser(
 			source = source,
 		)
 
-	private fun JSONObject.toManga() =
-		Manga(
+	private fun JSONObject.toManga(): Manga {
+		val isNsfwSource = getStringOrNull("contentStatus").isNsfw()
+		return Manga(
 			id = generateUid(getString("id")),
 			title = getJSONObject("name").getString("ru"),
 			altTitle = getJSONObject("name").getStringOrNull("en"),
 			url = getString("id"),
 			publicUrl = "https://$domain/manga/${getString("slug")}",
 			rating = getFloatOrDefault("averageRating", -10f) / 10f,
-			isNsfw = getStringOrNull("contentStatus").isNsfw(),
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			coverUrl = getString("poster"),
 			tags = setOf(),
 			state = getStringOrNull("status")?.toMangaState(),
-			author = null,
+			authors = emptySet(),
 			source = source,
 		)
+	}
 }

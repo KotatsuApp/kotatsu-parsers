@@ -104,10 +104,10 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = mangaTags,
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -147,7 +147,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		}
 
 		return manga.copy(
-			author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = description,
 			state = state,
 			tags = tags,

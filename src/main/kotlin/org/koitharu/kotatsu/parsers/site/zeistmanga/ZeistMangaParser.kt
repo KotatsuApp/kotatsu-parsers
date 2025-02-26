@@ -175,10 +175,10 @@ internal abstract class ZeistMangaParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -220,11 +220,12 @@ internal abstract class ZeistMangaParser(
 			?: doc.selectFirst("div.y6x11p:contains(Yazar) .dt")
 			?: doc.selectFirst("ul.infonime li:contains(Author) span")
 
+
 		val desc = doc.getElementById("synopsis") ?: doc.getElementById("Sinopse") ?: doc.getElementById("sinopas")
 		?: doc.selectFirst(".sinopsis") ?: doc.selectFirst(".sinopas")
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
 		manga.copy(
-			author = author?.text(),
+			authors = author?.text()?.let { setOf(it) } ?: emptySet(),
 			tags = doc.select(selectTags).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast("label/").substringBefore("?"),
