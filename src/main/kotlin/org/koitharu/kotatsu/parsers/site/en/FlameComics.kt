@@ -6,7 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.SinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,7 +17,7 @@ import java.util.concurrent.TimeUnit
 
 @MangaSourceParser("FLAMECOMICS", "FlameComics", "en")
 internal class FlameComics(context: MangaLoaderContext) :
-	SinglePageMangaParser(context, MangaParserSource.FLAMECOMICS) {
+	LegacySinglePageMangaParser(context, MangaParserSource.FLAMECOMICS) {
 
 	private val commonPrefix = suspendLazy(initializer = ::fetchCommonPrefix)
 

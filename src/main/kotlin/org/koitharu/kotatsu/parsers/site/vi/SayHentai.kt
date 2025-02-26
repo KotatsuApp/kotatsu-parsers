@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("SAYHENTAI", "SayHentai", "vi", ContentType.HENTAI)
-internal class SayHentai(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.SAYHENTAI, 20) {
+internal class SayHentai(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.SAYHENTAI, 20) {
 	override val configKeyDomain = ConfigKey.Domain("sayhentai.ink")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

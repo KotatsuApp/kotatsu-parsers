@@ -11,7 +11,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -28,7 +28,7 @@ internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteLang: String,
-) : PagedMangaParser(context, source, 30), Interceptor, MangaParserAuthProvider {
+) : LegacyPagedMangaParser(context, source, 30), Interceptor, MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 

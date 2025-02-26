@@ -7,7 +7,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("MANGA_WTF", "MangaWtf", "ru")
 internal class MangaWtfParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
+) : LegacyPagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
@@ -137,13 +137,13 @@ internal class MangaWtfParser(
 				tags = jo.getJSONArray("labels").mapJSONToSet { it.toMangaTag() },
 				state = jo.getStringOrNull("status")?.toMangaState(),
 				author =
-				jo.getJSONArray("relations").asTypedList<JSONObject>().firstNotNullOfOrNull {
-					if (it.getStringOrNull("type") == "AUTHOR") {
-						it.getJSONObject("publisher").getStringOrNull("name")
-					} else {
-						null
-					}
-				},
+					jo.getJSONArray("relations").asTypedList<JSONObject>().firstNotNullOfOrNull {
+						if (it.getStringOrNull("type") == "AUTHOR") {
+							it.getJSONObject("publisher").getStringOrNull("name")
+						} else {
+							null
+						}
+					},
 				source = source,
 				largeCoverUrl = null,
 				description = jo.getString("description").nl2br(),
@@ -209,10 +209,10 @@ internal class MangaWtfParser(
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
 					name =
-					jo.getStringOrNull("name") ?: buildString {
-						if (volume > 0) append("Том ").append(volume).append(' ')
-						if (number > 0) append("Глава ").append(number) else append("Без имени")
-					},
+						jo.getStringOrNull("name") ?: buildString {
+							if (volume > 0) append("Том ").append(volume).append(' ')
+							if (number > 0) append("Глава ").append(number) else append("Без имени")
+						},
 					number = number,
 					volume = volume,
 					url = jo.getString("id"),

@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("TRUYENTRANH3Q", "TruyenTranh3Q", "vi")
 internal class TruyenTranh3Q(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.TRUYENTRANH3Q, 42) {
+	LegacyPagedMangaParser(context, MangaParserSource.TRUYENTRANH3Q, 42) {
 
 	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")
 	private val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")

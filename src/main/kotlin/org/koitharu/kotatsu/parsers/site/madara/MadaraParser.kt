@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -23,7 +23,7 @@ internal abstract class MadaraParser(
 	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 12,
-) : PagedMangaParser(context, source, pageSize), MangaParserAuthProvider {
+) : LegacyPagedMangaParser(context, source, pageSize), MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

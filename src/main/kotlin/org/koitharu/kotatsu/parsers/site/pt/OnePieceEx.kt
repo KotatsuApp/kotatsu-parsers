@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.SinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,7 +11,8 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("ONEPIECEEX", "OnePieceEx", "pt")
-internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
+internal class OnePieceEx(context: MangaLoaderContext) :
+	LegacySinglePageMangaParser(context, MangaParserSource.ONEPIECEEX) {
 
 	override val configKeyDomain = ConfigKey.Domain("onepieceex.net")
 

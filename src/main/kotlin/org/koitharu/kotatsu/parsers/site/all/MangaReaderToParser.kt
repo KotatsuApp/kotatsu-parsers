@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -23,7 +23,7 @@ import kotlin.math.min
 
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
 internal class MangaReaderToParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
+	LegacyPagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
 	Interceptor, MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")

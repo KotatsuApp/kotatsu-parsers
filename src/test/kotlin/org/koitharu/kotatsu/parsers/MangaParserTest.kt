@@ -5,6 +5,8 @@ import okhttp3.HttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
@@ -25,7 +27,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun list(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.queryManga(MangaSearchQuery.Builder().build())
+		val list = parser.getList(MangaSearchQuery.Builder().build())
 		checkMangaList(list, "list")
 		assert(list.all { it.source == source })
 	}
@@ -34,13 +36,13 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pagination(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		if (parser is SinglePageMangaParser) {
+		if (parser is LegacySinglePageMangaParser) {
 			return@runTest
 		}
-		val page1 = parser.queryManga(MangaSearchQuery.EMPTY)
+		val page1 = parser.getList(MangaSearchQuery.EMPTY)
 		val page2 =
-			parser.queryManga(MangaSearchQuery.Builder().offset(page1.size).build())
-		if (parser is PagedMangaParser) {
+			parser.getList(MangaSearchQuery.Builder().offset(page1.size).build())
+		if (parser is LegacyPagedMangaParser) {
 			assert(parser.pageSize >= page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
 			}
@@ -58,13 +60,13 @@ internal class MangaParserTest {
 	@MangaSources
 	fun searchByTitleName(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val subject = parser.queryManga(MangaSearchQuery.EMPTY).minByOrNull {
+		val subject = parser.getList(MangaSearchQuery.EMPTY).minByOrNull {
 			it.title.length
 		} ?: error("No manga found")
 
 		val query = subject.title
 		check(query.isNotBlank()) { "Manga title '$query' is blank" }
-		val list = parser.queryManga(
+		val list = parser.getList(
 			MangaSearchQuery.Builder()
 				.order(SortOrder.RELEVANCE)
 				.criterion(QueryCriteria.Match(TITLE_NAME, query))
@@ -97,7 +99,7 @@ internal class MangaParserTest {
 		assert(tags.all { it.source == source })
 
 		val tag = tags.last()
-		val list = parser.queryManga(
+		val list = parser.getList(
 			MangaSearchQuery.Builder()
 				.offset(0)
 				.criterion(Include(TAG, setOf(tag)))
@@ -114,7 +116,7 @@ internal class MangaParserTest {
 //		if (!parser.filterCapabilities.isMultipleTagsSupported) return@runTest
 		val tags = parser.getFilterOptions().availableTags.shuffled().take(2).toSet()
 
-		val list = parser.queryManga(
+		val list = parser.getList(
 			MangaSearchQuery.Builder()
 				.offset(0)
 				.criterion(Include(TAG, tags))
@@ -134,7 +136,7 @@ internal class MangaParserTest {
 			return@runTest
 		}
 		val locale = locales.random()
-		val list = parser.queryManga(
+		val list = parser.getList(
 			MangaSearchQuery.Builder()
 				.criterion(Include(LANGUAGE, setOf(locale)))
 				.criterion(Include(LANGUAGE, setOf(locale)))
@@ -150,7 +152,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun details(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.queryManga(MangaSearchQuery.EMPTY)
+		val list = parser.getList(MangaSearchQuery.EMPTY)
 
 		val manga = list[0]
 		parser.getDetails(manga).apply {
@@ -181,7 +183,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pages(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val list = parser.queryManga(MangaSearchQuery.EMPTY)
+		val list = parser.getList(MangaSearchQuery.EMPTY)
 		val manga = list.first()
 		val chapter = parser.getDetails(manga).chapters?.firstOrNull() ?: error("Chapter is null at ${manga.publicUrl}")
 		val pages = parser.getPages(chapter)
@@ -236,7 +238,7 @@ internal class MangaParserTest {
 	@MangaSources
 	fun link(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		val manga = parser.queryManga(MangaSearchQuery.Builder().build()).first()
+		val manga = parser.getList(MangaSearchQuery.Builder().build()).first()
 		val resolved = context.newLinkResolver(manga.publicUrl).getManga()
 		Assertions.assertNotNull(resolved)
 		resolved ?: return@runTest

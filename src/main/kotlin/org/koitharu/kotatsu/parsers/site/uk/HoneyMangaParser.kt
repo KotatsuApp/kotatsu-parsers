@@ -7,7 +7,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -27,7 +27,7 @@ private const val IMAGE_BASEURL_FALLBACK = "https://hmvolumestorage.b-cdn.net/pu
 
 @MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
 internal class HoneyMangaParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE),
+	LegacyPagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE),
 	Interceptor {
 
 	private val urlApi get() = "https://data.api.$domain"

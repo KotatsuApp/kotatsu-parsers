@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -10,7 +10,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAONLINE", "MangaOnline.biz", "pt")
-internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAONLINE, 20) {
+internal class MangaOnline(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.MANGAONLINE, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("mangaonline.biz")
 

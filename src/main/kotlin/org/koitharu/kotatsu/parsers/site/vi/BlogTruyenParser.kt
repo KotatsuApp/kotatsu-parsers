@@ -5,7 +5,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken
 @MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
+	LegacyPagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyenmoi.com")

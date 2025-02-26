@@ -4,8 +4,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
@@ -35,14 +35,6 @@ internal abstract class MangaboxParser(
 		SortOrder.NEWEST,
 		SortOrder.ALPHABETICAL,
 	)
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = true,
-			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
-		)
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
@@ -192,13 +184,9 @@ internal abstract class MangaboxParser(
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else ContentRating.SAFE,
+				contentRating = if (source.contentType == ContentType.HENTAI) ContentRating.ADULT else ContentRating.SAFE,
 			)
 		}
-	}
-
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return queryManga(convertToMangaSearchQuery(page, order, filter))
 	}
 
 	protected open val selectTagMap = "div.panel-genres-list a:not(.genres-select)"

@@ -1,16 +1,15 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
-internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
+internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("lxmanga.cloud")
 
@@ -211,13 +210,13 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 	private suspend fun availableTags(): Set<MangaTag> {
 		val url = "https://$domain/the-loai"
 		val doc = webClient.httpGet(url).parseHtml()
-		
+
 		return doc.select("nav.grid.grid-cols-3.md\\:grid-cols-8 button").map { button ->
 			val key = button.attr("wire:click").substringAfterLast(", '").substringBeforeLast("')")
 			MangaTag(
 				key = key,
 				title = button.select("span.text-ellipsis").text(),
-				source = source
+				source = source,
 			)
 		}.toSet()
 	}

@@ -7,8 +7,8 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -67,17 +67,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 		SortOrder.ADDED_ASC,
 		SortOrder.RELEVANCE,
 	)
-
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = true,
-			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
-			isYearSupported = true,
-			isOriginalLocaleSupported = true,
-			isAuthorSearchSupported = true,
-		)
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
@@ -276,10 +265,6 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 
 		val json = webClient.httpGet(url).parseJson().getJSONArray("data")
 		return json.mapJSON { jo -> jo.fetchManga(null) }
-	}
-
-	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return queryManga(convertToMangaSearchQuery(offset, order, filter))
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {

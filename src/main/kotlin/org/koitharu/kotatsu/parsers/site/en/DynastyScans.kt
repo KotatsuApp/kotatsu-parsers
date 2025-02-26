@@ -9,7 +9,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -19,7 +19,7 @@ import java.util.*
 
 @MangaSourceParser("DYNASTYSCANS", "DynastyScans", "en")
 internal class DynastyScans(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.DYNASTYSCANS, 117) {
+	LegacyPagedMangaParser(context, MangaParserSource.DYNASTYSCANS, 117) {
 
 	override val configKeyDomain = ConfigKey.Domain("dynasty-scans.com")
 

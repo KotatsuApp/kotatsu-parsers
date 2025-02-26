@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.util
 
-import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.SortOrder
@@ -21,8 +20,7 @@ import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
  * @param filter The [MangaListFilter] to convert.
  * @return A [MangaSearchQuery] constructed based on the given [filter].
  */
-@InternalParsersApi
-public fun convertToMangaSearchQuery(offset: Int, sortOrder: SortOrder, filter: MangaListFilter): MangaSearchQuery {
+internal fun convertToMangaSearchQuery(offset: Int, sortOrder: SortOrder, filter: MangaListFilter): MangaSearchQuery {
 	return MangaSearchQuery.Builder().apply {
 		offset(offset)
 		order(sortOrder)
@@ -75,8 +73,7 @@ public fun convertToMangaSearchQuery(offset: Int, sortOrder: SortOrder, filter: 
  * @return A {@link MangaListFilter} constructed based on the given {@code searchQuery}.
  * @throws UnsupportedOperationException If the search criteria contain unsupported fields.
  */
-@InternalParsersApi
-public fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListFilter {
+internal fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListFilter {
 	return MangaListFilter.Builder().apply {
 		for (criterion in searchQuery.criteria) {
 			when (criterion) {
@@ -88,6 +85,17 @@ public fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListFil
 		}
 	}.build()
 }
+
+internal fun MangaSearchQueryCapabilities.toMangaListFilterCapabilities() = MangaListFilterCapabilities(
+	isMultipleTagsSupported = capabilities.any { x -> x.field == TAG && x.multiValue },
+	isTagsExclusionSupported = capabilities.any { x -> x.field == TAG && x.criteriaTypes.contains(Exclude::class) },
+	isSearchSupported = capabilities.any { x -> x.field == TITLE_NAME },
+	isSearchWithFiltersSupported = capabilities.any { x -> x.field == TITLE_NAME && x.otherCriteria },
+	isYearSupported = capabilities.any { x -> x.field == PUBLICATION_YEAR && x.criteriaTypes.contains(Match::class) },
+	isYearRangeSupported = capabilities.any { x -> x.field == PUBLICATION_YEAR && x.criteriaTypes.contains(Range::class) },
+	isOriginalLocaleSupported = capabilities.any { x -> x.field == ORIGINAL_LANGUAGE },
+	isAuthorSearchSupported = capabilities.any { x -> x.field == AUTHOR },
+)
 
 internal fun MangaListFilterCapabilities.toMangaSearchQueryCapabilities(): MangaSearchQueryCapabilities =
 	MangaSearchQueryCapabilities(

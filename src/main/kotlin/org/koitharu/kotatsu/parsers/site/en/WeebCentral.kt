@@ -5,6 +5,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.*
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.MangaState.*
 import org.koitharu.kotatsu.parsers.model.ContentType.*
@@ -16,7 +17,7 @@ import java.util.EnumSet
 import java.util.Locale
 
 @MangaSourceParser("WEEBCENTRAL", "Weeb Central", "en")
-internal class WeebCentral(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.WEEBCENTRAL),
+internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(context, MangaParserSource.WEEBCENTRAL),
 	MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("weebcentral.com")

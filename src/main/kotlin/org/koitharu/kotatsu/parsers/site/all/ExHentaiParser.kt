@@ -13,7 +13,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
@@ -31,7 +31,7 @@ private val TAG_PREFIXES = arrayOf("male:", "female:", "other:")
 @MangaSourceParser("EXHENTAI", "ExHentai", type = ContentType.HENTAI)
 internal class ExHentaiParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
+) : LegacyPagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 

@@ -6,7 +6,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -20,7 +20,6 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getCookies
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -46,7 +45,7 @@ private const val PAGE_SIZE = 20
 
 @MangaSourceParser("CMANGA", "CManga", "vi")
 internal class CMangaParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
+	LegacyPagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("cmangax.com")
@@ -131,7 +130,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 					order == SortOrder.POPULARITY_TODAY ||
 					order == SortOrder.POPULARITY_WEEK ||
 					order == SortOrder.POPULARITY_MONTH
-				)
+					)
 			) {
 				addPathSegments("api/home_album_top")
 			} else {

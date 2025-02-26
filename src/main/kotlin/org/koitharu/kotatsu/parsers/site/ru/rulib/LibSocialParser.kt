@@ -7,7 +7,7 @@ import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -21,7 +21,7 @@ internal abstract class LibSocialParser(
 	source: MangaParserSource,
 	protected val siteDomain: String,
 	protected val siteId: Int,
-) : PagedMangaParser(context, source, pageSize = 60) {
+) : LegacyPagedMangaParser(context, source, pageSize = 60) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

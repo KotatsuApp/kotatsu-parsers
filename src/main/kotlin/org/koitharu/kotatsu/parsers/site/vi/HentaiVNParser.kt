@@ -8,7 +8,7 @@ import kotlinx.coroutines.sync.withLock
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.AbstractMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -21,7 +21,7 @@ private const val SEARCH_PAGE_SIZE = 10
 
 @Broken
 @MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
-internal class HentaiVNParser(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.HENTAIVN) {
+internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(context, MangaParserSource.HENTAIVN) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaihvn.tv")
 

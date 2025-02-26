@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("DUALEOTRUYEN", "Dưa Leo Truyện", "vi", type = ContentType.HENTAI)
 internal class DuaLeoTruyen(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
+	LegacyPagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("dualeotruyenxxy.com")

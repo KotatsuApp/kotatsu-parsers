@@ -37,12 +37,6 @@ internal class Mangairo(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-			isMultipleTagsSupported = false,
-			isSearchWithFiltersSupported = false,
-		)
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
@@ -139,78 +133,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else ContentRating.SAFE,
-			)
-		}
-	}
-
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			when {
-
-				!filter.query.isNullOrEmpty() -> {
-					append(searchUrl)
-					append(filter.query.urlEncoded())
-					append("?page=")
-				}
-
-				else -> {
-					append(listUrl)
-					append("/type-")
-					when (order) {
-						SortOrder.POPULARITY -> append("topview")
-						SortOrder.UPDATED -> append("latest")
-						SortOrder.NEWEST -> append("newest")
-						else -> append("latest")
-					}
-
-					append("/ctg-")
-					if (filter.tags.isNotEmpty()) {
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(it.key)
-						}
-					} else {
-						append("all")
-					}
-
-					append("/state-")
-					if (filter.states.isNotEmpty()) {
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "ongoing"
-									MangaState.FINISHED -> "completed"
-									else -> "all"
-								},
-							)
-						}
-					} else {
-						append("all")
-					}
-
-					append("/page-")
-				}
-			}
-			append(page.toString())
-		}
-		val doc = webClient.httpGet(url).parseHtml()
-		return doc.select("div.story-item").map { div ->
-			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				title = (div.selectFirst("h2")?.text() ?: div.selectFirst("h3")?.text()).orEmpty(),
-				altTitle = null,
-				rating = RATING_UNKNOWN,
-				tags = emptySet(),
-				author = null,
-				state = null,
-				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (source.contentType == ContentType.HENTAI) ContentRating.ADULT else ContentRating.SAFE,
 			)
 		}
 	}

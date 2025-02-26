@@ -10,7 +10,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -29,7 +29,7 @@ private const val TOO_MANY_REQUESTS = 429
 @MangaSourceParser("REMANGA", "Реманга", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
-) : PagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
+) : LegacyPagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
 
 	private val baseHeaders: Headers
 		get() = Headers.Builder()

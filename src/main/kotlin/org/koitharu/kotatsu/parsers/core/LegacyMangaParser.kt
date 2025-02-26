@@ -1,8 +1,13 @@
-package org.koitharu.kotatsu.parsers
+package org.koitharu.kotatsu.parsers.core
 
 import androidx.annotation.CallSuper
 import okhttp3.Headers
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
+import org.koitharu.kotatsu.parsers.InternalParsersApi
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.*
@@ -13,17 +18,17 @@ import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
+@Suppress("OVERRIDE_DEPRECATION")
 @InternalParsersApi
-public abstract class AbstractMangaParser @InternalParsersApi constructor(
+public abstract class LegacyMangaParser @InternalParsersApi constructor(
 	@property:InternalParsersApi public val context: MangaLoaderContext,
 	public override val source: MangaParserSource,
 ) : MangaParser {
 
-	@Deprecated("Please check searchQueryCapabilities")
-	public abstract val filterCapabilities: MangaListFilterCapabilities
-
-	public override val searchQueryCapabilities: MangaSearchQueryCapabilities
+	public final override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = filterCapabilities.toMangaSearchQueryCapabilities()
+
+	abstract override val filterCapabilities: MangaListFilterCapabilities
 
 	public override val config: MangaSourceConfig by lazy { context.getConfig(source) }
 
@@ -64,39 +69,15 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	/**
 	 * Search list of manga by specified searchQuery
 	 *
-	 * @param searchQuery searchQuery
-	 */
-	public override suspend fun queryManga(searchQuery: MangaSearchQuery): List<Manga> {
-		if (!searchQuery.skipValidation) {
-			searchQueryCapabilities.validate(searchQuery)
-		}
-
-		return getList(searchQuery)
-	}
-
-	/**
-	 * Search list of manga by specified searchQuery
-	 *
 	 * @param query searchQuery
 	 */
-	protected open suspend fun getList(query: MangaSearchQuery): List<Manga> = getList(
+	public final override suspend fun getList(query: MangaSearchQuery): List<Manga> = getList(
 		offset = query.offset,
 		order = query.order ?: defaultSortOrder,
 		filter = convertToMangaListFilter(query),
 	)
 
-	/**
-	 * Parse list of manga by specified criteria
-	 *
-	 * @param offset starting from 0 and used for pagination.
-	 * Note than passed value may not be divisible by internal page size, so you should adjust it manually.
-	 * @param order one of [availableSortOrders] or [defaultSortOrder] for default value
-	 * @param filter is a set of filter rules
-	 *
-	 * @deprecated New [getList] should be preferred.
-	 */
-	@Deprecated("New getList(query: MangaSearchQuery) method should be preferred")
-	public abstract suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
+	abstract override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
 
 	/**
 	 * Fetch direct link to the page image.
@@ -123,6 +104,7 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	 * Return [Manga] object by web link to it
 	 * @see [Manga.publicUrl]
 	 */
-	internal open suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? = null
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? = null
 
+	override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(chain.request())
 }

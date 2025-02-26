@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("LEGACY_SCANS", "LegacyScans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
+	LegacyPagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 

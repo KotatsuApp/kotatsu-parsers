@@ -17,7 +17,7 @@ import okio.IOException
 import org.json.JSONArray
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.AbstractMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
@@ -43,7 +43,7 @@ internal abstract class GroupleParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteId: Int,
-) : AbstractMangaParser(context, source), MangaParserAuthProvider, Interceptor {
+) : LegacyMangaParser(context, source), MangaParserAuthProvider, Interceptor {
 
 	@Volatile
 	private var cachedPagesServer: String? = null

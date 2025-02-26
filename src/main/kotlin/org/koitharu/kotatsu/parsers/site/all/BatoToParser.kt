@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -20,7 +20,7 @@ import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.SecretKeySpec
 
 @MangaSourceParser("BATOTO", "Bato.To")
-internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
+internal class BatoToParser(context: MangaLoaderContext) : LegacyPagedMangaParser(
 	context = context,
 	source = MangaParserSource.BATOTO,
 	pageSize = 60,
@@ -116,7 +116,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		"zbato.net",
 		"zbato.org",
 		"fto.to",
-		"jto.to"
+		"jto.to",
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

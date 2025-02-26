@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 
 @ExposedCopyVisibility
 public data class MangaSearchQueryCapabilities internal constructor(
-	val capabilities: Set<SearchCapability>,
+	public val capabilities: Set<SearchCapability>,
 ) {
 
 	public constructor(vararg capabilities: SearchCapability) : this(ArraySet(capabilities))

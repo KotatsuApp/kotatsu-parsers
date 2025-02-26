@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.ContentType
@@ -24,7 +24,6 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.attrOrNull
 import org.koitharu.kotatsu.parsers.util.attrOrThrow
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
 import org.koitharu.kotatsu.parsers.util.mapChapters
@@ -47,7 +46,8 @@ import javax.crypto.spec.PBEKeySpec
 import javax.crypto.spec.SecretKeySpec
 
 @MangaSourceParser("VCOMYCS", "Vcomycs", "vi", ContentType.MANGA)
-internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VCOMYCS, 36) {
+internal class VcomycsParser(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.VCOMYCS, 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("vivicomi.org")

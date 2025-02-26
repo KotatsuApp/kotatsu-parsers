@@ -4,7 +4,7 @@ import androidx.collection.ArrayMap
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("MANGAPARK", "MangaPark")
 internal class MangaPark(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
+	LegacyPagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"mangapark.net",
@@ -31,7 +31,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 		"parkmanga.com",
 		"parkmanga.net",
 		"parkmanga.org",
-		"mpark.to"
+		"mpark.to",
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {

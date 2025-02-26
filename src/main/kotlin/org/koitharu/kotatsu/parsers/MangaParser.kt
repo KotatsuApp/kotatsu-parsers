@@ -1,14 +1,19 @@
 package org.koitharu.kotatsu.parsers
 
 import okhttp3.Headers
+import okhttp3.HttpUrl
+import okhttp3.Interceptor
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
+import org.koitharu.kotatsu.parsers.util.LinkResolver
+import org.koitharu.kotatsu.parsers.util.convertToMangaSearchQuery
+import org.koitharu.kotatsu.parsers.util.toMangaListFilterCapabilities
 import java.util.*
 
-public interface MangaParser {
+public interface MangaParser : Interceptor {
 
 	public val source: MangaParserSource
 
@@ -25,7 +30,7 @@ public interface MangaParser {
 
 	public val domain: String
 
-	public suspend fun queryManga(searchQuery: MangaSearchQuery): List<Manga>
+	public suspend fun getList(query: MangaSearchQuery): List<Manga>
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.
@@ -57,4 +62,20 @@ public interface MangaParser {
 	public suspend fun getRelatedManga(seed: Manga): List<Manga>
 
 	public fun getRequestHeaders(): Headers
+
+	/**
+	 * Return [Manga] object by web link to it
+	 * @see [Manga.publicUrl]
+	 */
+	@InternalParsersApi
+	public suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga?
+
+	@Deprecated("Use getList(query: MangaSearchQuery) instead")
+	public suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		return getList(convertToMangaSearchQuery(offset, order, filter))
+	}
+
+	@Deprecated("Please check searchQueryCapabilities")
+	public val filterCapabilities: MangaListFilterCapabilities
+		get() = searchQueryCapabilities.toMangaListFilterCapabilities()
 }

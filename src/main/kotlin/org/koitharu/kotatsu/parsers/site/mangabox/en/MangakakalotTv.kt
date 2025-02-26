@@ -25,13 +25,6 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-			isMultipleTagsSupported = false,
-			isSearchWithFiltersSupported = false,
-		)
-
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
 		get() = MangaSearchQueryCapabilities(
@@ -140,7 +133,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else ContentRating.SAFE,
+				contentRating = null,
 			)
 		}
 	}

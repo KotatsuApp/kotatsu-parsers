@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.ru
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.SinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -14,7 +14,7 @@ import java.util.*
 @MangaSourceParser("WAMANGA", "WaManga", "ru", type = ContentType.MANGA)
 internal class WaMangaParser(
 	context: MangaLoaderContext,
-) : SinglePageMangaParser(context, MangaParserSource.WAMANGA) {
+) : LegacySinglePageMangaParser(context, MangaParserSource.WAMANGA) {
 
 	override val configKeyDomain = ConfigKey.Domain("wamanga.me")
 

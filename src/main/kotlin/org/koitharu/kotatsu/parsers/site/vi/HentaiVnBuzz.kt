@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -11,7 +11,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi", type = ContentType.HENTAI)
-internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
+internal class HentaiVnBuzz(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentaivn.buzz")
 
@@ -176,25 +177,26 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) : PagedMangaParser(cont
 				"Hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			chapters = doc.select("div.story-detail__list-chapter--list ul.list-unstyled li a").mapIndexed { i, element ->
-				val href = element.attrAsRelativeUrl("href")
-				val name = element.text().removePrefix("- ")
-				MangaChapter(
-					id = generateUid(href),
-					name = name,
-					number = i + 1f,
-					volume = 0,
-					url = href,
-					scanlator = null,
-					uploadDate = 0,
-					branch = null,
-					source = source,
-				)
-			}
+			chapters = doc.select("div.story-detail__list-chapter--list ul.list-unstyled li a")
+				.mapIndexed { i, element ->
+					val href = element.attrAsRelativeUrl("href")
+					val name = element.text().removePrefix("- ")
+					MangaChapter(
+						id = generateUid(href),
+						name = name,
+						number = i + 1f,
+						volume = 0,
+						url = href,
+						scanlator = null,
+						uploadDate = 0,
+						branch = null,
+						source = source,
+					)
+				},
 		)
 	}
 
-    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val imageUrls = doc.select("meta[property='og:image']").map { it.attr("content") }
