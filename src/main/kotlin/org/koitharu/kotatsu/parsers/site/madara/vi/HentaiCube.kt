@@ -48,11 +48,11 @@ internal class HentaiCube(context: MangaLoaderContext) :
 		val elements = doc.select("ul.list-unstyled li a")
 		return elements.mapToSet { element ->
 			val href = element.attr("href")
-			val key = href.substringAfter("/the-loai/").removeSuffix("/")
+			val key = href.substringAfter("/theloai/").removeSuffix("/")
 			val title = element.text().replace(Regex("\\(\\d+\\)"), "")
 			MangaTag(
 				key = key,
-				title = title.toTitleCase(sourceLocale),
+				title = title,
 				source = source,
 			)
 		}.toSet()
