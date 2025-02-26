@@ -36,8 +36,10 @@ import java.util.EnumSet
 @MangaSourceParser("BUONDUA", "Buon Dua", type = ContentType.OTHER)
 internal class BuonDuaParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.BUONDUA) {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("buondua.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"buondua.com",
+		"buondua.us"
+	)
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.NEWEST, SortOrder.POPULARITY)
