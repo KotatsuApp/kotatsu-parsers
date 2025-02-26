@@ -9,7 +9,9 @@ import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.requireElementById
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("EPIKMAN", "EpikMan", "tr")
 internal class EpikMan(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.EPIKMAN, "www.epikman.ga") {
