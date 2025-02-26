@@ -105,7 +105,7 @@ internal class VyManga(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = div.selectFirst(".comic-image img")?.src().orEmpty(),
+				coverUrl = div.selectFirst(".comic-image img")?.src(),
 				title = div.selectFirst(".comic-title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

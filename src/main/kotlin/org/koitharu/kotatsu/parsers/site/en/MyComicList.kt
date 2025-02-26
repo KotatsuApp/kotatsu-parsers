@@ -78,7 +78,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfwSource,
-				coverUrl = img?.attr("data-src").orEmpty(),
+				coverUrl = img?.attrAsAbsoluteUrlOrNull("data-src"),
 				state = null,
 				source = source,
 			)

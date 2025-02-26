@@ -31,7 +31,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 		"parkmanga.com",
 		"parkmanga.net",
 		"parkmanga.org",
-		"mpark.to"
+		"mpark.to",
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -155,7 +155,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h3")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span.text-yellow-500")?.text()?.toFloatOrNull()?.div(10F) ?: RATING_UNKNOWN,

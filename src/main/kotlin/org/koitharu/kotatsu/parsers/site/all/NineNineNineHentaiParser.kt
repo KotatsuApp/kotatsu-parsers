@@ -203,7 +203,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			altTitle = name,
 			coverUrl = when {
 				cover?.startsWith("http") == true -> cover
-				cover == null -> ""
+				cover == null -> null
 				else -> "https://${cdnHost.get()}/$cover"
 			},
 			author = null,

@@ -36,7 +36,7 @@ internal abstract class OneMangaParser(
 				id = generateUid(url),
 				url = url,
 				publicUrl = url,
-				coverUrl = doc.selectFirst("div.elementor-widget-container img")?.src().orEmpty(),
+				coverUrl = doc.selectFirst("div.elementor-widget-container img")?.src(),
 				title = doc.selectFirst("ul.elementor-nav-menu li a")?.text().orEmpty(),
 				altTitle = doc.selectFirst("div.elementor-widget-text-editor ul li:contains(Nom(s) Alternatif(s))")
 					?.text()?.replace("Nom(s) Alternatif(s) :", "").orEmpty(),

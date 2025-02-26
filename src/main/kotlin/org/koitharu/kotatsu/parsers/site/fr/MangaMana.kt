@@ -121,7 +121,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 								publicUrl = href.toAbsoluteUrl(domain),
 								rating = RATING_UNKNOWN,
 								isNsfw = isNsfw,
-								coverUrl = img.orEmpty(),
+								coverUrl = img,
 								description = null,
 								tags = emptySet(),
 								state = null,
@@ -184,7 +184,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				isNsfw = isNsfw,
-				coverUrl = img.orEmpty(),
+				coverUrl = img,
 				description = div.selectFirst(".mangalist_item_description")?.text().orEmpty(),
 				tags = div.select("div.mb-1 a").mapToSet {
 					val key = it.attr("href").substringAfterLast('=')

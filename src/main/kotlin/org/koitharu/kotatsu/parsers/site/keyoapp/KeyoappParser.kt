@@ -127,7 +127,7 @@ internal abstract class KeyoappParser(
 			id = generateUid(href),
 			url = href,
 			publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-			coverUrl = cover?.styleValueOrNull("background-image")?.cssUrl().orEmpty(),
+			coverUrl = cover?.styleValueOrNull("background-image")?.cssUrl(),
 			title = div.selectFirstOrThrow("h3").text().orEmpty(),
 			altTitle = null,
 			rating = RATING_UNKNOWN,

@@ -148,7 +148,7 @@ internal abstract class MangaWorldParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = div.selectFirst(".thumb img")?.attr("src").orEmpty(),
+				coverUrl = div.selectFirst(".thumb img")?.attr("src"),
 				title = div.selectFirst(".name a.manga-title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

@@ -95,7 +95,7 @@ internal class NHentaiParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = isNsfwSource,
-				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src(),
 				tags = emptySet(),
 				state = null,
 				author = null,

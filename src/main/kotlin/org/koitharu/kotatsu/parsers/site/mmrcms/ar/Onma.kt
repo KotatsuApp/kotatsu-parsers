@@ -30,7 +30,7 @@ internal class Onma(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("h5.media-heading").text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

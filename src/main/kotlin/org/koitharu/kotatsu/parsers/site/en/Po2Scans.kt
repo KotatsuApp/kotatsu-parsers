@@ -50,7 +50,7 @@ internal class Po2Scans(context: MangaLoaderContext) : SinglePageMangaParser(con
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src()?.toAbsoluteUrl(domain).orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
 				author = null,

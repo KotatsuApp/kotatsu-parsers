@@ -109,7 +109,7 @@ internal class TeamXNovel(context: MangaLoaderContext) : PagedMangaParser(contex
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src()?.replace("thumbnail_", "").orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src()?.replace("thumbnail_", ""),
 				tags = emptySet(),
 				state = when (div.selectFirst(".status")?.text()) {
 					"مستمرة" -> MangaState.ONGOING

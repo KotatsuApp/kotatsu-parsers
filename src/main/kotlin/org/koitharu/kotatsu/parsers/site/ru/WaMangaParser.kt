@@ -63,7 +63,11 @@ internal class WaMangaParser(
 			},
 			author = doc.getStringOrNull("author"),
 			source = source,
-			contentRating = if (doc.getIntOrDefault("adult", 0) == 0) ContentRating.SAFE else ContentRating.ADULT,
+			contentRating = if (doc.getIntOrDefault("adult", 0) == 0) {
+				ContentRating.SAFE
+			} else {
+				ContentRating.ADULT
+			},
 		)
 	}
 

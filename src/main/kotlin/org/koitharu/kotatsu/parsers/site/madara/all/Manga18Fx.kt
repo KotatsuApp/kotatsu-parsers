@@ -69,7 +69,7 @@ internal class Manga18Fx(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("h3").text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("div.item-rate span")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,

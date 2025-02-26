@@ -104,7 +104,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("a.one-line")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.select("span").last()?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

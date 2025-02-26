@@ -107,7 +107,7 @@ internal abstract class Manga18Parser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("div.mg_info")?.selectFirst("div.mg_name a")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

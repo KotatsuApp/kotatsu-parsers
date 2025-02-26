@@ -113,7 +113,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = a.attr("title"),
-				coverUrl = a.selectFirst("img")?.absUrl("src").orEmpty(),
+				coverUrl = a.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
 				source = MangaParserSource.MANGATOWN,
 				altTitle = null,
 				rating = li.selectFirst("p.score")?.selectFirst("b")

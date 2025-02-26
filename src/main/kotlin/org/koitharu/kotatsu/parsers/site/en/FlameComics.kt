@@ -141,7 +141,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 			coverUrl = if (cover != null) {
 				imageUrl(seriesId, cover, 256)
 			} else {
-				""
+				null
 			},
 			tags = jo.getStringOrNull("categories")?.let {
 				JSONArray(it).asTypedList<String>().mapToSet { tagName -> tagName.toMangaTag() }

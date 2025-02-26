@@ -1,20 +1,25 @@
 package org.koitharu.kotatsu.parsers.site.en
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.jsoup.nodes.*
-import org.koitharu.kotatsu.parsers.*
+import org.jsoup.nodes.Document
+import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.MangaState.*
+import org.koitharu.kotatsu.parsers.model.ContentRating.SAFE
+import org.koitharu.kotatsu.parsers.model.ContentRating.SUGGESTIVE
 import org.koitharu.kotatsu.parsers.model.ContentType.*
+import org.koitharu.kotatsu.parsers.model.MangaState.*
 import org.koitharu.kotatsu.parsers.model.SortOrder.*
-import org.koitharu.kotatsu.parsers.model.ContentRating.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.EnumSet
-import java.util.Locale
+import java.util.*
 
 @MangaSourceParser("WEEBCENTRAL", "Weeb Central", "en")
 internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.WEEBCENTRAL),
@@ -65,27 +70,27 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 			MangaTag(
 				title = it.selectFirstOrThrow(".label-text").text(),
 				key = it.selectFirstOrThrow("input[id$=value]").attr("value"),
-				source = source
+				source = source,
 			)
 		}
 
 		val states = EnumSet.of(
-			ONGOING, FINISHED, ABANDONED, PAUSED
+			ONGOING, FINISHED, ABANDONED, PAUSED,
 		)
 
 		val types = EnumSet.of(
-			MANGA, MANHWA, MANHUA, COMICS
+			MANGA, MANHWA, MANHUA, COMICS,
 		)
 
 		val rating = EnumSet.of(
-			SAFE, SUGGESTIVE
+			SAFE, SUGGESTIVE,
 		)
 
 		return MangaListFilterOptions(
 			availableTags = tags,
 			availableStates = states,
 			availableContentTypes = types,
-			availableContentRating = rating
+			availableContentRating = rating,
 		)
 	}
 
@@ -110,7 +115,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					ADDED, ADDED_ASC -> "Recently Added"
 					UPDATED, UPDATED_ASC -> "Latest Updates"
 					else -> throw UnsupportedOperationException("unsupported order: $order")
-				}
+				},
 			)
 			addQueryParameter(
 				name = "order",
@@ -118,11 +123,11 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					RELEVANCE, ALPHABETICAL, POPULARITY_ASC, RATING_ASC, ADDED_ASC, UPDATED_ASC -> "Ascending"
 					ALPHABETICAL_DESC, POPULARITY, RATING, ADDED, UPDATED -> "Descending"
 					else -> throw UnsupportedOperationException("unsupported order: $order")
-				}
+				},
 			)
 			addQueryParameter("official", "Any")
 			addQueryParameter("anime", "Any")
-			with (filter.contentRating) {
+			with(filter.contentRating) {
 				addQueryParameter(
 					name = "adult",
 					value = when {
@@ -131,7 +136,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 						SAFE in this -> "False"
 						SUGGESTIVE in this -> "True"
 						else -> throw UnsupportedOperationException("unsupported content rating: $this")
-					}
+					},
 				)
 			}
 			filter.states.forEach { state ->
@@ -143,7 +148,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 						ABANDONED -> "Canceled"
 						PAUSED -> "Hiatus"
 						else -> throw UnsupportedOperationException("unsupported state: $state")
-					}
+					},
 				)
 			}
 			filter.types.forEach { type ->
@@ -155,7 +160,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 						MANHUA -> "Manhua"
 						COMICS -> "OEL"
 						else -> throw UnsupportedOperationException("unsupported type: $type")
-					}
+					},
 				)
 			}
 			filter.tags.forEach { tag ->
@@ -194,21 +199,21 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 						MangaTag(
 							title = it,
 							key = it,
-							source = source
+							source = source,
 						)
 					}
 					.orEmpty(),
-				state = when(document.selectFirst("div:contains(status) span")?.text()) {
+				state = when (document.selectFirst("div:contains(status) span")?.text()) {
 					"Ongoing" -> ONGOING
 					"Complete" -> FINISHED
 					"Canceled" -> ABANDONED
 					"Hiatus" -> PAUSED
 					else -> null
 				},
-				author = document.select("div:contains(author) a").eachText().joinToString(),
+				author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty(),
 				largeCoverUrl = null,
 				chapters = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -238,7 +243,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				MangaTag(
 					title = it.text(),
 					key = it.text(),
-					source = source
+					source = source,
 				)
 			},
 			state = when (sectionLeft.selectFirst("ul > li:has(strong:contains(Status)) > a")?.text()) {
@@ -260,12 +265,12 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					abbr.selectFirst("a")?.attr("href")?.let { url ->
 						val a = Element("a")
 							.text(
-								abbr.attr("title")
+								abbr.attr("title"),
 							)
 							.attr("href", url)
 
 						ul.appendChild(
-							Element("li").appendChild(a)
+							Element("li").appendChild(a),
 						)
 					}
 				}
@@ -276,7 +281,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				}
 			}.outerHtml(),
 			chapters = chapters.await(),
-			source = source
+			source = source,
 		)
 	}
 
@@ -308,10 +313,10 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 					else -> null
 				},
 				uploadDate = dateFormat.tryParse(
-					element.selectFirst("time[datetime]")?.attr("datetime")
+					element.selectFirst("time[datetime]")?.attr("datetime"),
 				),
 				branch = null,
-				source = source
+				source = source,
 			)
 		}
 	}
@@ -336,7 +341,7 @@ internal class WeebCentral(context: MangaLoaderContext) : MangaParser(context, M
 				id = generateUid(pageUrl),
 				url = pageUrl,
 				preview = null,
-				source = source
+				source = source,
 			)
 		}
 	}

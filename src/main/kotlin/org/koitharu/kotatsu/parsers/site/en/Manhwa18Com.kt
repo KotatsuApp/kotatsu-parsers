@@ -130,7 +130,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 					publicUrl = absUrl,
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = it.selectFirst("div.img-in-ratio")?.attrAsAbsoluteUrl("data-bg").orEmpty(),
+					coverUrl = it.selectFirst("div.img-in-ratio")?.attrAsAbsoluteUrl("data-bg"),
 					tags = emptySet(),
 					state = null,
 					author = null,

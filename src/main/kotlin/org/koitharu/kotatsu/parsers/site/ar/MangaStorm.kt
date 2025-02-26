@@ -75,7 +75,7 @@ internal class MangaStorm(context: MangaLoaderContext) : PagedMangaParser(contex
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
 				author = null,

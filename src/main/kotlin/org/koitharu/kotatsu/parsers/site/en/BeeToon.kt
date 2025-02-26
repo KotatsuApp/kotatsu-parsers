@@ -73,7 +73,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst(".name")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst(".counter")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

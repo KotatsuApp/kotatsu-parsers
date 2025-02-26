@@ -302,7 +302,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 				"safe" -> ContentRating.SAFE
 				else -> null
 			},
-			coverUrl = cover?.plus(".256.jpg").orEmpty(),
+			coverUrl = cover?.plus(".256.jpg"),
 			largeCoverUrl = cover,
 			description = attrs.optJSONObject("description")?.selectByLocale(),
 			tags = attrs.getJSONArray("tags").mapJSONToSet { tag ->
@@ -338,7 +338,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : MangaParser(context
 			getStringOrNull(locale.language)?.let { return it }
 			getStringOrNull(locale.toLanguageTag())?.let { return it }
 		}
-		return getStringOrNull(LOCALE_FALLBACK) ?: entries<String>().firstOrNull()?.value
+		return getStringOrNull(LOCALE_FALLBACK) ?: entries<String>().firstOrNull()?.value?.nullIfEmpty()
 	}
 
 	private fun JSONArray.flatten(): JSONObject {

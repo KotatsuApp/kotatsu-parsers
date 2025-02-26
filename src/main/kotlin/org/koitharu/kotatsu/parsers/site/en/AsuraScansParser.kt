@@ -111,7 +111,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = a.selectFirst("img")?.src().orEmpty(),
+				coverUrl = a.selectFirst("img")?.src(),
 				title = a.selectFirst("div.block > span.block")?.text().orEmpty(),
 				altTitle = null,
 				rating = a.selectFirst("div.block  label.ml-1")?.text()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,

@@ -85,10 +85,10 @@ internal class MangaGeko(context: MangaLoaderContext) : PagedMangaParser(context
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = div.selectFirstOrThrow("img").src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
-				author = div.selectFirstOrThrow("h6").text().removePrefix("Author(S): "),
+				author = div.selectFirstOrThrow("h6").text().removePrefix("Author(S): ").nullIfEmpty(),
 				source = source,
 			)
 		}

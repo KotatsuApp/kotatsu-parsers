@@ -167,9 +167,10 @@ internal class ExHentaiParser(
 			val a = gLink.parents().select("a").first() ?: gLink.parseFailed("link not found")
 			val href = a.attrAsRelativeUrl("href")
 			val tagsDiv = gLink.nextElementSibling() ?: gLink.parseFailed("tags div not found")
+			val rawTitle = gLink.text()
 			Manga(
 				id = generateUid(href),
-				title = gLink.text().cleanupTitle(),
+				title = rawTitle.cleanupTitle(),
 				altTitle = null,
 				url = href,
 				publicUrl = a.absUrl("href"),
@@ -177,9 +178,12 @@ internal class ExHentaiParser(
 				contentRating = ContentRating.ADULT,
 				coverUrl = td1.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
 				tags = tagsDiv.parseTags(),
-				state = null,
+				state = when {
+					rawTitle.contains("(ongoing)", ignoreCase = true) -> MangaState.ONGOING
+					else -> null
+				},
 				author = tagsDiv.getElementsContainingOwnText("artist:").first()
-					?.nextElementSibling()?.text(),
+					?.nextElementSibling()?.textOrNull(),
 				source = source,
 			)
 		}

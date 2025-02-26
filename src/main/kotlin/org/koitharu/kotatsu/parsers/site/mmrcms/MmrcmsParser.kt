@@ -126,7 +126,7 @@ internal abstract class MmrcmsParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("div.media-body h5")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("span")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

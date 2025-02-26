@@ -148,7 +148,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				isNsfw = isNsfwSource,
-				coverUrl = it.selectFirst("img.ts-post-image")?.src().orEmpty(),
+				coverUrl = it.selectFirst("img.ts-post-image")?.src(),
 				tags = emptySet(),
 				state = null,
 				author = null,

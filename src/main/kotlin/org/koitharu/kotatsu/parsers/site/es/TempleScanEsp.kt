@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -41,9 +42,9 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href,
-				coverUrl = it.getString("urlImg").orEmpty(),
+				coverUrl = it.getString("urlImg"),
 				title = it.getString("name").orEmpty(),
-				altTitle = it.getString("alternativeName").orEmpty(),
+				altTitle = it.getStringOrNull("alternativeName"),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				author = null,

@@ -121,7 +121,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = true,
-					coverUrl = it.selectFirst(".thumbnail > img")?.src().orEmpty(),
+					coverUrl = it.selectFirst(".thumbnail > img")?.src(),
 					tags = emptySet(),
 					state = null,
 					author = null,

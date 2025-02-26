@@ -110,7 +110,7 @@ internal abstract class OtakuSanctuaryParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h4")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,

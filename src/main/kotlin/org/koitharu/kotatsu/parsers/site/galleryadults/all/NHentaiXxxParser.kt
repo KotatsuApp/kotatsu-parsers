@@ -66,7 +66,7 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 						joiner.add(tag.title)
 					}
 
-					if(!filter.query.isNullOrEmpty()) {
+					if (!filter.query.isNullOrEmpty()) {
 						joiner.add(filter.query.urlEncoded())
 					}
 					append(joiner.complete())
@@ -98,12 +98,12 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
-				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src().orEmpty(),
+				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src(),
 				tags = emptySet(),
 				state = null,
 				author = null,
 				largeCoverUrl = null,
-				description = "N/A",
+				description = null,
 				chapters = null,
 				source = source,
 			)

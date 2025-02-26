@@ -9,16 +9,8 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.host
-import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
-import org.koitharu.kotatsu.parsers.util.parseFailed
-import org.koitharu.kotatsu.parsers.util.removeSuffix
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import java.util.Locale
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @Broken
 @MangaSourceParser("MANGAFENXI", "MangaFenxi", "ja")
@@ -37,7 +29,7 @@ internal class MangaFenxi(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.attr("src")?.replace("-193x278", "").orEmpty(),
+				coverUrl = div.selectFirst("img")?.attr("src")?.replace("-193x278", ""),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
 				?: div.selectFirst(".manga-name") ?: div.selectFirst(".post-title"))?.text().orEmpty(),
 				altTitle = null,

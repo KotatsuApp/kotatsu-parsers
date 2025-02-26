@@ -156,8 +156,8 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				url = slug,
 				publicUrl = "https://$domain/comic/$slug",
 				rating = jo.getDoubleOrDefault("rating", -10.0).toFloat() / 10f,
-				isNsfw = false,
-				coverUrl = jo.getString("cover_url"),
+				contentRating = null,
+				coverUrl = jo.getStringOrNull("cover_url"),
 				largeCoverUrl = null,
 				description = jo.getStringOrNull("desc"),
 				tags = jo.selectGenres(tagsMap),
@@ -179,10 +179,11 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		val url = "https://api.$domain/comic/${manga.url}?tachiyomi=true"
 		val jo = webClient.httpGet(url).parseJson()
 		val comic = jo.getJSONObject("comic")
-		var alt = ""
-		comic.getJSONArray("md_titles").mapJSON { alt += it.getString("title") + " - " }
+		val alt = comic.getJSONArray("md_titles").asTypedList<JSONObject>().joinToString("\n") {
+			it.getStringOrNull("title").orEmpty()
+		}
 		return manga.copy(
-			altTitle = alt.ifEmpty { comic.getStringOrNull("title") }?.nullIfEmpty(),
+			altTitle = alt.nullIfEmpty(),
 			contentRating = if (jo.getBooleanOrDefault("matureContent", false)
 				|| comic.getBooleanOrDefault("hentai", false)
 			) {

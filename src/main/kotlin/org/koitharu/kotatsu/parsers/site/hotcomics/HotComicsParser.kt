@@ -105,7 +105,7 @@ internal abstract class HotComicsParser(
 				id = generateUid(url),
 				url = url,
 				publicUrl = url.toAbsoluteUrl(domain),
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
+				coverUrl = li.selectFirst("img")?.src(),
 				title = li.selectFirst(".title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

@@ -114,7 +114,7 @@ internal abstract class NineMangaParser(
 				publicUrl = href,
 				title = dd?.selectFirst("a.bookname")?.text()?.toCamelCase().orEmpty(),
 				altTitle = null,
-				coverUrl = node.selectFirst("img")?.src().orEmpty(),
+				coverUrl = node.selectFirst("img")?.src(),
 				rating = RATING_UNKNOWN,
 				author = null,
 				isNsfw = false,

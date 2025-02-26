@@ -80,7 +80,7 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = (div.selectFirst("img")?.src() ?: a.attr("data-bg")).orEmpty(),
+				coverUrl = div.selectFirst("img")?.src() ?: a.attrAsAbsoluteUrlOrNull("data-bg"),
 				title = div.selectFirst("h4, .media-thumbnail__name")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

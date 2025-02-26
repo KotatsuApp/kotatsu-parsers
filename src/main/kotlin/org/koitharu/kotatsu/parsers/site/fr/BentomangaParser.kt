@@ -124,7 +124,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 					?.div(10f)
 					?: RATING_UNKNOWN,
 				isNsfw = div.selectFirst(".badge-adult_content") != null,
-				coverUrl = div.selectFirst("img")?.src().assertNotNull("src").orEmpty(),
+				coverUrl = div.selectFirst("img")?.src().assertNotNull("src"),
 				tags = div.selectFirst(".component-manga-categories")
 					.assertNotNull("tags")
 					?.select("a")

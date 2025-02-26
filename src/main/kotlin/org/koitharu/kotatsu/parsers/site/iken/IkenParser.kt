@@ -105,7 +105,7 @@ internal abstract class IkenParser(
 				id = it.getLong("id"),
 				url = url,
 				publicUrl = url.toAbsoluteUrl(domain),
-				coverUrl = it.getString("featuredImage").orEmpty(),
+				coverUrl = it.getString("featuredImage"),
 				title = it.getString("postTitle"),
 				altTitle = it.getString("alternativeTitles"),
 				description = it.getString("postContent"),

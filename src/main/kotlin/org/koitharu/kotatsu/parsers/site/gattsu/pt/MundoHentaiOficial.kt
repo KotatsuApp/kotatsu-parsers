@@ -29,7 +29,7 @@ internal class MundoHentaiOficial(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href,
 				title = li.selectLastOrThrow(".thumb-titulo, .video-titulo").text(),
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
+				coverUrl = li.selectFirst("img")?.src(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

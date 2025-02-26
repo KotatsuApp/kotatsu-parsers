@@ -65,7 +65,7 @@ internal abstract class HeanCmsAlt(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst(selectMangaTitle)?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

@@ -95,7 +95,7 @@ internal class XxxRevolutionScantrad(context: MangaLoaderContext) :
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				isNsfw = isNsfwSource,
-				coverUrl = it.selectFirst(selectMangaListImg)?.src().orEmpty(),
+				coverUrl = it.selectFirst(selectMangaListImg)?.src(),
 				tags = emptySet(),
 				state = null,
 				author = null,

@@ -119,7 +119,7 @@ internal abstract class MadthemeParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("div.meta")?.selectFirst("div.title")?.text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirst("div.meta span.score")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

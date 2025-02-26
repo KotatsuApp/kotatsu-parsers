@@ -100,8 +100,7 @@ internal abstract class CupFoxParser(
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = li.selectFirst(selectMangasCover)
-					?.src().orEmpty(),
+				coverUrl = li.selectFirst(selectMangasCover)?.src(),
 				tags = setOf(),
 				state = null,
 				author = null,
@@ -166,7 +165,7 @@ internal abstract class CupFoxParser(
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
 					isNsfw = false,
-					coverUrl = li.selectFirst(selectMangasCover)?.src().orEmpty(),
+					coverUrl = li.selectFirst(selectMangasCover)?.src(),
 					tags = setOf(),
 					state = null,
 					author = null,

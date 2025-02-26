@@ -4,8 +4,7 @@ import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.util.findById
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 
-@ExposedCopyVisibility
-public data class Manga private constructor(
+public data class Manga constructor(
 	/**
 	 * Unique identifier for manga
 	 */
@@ -72,6 +71,41 @@ public data class Manga private constructor(
 	@JvmField public val source: MangaSource,
 ) {
 
+	@Deprecated("Prefer constructor with contentRating instead of isNsfw")
+	public constructor(
+		id: Long,
+		title: String,
+		altTitle: String?,
+		url: String,
+		publicUrl: String,
+		rating: Float,
+		isNsfw: Boolean,
+		coverUrl: String?,
+		tags: Set<MangaTag>,
+		state: MangaState?,
+		author: String?,
+		largeCoverUrl: String? = null,
+		description: String? = null,
+		chapters: List<MangaChapter>? = null,
+		source: MangaSource,
+	) : this(
+		id = id,
+		title = title,
+		altTitle = altTitle?.nullIfEmpty(),
+		url = url,
+		publicUrl = publicUrl,
+		rating = rating,
+		contentRating = if (isNsfw) ContentRating.ADULT else null,
+		coverUrl = coverUrl?.nullIfEmpty(),
+		tags = tags,
+		state = state,
+		author = author?.nullIfEmpty(),
+		largeCoverUrl = largeCoverUrl?.nullIfEmpty(),
+		description = description?.nullIfEmpty(),
+		chapters = chapters,
+		source = source,
+	)
+
 	/**
 	 * Return if manga has a specified rating
 	 * @see rating
@@ -101,175 +135,5 @@ public data class Manga private constructor(
 			result[key] = result.getOrDefault(key, 0) + 1
 		}
 		return result
-	}
-
-	public companion object {
-
-		@Deprecated("")
-		public operator fun invoke(
-			/**
-			 * Unique identifier for manga
-			 */
-			id: Long,
-			/**
-			 * Manga title, human-readable
-			 */
-			title: String,
-			/**
-			 * Alternative title (for example on other language), may be null
-			 */
-			altTitle: String?,
-			/**
-			 * Relative url to manga (**without** a domain) or any other uri.
-			 * Used principally in parsers
-			 */
-			url: String,
-			/**
-			 * Absolute url to manga, must be ready to open in browser
-			 */
-			publicUrl: String,
-			/**
-			 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
-			 * @see hasRating
-			 */
-			rating: Float,
-			/**
-			 * Indicates that manga may contain sensitive information (18+, NSFW)
-			 */
-			isNsfw: Boolean,
-			/**
-			 * Absolute link to the cover
-			 * @see largeCoverUrl
-			 */
-			coverUrl: String?,
-			/**
-			 * Tags (genres) of the manga
-			 */
-			tags: Set<MangaTag>,
-			/**
-			 * Manga status (ongoing, finished) or null if unknown
-			 */
-			state: MangaState?,
-			/**
-			 * Author of the manga, may be null
-			 */
-			author: String?,
-			/**
-			 * Large cover url (absolute), null if is no large cover
-			 * @see coverUrl
-			 */
-			largeCoverUrl: String? = null,
-			/**
-			 * Manga description, may be html or null
-			 */
-			description: String? = null,
-			/**
-			 * List of chapters
-			 */
-			chapters: List<MangaChapter>? = null,
-			/**
-			 * Manga source
-			 */
-			source: MangaSource,
-		): Manga = invoke(
-			id = id,
-			title = title,
-			altTitle = altTitle,
-			url = url,
-			publicUrl = publicUrl,
-			rating = rating,
-			contentRating = if (isNsfw) ContentRating.ADULT else ContentRating.SAFE,
-			coverUrl = coverUrl,
-			tags = tags,
-			state = state,
-			author = author,
-			largeCoverUrl = largeCoverUrl,
-			description = description,
-			chapters = chapters,
-			source = source,
-		)
-
-		public operator fun invoke(
-			/**
-			 * Unique identifier for manga
-			 */
-			id: Long,
-			/**
-			 * Manga title, human-readable
-			 */
-			title: String,
-			/**
-			 * Alternative title (for example on other language), may be null
-			 */
-			altTitle: String?,
-			/**
-			 * Relative url to manga (**without** a domain) or any other uri.
-			 * Used principally in parsers
-			 */
-			url: String,
-			/**
-			 * Absolute url to manga, must be ready to open in browser
-			 */
-			publicUrl: String,
-			/**
-			 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
-			 * @see hasRating
-			 */
-			rating: Float,
-			/**
-			 * Indicates that manga may contain sensitive information (18+, NSFW)
-			 */
-			contentRating: ContentRating?,
-			/**
-			 * Absolute link to the cover
-			 * @see largeCoverUrl
-			 */
-			coverUrl: String?,
-			/**
-			 * Tags (genres) of the manga
-			 */
-			tags: Set<MangaTag>,
-			/**
-			 * Manga status (ongoing, finished) or null if unknown
-			 */
-			state: MangaState?,
-			/**
-			 * Author of the manga, may be null
-			 */
-			author: String?,
-			/**
-			 * Large cover url (absolute), null if is no large cover
-			 * @see coverUrl
-			 */
-			largeCoverUrl: String? = null,
-			/**
-			 * Manga description, may be html or null
-			 */
-			description: String? = null,
-			/**
-			 * List of chapters
-			 */
-			chapters: List<MangaChapter>? = null,
-			/**
-			 * Manga source
-			 */
-			source: MangaSource,
-		): Manga = Manga(
-			id = id,
-			title = title,
-			altTitle = altTitle?.nullIfEmpty(),
-			url = url,
-			publicUrl = publicUrl,
-			rating = rating,
-			contentRating = contentRating,
-			coverUrl = coverUrl?.nullIfEmpty(),
-			tags = tags,
-			state = state,
-			author = author?.nullIfEmpty(),
-			largeCoverUrl = largeCoverUrl?.nullIfEmpty(),
-			description = description?.nullIfEmpty(),
-			chapters = chapters,
-			source = source,
-		)
 	}
 }

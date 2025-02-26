@@ -146,17 +146,17 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		return document.select(".block_area_authors-other .manga_list-sbs .manga-poster, .featured-block-ul .manga-poster")
 			.map {
 				val mangaUrl = it.attrAsRelativeUrl("href")
-				val thumb = it.select("img")
+				val thumb = it.selectFirstOrThrow("img")
 				Manga(
 					id = generateUid(mangaUrl),
 					url = mangaUrl,
 					publicUrl = mangaUrl.toAbsoluteUrl(domain),
 					title = thumb.attr("alt"),
-					coverUrl = thumb.attr("src"),
+					coverUrl = thumb.attrAsAbsoluteUrlOrNull("src"),
 					source = source,
 					altTitle = null,
 					author = null,
-					isNsfw = false,
+					contentRating = null,
 					rating = RATING_UNKNOWN,
 					state = null,
 					tags = emptySet(),

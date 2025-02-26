@@ -464,7 +464,7 @@ internal abstract class MadaraParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = (summary?.selectFirst("h3, h4") ?: div.selectFirst(".manga-name, .post-title"))?.text()
 					.orEmpty(),
 				altTitle = null,
@@ -661,7 +661,7 @@ internal abstract class MadaraParser(
 				altTitle = null,
 				title = div.selectFirstOrThrow(".widget-title").text(),
 				author = null,
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,

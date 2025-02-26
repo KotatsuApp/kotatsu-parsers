@@ -158,7 +158,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				publicUrl = urlManga,
 				rating = RATING_UNKNOWN,
 				isNsfw = false,
-				coverUrl = "",
+				coverUrl = null,
 				tags = setOf(),
 				state = null,
 				author = null,
@@ -178,7 +178,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			coverUrl = root.selectFirst("div.serieImg img")?.attr("src"),
+			coverUrl = root.selectFirst("div.serieImg img")?.attrAsAbsoluteUrlOrNull("src"),
 			author = root.select("div.serieAdd p:contains(Auteur:) strong").textOrNull(),
 			description = root.selectFirst("div.serieDescription div")?.html(),
 			chapters = root.select("div.chapterList a")

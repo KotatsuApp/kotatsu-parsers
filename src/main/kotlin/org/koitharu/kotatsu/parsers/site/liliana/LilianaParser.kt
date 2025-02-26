@@ -114,7 +114,7 @@ internal abstract class LilianaParser(
 			id = generateUid(href),
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
-			coverUrl = element.selectFirst("img")?.src().orEmpty(),
+			coverUrl = element.selectFirst("img")?.src(),
 			title = element.selectFirst(".text-center a")?.text().orEmpty(),
 			altTitle = null,
 			rating = RATING_UNKNOWN,

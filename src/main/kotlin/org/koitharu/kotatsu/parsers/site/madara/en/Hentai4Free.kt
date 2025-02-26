@@ -106,7 +106,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
 				?: div.selectFirst(".manga-name"))?.text().orEmpty(),
 				altTitle = null,

@@ -78,7 +78,7 @@ internal abstract class GattsuParser(
 				url = href,
 				publicUrl = href,
 				title = li.selectLast(".thumb-titulo, .video-titulo")?.text().orEmpty(),
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
+				coverUrl = li.selectFirst("img")?.src(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

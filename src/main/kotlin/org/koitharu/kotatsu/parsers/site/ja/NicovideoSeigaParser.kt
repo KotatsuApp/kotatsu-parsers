@@ -87,7 +87,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst(".mg_body > .title > a")?.text() ?: return@mapNotNull null,
-				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src").orEmpty(),
+				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src"),
 				altTitle = null,
 				author = item.selectFirst(".mg_description_header > .mg_author > a")?.text(),
 				rating = RATING_UNKNOWN,
@@ -200,7 +200,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				isNsfw = false,
 				source = source,
 				coverUrl = item.selectFirst(".search_result__item__thumbnail > a > img")
-					?.attrAsAbsoluteUrl("data-original").orEmpty(),
+					?.attrAsAbsoluteUrl("data-original"),
 			)
 		}
 	}

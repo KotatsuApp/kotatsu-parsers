@@ -66,7 +66,8 @@ internal class PapScan(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirstOrThrow("div.product__item__pic").attr("data-setbg").orEmpty(),
+				coverUrl = div.selectFirstOrThrow("div.product__item__pic")
+					.attrAsAbsoluteUrlOrNull("data-setbg"),
 				title = div.selectFirstOrThrow("div.product__item__text h5").text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

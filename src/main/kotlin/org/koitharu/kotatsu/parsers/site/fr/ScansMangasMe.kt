@@ -81,7 +81,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("div.bigor div.tt").text().orEmpty(),
 				altTitle = null,
 				rating = div.selectFirstOrThrow("div.rating i").ownText().toFloatOrNull()?.div(10f)

@@ -66,7 +66,7 @@ internal class HentaiCrot(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src()?.replace("-200x285", "").orEmpty(),
+				coverUrl = div.selectFirst("img")?.src()?.replace("-200x285", ""),
 				title = div.selectFirst("h2")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,

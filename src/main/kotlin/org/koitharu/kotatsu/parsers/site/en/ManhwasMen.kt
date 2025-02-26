@@ -83,7 +83,7 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
+				coverUrl = li.selectFirst("img")?.src(),
 				title = li.selectFirst(".title")?.text().orEmpty(),
 				altTitle = null,
 				rating = RATING_UNKNOWN,
