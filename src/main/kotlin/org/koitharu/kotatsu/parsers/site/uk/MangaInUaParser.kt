@@ -69,6 +69,7 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 		val items = container.select("div.col-6")
 		return items.mapNotNull { item ->
 			val href = item.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
+			val isNsfwSource = item.selectFirst("ul.card__list")?.select("li")?.lastOrNull()?.text() == "18+"
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst("h3.card__title")?.text() ?: return@mapNotNull null,
@@ -76,11 +77,11 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 					attrAsAbsoluteUrlOrNull("data-src") ?: attrAsAbsoluteUrlOrNull("src")
 				}.orEmpty(),
 				altTitle = null,
-				author = null,
+				authors = emptySet(),
 				rating = item.selectFirst("div.card__short-rate--num")?.text()?.toFloatOrNull()?.div(10F)
 					?: RATING_UNKNOWN,
 				url = href,
-				isNsfw = item.selectFirst("ul.card__list")?.select("li")?.lastOrNull()?.text() == "18+",
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				tags = runCatching {
 					item.selectFirst("div.card__category")?.select("a")?.mapToSet {
 						MangaTag(

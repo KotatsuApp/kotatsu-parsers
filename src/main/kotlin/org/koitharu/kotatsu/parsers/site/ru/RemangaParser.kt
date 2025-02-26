@@ -115,8 +115,8 @@ internal class RemangaParser(
 				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				coverUrl = "https://api.$domain${img.getString("mid")}",
 				largeCoverUrl = "https://api.$domain${img.getString("high")}",
-				author = null,
-				isNsfw = false,
+				authors = emptySet(),
+				contentRating = null,
 				state = null,
 				tags = jo.optJSONArray("genres")?.mapJSONToSet { g ->
 					MangaTag(

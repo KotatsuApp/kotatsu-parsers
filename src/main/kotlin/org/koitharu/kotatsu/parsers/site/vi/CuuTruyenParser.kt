@@ -107,6 +107,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		val data = json.optJSONArray("data") ?: json.getJSONObject("data").getJSONArray("mangas")
 
 		return data.mapJSON { jo ->
+			val author = jo.getStringOrNull("author_name")
 			Manga(
 				id = generateUid(jo.getLong("id")),
 				url = "/api/v2/mangas/${jo.getLong("id")}",
@@ -115,11 +116,11 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				altTitle = null,
 				coverUrl = jo.getString("cover_mobile_url"),
 				largeCoverUrl = jo.getString("cover_url"),
-				author = jo.getStringOrNull("author_name"),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				tags = emptySet(),
 				state = null,
 				description = null,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 				rating = RATING_UNKNOWN,
 			)
@@ -152,6 +153,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
 		// Remove old manga status from "tags"
 		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
+		val author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty()
 
 		manga.copy(
 			title = json.getStringOrNull("name") ?: manga.title,
@@ -160,7 +162,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			} else {
 				ContentRating.SAFE
 			},
-			author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = json.getStringOrNull("full_description"),
 			tags = newTags,
 			state = state,

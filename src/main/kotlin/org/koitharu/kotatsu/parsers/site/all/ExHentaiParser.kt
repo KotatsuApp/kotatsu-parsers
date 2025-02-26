@@ -168,6 +168,8 @@ internal class ExHentaiParser(
 			val href = a.attrAsRelativeUrl("href")
 			val tagsDiv = gLink.nextElementSibling() ?: gLink.parseFailed("tags div not found")
 			val rawTitle = gLink.text()
+			val author = tagsDiv.getElementsContainingOwnText("artist:").first()
+				?.nextElementSibling()?.textOrNull()
 			Manga(
 				id = generateUid(href),
 				title = rawTitle.cleanupTitle(),
@@ -182,8 +184,7 @@ internal class ExHentaiParser(
 					rawTitle.contains("(ongoing)", ignoreCase = true) -> MangaState.ONGOING
 					else -> null
 				},
-				author = tagsDiv.getElementsContainingOwnText("artist:").first()
-					?.nextElementSibling()?.textOrNull(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				source = source,
 			)
 		}

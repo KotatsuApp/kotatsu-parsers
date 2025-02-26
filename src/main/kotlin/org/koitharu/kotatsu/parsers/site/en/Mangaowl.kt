@@ -109,10 +109,10 @@ internal class Mangaowl(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = div.select("span").last()?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = false,
+				contentRating = null,
 			)
 		}
 	}

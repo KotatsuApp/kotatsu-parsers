@@ -46,6 +46,7 @@ internal class WaMangaParser(
 
 	private fun parseSmallMangaObject(doc: JSONObject): Manga {
 		val url = doc.getString("url")
+		val author = doc.getStringOrNull("author")
 		return Manga(
 			id = generateUid(url),
 			url = url,
@@ -61,7 +62,7 @@ internal class WaMangaParser(
 				"закончен" -> MangaState.FINISHED
 				else -> MangaState.UPCOMING
 			},
-			author = doc.getStringOrNull("author"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			source = source,
 			contentRating = if (doc.getIntOrDefault("adult", 0) == 0) {
 				ContentRating.SAFE

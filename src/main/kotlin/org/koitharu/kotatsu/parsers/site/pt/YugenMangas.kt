@@ -87,8 +87,8 @@ internal class YugenMangas(context: MangaLoaderContext) :
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}
@@ -103,11 +103,12 @@ internal class YugenMangas(context: MangaLoaderContext) :
 			webClient.httpPost("https://api.$domain/api/chapters/get_chapters_by_serie/", body).parseJson()
 				.getJSONArray("chapters")
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
+		val author = detailManga.getStringOrNull("author")
 		return manga.copy(
 			description = detailManga.getString("synopsis"),
 			coverUrl = detailManga.getString("cover"),
 			altTitle = detailManga.getStringOrNull("alternative_names"),
-			author = detailManga.getStringOrNull("author"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = detailManga.getStringOrNull("status")?.let {
 				when (it) {
 					"ongoing" -> MangaState.ONGOING

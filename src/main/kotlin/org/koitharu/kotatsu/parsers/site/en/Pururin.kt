@@ -99,10 +99,10 @@ internal class Pururin(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -133,6 +133,7 @@ internal class Pururin(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val author = doc.selectFirst("a[itemprop=author]")?.text()
 		manga.copy(
 			description = doc.selectFirst("p.mb-2")?.text().orEmpty(),
 			rating = doc.selectFirst("td span.rating")?.attr("content")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
@@ -144,7 +145,7 @@ internal class Pururin(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = doc.selectFirst("a[itemprop=author]")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -175,10 +176,10 @@ internal class Pururin(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = false,
+				contentRating = null,
 			)
 		}
 	}

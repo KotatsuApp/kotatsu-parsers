@@ -136,11 +136,11 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				url = urlManga,
 				publicUrl = urlManga,
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = "https://api.$domain/" + j.getString("cover"),
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -157,11 +157,11 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				url = urlManga,
 				publicUrl = urlManga,
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = null,
 				tags = setOf(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -170,6 +170,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.FRENCH)
+		val author = root.select("div.serieAdd p:contains(Auteur:) strong").textOrNull()
 		return manga.copy(
 			tags = root.select("div.serieGenre span").mapToSet { span ->
 				MangaTag(
@@ -179,7 +180,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				)
 			},
 			coverUrl = root.selectFirst("div.serieImg img")?.attrAsAbsoluteUrlOrNull("src"),
-			author = root.select("div.serieAdd p:contains(Auteur:) strong").textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = root.selectFirst("div.serieDescription div")?.html(),
 			chapters = root.select("div.chapterList a")
 				.mapChapters(reversed = true) { i, a ->

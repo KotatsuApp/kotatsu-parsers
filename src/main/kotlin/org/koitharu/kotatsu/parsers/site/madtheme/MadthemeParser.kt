@@ -130,10 +130,10 @@ internal abstract class MadthemeParser(
 						source = source,
 					)
 				},
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

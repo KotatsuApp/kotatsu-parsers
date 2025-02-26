@@ -460,6 +460,7 @@ internal abstract class MadaraParser(
 		}.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
+			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -476,7 +477,7 @@ internal abstract class MadaraParser(
 						source = source,
 					)
 				}.orEmpty(),
-				author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = when (
 					summary?.selectFirst(".mg_status")
 						?.selectFirst(".summary-content")
@@ -491,7 +492,7 @@ internal abstract class MadaraParser(
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -660,12 +661,12 @@ internal abstract class MadaraParser(
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitle = null,
 				title = div.selectFirstOrThrow(".widget-title").text(),
-				author = null,
+				authors = emptySet(),
 				coverUrl = div.selectFirst("img")?.src(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

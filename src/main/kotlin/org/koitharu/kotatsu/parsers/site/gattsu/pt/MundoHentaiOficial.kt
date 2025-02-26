@@ -3,10 +3,7 @@ package org.koitharu.kotatsu.parsers.site.gattsu.pt
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
 import org.koitharu.kotatsu.parsers.util.*
 
@@ -35,8 +32,8 @@ internal class MundoHentaiOficial(context: MangaLoaderContext) :
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

@@ -19,13 +19,14 @@ internal class MangaFr(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("MM-dd-yyyy", sourceLocale)
+		val author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
+			?.textOrNull()
 		return manga.copy(
 			rating = doc.selectFirst(".card-series-detail .rate-value span, .card-series-about .rate-value span")
 				?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = emptySet(),
-			author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
-				?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2, .card-series-about .h6")?.textOrNull(),
 			description = doc.selectFirst(".card div.col-12.mb-4 p, .card-series-desc .mb-4 p")?.html(),
 			chapters = doc.select(".chapters-list .col-chapter, .card-list-chapter .col-chapter")

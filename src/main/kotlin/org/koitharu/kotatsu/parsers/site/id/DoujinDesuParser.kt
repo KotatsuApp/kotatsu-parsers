@@ -120,11 +120,11 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
-					isNsfw = true,
+					contentRating = ContentRating.ADULT,
 					coverUrl = it.selectFirst(".thumbnail > img")?.src(),
 					tags = emptySet(),
 					state = null,
-					author = null,
+					authors = emptySet(),
 					largeCoverUrl = null,
 					description = null,
 					source = source,
@@ -141,8 +141,9 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 			"Publishing" -> MangaState.ONGOING
 			else -> null
 		}
+		val author = metadataEl?.selectFirst("tr:contains(Author)")?.selectLast("td")?.text()
 		return manga.copy(
-			author = metadataEl?.selectFirst("tr:contains(Author)")?.selectLast("td")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = docs.selectFirst(".wrapper > .metadata > .pb-2")?.selectFirst("p")?.html(),
 			state = state,
 			rating = metadataEl?.selectFirst(".rating-prc")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,

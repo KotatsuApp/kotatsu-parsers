@@ -160,10 +160,10 @@ internal class MangaPark(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = div.selectFirst("span.text-yellow-500")?.text()?.toFloatOrNull()?.div(10F) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -193,9 +193,10 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
 		val nsfw = tags.any { t -> t.key == "hentai" || t.key == "adult" }
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
+		val author = doc.selectFirst("div[q:key=tz_4]")?.textOrNull()
 		manga.copy(
 			altTitle = doc.selectFirst("div[q:key=tz_2]")?.textOrNull(),
-			author = doc.selectFirst("div[q:key=tz_4]")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst("react-island[q:key=0a_9]")?.html(),
 			state = when (doc.selectFirst("span[q:key=Yn_5]")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING

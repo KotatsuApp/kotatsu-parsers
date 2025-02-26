@@ -35,10 +35,10 @@ internal class Onma(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -58,7 +58,7 @@ internal class Onma(context: MangaLoaderContext) :
 			}
 		}
 		val alt = doc.body().selectFirst(selectAlt)?.textOrNull()
-		val auth = doc.body().selectFirst(selectAut)?.textOrNull()
+		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 		val tags = doc.body().selectFirst(selectTag)?.select("a") ?: emptySet()
 		manga.copy(
 			tags = tags.mapToSet { a ->
@@ -68,7 +68,7 @@ internal class Onma(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = auth,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = desc,
 			altTitle = alt,
 			state = state,

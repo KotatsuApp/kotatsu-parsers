@@ -36,10 +36,11 @@ internal class NewTruyen(context: MangaLoaderContext) :
 				source = source
 			)
 		}.toSet()
+		val author = doc.body().select(selectAut).textOrNull()
 
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
-			author = doc.body().select(selectAut).textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

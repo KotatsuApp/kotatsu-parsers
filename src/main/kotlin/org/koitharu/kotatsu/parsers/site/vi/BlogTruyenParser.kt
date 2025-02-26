@@ -84,10 +84,10 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				coverUrl = mangaInfo.selectFirst("div > img.img")?.src().orEmpty(),
-				isNsfw = false,
+				contentRating = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
 			)
@@ -125,10 +125,11 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 			val tagName = it.selectFirst("a")?.textOrNull() ?: return@mapNotNullToSet null
 			tagMap[tagName]
 		}
+		val author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.textOrNull()
 
 		return manga.copy(
 			tags = tags,
-			author = descriptionElement.selectFirst("p:contains(Tác giả) > a")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
 			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src(),

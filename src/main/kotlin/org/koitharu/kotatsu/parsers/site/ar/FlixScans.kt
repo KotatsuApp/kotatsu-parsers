@@ -112,7 +112,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = cover,
 				tags = emptySet(),
 				state = when (j.getString("status")) {
@@ -122,7 +122,7 @@ internal class FlixScans(context: MangaLoaderContext) : PagedMangaParser(context
 					"droped" -> MangaState.ABANDONED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

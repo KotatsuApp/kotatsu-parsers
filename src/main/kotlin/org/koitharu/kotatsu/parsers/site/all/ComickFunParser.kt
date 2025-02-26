@@ -168,7 +168,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					4 -> MangaState.PAUSED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -182,6 +182,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		val alt = comic.getJSONArray("md_titles").asTypedList<JSONObject>().joinToString("\n") {
 			it.getStringOrNull("title").orEmpty()
 		}
+		val author = jo.getJSONArray("artists").optJSONObject(0)?.getStringOrNull("name")
 		return manga.copy(
 			altTitle = alt.nullIfEmpty(),
 			contentRating = if (jo.getBooleanOrDefault("matureContent", false)
@@ -200,7 +201,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = jo.getJSONArray("artists").optJSONObject(0)?.getStringOrNull("name"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = getChapters(comic.getString("hid")),
 		)
 	}

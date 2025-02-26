@@ -110,6 +110,9 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 			val views = li.select("p.view")
 			val status = views.firstNotNullOfOrNull { it.ownText().takeIf { x -> x.startsWith("Status:") } }
 				?.substringAfter(':')?.trim()?.lowercase(Locale.ROOT)
+			val author = views.firstNotNullOfOrNull { it.text().takeIf { x -> x.startsWith("Author:") } }
+				?.substringAfter(':')
+				?.trim()
 			Manga(
 				id = generateUid(href),
 				title = a.attr("title"),
@@ -118,9 +121,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = li.selectFirst("p.score")?.selectFirst("b")
 					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				author = views.firstNotNullOfOrNull { it.text().takeIf { x -> x.startsWith("Author:") } }
-					?.substringAfter(':')
-					?.trim(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				state = when (status) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
@@ -134,7 +135,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 					)
 				}.orEmpty(),
 				url = href,
-				isNsfw = false,
+				contentRating = null,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 			)
 		}

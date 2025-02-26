@@ -126,11 +126,11 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = div.selectFirst(".image-cover img")?.attr("data-src").orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -139,10 +139,11 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
+		val author = doc.select("p:contains(Tác Giả) + p").joinToString { it.text() }.nullIfEmpty()
 
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.select("p:contains(Tác Giả) + p").joinToString { it.text() }.nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = doc.select("a.clblue").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),

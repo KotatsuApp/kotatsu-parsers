@@ -88,11 +88,11 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 						url = href,
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
-						isNsfw = false,
+						contentRating = null,
 						coverUrl = article.selectFirst("img.attachment-thumbnail")?.attrAsAbsoluteUrl("src"),
 						tags = setOf(),
 						state = null,
-						author = null,
+						authors = emptySet(),
 						source = source,
 					)
 				}
@@ -108,11 +108,11 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 						url = href,
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
-						isNsfw = false,
+						contentRating = null,
 						coverUrl = article.selectFirst("img")?.attrAsAbsoluteUrl("src"),
 						tags = setOf(),
 						state = null,
-						author = null,
+						authors = emptySet(),
 						source = source,
 					)
 				}
@@ -122,6 +122,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml().requireElementById("main")
 		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.FRANCE)
+		val author = root.select("div.project-details a[href*=auteur]").textOrNull()
 
 		return manga.copy(
 			altTitle = root.select(".divider2:contains(Noms associés :)").firstOrNull()?.textOrNull(),
@@ -137,7 +138,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = root.select("div.project-details a[href*=auteur]").textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = root.selectFirst("p.sContent")?.html(),
 			chapters = root.select("div.chapter-list li")
 				.mapChapters(reversed = true) { i, li ->

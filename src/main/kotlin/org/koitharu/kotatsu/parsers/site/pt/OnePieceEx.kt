@@ -44,8 +44,8 @@ internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(c
 					"que almeja ser pirata, embarca numa jornada com o sonho de se tornar " +
 					"o Rei dos Piratas!!! (Fonte: MANGA Plus)",
 				state = MangaState.ONGOING,
-				author = "Eiichiro Oda",
-				isNsfw = false,
+				authors = setOf("Eiichiro Oda"),
+				contentRating = null,
 				source = source,
 			),
 
@@ -64,8 +64,8 @@ internal class OnePieceEx(context: MangaLoaderContext) : SinglePageMangaParser(c
 					"Eiichiro Oda respondendo as cartas de fãs sobre uma grande variedade " +
 					"de assuntos. (Fonte: One Piece Wiki)",
 				state = null,
-				author = "Eiichiro Oda",
-				isNsfw = false,
+				authors = setOf("Eiichiro Oda"),
+				contentRating = null,
 				source = source,
 			),
 		)

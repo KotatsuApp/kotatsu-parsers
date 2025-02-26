@@ -137,6 +137,7 @@ internal abstract class GroupleParser(
 		}
 		val hashRegex = Regex("window.user_hash\\s*=\\s*\'([^\']+)\'")
 		val userHash = doc.select("script").firstNotNullOfOrNull { it.html().findGroupValue(hashRegex) }
+		val author = root.selectFirst("a.person-link")?.textOrNull()
 		return manga.copy(
 			source = newSource,
 			title = doc.metaValue("name") ?: manga.title,
@@ -155,7 +156,7 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
-			author = root.selectFirst("a.person-link")?.textOrNull() ?: manga.author,
+			authors = author?.let { setOf(it) } ?: manga.authors,
 			contentRating = if (manga.isNsfw || root.select(".alert-warning")
 					.any { it.ownText().contains(NSFW_ALERT) }
 			) {
@@ -415,6 +416,7 @@ internal abstract class GroupleParser(
 		if (relUrl.contains("://")) {
 			return null
 		}
+		val author = tileInfo?.selectFirst("a.person-link")?.text()
 		return Manga(
 			id = generateUid(relUrl),
 			url = relUrl,
@@ -425,8 +427,8 @@ internal abstract class GroupleParser(
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)
 			}.getOrNull() ?: RATING_UNKNOWN,
-			author = tileInfo?.selectFirst("a.person-link")?.text(),
-			isNsfw = defaultIsNsfw,
+			authors = author?.let { setOf(it) } ?: emptySet(),
+			contentRating = if (defaultIsNsfw) ContentRating.ADULT else null,
 			tags = runCatching {
 				tileInfo?.select("a.element-link")?.mapToSet {
 					MangaTag(

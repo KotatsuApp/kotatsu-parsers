@@ -155,6 +155,7 @@ internal abstract class WpComicsParser(
 			val tagsElement =
 				tooltipElement?.selectFirst("div.message_main > p:contains(Thể loại)")?.ownText().orEmpty()
 			val mangaTags = tagsElement.split(',').mapNotNullToSet { tagMap[it.trim()] }
+			val author = tooltipElement?.selectFirst("div.message_main > p:contains(Tác giả)")?.ownText()
 			Manga(
 				id = generateUid(slug),
 				title = item.selectFirst("div.box_tootip div.title, h3 a")?.text().orEmpty(),
@@ -162,12 +163,12 @@ internal abstract class WpComicsParser(
 				url = absUrl.toRelativeUrl(domain),
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = item.selectFirst("div.image a img")?.findImageUrl().orEmpty(),
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,
-				author = tooltipElement?.selectFirst("div.message_main > p:contains(Tác giả)")?.ownText(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				description = tooltipElement?.selectFirst("div.box_text")?.text(),
 				chapters = null,
 				source = source,
@@ -215,10 +216,11 @@ internal abstract class WpComicsParser(
 		val tagMap = getOrCreateTagMap()
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
+		val author = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.body().select(selectAut).textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

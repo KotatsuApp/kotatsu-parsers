@@ -184,7 +184,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = "/assets/tmp/album/${info.getString("avatar")}".toAbsoluteUrl(domain),
 				tags = info.optJSONArray("tags")?.asTypedList<String>()
 					?.mapNotNullToSet { tags.get()[it.lowercase()] }
@@ -194,7 +194,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 					"done" -> MangaState.FINISHED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				largeCoverUrl = null,
 				description = info.getStringOrNull("detail")?.replace("\\\"", "\""),
 				chapters = emptyList(),

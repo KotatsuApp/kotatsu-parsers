@@ -143,11 +143,11 @@ internal abstract class NepnepParser(
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
 			rating = RATING_UNKNOWN,
-			isNsfw = false,
+			contentRating = null,
 			coverUrl = imgUrl,
 			tags = emptySet(),
 			state = null,
-			author = null,
+			authors = emptySet(),
 			source = source,
 		)
 	}
@@ -182,6 +182,7 @@ internal abstract class NepnepParser(
 		)
 
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:SS", sourceLocale)
+		val author = doc.select(".list-group-item:contains(Author(s):) a").textOrNull()
 
 		return manga.copy(
 			state = when (doc.selectFirstOrThrow(".list-group-item:contains(Status:) a").text()) {
@@ -207,7 +208,7 @@ internal abstract class NepnepParser(
 					source = source,
 				)
 			},
-			author = doc.select(".list-group-item:contains(Author(s):) a").textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirstOrThrow(".top-5.Content").textOrNull(),
 
 			chapters = chapter.mapJSONIndexed { i, j ->

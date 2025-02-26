@@ -214,6 +214,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 		val attrs = details.selectFirst(".attr-main")?.select(".attr-item")?.associate {
 			it.child(0).text() to it.child(1)
 		}.orEmpty()
+		val author = attrs["Authors:"]?.textOrNull()
 		return manga.copy(
 			title = root.selectFirst("h3.item-title")?.text() ?: manga.title,
 			contentRating = if (root.selectFirst("alert")?.getElementsContainingOwnText("NSFW").isNullOrEmpty()) {
@@ -233,7 +234,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				"Hiatus" -> MangaState.PAUSED
 				else -> manga.state
 			},
-			author = attrs["Authors:"]?.textOrNull() ?: manga.author,
+			authors = author?.let { setOf(it) } ?: manga.authors,
 			chapters = root.selectFirst(".episode-list")
 				?.selectFirst(".main")
 				?.children()
@@ -337,13 +338,13 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 				url = href,
 				publicUrl = a.absUrl("href"),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirst("img[src]")?.absUrl("src"),
 				largeCoverUrl = null,
 				description = null,
 				tags = div.selectFirst(".item-genre")?.parseTags().orEmpty(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}

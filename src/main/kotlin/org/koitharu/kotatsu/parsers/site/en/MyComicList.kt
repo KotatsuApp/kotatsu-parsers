@@ -74,10 +74,10 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 				publicUrl = href.toAbsoluteUrl(domain),
 				title = div.selectFirst("h3 a")?.text().orEmpty(),
 				altTitle = null,
-				author = null,
+				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = img?.attrAsAbsoluteUrlOrNull("data-src"),
 				state = null,
 				source = source,
@@ -87,6 +87,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst("td:contains(Author:) + td")?.textOrNull()
 		return manga.copy(
 			tags = doc.select("td:contains(Genres:) + td a").mapToSet { a ->
 				MangaTag(
@@ -95,7 +96,7 @@ internal class MyComicList(context: MangaLoaderContext) : PagedMangaParser(conte
 					source = source,
 				)
 			},
-			author = doc.selectFirst("td:contains(Author:) + td")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (doc.selectFirst("td:contains(Status:) + td a")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING
 				"completed" -> MangaState.FINISHED

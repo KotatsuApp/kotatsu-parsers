@@ -83,6 +83,7 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 		return doc.select(".tab-content .flw-item").map { div ->
 			val a = div.selectFirstOrThrow("a.film-poster-ahref")
 			val href = a.attrAsAbsoluteUrl("href")
+			val isNsfwSource = div.selectFirst(".tick-itemadult") != null
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -94,8 +95,8 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = div.selectFirst(".tick-itemadult") != null,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

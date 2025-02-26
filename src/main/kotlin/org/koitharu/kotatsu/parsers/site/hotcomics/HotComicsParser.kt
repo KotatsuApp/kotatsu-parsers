@@ -100,6 +100,8 @@ internal abstract class HotComicsParser(
 			}
 
 			val tags = li.select(".etc span").mapNotNullToSet { tagMap[it.text()] }
+			val isNsfwSource = a.selectFirst(".ico-18plus") != null
+			val author = li.selectFirst(".writer")?.text().orEmpty()
 
 			Manga(
 				id = generateUid(url),
@@ -111,14 +113,14 @@ internal abstract class HotComicsParser(
 				rating = RATING_UNKNOWN,
 				description = li.selectFirst("p[itemprop*=description]")?.text().orEmpty(),
 				tags = tags,
-				author = li.selectFirst(".writer")?.text().orEmpty(),
+				authors = setOf(author),
 				state = if (doc.selectFirst(".ico_fin") != null) {
 					MangaState.FINISHED
 				} else {
 					MangaState.ONGOING
 				},
 				source = source,
-				isNsfw = a.selectFirst(".ico-18plus") != null,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}

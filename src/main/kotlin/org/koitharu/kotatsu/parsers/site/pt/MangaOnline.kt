@@ -75,8 +75,8 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}
@@ -141,8 +141,8 @@ internal class MangaOnline(context: MangaLoaderContext) : PagedMangaParser(conte
 				tags = emptySet(),
 				description = null,
 				state = null,
-				author = null,
-				isNsfw = isNsfwSource,
+				authors = emptySet(),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
 		}

@@ -115,6 +115,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				.replace(slugRegex, "-")
 				.replace("-s-", "s-")
 				.replace("-ll-", "ll-")
+			val author = j.getStringOrNull("author")
 
 			val manga = Manga(
 				id = j.getLong("id"),
@@ -123,7 +124,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga,
 				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN) / 10f,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = "https://$domain/assets/images/" + j.getString("image_url"),
 				tags = setOf(),
 				state = when (j.getString("status")) {
@@ -132,7 +133,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 					"hiatus" -> MangaState.PAUSED
 					else -> null
 				},
-				author = j.getStringOrNull("author"),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				source = source,
 				description = j.getString("long_description"),
 			)

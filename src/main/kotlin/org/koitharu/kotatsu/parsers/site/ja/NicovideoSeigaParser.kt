@@ -84,15 +84,16 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 			val href =
 				item.selectFirst(".comic_icon > div > a")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
 			val statusText = item.selectFirst(".mg_description_header > .mg_icon > .content_status > span")?.text()
+			val author = item.selectFirst(".mg_description_header > .mg_author > a")?.text()
 			Manga(
 				id = generateUid(href),
 				title = item.selectFirst(".mg_body > .title > a")?.text() ?: return@mapNotNull null,
 				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src"),
 				altTitle = null,
-				author = item.selectFirst(".mg_description_header > .mg_author > a")?.text(),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				rating = RATING_UNKNOWN,
 				url = href,
-				isNsfw = false,
+				contentRating = null,
 				tags = item.getElementsByAttributeValueContaining("href", "?category=").mapToSet { a ->
 					MangaTag(
 						key = a.attr("href").substringAfterLast('='),
@@ -193,11 +194,11 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				title = item.selectFirst(".search_result__item__info > .search_result__item__info--title > a")
 					?.textOrNull() ?: return@mapNotNull null,
 				altTitle = null,
-				author = null,
+				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				isNsfw = false,
+				contentRating = null,
 				source = source,
 				coverUrl = item.selectFirst(".search_result__item__thumbnail > a > img")
 					?.attrAsAbsoluteUrl("data-original"),

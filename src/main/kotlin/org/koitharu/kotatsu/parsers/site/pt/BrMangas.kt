@@ -98,11 +98,11 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = false,
+				contentRating = null,
 				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -121,6 +121,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.select("div.serie-infos li:contains(Autor:)").text().replace("Autor:", "").nullIfEmpty()
 		return manga.copy(
 			tags = doc.select("div.serie-infos li:contains(Categorias:) a").mapToSet { a ->
 				MangaTag(
@@ -129,7 +130,7 @@ internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context,
 					source = source,
 				)
 			},
-			author = doc.select("div.serie-infos li:contains(Autor:)").text().replace("Autor:", "").nullIfEmpty(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.select(".serie-texto p").html(),
 			contentRating = if (doc.select("div.serie-infos li:contains(Categorias:)").text().contains("Hentai")) {
 				ContentRating.ADULT

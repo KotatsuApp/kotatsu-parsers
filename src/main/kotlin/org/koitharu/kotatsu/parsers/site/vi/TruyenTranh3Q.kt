@@ -124,11 +124,11 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = aTag.attrAsAbsoluteUrl("href"),
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfw,
+				contentRating = if (isNsfw) ContentRating.ADULT else null,
 				coverUrl = element.selectFirst(".book_avatar a img")?.src(),
 				tags = tags,
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -143,10 +143,11 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 				source = source,
 			)
 		}
+		val author = doc.selectFirst("li.author a")?.textOrNull()
 
 		return manga.copy(
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.selectFirst("li.author a")?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = tags,
 			description = doc.selectFirst("div.story-detail-info")?.html(),
 			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {

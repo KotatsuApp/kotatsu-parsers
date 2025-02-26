@@ -149,6 +149,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 		return content.mapJSON { jo ->
 			val id = jo.getString("id")
 			val posterUrl = jo.getString("posterUrl")
+			val isNsfwSource = isNsfw(jo.getStringOrNull("adult"))
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("title"),
@@ -156,7 +157,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 				url = id,
 				publicUrl = "https://$domain/book/$id",
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfw(jo.getStringOrNull("adult")),
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = getCoverUrl(posterUrl, 256),
 				tags = getTitleTags(jo.optJSONArray("genresAndTags")),
 				state = when (jo.getStringOrNull("titleStatus")) {
@@ -164,7 +165,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 					"Завершено" -> MangaState.FINISHED
 					else -> null
 				},
-				author = null,
+				authors = emptySet(),
 				largeCoverUrl = getCoverUrl(posterUrl, 1080),
 				description = jo.getStringOrNull("description"),
 				chapters = null,

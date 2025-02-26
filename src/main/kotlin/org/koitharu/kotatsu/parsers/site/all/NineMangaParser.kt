@@ -116,8 +116,8 @@ internal abstract class NineMangaParser(
 				altTitle = null,
 				coverUrl = node.selectFirst("img")?.src(),
 				rating = RATING_UNKNOWN,
-				author = null,
-				isNsfw = false,
+				authors = emptySet(),
+				contentRating = null,
 				tags = emptySet(),
 				state = null,
 				source = source,
@@ -135,11 +135,12 @@ internal abstract class NineMangaParser(
 		val tagMap = getOrCreateTagMap()
 		val selectTag = infoRoot.getElementsByAttributeValue("itemprop", "genre").first()?.select("a")
 		val tags = selectTag?.mapNotNullToSet { tagMap[it.text()] }
+		val author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.textOrNull()
 		return manga.copy(
 			title = root.selectFirst("h1[itemprop=name]")?.textOrNull()?.removeSuffix("Manga")?.trimEnd()
 				?: manga.title,
 			tags = tags.orEmpty(),
-			author = infoRoot.getElementsByAttributeValue("itemprop", "author").first()?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = parseStatus(infoRoot.select("li a.red").text()),
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()?.html()
 				?.substringAfter("</b>"),

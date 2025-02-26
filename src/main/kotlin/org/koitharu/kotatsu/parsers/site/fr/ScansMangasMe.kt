@@ -87,10 +87,10 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				rating = div.selectFirstOrThrow("div.rating i").ownText().toFloatOrNull()?.div(10f)
 					?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -114,7 +114,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 		val chaptersDeferred = getChapters(doc)
 		val desc = doc.selectFirstOrThrow("div.desc").html().nullIfEmpty()
 		val alt = doc.body().select("div.infox span.alter").textOrNull()
-		val aut = doc.select("div.spe span")[2].text().replace("Auteur:", "").nullIfEmpty()
+		val author = doc.select("div.spe span")[2].text().replace("Auteur:", "").nullIfEmpty()
 		manga.copy(
 			tags = doc.select("div.spe span:contains(Genres) a").mapToSet { a ->
 				MangaTag(
@@ -125,7 +125,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			},
 			description = desc,
 			altTitle = alt,
-			author = aut,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (doc.selectFirstOrThrow("div.spe span:contains(Statut:)").textOrNull()
 				?.substringAfterLast(':')) {
 				" En cours" -> MangaState.ONGOING

@@ -20,6 +20,7 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val body = doc.body()
 		val chaptersDeferred = async { loadChapters(manga.url, doc) }
+		val author = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Autor)) p a")?.textOrNull()
 		manga.copy(
 			tags = doc.body().select("#section-sinopsis a[href*=genre]").mapToSet { a ->
 				MangaTag(
@@ -28,8 +29,7 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			author = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Autor)) p a")
-				?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = body.selectFirst("#section-sinopsis p")?.text().orEmpty(),
 			altTitle = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Otros nombres)) p")
 				?.textOrNull(),

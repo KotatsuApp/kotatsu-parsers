@@ -54,7 +54,7 @@ public class LinkResolver internal constructor(
 			coverUrl = "",
 			tags = emptySet(),
 			state = null,
-			author = null,
+			authors = emptySet(),
 			largeCoverUrl = null,
 			description = null,
 			chapters = null,
@@ -70,7 +70,7 @@ public class LinkResolver internal constructor(
 		val query = when {
 			seed.title != STUB_TITLE && seed.title.isNotEmpty() -> seed.title
 			!seed.altTitle.isNullOrEmpty() -> seed.altTitle
-			!seed.author.isNullOrEmpty() -> seed.author
+			seed.authors.isNotEmpty() -> seed.authors.first()
 			else -> return seed // unfortunately we do not know a real manga title so unable to find it
 		}
 		val resolved = runCatchingCancellable {
@@ -91,7 +91,7 @@ public class LinkResolver internal constructor(
 			resolved.copy(
 				chapters = seed.chapters ?: resolved.chapters,
 				description = seed.description ?: resolved.description,
-				author = seed.author ?: resolved.author,
+				authors = seed.authors.ifEmpty { resolved.authors },
 				tags = seed.tags + resolved.tags,
 				state = seed.state ?: resolved.state,
 				coverUrl = seed.coverUrl ?: resolved.coverUrl,

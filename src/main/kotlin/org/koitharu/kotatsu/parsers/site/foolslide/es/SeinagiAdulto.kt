@@ -35,7 +35,7 @@ internal class SeinagiAdulto(context: MangaLoaderContext) :
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src(),// for manga result on search
 			description = desc?.nullIfEmpty(),
-			author = author?.nullIfEmpty(),
+			authors = author?.nullIfEmpty()?.let { setOf(it) } ?: emptySet(),
 			chapters = chapters,
 		)
 	}

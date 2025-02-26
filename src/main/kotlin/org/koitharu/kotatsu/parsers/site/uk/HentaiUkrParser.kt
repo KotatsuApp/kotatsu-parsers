@@ -110,6 +110,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 		// Return to app
 		return json.drop(offset).take(PAGE_SIZE).map { jo ->
 			val id = jo.getAsLong()
+			val author = jo.getStringOrNull("author")
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("name"),
@@ -117,11 +118,11 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : MangaParser(contex
 				url = jo.getString("url"),
 				publicUrl = jo.getString("url").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
-				isNsfw = true,
+				contentRating = ContentRating.ADULT,
 				coverUrl = jo.getString("thumb").toAbsoluteUrl(domain),
 				tags = getTags(jo.optJSONArray("tags")),
 				state = null,
-				author = jo.getStringOrNull("author"),
+				authors = author?.let { setOf(it) } ?: emptySet(),
 				largeCoverUrl = null,
 				description = null,
 				chapters = null,

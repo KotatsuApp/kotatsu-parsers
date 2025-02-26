@@ -106,11 +106,11 @@ internal class AComics(context: MangaLoaderContext) :
 				altTitle = null,
 				publicUrl = url,
 				rating = RATING_UNKNOWN,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = it.selectFirstOrThrow("img").src().orEmpty(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -141,10 +141,11 @@ internal class AComics(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val tagMap = getOrCreateTagMap()
 		val tags = doc.select("p.serial-about-badges .category").mapNotNullToSet { tagMap[it.text()] }
+		val author = doc.selectFirst("p:contains(Автор оригинала:)")?.text()?.replace("Автор оригинала: ", "")
 		return manga.copy(
 			tags = tags,
 			description = doc.selectFirst("section.serial-about-text p")?.text(),
-			author = doc.selectFirst("p:contains(Автор оригинала:)")?.text()?.replace("Автор оригинала: ", ""),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

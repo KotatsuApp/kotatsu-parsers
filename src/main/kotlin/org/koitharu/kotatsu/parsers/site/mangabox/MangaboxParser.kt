@@ -131,10 +131,10 @@ internal abstract class MangaboxParser(
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -175,7 +175,7 @@ internal abstract class MangaboxParser(
 			}
 		}
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
-		val aut = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
+		val author = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -186,7 +186,7 @@ internal abstract class MangaboxParser(
 			},
 			description = desc,
 			altTitle = alt,
-			author = aut,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

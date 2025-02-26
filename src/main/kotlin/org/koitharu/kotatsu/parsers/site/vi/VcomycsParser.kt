@@ -102,7 +102,7 @@ internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(con
 						coverUrl = jo.getString("img"),
 						tags = emptySet(),
 						state = null,
-						author = null,
+						authors = emptySet(),
 						largeCoverUrl = null,
 						description = null,
 						chapters = null,
@@ -136,7 +136,7 @@ internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(con
 					coverUrl = linkEl.selectFirstOrThrow(".img-thumbnail").src(),
 					tags = emptySet(),
 					state = null,
-					author = null,
+					authors = emptySet(),
 					largeCoverUrl = null,
 					description = null,
 					chapters = null,
@@ -148,6 +148,7 @@ internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(con
 	override suspend fun getDetails(manga: Manga): Manga {
 		val content = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val info = content.selectFirstOrThrow(".comic-info")
+		val author = info.selectFirst(".comic-intro-text > strong:contains(Tác giả:)")?.nextElementSibling()?.textOrNull()
 		return manga.copy(
 			rating = info.getElementById("cate-rating")?.let {
 				val score = it.attrOrNull("data-score")?.toIntOrNull()
@@ -157,8 +158,7 @@ internal class VcomycsParser(context: MangaLoaderContext) : PagedMangaParser(con
 			} ?: RATING_UNKNOWN,
 			altTitle = info.selectFirst(".comic-intro-text > strong:contains(Tên khác:)")?.nextElementSibling()
 				?.textOrNull(),
-			author = info.selectFirst(".comic-intro-text > strong:contains(Tác giả:)")?.nextElementSibling()
-				?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (info.selectFirst(".comic-stt")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Trọn bộ" -> MangaState.FINISHED

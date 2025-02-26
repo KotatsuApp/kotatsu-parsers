@@ -152,7 +152,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
                 altTitle = item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() },
                 description = item.optString("content"),
                 rating = RATING_UNKNOWN,
-                isNsfw = checkNsfw || isNsfwSource,
+				contentRating = if (checkNsfw || isNsfwSource) ContentRating.ADULT else null,
                 coverUrl = item.optString("thumbnail"),
                 tags = tags,
                 state = when (item.optString("status")) {
@@ -161,16 +161,17 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
                     else -> null
                 },
                 source = source,
-                author = null,
+                authors = emptySet(),
             )
         }
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
         val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst("aside p:contains(Tác giả:) a[href^='/tac-gia/']")?.text()
         return manga.copy(
             rating = doc.selectFirst("div > span.leading-none")?.text()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-            author = doc.selectFirst("aside p:contains(Tác giả:) a[href^='/tac-gia/']")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
             chapters = doc.select("ul[itemtype='https://schema.org/ItemList'] li").mapChapters(reversed = true) { i, li ->
                 val a = li.selectFirstOrThrow("a")
                 val href = a.attrAsRelativeUrl("href")

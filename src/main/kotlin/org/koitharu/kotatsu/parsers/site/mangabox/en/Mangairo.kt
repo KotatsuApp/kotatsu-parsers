@@ -101,10 +101,10 @@ internal class Mangairo(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -137,7 +137,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 		}
 
 		val alt = doc.body().select(selectAlt).text().replace("Alternative : ", "").nullIfEmpty()
-		val aut = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
+		val author = doc.body().select(selectAut).eachText().joinToString().nullIfEmpty()
 		manga.copy(
 			tags = doc.body().select(selectTag).mapToSet { a ->
 				MangaTag(
@@ -149,7 +149,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 			},
 			description = desc,
 			altTitle = alt,
-			author = aut,
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

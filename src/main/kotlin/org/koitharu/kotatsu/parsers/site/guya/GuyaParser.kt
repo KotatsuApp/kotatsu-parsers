@@ -60,6 +60,7 @@ internal abstract class GuyaParser(
 	private fun addManga(j: JSONObject, name: String): Manga {
 		val url = "https://$domain/read/manga/" + j.getString("slug")
 		val apiUrl = "https://$domain/api/series/" + j.getString("slug")
+		val author = j.getString("author")
 		return Manga(
 			id = generateUid(apiUrl),
 			url = apiUrl,
@@ -71,8 +72,8 @@ internal abstract class GuyaParser(
 			tags = emptySet(),
 			description = j.getString("description"),
 			state = null,
-			author = j.getString("author"),
-			isNsfw = isNsfwSource,
+			authors = author?.let { setOf(it) } ?: emptySet(),
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			source = source,
 		)
 	}

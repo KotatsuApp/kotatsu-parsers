@@ -102,12 +102,12 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 publicUrl = href.toAbsoluteUrl(domain),
                 title = mangaInfo.attr("alt"),
                 altTitle = null,
-                author = null,
+                authors = emptySet(),
                 tags = emptySet(),
                 rating = RATING_UNKNOWN,
                 state = null,
                 coverUrl = mangaInfo.requireSrc(),
-                isNsfw = isNsfwSource,
+                contentRating = if (isNsfwSource) ContentRating.ADULT else null,
                 source = source
             )
         }
@@ -124,13 +124,13 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
                 url = mangaUrl.removePrefix("https://$domain"),
                 title = a.text(),
                 altTitle = null,
-                author = null,
+                authors = emptySet(),
                 description = null,
                 tags = emptySet(),
                 rating = RATING_UNKNOWN,
                 state = null,
                 coverUrl = img.attr("data-original").takeIf { it.isNotEmpty() } ?: img.attr("src"),
-                isNsfw = isNsfwSource,
+                contentRating = if (isNsfwSource) ContentRating.ADULT else null,
                 source = source,
             )
         }
@@ -172,7 +172,7 @@ internal class Hentai18VN(context: MangaLoaderContext) : PagedMangaParser(contex
 
         return manga.copy(
             tags = tags,
-            author = author,
+			authors = author?.let { setOf(it) } ?: emptySet(),
             altTitle = altTitle,
             state = state,
             chapters = chapters,

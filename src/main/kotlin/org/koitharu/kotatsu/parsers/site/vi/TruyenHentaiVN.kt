@@ -81,12 +81,12 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 				publicUrl = href.toAbsoluteUrl(domain),
 				title = title,
 				altTitle = null,
-				author = null,
+				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
 				coverUrl = cover,
-				isNsfw = true,
+				contentRating = ContentRating.ADULT,
 				source = source
 			)
 		}
@@ -94,8 +94,9 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) : PagedMangaParser(co
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst("div.author i")?.text()
         return manga.copy(
-            author = doc.selectFirst("div.author i")?.text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
             tags = doc.select("div.genre.mb-3.mgen a").mapNotNull { a ->
                 val key = a.attr("href").substringAfterLast("-")
                 val title = a.text().trim()

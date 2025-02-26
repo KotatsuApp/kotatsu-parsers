@@ -524,9 +524,9 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 						doc.selectFirstOrThrow("h1 > a")
 							.attrAsRelativeUrl("href")
 							.toAbsoluteUrl(domain),
-						author = null,
+						authors = emptySet(),
 						tags = emptySet(),
-						isNsfw = true,
+						contentRating = ContentRating.ADULT,
 						rating = RATING_UNKNOWN,
 						altTitle = null,
 						state = null,
@@ -542,6 +542,10 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 			.parseRaw()
 			.substringAfter("var galleryinfo = ")
 			.let(::JSONObject)
+		val author =
+			json.optJSONArray("artists")
+				?.mapJSON { it.getString("artist").toCamelCase() }
+				?.joinToString()
 
 		return manga.copy(
 			title = json.getString("title"),
@@ -554,10 +558,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 
 				"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
 			},
-			author =
-			json.optJSONArray("artists")
-				?.mapJSON { it.getString("artist").toCamelCase() }
-				?.joinToString(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
 			tags =
 			buildSet {

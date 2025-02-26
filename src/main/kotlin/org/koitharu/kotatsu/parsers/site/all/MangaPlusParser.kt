@@ -122,8 +122,8 @@ internal abstract class MangaPlusParser(
 				title = name,
 				coverUrl = it.getString("portraitImageUrl"),
 				altTitle = null,
-				author = author,
-				isNsfw = false,
+				authors = setOf(author),
+				contentRating = null,
 				rating = RATING_UNKNOWN,
 				state = null,
 				source = source,
@@ -143,13 +143,14 @@ internal abstract class MangaPlusParser(
 			}
 
 		val hiatus = json.getStringOrNull("nonAppearanceInfo")?.contains("on a hiatus") == true
+		val author = title.getString("author")
+			.split("/").joinToString(transform = String::trim)
 
 		return manga.copy(
 			title = title.getString("name"),
 			publicUrl = "/titles/${title.getInt("titleId")}".toAbsoluteUrl(domain),
 			coverUrl = title.getString("portraitImageUrl"),
-			author = title.getString("author")
-				.split("/").joinToString(transform = String::trim),
+			authors = setOf(author),
 			description = buildString {
 				json.getString("overview").let(::append)
 				json.getStringOrNull("viewingPeriodDescription")

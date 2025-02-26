@@ -68,17 +68,18 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						val slug = jo.getString("slug") ?: throw ParseException("Missing Slug", url)
 						val url = "https://$domain/m/$slug"
 						val img = "https://$domainCdn/uploads/manga/$slug/cover/cover_thumb.jpg"
+						val isNsfwSource = when (jo.getIntOrDefault("caution", 0)) {
+							0 -> false
+							2 -> true
+							else -> false
+						}
 						Manga(
 							id = generateUid(url),
 							title = jo.getString("name").orEmpty(),
 							coverUrl = img,
 							altTitle = jo.getString("otherNames").orEmpty(),
-							author = null,
-							isNsfw = when (jo.getIntOrDefault("caution", 0)) {
-								0 -> false
-								2 -> true
-								else -> false
-							},
+							authors = emptySet(),
+							contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 							rating = RATING_UNKNOWN,
 							url = url,
 							description = jo.getString("summary_old").orEmpty(),
@@ -107,8 +108,8 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 						val doc = webClient.httpGet("https://$domain/?page=$page").parseHtml()
 						return doc.select("div.row div.col_home").map { div ->
 							val href = div.selectFirstOrThrow("h4 a").attrAsRelativeUrl("href")
-							val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
-							val img = if (isNsfw) {
+							val isNsfwSource = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
+							val img = if (isNsfwSource) {
 								div.selectFirst("img")?.attr("data-adult")
 							} else {
 								div.selectFirst("img")?.attr("data-src")?.replace(" ", "")
@@ -120,12 +121,12 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 								url = href,
 								publicUrl = href.toAbsoluteUrl(domain),
 								rating = RATING_UNKNOWN,
-								isNsfw = isNsfw,
+								contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 								coverUrl = img,
 								description = null,
 								tags = emptySet(),
 								state = null,
-								author = null,
+								authors = emptySet(),
 								source = source,
 							)
 						}
@@ -170,8 +171,8 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 
 		return doc.select("div.p-2 div.col").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			val isNsfw = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
-			val img = if (isNsfw) {
+			val isNsfwSource = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
+			val img = if (isNsfwSource) {
 				div.selectFirst("img")?.attr("data-adult")
 			} else {
 				div.selectFirst("img")?.attr("data-src")?.replace(" ", "")
@@ -183,7 +184,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				isNsfw = isNsfw,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = img,
 				description = div.selectFirst(".mangalist_item_description")?.text().orEmpty(),
 				tags = div.select("div.mb-1 a").mapToSet {
@@ -195,7 +196,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 					)
 				},
 				state = null,
-				author = null,
+				authors = emptySet(),
 				source = source,
 			)
 		}
@@ -228,6 +229,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 		val doc = webClient.httpGet(mangaUrl).parseHtml()
 		val maxPageChapterSelect = doc.select("ul.pagination a.page-link")
 		var maxPageChapter = 1
+		val author = doc.selectFirst("div.show_details span[itemprop=author]")?.text().orEmpty()
 		if (!maxPageChapterSelect.isNullOrEmpty()) {
 			maxPageChapterSelect.map {
 				val i = it.attr("href").substringAfterLast("=").toInt()
@@ -243,7 +245,7 @@ internal class MangaMana(context: MangaLoaderContext) : PagedMangaParser(context
 				"Abandonné" -> MangaState.ABANDONED
 				else -> null
 			},
-			author = doc.selectFirst("div.show_details span[itemprop=author]")?.text().orEmpty(),
+			authors = setOf(author),
 			description = doc.selectFirst("dd[itemprop=description]")?.text(),
 			rating = doc.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 			tags = doc.select("ul.list-unstyled li a.category").mapToSet {

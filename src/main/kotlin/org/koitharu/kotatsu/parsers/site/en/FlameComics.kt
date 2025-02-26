@@ -128,6 +128,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 	private fun parseManga(jo: JSONObject): Manga {
 		val seriesId = jo.getLong("series_id")
 		val cover = jo.getStringOrNull("cover")
+		val author = jo.getStringOrNull("author")
 		return Manga(
 			id = generateUid(seriesId),
 			title = jo.getString("title"),
@@ -137,7 +138,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 			url = seriesId.toString(),
 			publicUrl = "https://${domain}/series/$seriesId",
 			rating = RATING_UNKNOWN,
-			isNsfw = false,
+			contentRating = null,
 			coverUrl = if (cover != null) {
 				imageUrl(seriesId, cover, 256)
 			} else {
@@ -153,7 +154,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 				"Ongoing" -> MangaState.ONGOING
 				else -> null
 			},
-			author = jo.getStringOrNull("author"),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			largeCoverUrl = if (cover != null) {
 				imageUrl(seriesId, cover, 640)
 			} else {

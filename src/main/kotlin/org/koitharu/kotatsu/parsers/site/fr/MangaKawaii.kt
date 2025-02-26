@@ -85,10 +85,10 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 				altTitle = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = null,
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -98,10 +98,11 @@ internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(conte
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val firstChapter = doc.selectFirst("tr[class*='volume-'] a")?.attr("href")
 		val chaptersDeferred = async { loadChapters(firstChapter) }
+		val author = doc.select("a[href*=author]").text()
 		manga.copy(
 			description = doc.selectFirst("dd.text-justify.text-break")?.html(),
 			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " }.nullIfEmpty(),
-			author = doc.select("a[href*=author]").text(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (doc.selectFirst("span.badge.bg-success.text-uppercase")?.text()) {
 				"En Cours" -> MangaState.ONGOING
 				"Terminé" -> MangaState.FINISHED

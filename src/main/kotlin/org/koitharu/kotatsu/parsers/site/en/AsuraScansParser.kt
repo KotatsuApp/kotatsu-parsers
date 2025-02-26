@@ -116,7 +116,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 				altTitle = null,
 				rating = a.selectFirst("div.block  label.ml-1")?.text()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
-				author = null,
+				authors = emptySet(),
 				state = when (a.selectLast("span.status")?.text()) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
@@ -126,7 +126,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 					else -> null
 				},
 				source = source,
-				isNsfw = isNsfwSource,
+				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
 		}
 	}
@@ -159,10 +159,11 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 		val tagMap = getOrCreateTagMap()
 		val selectTag = doc.select("div[class^=space] > div.flex > button.text-white")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
+		val author = doc.selectFirst("div.grid > div:has(h3:eq(0):containsOwn(Author)) > h3:eq(1)")?.text().orEmpty()
 		return manga.copy(
 			description = doc.selectFirst("span.font-medium.text-sm")?.text().orEmpty(),
 			tags = tags,
-			author = doc.selectFirst("div.grid > div:has(h3:eq(0):containsOwn(Author)) > h3:eq(1)")?.text().orEmpty(),
+			authors = setOf(author),
 			chapters = doc.select("div.scrollbar-thumb-themecolor > div.group").mapChapters(reversed = true) { i, div ->
 				val a = div.selectLastOrThrow("a")
 				val urlRelative = "/series/" + a.attrAsRelativeUrl("href")

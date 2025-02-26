@@ -119,10 +119,10 @@ internal abstract class LilianaParser(
 			altTitle = null,
 			rating = RATING_UNKNOWN,
 			tags = emptySet(),
-			author = null,
+			authors = emptySet(),
 			state = null,
 			source = source,
-			isNsfw = isNsfwSource,
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 		)
 	}
 
@@ -148,6 +148,9 @@ internal abstract class LilianaParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.selectFirst("div.y6x11p i.fas.fa-user + span.dt")?.textOrNull()?.takeUnless {
+			it.equals("updating", true)
+		}
 		return manga.copy(
 			description = doc.selectFirst("div#syn-target")?.html(),
 			largeCoverUrl = doc.selectFirst(".a1 > figure img")?.src(),
@@ -158,9 +161,7 @@ internal abstract class LilianaParser(
 					source = source,
 				)
 			},
-			author = doc.selectFirst("div.y6x11p i.fas.fa-user + span.dt")?.textOrNull()?.takeUnless {
-				it.equals("updating", true)
-			},
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase().orEmpty()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED

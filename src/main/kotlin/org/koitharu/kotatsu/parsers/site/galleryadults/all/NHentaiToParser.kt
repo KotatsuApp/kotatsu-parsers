@@ -88,7 +88,7 @@ internal class NHentaiToParser(context: MangaLoaderContext) :
 				coverUrl = div.selectFirstOrThrow(selectGalleryImg).src(),
 				tags = emptySet(),
 				state = null,
-				author = null,
+				authors = emptySet(),
 				largeCoverUrl = null,
 				description = null,
 				chapters = null,

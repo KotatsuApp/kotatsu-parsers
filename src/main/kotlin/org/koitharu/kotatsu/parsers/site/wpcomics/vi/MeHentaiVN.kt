@@ -37,11 +37,12 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 				)
 			else null
 		}
+		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
-			author = doc.body().selectFirst(selectAut)?.textOrNull(),
+			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
