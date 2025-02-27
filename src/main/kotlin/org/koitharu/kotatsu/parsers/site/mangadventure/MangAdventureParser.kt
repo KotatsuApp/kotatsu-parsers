@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.mangadventure
 import okhttp3.HttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
@@ -17,7 +17,7 @@ internal abstract class MangAdventureParser(
 	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 25,
-) : PagedMangaParser(context, source, pageSize) {
+) : LegacyPagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

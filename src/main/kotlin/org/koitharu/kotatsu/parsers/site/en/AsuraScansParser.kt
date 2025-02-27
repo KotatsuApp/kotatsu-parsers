@@ -6,7 +6,7 @@ import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -18,7 +18,7 @@ import java.util.*
 
 @MangaSourceParser("ASURASCANS", "AsuraComic", "en")
 internal class AsuraScansParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.ASURASCANS, pageSize = 30) {
+	LegacyPagedMangaParser(context, MangaParserSource.ASURASCANS, pageSize = 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("asuracomic.net")
 

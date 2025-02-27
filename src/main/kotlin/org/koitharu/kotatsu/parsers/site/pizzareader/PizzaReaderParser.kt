@@ -4,7 +4,7 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.SinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -19,7 +19,7 @@ internal abstract class PizzaReaderParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-) : SinglePageMangaParser(context, source) {
+) : LegacySinglePageMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

@@ -7,7 +7,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -20,7 +20,7 @@ internal abstract class LikeMangaParser(
 	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 36,
-) : PagedMangaParser(context, source, pageSize) {
+) : LegacyPagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

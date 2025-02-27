@@ -70,6 +70,7 @@ class ParserProcessor(
 			package org.koitharu.kotatsu.parsers
 
 			import org.koitharu.kotatsu.parsers.model.MangaParserSource
+			import org.koitharu.kotatsu.parsers.core.MangaParserWrapper
 
 			internal fun MangaParserSource.newParser(context: MangaLoaderContext): MangaParser = when (this) {
 			
@@ -98,10 +99,11 @@ class ParserProcessor(
 		factoryWriter?.write(
 			"""
 				MangaParserSource.DUMMY -> throw NotImplementedError("Manga parser ${'$'}name cannot be instantiated")
-			}.also {
+			}.let {
 				require(it.source == this) {
 					"Cannot instantiate manga parser: ${'$'}name mapped to ${'$'}{it.source}"
 				}
+				MangaParserWrapper(it)
 			}
 			""".trimIndent(),
 		)

@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -11,7 +11,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
-internal class ComicExtra(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.COMICEXTRA, 36) {
+internal class ComicExtra(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.COMICEXTRA, 36) {
 
 	override val configKeyDomain = ConfigKey.Domain("azcomix.me")
 

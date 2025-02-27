@@ -6,6 +6,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -16,7 +17,7 @@ import java.util.*
 @Broken
 @MangaSourceParser("FLIXSCANSORG", "FlixScans.org", "en")
 internal class FlixScansOrg(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.FLIXSCANSORG, 18) {
+	LegacyPagedMangaParser(context, MangaParserSource.FLIXSCANSORG, 18) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 	override val configKeyDomain = ConfigKey.Domain("flixscans.org")

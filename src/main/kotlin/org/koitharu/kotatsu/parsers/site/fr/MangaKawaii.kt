@@ -5,14 +5,15 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MANGAKAWAII", "MangaKawaii Fr", "fr")
-internal class MangaKawaii(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAKAWAII, 50) {
+internal class MangaKawaii(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.MANGAKAWAII, 50) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.mangakawaii.io")
 

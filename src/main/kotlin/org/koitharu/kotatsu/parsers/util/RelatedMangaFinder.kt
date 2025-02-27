@@ -1,26 +1,27 @@
 package org.koitharu.kotatsu.parsers.util
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.*
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
+import org.koitharu.kotatsu.parsers.model.search.SearchableField
 
 public class RelatedMangaFinder(
 	private val parsers: Collection<MangaParser>,
 ) {
 
-	public suspend operator fun invoke(seed: Manga): List<Manga> = coroutineScope {
-		parsers.singleOrNull()?.let { parser ->
-			findRelatedImpl(this, parser, seed)
-		} ?: parsers.map { parser ->
-			async {
+	public suspend operator fun invoke(seed: Manga): List<Manga> = withContext(Dispatchers.Default) {
+		coroutineScope {
+			parsers.singleOrNull()?.let { parser ->
 				findRelatedImpl(this, parser, seed)
-			}
-		}.awaitAll().flatten()
+			} ?: parsers.map { parser ->
+				async {
+					findRelatedImpl(this, parser, seed)
+				}
+			}.awaitAll().flatten()
+		}
 	}
 
 	private suspend fun findRelatedImpl(scope: CoroutineScope, parser: MangaParser, seed: Manga): List<Manga> {
@@ -34,7 +35,12 @@ public class RelatedMangaFinder(
 		}
 		val results = words.map { keyword ->
 			scope.async {
-				val result = parser.getList(0, SortOrder.RELEVANCE, MangaListFilter(query = keyword))
+				val result = parser.getList(
+					MangaSearchQuery.Builder()
+						.order(SortOrder.RELEVANCE)
+						.criterion(QueryCriteria.Match(SearchableField.TITLE_NAME, keyword))
+						.build(),
+				)
 				result.filter { it.id != seed.id && it.containKeyword(keyword) }
 			}
 		}.awaitAll()

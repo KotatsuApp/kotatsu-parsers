@@ -7,7 +7,7 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -20,7 +20,7 @@ internal abstract class HotComicsParser(
 	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 24,
-) : PagedMangaParser(context, source, pageSize) {
+) : LegacyPagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

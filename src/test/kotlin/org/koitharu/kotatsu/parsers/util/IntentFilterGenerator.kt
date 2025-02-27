@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.util
 
 import org.junit.jupiter.api.Test
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContextMock
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.newParser
@@ -25,7 +26,7 @@ class IntentFilterGenerator {
 				if (source == MangaParserSource.DUMMY) {
 					continue
 				}
-				val parser = source.newParser(MangaLoaderContextMock)
+				val parser = source.newParser(MangaLoaderContextMock) as LegacyMangaParser
 				parser.configKeyDomain.presetValues.forEach { domain ->
 					writer.appendTab().append("<data android:host=\"").append(domain).appendLine("\" />")
 				}

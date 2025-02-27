@@ -8,6 +8,7 @@ import okhttp3.ResponseBody.Companion.toResponseBody
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -16,7 +17,7 @@ import java.util.zip.ZipInputStream
 @Broken // Not dead but changed template
 @MangaSourceParser("RANDOMSCANS", "LuratoonScan", "pt")
 internal class LuratoonScansParser(context: MangaLoaderContext) :
-	SinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),
+	LegacySinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),
 	Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain("luratoons.com")

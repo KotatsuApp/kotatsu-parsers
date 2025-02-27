@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -17,7 +17,7 @@ import java.util.*
 
 @MangaSourceParser("LUGNICASCANS", "LugnicaScans", "fr")
 internal class LugnicaScans(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.LUGNICASCANS, 10) {
+	LegacyPagedMangaParser(context, MangaParserSource.LUGNICASCANS, 10) {
 
 	override val configKeyDomain = ConfigKey.Domain("lugnica-scans.com")
 

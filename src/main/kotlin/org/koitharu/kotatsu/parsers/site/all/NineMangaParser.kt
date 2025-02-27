@@ -8,7 +8,7 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -19,7 +19,7 @@ internal abstract class NineMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	defaultDomain: String,
-) : PagedMangaParser(context, source, pageSize = 26), Interceptor {
+) : LegacyPagedMangaParser(context, source, pageSize = 26), Interceptor {
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain)
 

@@ -5,6 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.search.*
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
+import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -19,63 +22,109 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
 	)
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
-			isMultipleTagsSupported = false,
-			isSearchWithFiltersSupported = false,
+
+	override val searchQueryCapabilities: MangaSearchQueryCapabilities
+		get() = MangaSearchQueryCapabilities(
+			SearchCapability(
+				field = TAG,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				multiValue = false,
+				otherCriteria = false,
+			),
+			SearchCapability(
+				field = STATE,
+				criteriaTypes = setOf(Include::class),
+				multiValue = false,
+				otherCriteria = true,
+			),
 		)
+
 	override val otherDomain = "chapmanganato.com"
 	override val listUrl = "/manga_list"
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+	private fun SearchableField.toParamName(): String = when (this) {
+		TAG -> "category"
+		STATE -> "state"
+		else -> ""
+	}
+
+	private fun Any?.toQueryParam(): String = when (this) {
+		is String -> {
+			sanitizeTitleNameRegex.replace(this, "")
+				.replace(" ", "_")
+				.urlEncoded()
+		}
+
+		is MangaTag -> key
+		is MangaState -> when (this) {
+			MangaState.ONGOING -> "ongoing"
+			MangaState.FINISHED -> "completed"
+			else -> "all"
+		}
+
+		is SortOrder -> when (this) {
+			SortOrder.POPULARITY -> "topview"
+			SortOrder.UPDATED -> "latest"
+			SortOrder.NEWEST -> "newest"
+			else -> ""
+		}
+
+		else -> this.toString().replace(" ", "_").urlEncoded()
+	}
+
+	private fun StringBuilder.appendCriterion(field: SearchableField, value: Any?, paramName: String? = null) {
+		val param = paramName ?: field.toParamName()
+		if (param.isNotBlank()) {
+			append("&$param=")
+			append(value.toQueryParam())
+		}
+	}
+
+	private val sanitizeTitleNameRegex by lazy {
+		Regex("[^A-Za-z0-9 ]")
+	}
+
+	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
+		var titleSearchUrl: String? = null
 		val url = buildString {
-			append("https://")
-			append(domain)
-			when {
+			val pageQueryParameter = "page=$page"
+			append("https://$domain/?")
 
-				!filter.query.isNullOrEmpty() -> {
-					append(searchUrl)
-					val regex = Regex("[^A-Za-z0-9 ]")
-					val q = regex.replace(filter.query, "")
-					append(q.replace(" ", "_"))
-					append("?page=")
-				}
-
-				else -> {
-					append(listUrl)
-					append("?type=")
-					when (order) {
-						SortOrder.POPULARITY -> append("topview")
-						SortOrder.UPDATED -> append("latest")
-						SortOrder.NEWEST -> append("newest")
-						else -> append("latest")
-					}
-					if (filter.tags.isNotEmpty()) {
-						append("&category=")
-						filter.tags.oneOrThrowIfMany()?.let {
-							append(it.key)
+			query.criteria.forEach { criterion ->
+				when (criterion) {
+					is Include<*> -> {
+						criterion.field.toParamName().takeIf { it.isNotBlank() }?.let { param ->
+							append("&$param=${criterion.values.first().toQueryParam()}")
 						}
 					}
 
-					filter.states.oneOrThrowIfMany()?.let {
-						append("&state=")
-						append(
-							when (it) {
-								MangaState.ONGOING -> "ongoing"
-								MangaState.FINISHED -> "completed"
-								else -> "all"
-							},
-						)
+					is Match<*> -> {
+						if (criterion.field == TITLE_NAME) {
+							criterion.value.toQueryParam().takeIf { it.isNotBlank() }?.let { titleName ->
+								titleSearchUrl = "https://${domain}${searchUrl}${titleName}/" +
+									"?$pageQueryParameter"
+							}
+						}
+						appendCriterion(criterion.field, criterion.value)
 					}
 
-					append("&page=")
+					else -> {
+						// Not supported
+					}
 				}
 			}
-			append(page.toString())
+
+			append("&$pageQueryParameter")
+			append("&type=${(query.order ?: defaultSortOrder).toQueryParam()}")
 		}
 
-		val doc = webClient.httpGet(url).parseHtml()
+		val doc = webClient.httpGet(titleSearchUrl ?: url).parseHtml()
 
 		return doc.select("div.list-truyen-item-wrap").ifEmpty {
 			doc.select("div.story_item")
@@ -93,7 +142,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+				contentRating = null,
 			)
 		}
 	}

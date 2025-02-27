@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -9,7 +10,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("LERMANGA", "LerManga", "pt")
-internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
+internal class LerManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.LERMANGA, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("lermanga.org")
 

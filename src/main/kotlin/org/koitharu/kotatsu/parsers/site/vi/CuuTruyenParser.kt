@@ -10,7 +10,7 @@ import okio.IOException
 import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -25,7 +25,7 @@ import java.util.TimeZone
 
 @MangaSourceParser("CUUTRUYEN", "Cứu Truyện", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
+	LegacyPagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 

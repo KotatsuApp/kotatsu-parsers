@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -12,7 +12,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("BRMANGAS", "BrMangas", "pt")
-internal class BrMangas(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.BRMANGAS, 25) {
+internal class BrMangas(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.BRMANGAS, 25) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.brmangas.net")
 

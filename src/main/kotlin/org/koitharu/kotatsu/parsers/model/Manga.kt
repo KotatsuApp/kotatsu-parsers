@@ -2,10 +2,9 @@ package org.koitharu.kotatsu.parsers.model
 
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.util.findById
-import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.nullIfEmpty
 
-public data class Manga constructor(
+public data class Manga(
 	/**
 	 * Unique identifier for manga
 	 */
@@ -71,6 +70,91 @@ public data class Manga constructor(
 	 */
 	@JvmField public val source: MangaSource,
 ) {
+
+	@Deprecated("Use other constructor")
+	public constructor(
+		/**
+		 * Unique identifier for manga
+		 */
+		id: Long,
+		/**
+		 * Manga title, human-readable
+		 */
+		title: String,
+		/**
+		 * Alternative title (for example on other language), may be null
+		 */
+		altTitle: String?,
+		/**
+		 * Relative url to manga (**without** a domain) or any other uri.
+		 * Used principally in parsers
+		 */
+		url: String,
+		/**
+		 * Absolute url to manga, must be ready to open in browser
+		 */
+		publicUrl: String,
+		/**
+		 * Normalized manga rating, must be in range of 0..1 or [RATING_UNKNOWN] if rating s unknown
+		 * @see hasRating
+		 */
+		rating: Float,
+		/**
+		 * Indicates that manga may contain sensitive information (18+, NSFW)
+		 */
+		isNsfw: Boolean,
+		/**
+		 * Absolute link to the cover
+		 * @see largeCoverUrl
+		 */
+		coverUrl: String?,
+		/**
+		 * Tags (genres) of the manga
+		 */
+		tags: Set<MangaTag>,
+		/**
+		 * Manga status (ongoing, finished) or null if unknown
+		 */
+		state: MangaState?,
+		/**
+		 * Authors of the manga
+		 */
+		author: String?,
+		/**
+		 * Large cover url (absolute), null if is no large cover
+		 * @see coverUrl
+		 */
+		largeCoverUrl: String? = null,
+		/**
+		 * Manga description, may be html or null
+		 */
+		description: String? = null,
+		/**
+		 * List of chapters
+		 */
+		chapters: List<MangaChapter>? = null,
+		/**
+		 * Manga source
+		 */
+		source: MangaSource,
+	) : this(
+		id = id,
+		title = title,
+		altTitle = altTitle?.nullIfEmpty(),
+		url = url,
+		publicUrl = publicUrl,
+		rating = rating,
+		contentRating = if (isNsfw) ContentRating.ADULT else null,
+		coverUrl = coverUrl?.nullIfEmpty(),
+		tags = tags,
+		state = state,
+		authors = setOfNotNull(author),
+		largeCoverUrl = largeCoverUrl?.nullIfEmpty(),
+		description = description?.nullIfEmpty(),
+		chapters = chapters,
+		source = source,
+	)
+
 	/**
 	 * Author of the manga, may be null
 	 */

@@ -1,6 +1,8 @@
-package org.koitharu.kotatsu.parsers
+package org.koitharu.kotatsu.parsers.core
 
 import androidx.annotation.VisibleForTesting
+import org.koitharu.kotatsu.parsers.InternalParsersApi
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
@@ -8,12 +10,12 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.util.Paginator
 
 @InternalParsersApi
-public abstract class PagedMangaParser(
+public abstract class LegacyPagedMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	@VisibleForTesting(otherwise = VisibleForTesting.PROTECTED) @JvmField public val pageSize: Int,
 	searchPageSize: Int = pageSize,
-) : MangaParser(context, source) {
+) : LegacyMangaParser(context, source) {
 
 	@JvmField
 	protected val paginator: Paginator = Paginator(pageSize)

@@ -10,7 +10,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.SinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -25,7 +25,7 @@ internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val sourceLang: String,
-) : SinglePageMangaParser(context, source), Interceptor {
+) : LegacySinglePageMangaParser(context, source), Interceptor {
 
 	private val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")

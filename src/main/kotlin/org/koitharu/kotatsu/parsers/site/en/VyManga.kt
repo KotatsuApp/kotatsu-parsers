@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("VYMANGA", "VyManga", "en")
 internal class VyManga(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.VYMANGA, pageSize = 36) {
+	LegacyPagedMangaParser(context, MangaParserSource.VYMANGA, pageSize = 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("vymanga.net")
 

@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.util
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.model.Favicon
 import org.koitharu.kotatsu.parsers.model.Favicons
@@ -11,7 +13,7 @@ public class FaviconParser(
 	private val domain: String,
 ) {
 
-	public suspend fun parseFavicons(): Favicons {
+	public suspend fun parseFavicons(): Favicons = withContext(Dispatchers.Default) {
 		val url = "https://$domain"
 		val doc = webClient.httpGet(url).parseHtml()
 		val result = HashSet<Favicon>()
@@ -31,7 +33,7 @@ public class FaviconParser(
 		if (result.isEmpty()) {
 			result.add(createFallback())
 		}
-		return Favicons(result, url)
+		Favicons(result, url)
 	}
 
 	private fun parseLink(link: Element): Favicon? {

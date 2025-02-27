@@ -1,16 +1,15 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("KURONEKO", "Việt Hentai", "vi", type = ContentType.HENTAI)
-internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
+internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("vi-hentai.com")
 
@@ -218,14 +217,14 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		calendar.timeInMillis
 	}.getOrDefault(0L)
 
-    private suspend fun availableTags(): Set<MangaTag> {
-        val doc = webClient.httpGet("https://$domain").parseHtml()
-        return doc.select("ul.grid.grid-cols-2 a").mapToSet { a ->
-            MangaTag(
-                key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-                title = a.text(),
-                source = source,
-            )
-        }
-    }
+	private suspend fun availableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain").parseHtml()
+		return doc.select("ul.grid.grid-cols-2 a").mapToSet { a ->
+			MangaTag(
+				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+				title = a.text(),
+				source = source,
+			)
+		}
+	}
 }

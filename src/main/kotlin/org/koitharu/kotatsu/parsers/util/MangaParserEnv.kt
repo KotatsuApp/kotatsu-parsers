@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.util
 
 import okhttp3.HttpUrl
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaParser
@@ -81,17 +82,17 @@ private fun <T> Set<T>?.oneOrThrowIfMany(msg: String): T? = when {
 	else -> throw IllegalArgumentException(msg)
 }
 
-public val MangaParser.domain: String
+public val LegacyMangaParser.domain: String
 	get() = config[configKeyDomain]
 
 @InternalParsersApi
-public fun MangaParser.getDomain(subdomain: String): String {
+public fun LegacyMangaParser.getDomain(subdomain: String): String {
 	val domain = domain
 	return subdomain + "." + domain.removePrefix("www.")
 }
 
 @InternalParsersApi
-public fun MangaParser.urlBuilder(subdomain: String? = null): HttpUrl.Builder {
+public fun LegacyMangaParser.urlBuilder(subdomain: String? = null): HttpUrl.Builder {
 	return HttpUrl.Builder()
 		.scheme(SCHEME_HTTPS)
 		.host(if (subdomain == null) domain else "$subdomain.$domain")

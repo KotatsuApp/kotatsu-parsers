@@ -11,7 +11,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
@@ -28,7 +28,7 @@ import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
 @MangaSourceParser("HITOMILA", "Hitomi.La", type = ContentType.HENTAI)
-internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.HITOMILA) {
+internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(context, MangaParserSource.HITOMILA) {
 	override val configKeyDomain = ConfigKey.Domain("hitomi.la")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -516,14 +516,14 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 						title = doc.selectFirstOrThrow("h1").text(),
 						url = id.toString(),
 						coverUrl =
-						"https:" +
-							doc.selectFirstOrThrow("picture > source")
-								.attr("data-srcset")
-								.substringBefore(" "),
+							"https:" +
+								doc.selectFirstOrThrow("picture > source")
+									.attr("data-srcset")
+									.substringBefore(" "),
 						publicUrl =
-						doc.selectFirstOrThrow("h1 > a")
-							.attrAsRelativeUrl("href")
-							.toAbsoluteUrl(domain),
+							doc.selectFirstOrThrow("h1 > a")
+								.attrAsRelativeUrl("href")
+								.toAbsoluteUrl(domain),
 						authors = emptySet(),
 						tags = emptySet(),
 						contentRating = ContentRating.ADULT,
@@ -550,34 +550,35 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		return manga.copy(
 			title = json.getString("title"),
 			largeCoverUrl =
-			json.getJSONArray("files").getJSONObject(0).let {
-				val hash = it.getString("hash")
-				val commonId = commonImageId()
-				val imageId = imageIdFromHash(hash)
-				val subDomain = 'a' + subdomainOffset(imageId)
+				json.getJSONArray("files").getJSONObject(0).let {
+					val hash = it.getString("hash")
+					val commonId = commonImageId()
+					val imageId = imageIdFromHash(hash)
+					val subDomain = 'a' + subdomainOffset(imageId)
 
-				"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
-			},
+					"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
+				},
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
 			tags =
-			buildSet {
-				json.optJSONArray("characters")
-					?.mapToTags("character")
-					?.let(::addAll)
-				json.optJSONArray("tags")
-					?.mapToTags("tag")
-					?.let(::addAll)
-				json.optJSONArray("artists")
-					?.mapToTags("artist")
-					?.let(::addAll)
-				json.optJSONArray("parodys")
-					?.mapToTags("parody")
-					?.let(::addAll)
-				json.optJSONArray("groups")
-					?.mapToTags("group")
-					?.let(::addAll)
-			},
+				buildSet
+				{
+					json.optJSONArray("characters")
+						?.mapToTags("character")
+						?.let(::addAll)
+					json.optJSONArray("tags")
+						?.mapToTags("tag")
+						?.let(::addAll)
+					json.optJSONArray("artists")
+						?.mapToTags("artist")
+						?.let(::addAll)
+					json.optJSONArray("parodys")
+						?.mapToTags("parody")
+						?.let(::addAll)
+					json.optJSONArray("groups")
+						?.mapToTags("group")
+						?.let(::addAll)
+				},
 			chapters = listOf(
 				MangaChapter(
 					id = generateUid(manga.url),
@@ -601,15 +602,15 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		mapJSON {
 			MangaTag(
 				title =
-				it.getString(key).toCamelCase().let { title ->
-					if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
-						"$title ♀"
-					} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
-						"$title ♂"
-					} else {
-						title
-					}
-				},
+					it.getString(key).toCamelCase().let { title ->
+						if (it.getStringOrNull("female")?.toIntOrNull() == 1) {
+							"$title ♀"
+						} else if (it.getStringOrNull("male")?.toIntOrNull() == 1) {
+							"$title ♂"
+						} else {
+							title
+						}
+					},
 				key = it.getString("url").tagUrlToTag(),
 				source = source,
 			).let(tags::add)
@@ -666,7 +667,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : MangaParser(context
 		}
 	}
 
-	// / --->
+// / --->
 
 	private var scriptLastRetrieval: Long = -1L
 	private val mutex = Mutex()

@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.tr
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("TRWEBTOON", "TrWebtoon", "tr")
 internal class TrWebtoon(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.TRWEBTOON, pageSize = 21) {
+	LegacyPagedMangaParser(context, MangaParserSource.TRWEBTOON, pageSize = 21) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("trwebtoon.com")
 

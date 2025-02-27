@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("BEETOON", "BeeToon.net", "en")
 internal class BeeToon(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.BEETOON, pageSize = 30) {
+	LegacyPagedMangaParser(context, MangaParserSource.BEETOON, pageSize = 30) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY)
 
