@@ -9,8 +9,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -86,7 +86,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("div.caption").text(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
@@ -107,7 +107,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(href),
 					title = div.selectFirstOrThrow("a").text(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,

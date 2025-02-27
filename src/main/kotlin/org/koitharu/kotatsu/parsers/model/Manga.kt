@@ -14,9 +14,9 @@ public data class Manga(
 	 */
 	@JvmField public val title: String,
 	/**
-	 * Alternative title (for example on other language), may be null
+	 * Alternative titles (for example on other language), may be empty
 	 */
-	@JvmField public val altTitle: String?,
+	@JvmField public val altTitles: Set<String>,
 	/**
 	 * Relative url to manga (**without** a domain) or any other uri.
 	 * Used principally in parsers
@@ -140,7 +140,7 @@ public data class Manga(
 	) : this(
 		id = id,
 		title = title,
-		altTitle = altTitle?.nullIfEmpty(),
+		altTitles = setOfNotNull(altTitle?.nullIfEmpty()),
 		url = url,
 		publicUrl = publicUrl,
 		rating = rating,
@@ -161,6 +161,13 @@ public data class Manga(
 	@Deprecated("Please use authors")
 	public val author: String?
 		get() = authors.firstOrNull()
+
+	/**
+	 * Alternative title (for example on other language), may be null
+	 */
+	@Deprecated("Please use altTitles")
+	public val altTitle: String?
+		get() = altTitles.firstOrNull()
 
 	/**
 	 * Return if manga has a specified rating

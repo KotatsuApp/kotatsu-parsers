@@ -30,7 +30,7 @@ internal class MangaFenxi(context: MangaLoaderContext) :
 				coverUrl = div.selectFirst("img")?.attr("src")?.replace("-193x278", ""),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
 				?: div.selectFirst(".manga-name") ?: div.selectFirst(".post-title"))?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
 					MangaTag(

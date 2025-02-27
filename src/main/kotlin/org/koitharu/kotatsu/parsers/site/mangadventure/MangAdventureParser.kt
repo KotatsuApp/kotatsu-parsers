@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.mangadventure
 import okhttp3.HttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -119,7 +119,7 @@ internal abstract class MangAdventureParser(
 		}
 		return manga.copy(
 			description = details.getStringOrNull("description"),
-			altTitle = details.getJSONArray("aliases").joinToString().nullIfEmpty(),
+			altTitles = details.getJSONArray("aliases").toStringSet(),
 			authors = setOf(author),
 			tags = details.getJSONArray("categories").mapTo(HashSet()) {
 				val name = it as String
@@ -188,7 +188,7 @@ internal abstract class MangAdventureParser(
 			Manga(
 				id = generateUid(it.getString("slug")),
 				title = it.getString("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = path,
 				publicUrl = publicUrl,
 				rating = RATING_UNKNOWN,

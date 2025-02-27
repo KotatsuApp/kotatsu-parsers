@@ -8,8 +8,8 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -115,7 +115,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirst("h1")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.getElementsByAttributeValue("data-icon", "avg_rate")
@@ -150,7 +150,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 			.requireElementById("container_manga_show")
 		val author = root.selectFirst(".datas_more-authors-people")?.textOrNull()
 		return manga.copy(
-			altTitle = root.selectFirst(".component-manga-title_alt")?.textOrNull(),
+			altTitles = setOfNotNull(root.selectFirst(".component-manga-title_alt")?.textOrNull()),
 			description = root.selectFirst(".datas_synopsis")?.html().assertNotNull("description")
 				?: manga.description,
 			state = when (root.selectFirst(".datas_more-status-data")?.textOrNull().assertNotNull("status")) {

@@ -5,8 +5,8 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -129,7 +129,7 @@ internal abstract class KeyoappParser(
 			publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 			coverUrl = cover?.styleValueOrNull("background-image")?.cssUrl(),
 			title = div.selectFirstOrThrow("h3").text().orEmpty(),
-			altTitle = null,
+			altTitles = emptySet(),
 			rating = RATING_UNKNOWN,
 			tags = div.select("div.gap-1 a").mapToSet { a ->
 				MangaTag(

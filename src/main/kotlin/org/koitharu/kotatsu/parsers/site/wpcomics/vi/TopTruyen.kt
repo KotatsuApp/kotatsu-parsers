@@ -103,7 +103,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("div.image-item img")?.findImageUrl().orEmpty(),
 				title = div.selectFirst("h3 a")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = mangaTags,
 				authors = emptySet(),
@@ -154,7 +154,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 			state = state,
 			tags = tags,
 			chapters = getChapters(doc),
-			altTitle = altTitle,
+			altTitles = setOfNotNull(altTitle),
 		)
 	}
 

@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.mangaworld
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -151,7 +151,7 @@ internal abstract class MangaWorldParser(
 				publicUrl = href.toAbsoluteUrl(domain),
 				coverUrl = div.selectFirst(".thumb img")?.attr("src"),
 				title = div.selectFirst(".name a.manga-title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = tags,
 				authors = author?.let { setOf(it) } ?: emptySet(),
@@ -184,13 +184,14 @@ internal abstract class MangaWorldParser(
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		return manga.copy(
-			altTitle =
+			altTitles = setOfNotNull(
 				doc.selectFirst(".meta-data .font-weight-bold:contains(Titoli alternativi:)")
 					?.parent()
 					?.ownText()
 					?.substringAfter(": ")
 					?.trim()
 					?.nullIfEmpty(),
+			),
 			description = doc.getElementById("noidungm")?.text().orEmpty(),
 			chapters =
 				doc.select(".chapters-wrapper .chapter a").mapChapters(reversed = true) { i, a ->

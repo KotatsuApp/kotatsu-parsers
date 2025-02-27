@@ -4,8 +4,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -82,7 +82,7 @@ internal class MangaGeko(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("h4").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -112,7 +112,7 @@ internal class MangaGeko(context: MangaLoaderContext) :
 		val chaptersDeferred = async { loadChapters(manga.url) }
 		val author = doc.selectFirstOrThrow(".author").textOrNull()
 		manga.copy(
-			altTitle = doc.selectFirstOrThrow(".alternative-title").textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirstOrThrow(".alternative-title").textOrNull()),
 			state = when (doc.selectFirstOrThrow(".header-stats span:contains(Status) strong").text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED

@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -120,7 +120,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = aTag.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = aTag.attrAsAbsoluteUrl("href"),
 				rating = RATING_UNKNOWN,
@@ -146,7 +146,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 		val author = doc.selectFirst("li.author a")?.textOrNull()
 
 		return manga.copy(
-			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = tags,
 			description = doc.selectFirst("div.story-detail-info")?.html(),

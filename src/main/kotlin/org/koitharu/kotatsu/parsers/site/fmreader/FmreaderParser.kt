@@ -4,8 +4,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -144,7 +144,7 @@ internal abstract class FmreaderParser(
 					?: div.selectFirst("div.img-in-ratio")?.attr("style")?.substringAfter("(")
 						?.substringBefore(")"))?.toAbsoluteUrl(domain),
 				title = div.selectFirst("div.series-title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -200,8 +200,8 @@ internal abstract class FmreaderParser(
 				)
 			},
 			description = desc,
-			altTitle = alt,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			altTitles = setOfNotNull(alt),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

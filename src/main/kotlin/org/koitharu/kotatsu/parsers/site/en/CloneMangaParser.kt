@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -38,7 +38,7 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 				id = generateUid(href),
 				title = item.selectFirst("h3")?.text() ?: return@mapNotNull null,
 				coverUrl = "https://$domain/$cover",
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = setOf("Dan Kim"),
 				rating = RATING_UNKNOWN,
 				url = href,

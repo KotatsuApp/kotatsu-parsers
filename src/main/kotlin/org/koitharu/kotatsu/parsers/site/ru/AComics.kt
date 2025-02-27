@@ -6,8 +6,8 @@ import kotlinx.coroutines.sync.withLock
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -103,7 +103,7 @@ internal class AComics(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				title = it.selectFirstOrThrow(".title").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				publicUrl = url,
 				rating = RATING_UNKNOWN,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,

@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.fr
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -68,7 +68,7 @@ internal class LireScan(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 			Manga(
 				id = generateUid(href),
 				title = div.select(".item-poster__title").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.selectFirstOrThrow(".item__rating").ownText().toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
@@ -89,8 +89,10 @@ internal class LireScan(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 			.replace("Artist(s):", "")
 			.nullIfEmpty()
 		return manga.copy(
-			altTitle = root.select("ul.pmovie__list li:contains(Nom Alternatif:)").text()
-				.replace("Nom Alternatif:", "").nullIfEmpty(),
+			altTitles = setOfNotNull(
+				root.select("ul.pmovie__list li:contains(Nom Alternatif:)").text()
+					.replace("Nom Alternatif:", "").nullIfEmpty(),
+			),
 			state = when (root.select("ul.pmovie__list li:contains(Status:)").text()) {
 				"Status: OnGoing", "Status: En cours" -> MangaState.ONGOING
 				"Status: Fini" -> MangaState.FINISHED

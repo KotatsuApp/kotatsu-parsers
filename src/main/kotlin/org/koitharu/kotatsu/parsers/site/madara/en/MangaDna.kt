@@ -75,7 +75,7 @@ internal class MangaDna(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("div.hitem-rate span")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
 					MangaTag(
@@ -131,7 +131,7 @@ internal class MangaDna(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			altTitle = alt,
+			altTitles = setOfNotNull(alt),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

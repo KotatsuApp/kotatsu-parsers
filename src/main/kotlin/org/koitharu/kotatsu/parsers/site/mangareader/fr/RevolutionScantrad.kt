@@ -97,7 +97,7 @@ internal class RevolutionScantrad(context: MangaLoaderContext) :
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
 				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,

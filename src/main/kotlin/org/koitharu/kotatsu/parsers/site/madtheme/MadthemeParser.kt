@@ -4,8 +4,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -121,7 +121,7 @@ internal abstract class MadthemeParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("div.meta")?.selectFirst("div.title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("div.meta span.score")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = doc.body().select("div.meta div.genres span").mapToSet { span ->
 					MangaTag(
@@ -187,7 +187,7 @@ internal abstract class MadthemeParser(
 				)
 			},
 			description = desc?.nullIfEmpty(),
-			altTitle = alt.nullIfEmpty(),
+			altTitles = setOfNotNull(alt.nullIfEmpty()),
 			state = state,
 			chapters = chaptersDeferred.await(),
 			contentRating = if (nsfw || manga.isNsfw) {

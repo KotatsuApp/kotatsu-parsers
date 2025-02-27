@@ -4,10 +4,10 @@ import androidx.collection.ArraySet
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.Broken
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getDomain
@@ -92,7 +92,7 @@ internal class AnibelParser(context: MangaLoaderContext) : LegacyMangaParser(con
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
 					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
-				altTitle = title.optJSONArray("alt")?.optString(0)?.nullIfEmpty(),
+				altTitles = setOfNotNull(title.optJSONArray("alt")?.optString(0)?.nullIfEmpty()),
 				authors = emptySet(),
 				contentRating = null,
 				rating = jo.getDouble("rating").toFloat() / 10f,
@@ -144,7 +144,7 @@ internal class AnibelParser(context: MangaLoaderContext) : LegacyMangaParser(con
 		).getJSONObject("chapters").getJSONArray("docs")
 		return manga.copy(
 			title = title.getString("be"),
-			altTitle = title.optJSONArray("alt")?.optString(0)?.nullIfEmpty(),
+			altTitles = setOfNotNull(title.optJSONArray("alt")?.optString(0)?.nullIfEmpty()),
 			coverUrl = "$poster?width=200&height=280",
 			largeCoverUrl = poster,
 			description = details.getJSONObject("description").getString("be"),
@@ -239,7 +239,7 @@ internal class AnibelParser(context: MangaLoaderContext) : LegacyMangaParser(con
 				title = title.getString("be"),
 				coverUrl = jo.getString("poster").removePrefix("/cdn")
 					.toAbsoluteUrl(getDomain("cdn")) + "?width=200&height=280",
-				altTitle = title.getString("en").nullIfEmpty(),
+				altTitles = setOfNotNull(title.getString("en").nullIfEmpty()),
 				authors = emptySet(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,

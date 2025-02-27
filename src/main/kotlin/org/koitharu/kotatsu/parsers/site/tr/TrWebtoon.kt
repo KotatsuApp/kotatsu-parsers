@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.tr
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -106,7 +106,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(domain),
 				coverUrl = li.selectFirst("img")?.src().orEmpty(),
 				title = li.selectFirst(".table-responsive a")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = li.selectFirst(".row .col-xl-4 .mt-2 .my-1 .text-muted")?.text()?.substringBefore("/")
 					?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
@@ -131,7 +131,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(domain),
 				coverUrl = li.selectFirst(".figure img")?.src().orEmpty(),
 				title = li.selectFirst(".title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

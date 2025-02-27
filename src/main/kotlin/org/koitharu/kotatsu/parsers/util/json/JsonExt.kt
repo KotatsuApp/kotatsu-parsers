@@ -150,3 +150,14 @@ public fun <T : Any> JSONObject.entries(typeClass: Class<T>): Iterable<Map.Entry
 }
 
 public inline fun <reified T : Any> JSONObject.entries(): Iterable<Map.Entry<String, T>> = entries(T::class.java)
+
+public fun JSONArray.toStringSet(): Set<String> {
+	val set = ArraySet<String>(length())
+	repeat(length()) { i ->
+		val str = optString(i)
+		if (!str.isNullOrEmpty()) {
+			set.add(str)
+		}
+	}
+	return set
+}

@@ -6,9 +6,9 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -126,7 +126,7 @@ internal abstract class LineWebtoonsParser(
 				Manga(
 					id = generateUid(titleNo),
 					title = jo.getString("title"),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = "$titleNo",
 					publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=${titleNo}",
 					rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
@@ -157,7 +157,7 @@ internal abstract class LineWebtoonsParser(
 						Manga(
 							id = generateUid(titleNo),
 							title = jo.getString("title"),
-							altTitle = null,
+							altTitles = emptySet(),
 							url = titleNo.toString(),
 							publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 							rating = RATING_UNKNOWN,
@@ -203,7 +203,7 @@ internal abstract class LineWebtoonsParser(
 						Manga(
 							id = generateUid(titleNo),
 							title = jo.getString("title"),
-							altTitle = null,
+							altTitles = emptySet(),
 							url = titleNo.toString(),
 							publicUrl = "https://$domain/$languageCode/canvas/a/list?title_no=$titleNo",
 							rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,

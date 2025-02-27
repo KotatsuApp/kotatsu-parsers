@@ -5,8 +5,8 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.unescapeJson
@@ -99,7 +99,7 @@ internal abstract class ScanParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
 				title = div.selectFirst(".link-series h3, .item-title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -140,15 +140,16 @@ internal abstract class ScanParser(
 		val selectTag =
 			doc.select(".card-series-detail .col-6:contains(Categorie) div, .card-series-about .mb-3:contains(Categorie) a, .card-series-about .mb-3:contains(Categorias) a")
 		val tags = selectTag.mapNotNullToSet { tagMap[it.text()] }
-		val author = doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
-			?.textOrNull()
+		val author =
+			doc.selectFirst(".card-series-detail .col-6:contains(Autore) div, .card-series-about .mb-3:contains(Autore) a")
+				?.textOrNull()
 		return manga.copy(
 			rating = doc.selectFirst(".card-series-detail .rate-value span, .card-series-about .rate-value span")
 				?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = tags,
 			authors = author?.let { setOf(it) } ?: emptySet(),
-			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2, .card-series-about .h6")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst(".card div.col-12.mb-4 h2, .card-series-about .h6")?.textOrNull()),
 			description = doc.selectFirst(".card div.col-12.mb-4 p, .card-series-desc .mb-4 p")?.html(),
 			chapters = doc.select(".chapters-list .col-chapter, .card-list-chapter .col-chapter")
 				.mapChapters(reversed = true) { i, div ->

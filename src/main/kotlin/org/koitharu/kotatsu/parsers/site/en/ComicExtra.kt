@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -71,7 +71,7 @@ internal class ComicExtra(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("a.egb-serie").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -106,7 +106,7 @@ internal class ComicExtra(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = doc.selectFirst("table.full-table tr:contains(Author:) td:nth-child(2)")?.textOrNull()
 		return manga.copy(
-			altTitle = doc.selectFirstOrThrow("div.anime-top h1.title").textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirstOrThrow("div.anime-top h1.title").textOrNull()),
 			state = when (doc.selectFirstOrThrow("ul.anime-genres li.status a").text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"Completed" -> MangaState.FINISHED

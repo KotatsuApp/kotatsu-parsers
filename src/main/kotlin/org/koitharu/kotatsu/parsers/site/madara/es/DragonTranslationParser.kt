@@ -61,7 +61,7 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img.thumb-img")?.src(),
 				title = div.selectFirst("div.series-box h5")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = emptySet(),
 				authors = emptySet(),

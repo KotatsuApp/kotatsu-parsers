@@ -13,8 +13,8 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.TooManyRequestExceptions
 import org.koitharu.kotatsu.parsers.model.*
@@ -173,7 +173,7 @@ internal class ExHentaiParser(
 			Manga(
 				id = generateUid(href),
 				title = rawTitle.cleanupTitle(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = a.absUrl("href"),
 				rating = td2.selectFirst("div.ir")?.parseRating() ?: RATING_UNKNOWN,
@@ -213,7 +213,7 @@ internal class ExHentaiParser(
 
 		return manga.copy(
 			title = title?.getElementById("gn")?.text()?.cleanupTitle() ?: manga.title,
-			altTitle = (title?.getElementById("gj")?.text()?.cleanupTitle() ?: manga.altTitle)?.nullIfEmpty(),
+			altTitles = setOfNotNull(title?.getElementById("gj")?.text()?.cleanupTitle()?.nullIfEmpty()),
 			publicUrl = doc.baseUri().ifEmpty { manga.publicUrl },
 			rating = root.getElementById("rating_label")?.text()
 				?.substringAfterLast(' ')

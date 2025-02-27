@@ -5,8 +5,8 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -107,7 +107,7 @@ internal abstract class AnimeBootstrapParser(
 				coverUrl = div.selectFirstOrThrow("div.product__item__pic")
 					.attrAsAbsoluteUrlOrNull("data-setbg"),
 				title = div.selectFirstOrThrow("div.product__item__text").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

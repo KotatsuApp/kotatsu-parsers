@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.heancms
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -125,7 +125,7 @@ internal abstract class HeanCms(
 				id = id,
 				url = url,
 				title = title,
-				altTitle = it.getString("alternative_names").takeIf { it.isNotBlank() },
+				altTitles = setOfNotNull(it.getString("alternative_names").takeIf { it.isNotBlank() }),
 				publicUrl = publicUrl.toAbsoluteUrl(domain),
 				description = it.getString("description"),
 				rating = it.getFloatOrDefault("rating", RATING_UNKNOWN) / 5f,

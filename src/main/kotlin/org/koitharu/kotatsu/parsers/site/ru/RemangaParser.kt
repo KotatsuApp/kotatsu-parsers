@@ -10,8 +10,8 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ContentUnavailableException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -111,7 +111,7 @@ internal class RemangaParser(
 				url = url,
 				publicUrl = "https://$domain$url",
 				title = jo.getString("rus_name"),
-				altTitle = jo.getString("en_name"),
+				altTitles = setOfNotNull(jo.getStringOrNull("en_name")),
 				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				coverUrl = "https://api.$domain${img.getString("mid")}",
 				largeCoverUrl = "https://api.$domain${img.getString("high")}",

@@ -1,14 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 
-import org.jsoup.nodes.Document
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -50,7 +50,7 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
 		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
-			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {

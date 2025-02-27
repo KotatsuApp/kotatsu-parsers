@@ -7,8 +7,8 @@ import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -109,7 +109,7 @@ internal abstract class HotComicsParser(
 				publicUrl = url.toAbsoluteUrl(domain),
 				coverUrl = li.selectFirst("img")?.src(),
 				title = li.selectFirst(".title")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				description = li.selectFirst("p[itemprop*=description]")?.text().orEmpty(),
 				tags = tags,

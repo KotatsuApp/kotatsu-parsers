@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -36,7 +36,7 @@ internal class OnePieceEx(context: MangaLoaderContext) :
 				publicUrl = "https://$domain/mangas/leitor/",
 				title = "One Piece",
 				coverUrl = "https://$domain/mangareader/sbs/capa/preview/Volume_1.jpg",
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = "Um romance marítimo pelo \"One Piece\"!!! Estamos na Grande " +
@@ -56,7 +56,7 @@ internal class OnePieceEx(context: MangaLoaderContext) :
 				publicUrl = "https://$domain/sbs/",
 				title = "One Piece",
 				coverUrl = "https://$domain/mangareader/sbs/capa/preview/nao.jpg",
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = "O SBS é uma coluna especial encontrada na maioria dos " +

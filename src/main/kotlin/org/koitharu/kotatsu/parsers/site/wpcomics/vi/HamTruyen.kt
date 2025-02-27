@@ -4,17 +4,19 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.textOrNull
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
 @MangaSourceParser("HAMTRUYEN", "Ham Truyện", "vi")
 internal class HamTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.HAMTRUYEN, "hamtruyen.vn", 44) {  
+	WpComicsParser(context, MangaParserSource.HAMTRUYEN, "hamtruyen.vn", 44) {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
@@ -26,7 +28,7 @@ internal class HamTruyen(context: MangaLoaderContext) :
 		val author = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
-			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {

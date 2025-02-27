@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.fr
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -84,7 +84,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					Manga(
 						id = generateUid(href),
 						title = article.select(".carteinfos a").text(),
-						altTitle = null,
+						altTitles = emptySet(),
 						url = href,
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
@@ -104,7 +104,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					Manga(
 						id = generateUid(href),
 						title = article.select(".index-post-header a").text(),
-						altTitle = null,
+						altTitles = emptySet(),
 						url = href,
 						publicUrl = href.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
@@ -125,7 +125,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 		val author = root.select("div.project-details a[href*=auteur]").textOrNull()
 
 		return manga.copy(
-			altTitle = root.select(".divider2:contains(Noms associés :)").firstOrNull()?.textOrNull(),
+			altTitles = setOfNotNull(root.select(".divider2:contains(Noms associés :)").firstOrNull()?.textOrNull()),
 			state = when (root.select(".label.label-primary")[2].text()) {
 				"En cours" -> MangaState.ONGOING
 				"Terminé", "Abondonné", "One Shot" -> MangaState.FINISHED

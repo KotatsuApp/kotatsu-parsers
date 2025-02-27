@@ -6,8 +6,8 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -158,7 +158,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 				id = generateUid(href),
 				title = item.selectFirst("h4.text-truncate")?.text() ?: return@mapNotNull null,
 				coverUrl = item.select("style").toString().substringAfter("('").substringBeforeLast("')"),
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				rating = item.selectFirst("span.score")?.text()?.toFloatOrNull()?.div(10F) ?: RATING_UNKNOWN,
 				url = href,

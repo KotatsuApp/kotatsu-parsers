@@ -11,12 +11,13 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
@@ -78,7 +79,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 							id = generateUid(url),
 							title = jo.getString("name").orEmpty(),
 							coverUrl = img,
-							altTitle = jo.getString("otherNames").orEmpty(),
+							altTitles = setOfNotNull(jo.getStringOrNull("otherNames")),
 							authors = emptySet(),
 							contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 							rating = RATING_UNKNOWN,
@@ -109,7 +110,8 @@ internal class MangaMana(context: MangaLoaderContext) :
 						val doc = webClient.httpGet("https://$domain/?page=$page").parseHtml()
 						return doc.select("div.row div.col_home").map { div ->
 							val href = div.selectFirstOrThrow("h4 a").attrAsRelativeUrl("href")
-							val isNsfwSource = div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
+							val isNsfwSource =
+								div.selectFirst("img[data-adult]")?.attr("data-adult")?.isNotEmpty() == true
 							val img = if (isNsfwSource) {
 								div.selectFirst("img")?.attr("data-adult")
 							} else {
@@ -118,7 +120,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 							Manga(
 								id = generateUid(href),
 								title = div.select("h4").text(),
-								altTitle = null,
+								altTitles = emptySet(),
 								url = href,
 								publicUrl = href.toAbsoluteUrl(domain),
 								rating = RATING_UNKNOWN,
@@ -181,7 +183,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = div.select("h2.fs-6").text(),
-				altTitle = doc.selectFirst(".mangalist_item_othernames")?.text().orEmpty(),
+				altTitles = setOfNotNull(doc.selectFirst(".mangalist_item_othernames")?.textOrNull()),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = div.getElementById("avgrating")?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

@@ -29,7 +29,7 @@ internal class ScanIta(context: MangaLoaderContext) :
 				?: RATING_UNKNOWN,
 			tags = tags,
 			authors = author?.let { setOf(it) } ?: emptySet(),
-			altTitle = doc.selectFirst(".card div.col-12.mb-4 h2")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst(".card div.col-12.mb-4 h2")?.textOrNull()),
 			description = doc.selectFirst(".card div.col-12.mb-4 p")?.html(),
 			chapters = chaptersDeferred.await(),
 		)

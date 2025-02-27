@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.nepnep
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -139,7 +139,7 @@ internal abstract class NepnepParser(
 		return Manga(
 			id = generateUid(href),
 			title = m.getString("i").replace('-', ' '),
-			altTitle = null,
+			altTitles = emptySet(),
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
 			rating = RATING_UNKNOWN,

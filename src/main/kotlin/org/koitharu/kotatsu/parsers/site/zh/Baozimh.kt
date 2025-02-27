@@ -5,8 +5,8 @@ import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -118,7 +118,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				publicUrl = href,
 				coverUrl = "https://static-tw${domain.removePrefix("www")}/cover/" + j.getString("topic_img"),
 				title = j.getString("name"),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = author?.let { setOf(it) } ?: emptySet(),
@@ -138,7 +138,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				publicUrl = href,
 				coverUrl = div.selectFirst("amp-img")?.src().orEmpty(),
 				title = div.selectFirst(".comics-card__title h3")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

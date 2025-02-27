@@ -6,7 +6,10 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Response
 import okhttp3.ResponseBody.Companion.toResponseBody
 import org.json.JSONArray
-import org.koitharu.kotatsu.parsers.*
+import org.koitharu.kotatsu.parsers.Broken
+import org.koitharu.kotatsu.parsers.ErrorMessages
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -50,7 +53,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
 				title = div.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -70,8 +73,10 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 			?.nextElementSibling()?.textOrNull()
 		return manga.copy(
 			title = doc.selectFirst("h1.desc__titulo__comic")?.textOrNull() ?: manga.title,
-			altTitle = summaryContainer.getElementsContainingOwnText("Alternativo").firstOrNull()
-				?.nextElementSibling()?.textOrNull(),
+			altTitles = setOfNotNull(
+				summaryContainer.getElementsContainingOwnText("Alternativo").firstOrNull()
+					?.nextElementSibling()?.textOrNull(),
+			),
 			tags = summaryContainer.getElementsByAttributeValueContaining("href", "?category=").mapToSet {
 				MangaTag(
 					title = it.text().toTitleCase(sourceLocale),

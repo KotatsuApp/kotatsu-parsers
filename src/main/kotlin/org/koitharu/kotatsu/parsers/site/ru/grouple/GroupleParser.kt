@@ -17,9 +17,9 @@ import okio.IOException
 import org.json.JSONArray
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -141,9 +141,9 @@ internal abstract class GroupleParser(
 		return manga.copy(
 			source = newSource,
 			title = doc.metaValue("name") ?: manga.title,
-			altTitle = root.selectFirst(".all-names-popover")?.select(".name")?.joinToString { it.text() }
-				?.nullIfEmpty()
-				?: manga.altTitle,
+			altTitles = root.selectFirst(".all-names-popover")?.select(".name")?.mapNotNullToSet {
+				it.textOrNull()
+			} ?: manga.altTitles,
 			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-full"),
@@ -422,7 +422,7 @@ internal abstract class GroupleParser(
 			url = relUrl,
 			publicUrl = href,
 			title = title,
-			altTitle = descDiv.selectFirst("h5")?.textOrNull(),
+			altTitles = setOfNotNull(descDiv.selectFirst("h5")?.textOrNull()),
 			coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)

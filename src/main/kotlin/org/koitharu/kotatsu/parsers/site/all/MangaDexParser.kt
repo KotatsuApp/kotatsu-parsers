@@ -7,10 +7,10 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
-import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
@@ -353,7 +353,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 			title = requireNotNull(attrs.getJSONObject("title").selectByLocale()) {
 				"Title should not be null"
 			},
-			altTitle = attrs.optJSONArray("altTitles")?.flatten()?.selectByLocale(),
+			altTitles = setOfNotNull(attrs.optJSONArray("altTitles")?.flatten()?.selectByLocale()), // TODO
 			url = id,
 			publicUrl = "https://$domain/title/$id",
 			rating = RATING_UNKNOWN,

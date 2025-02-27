@@ -7,8 +7,8 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -90,7 +90,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(relativeUrl),
 				title = linkTag.attr("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				description = el.selectFirst("p.al-j.break.line-height-15")?.text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
@@ -115,7 +115,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(relativeUrl),
 				title = a.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),

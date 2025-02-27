@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -123,7 +123,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = title,
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -145,7 +145,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = title,
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -163,7 +163,6 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty()
 		return manga.copy(
-			altTitle = null,
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = doc.select("div.mb-1 span a").mapToSet { element ->
 				MangaTag(

@@ -4,8 +4,8 @@ import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -188,10 +188,11 @@ internal abstract class PizzaReaderParser(
 			coverUrl = j.getString("thumbnail"),
 			title = j.getString("title"),
 			description = j.getString("description"),
-			altTitle = j.getJSONArray("alt_titles").toString()
+			altTitles = j.getJSONArray("alt_titles").toString()
 				.replace("[\"", "")
 				.replace("\"]", "")
-				.replace("\",\"", " , "),
+				.split("\",\"")
+				.toSet(),
 			rating = j.getString("rating").toFloatOrNull()?.div(10f)
 				?: RATING_UNKNOWN,
 			tags = emptySet(),

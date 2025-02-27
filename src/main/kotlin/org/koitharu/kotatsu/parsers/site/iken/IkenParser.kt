@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.iken
 
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -109,7 +109,7 @@ internal abstract class IkenParser(
 				publicUrl = url.toAbsoluteUrl(domain),
 				coverUrl = it.getString("featuredImage"),
 				title = it.getString("postTitle"),
-				altTitle = it.getString("alternativeTitles"),
+				altTitles = setOfNotNull(it.getStringOrNull("alternativeTitles")),
 				description = it.getString("postContent"),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

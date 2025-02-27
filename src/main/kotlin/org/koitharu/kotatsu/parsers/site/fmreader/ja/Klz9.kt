@@ -32,7 +32,7 @@ internal class Klz9(context: MangaLoaderContext) :
 				coverUrl = div.selectFirstOrThrow("div.img-in-ratio").attr("style").substringAfter("('")
 					.substringBeforeLast("')"),
 				title = div.selectFirstOrThrow("div.series-title").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

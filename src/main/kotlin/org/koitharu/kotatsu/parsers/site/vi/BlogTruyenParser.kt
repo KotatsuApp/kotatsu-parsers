@@ -3,16 +3,16 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.json.JSONArray
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
 @MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
@@ -79,7 +79,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(relativeUrl),
 				title = a.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),

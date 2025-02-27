@@ -5,8 +5,8 @@ import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -83,7 +83,7 @@ internal class MangaKawaii(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src() ?: a.attrAsAbsoluteUrlOrNull("data-bg"),
 				title = div.selectFirst("h4, .media-thumbnail__name")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -99,11 +99,14 @@ internal class MangaKawaii(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val firstChapter = doc.selectFirst("tr[class*='volume-'] a")?.attr("href")
 		val chaptersDeferred = async { loadChapters(firstChapter) }
-		val author = doc.select("a[href*=author]").text()
+		val author = doc.select("a[href*=author]").textOrNull()
 		manga.copy(
 			description = doc.selectFirst("dd.text-justify.text-break")?.html(),
-			altTitle = doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " }.nullIfEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			altTitles = setOfNotNull(
+				doc.select("span[itemprop*=alternativeHeadline]").joinToString { ", " }
+					.nullIfEmpty(),
+			),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirst("span.badge.bg-success.text-uppercase")?.text()) {
 				"En Cours" -> MangaState.ONGOING
 				"Terminé" -> MangaState.FINISHED

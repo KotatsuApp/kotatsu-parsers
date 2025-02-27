@@ -8,8 +8,8 @@ import okhttp3.Interceptor
 import okhttp3.Response
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -113,7 +113,7 @@ internal abstract class NineMangaParser(
 				url = relUrl,
 				publicUrl = href,
 				title = dd?.selectFirst("a.bookname")?.text()?.toCamelCase().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				coverUrl = node.selectFirst("img")?.src(),
 				rating = RATING_UNKNOWN,
 				authors = emptySet(),

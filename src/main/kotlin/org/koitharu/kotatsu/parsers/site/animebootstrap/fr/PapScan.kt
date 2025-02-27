@@ -69,7 +69,7 @@ internal class PapScan(context: MangaLoaderContext) :
 				coverUrl = div.selectFirstOrThrow("div.product__item__pic")
 					.attrAsAbsoluteUrlOrNull("data-setbg"),
 				title = div.selectFirstOrThrow("div.product__item__text h5").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

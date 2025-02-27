@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.en
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -118,7 +118,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 				title = a.attr("title"),
 				coverUrl = a.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
 				source = MangaParserSource.MANGATOWN,
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = li.selectFirst("p.score")?.selectFirst("b")
 					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				authors = author?.let { setOf(it) } ?: emptySet(),

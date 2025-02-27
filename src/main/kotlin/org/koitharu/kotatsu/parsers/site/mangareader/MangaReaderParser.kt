@@ -12,8 +12,8 @@ import okhttp3.internal.closeQuietly
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -160,7 +160,7 @@ internal abstract class MangaReaderParser(
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
 				title = it.selectFirst(selectMangaListTitle)?.text() ?: a.attr("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,

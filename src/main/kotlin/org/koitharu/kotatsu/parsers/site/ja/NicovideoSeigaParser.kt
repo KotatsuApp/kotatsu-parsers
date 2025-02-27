@@ -1,10 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -89,7 +89,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				id = generateUid(href),
 				title = item.selectFirst(".mg_body > .title > a")?.text() ?: return@mapNotNull null,
 				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src"),
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = author?.let { setOf(it) } ?: emptySet(),
 				rating = RATING_UNKNOWN,
 				url = href,
@@ -193,7 +193,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(item.host ?: domain),
 				title = item.selectFirst(".search_result__item__info > .search_result__item__info--title > a")
 					?.textOrNull() ?: return@mapNotNull null,
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,

@@ -10,8 +10,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -159,7 +159,7 @@ internal abstract class WpComicsParser(
 			Manga(
 				id = generateUid(slug),
 				title = item.selectFirst("div.box_tootip div.title, h3 a")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = absUrl.toRelativeUrl(domain),
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
@@ -219,7 +219,7 @@ internal abstract class WpComicsParser(
 		val author = doc.body().select(selectAut).textOrNull()
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
-			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {

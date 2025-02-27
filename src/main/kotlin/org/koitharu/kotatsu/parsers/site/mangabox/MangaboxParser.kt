@@ -174,7 +174,7 @@ internal abstract class MangaboxParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h3")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -232,7 +232,7 @@ internal abstract class MangaboxParser(
 				)
 			},
 			description = desc,
-			altTitle = alt,
+			altTitles = setOfNotNull(alt),
 			authors = authors,
 			state = state,
 			chapters = chaptersDeferred.await(),

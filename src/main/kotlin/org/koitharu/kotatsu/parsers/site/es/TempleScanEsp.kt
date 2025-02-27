@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.es
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -44,7 +44,7 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 				publicUrl = href,
 				coverUrl = it.getString("urlImg"),
 				title = it.getString("name").orEmpty(),
-				altTitle = it.getStringOrNull("alternativeName"),
+				altTitles = setOfNotNull(it.getStringOrNull("alternativeName")),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

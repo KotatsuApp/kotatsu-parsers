@@ -7,8 +7,8 @@ import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -146,7 +146,7 @@ internal abstract class LibSocialParser(
 		val author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name")
 		manga.copy(
 			title = json.getStringOrNull("rus_name") ?: manga.title,
-			altTitle = json.getStringOrNull("name"),
+			altTitles = setOfNotNull(json.getStringOrNull("name")),
 			tags = tagsSetOf(tags, genres),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = json.getString("summary").nl2br(),
@@ -209,7 +209,7 @@ internal abstract class LibSocialParser(
 		return Manga(
 			id = generateUid(jo.getLong("id")),
 			title = jo.getString("rus_name").ifEmpty { jo.getString("name") },
-			altTitle = jo.getString("name"),
+			altTitles = setOfNotNull(jo.getString("name")),
 			url = jo.getString("slug_url"),
 			publicUrl = "https://$siteDomain/ru/manga/" + jo.getString("slug_url"),
 			rating = jo.optJSONObject("rating")

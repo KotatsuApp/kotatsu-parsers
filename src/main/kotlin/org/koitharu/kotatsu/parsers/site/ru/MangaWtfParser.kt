@@ -7,8 +7,8 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -129,7 +129,7 @@ internal class MangaWtfParser(
 			Manga(
 				id = generateUid(jo.getString("id")),
 				title = jo.getJSONObject("name").getString("ru"),
-				altTitle = jo.getJSONObject("name").getStringOrNull("en"),
+				altTitles = setOfNotNull(jo.getJSONObject("name").getStringOrNull("en")),
 				url = jo.getString("id"),
 				publicUrl = "https://$domain/manga/${jo.getString("slug")}",
 				rating = jo.getFloatOrDefault("averageRating", -10f) / 10f,
@@ -261,7 +261,7 @@ internal class MangaWtfParser(
 		return Manga(
 			id = generateUid(getString("id")),
 			title = getJSONObject("name").getString("ru"),
-			altTitle = getJSONObject("name").getStringOrNull("en"),
+			altTitles = setOfNotNull(getJSONObject("name").getStringOrNull("en")),
 			url = getString("id"),
 			publicUrl = "https://$domain/manga/${getString("slug")}",
 			rating = getFloatOrDefault("averageRating", -10f) / 10f,

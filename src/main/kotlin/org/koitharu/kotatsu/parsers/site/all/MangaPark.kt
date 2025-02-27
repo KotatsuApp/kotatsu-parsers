@@ -4,8 +4,8 @@ import androidx.collection.ArrayMap
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -157,7 +157,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h3")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("span.text-yellow-500")?.text()?.toFloatOrNull()?.div(10F) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -195,7 +195,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", sourceLocale)
 		val author = doc.selectFirst("div[q:key=tz_4]")?.textOrNull()
 		manga.copy(
-			altTitle = doc.selectFirst("div[q:key=tz_2]")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("div[q:key=tz_2]")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = doc.selectFirst("react-island[q:key=0a_9]")?.html(),
 			state = when (doc.selectFirst("span[q:key=Yn_5]")?.text()?.lowercase()) {

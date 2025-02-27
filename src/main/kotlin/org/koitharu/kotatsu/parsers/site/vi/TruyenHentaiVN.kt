@@ -3,13 +3,13 @@ package org.koitharu.kotatsu.parsers.site.vi
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
-import java.util.*
 import java.text.SimpleDateFormat
+import java.util.*
 
 @MangaSourceParser("TRUYENHENTAIVN", "TruyenHentaiVN", "vi", type = ContentType.HENTAI)
 internal class TruyenHentaiVN(context: MangaLoaderContext) :
@@ -73,14 +73,14 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 			val href = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: ""
 			val title = element.selectFirst("a.name")?.text() ?: ""
 			val cover = element.selectFirst("img")?.src()
-			val dateText = element.selectFirst("span.date-time")?.text()
+			element.selectFirst("span.date-time")?.text()
 
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				title = title,
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,

@@ -8,9 +8,9 @@ import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -114,7 +114,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : LegacyMangaParser(
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("name"),
-				altTitle = jo.getStringOrNull("eng_name"),
+				altTitles = setOfNotNull(jo.getStringOrNull("eng_name")),
 				url = jo.getString("url"),
 				publicUrl = jo.getString("url").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,

@@ -107,7 +107,7 @@ internal class IsekaiScanEuParser(context: MangaLoaderContext) :
 				coverUrl = div.selectFirst("img")?.src(),
 				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4")
 				?: summary?.selectFirst("div.post-title p.juduldepan"))?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
 					MangaTag(

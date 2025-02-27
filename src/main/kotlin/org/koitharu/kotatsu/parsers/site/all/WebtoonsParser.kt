@@ -8,9 +8,9 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -129,7 +129,7 @@ internal abstract class WebtoonsParser(
 					Manga(
 						id = generateUid(titleNo),
 						title = jo.getString("title"),
-						altTitle = null,
+						altTitles = emptySet(),
 						url = "$titleNo",
 						publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=${titleNo}",
 						rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
@@ -169,7 +169,7 @@ internal abstract class WebtoonsParser(
 						publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
 						title = jo.getString("title"),
 						coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
-						altTitle = null,
+						altTitles = emptySet(),
 						authors = author?.let { setOf(it) } ?: emptySet(),
 						contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 						rating = jo.getFloatOrDefault("starScoreAverage", -10f) / 10f,
@@ -205,7 +205,7 @@ internal abstract class WebtoonsParser(
 							Manga(
 								id = generateUid(titleNo),
 								title = jo.getString("title"),
-								altTitle = null,
+								altTitles = emptySet(),
 								url = titleNo.toString(),
 								publicUrl = "https://$domain/$languageCode/originals/a/list?title_no=$titleNo",
 								rating = RATING_UNKNOWN,

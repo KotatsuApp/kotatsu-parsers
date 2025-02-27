@@ -77,7 +77,7 @@ internal class Manhwa18Cc(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("h3").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst(".item-rate span")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
 				tags = emptySet(),
 				authors = emptySet(),

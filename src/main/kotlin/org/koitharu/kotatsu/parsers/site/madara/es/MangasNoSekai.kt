@@ -31,8 +31,10 @@ internal class MangasNoSekai(context: MangaLoaderContext) :
 			},
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = body.selectFirst("#section-sinopsis p")?.text().orEmpty(),
-			altTitle = doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Otros nombres)) p")
-				?.textOrNull(),
+			altTitles = setOfNotNull(
+				doc.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Otros nombres)) p")
+					?.textOrNull(),
+			),
 			state = body.selectFirst("section#section-sinopsis div.d-flex:has(div:contains(Estado)) p")
 				?.let {
 					when (it.text()) {

@@ -5,8 +5,8 @@ import okhttp3.Headers
 import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -82,7 +82,7 @@ internal class DesuMeParser(context: MangaLoaderContext) :
 				publicUrl = jo.getString("url"),
 				source = MangaParserSource.DESUME,
 				title = jo.getString("russian"),
-				altTitle = jo.getString("name"),
+				altTitles = setOf(jo.getString("name")),
 				coverUrl = cover.getString("preview"),
 				largeCoverUrl = cover.getString("original"),
 				state = when (jo.getString("status")) {

@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -72,7 +72,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				title = li.selectFirst(".name")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -92,7 +92,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 		val author = doc.selectFirst(".info-item:has(.fa-user)")?.textOrNull()?.removePrefix("Tác giả: ")
 
 		return manga.copy(
-			altTitle = doc.selectFirst(".box_info_right h2")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst(".box_info_right h2")?.textOrNull()),
 			tags = doc.select("ul.list-tag-story li a").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast('/').substringBefore('.'),

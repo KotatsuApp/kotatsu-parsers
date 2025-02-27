@@ -6,8 +6,8 @@ import kotlinx.coroutines.sync.withLock
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -113,7 +113,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(domain),
 				coverUrl = a.selectFirst("img")?.src(),
 				title = a.selectFirst("div.block > span.block")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = a.selectFirst("div.block  label.ml-1")?.text()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),

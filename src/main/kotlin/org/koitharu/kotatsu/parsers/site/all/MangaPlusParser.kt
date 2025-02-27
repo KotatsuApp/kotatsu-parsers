@@ -10,8 +10,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -121,7 +121,7 @@ internal abstract class MangaPlusParser(
 				publicUrl = "/titles/$titleId".toAbsoluteUrl(domain),
 				title = name,
 				coverUrl = it.getString("portraitImageUrl"),
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = setOf(author),
 				contentRating = null,
 				rating = RATING_UNKNOWN,

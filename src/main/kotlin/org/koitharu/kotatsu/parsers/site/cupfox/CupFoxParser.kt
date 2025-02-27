@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.cupfox
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -95,7 +95,7 @@ internal abstract class CupFoxParser(
 			Manga(
 				id = generateUid(href),
 				title = li.selectFirst("h3, h4, p.dm-bn")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -124,7 +124,9 @@ internal abstract class CupFoxParser(
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = doc.selectFirst(selectMangaDetailsAuthor)?.text()?.substringAfter("：")?.nullIfEmpty()
 		return manga.copy(
-			altTitle = doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("：")?.nullIfEmpty(),
+			altTitles = setOfNotNull(
+				doc.selectFirst(selectMangaDetailsAltTitle)?.text()?.substringAfter("：")?.nullIfEmpty(),
+			),
 			tags = doc.select(selectMangaDetailsTags).mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
@@ -161,7 +163,7 @@ internal abstract class CupFoxParser(
 				Manga(
 					id = generateUid(href),
 					title = li.selectFirst("h3, h4, p.dm-bn")?.text().orEmpty(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,

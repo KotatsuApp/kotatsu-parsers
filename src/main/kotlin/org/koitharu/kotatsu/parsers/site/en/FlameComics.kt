@@ -6,8 +6,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -132,9 +132,9 @@ internal class FlameComics(context: MangaLoaderContext) :
 		return Manga(
 			id = generateUid(seriesId),
 			title = jo.getString("title"),
-			altTitle = jo.getStringOrNull("altTitles")?.let {
-				JSONArray(it).optString(0)
-			},
+			altTitles = jo.getStringOrNull("altTitles")?.let {
+				JSONArray(it).toStringSet()
+			}.orEmpty(),
 			url = seriesId.toString(),
 			publicUrl = "https://${domain}/series/$seriesId",
 			rating = RATING_UNKNOWN,

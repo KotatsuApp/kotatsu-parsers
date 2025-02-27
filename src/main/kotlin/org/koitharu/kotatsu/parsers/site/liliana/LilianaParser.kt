@@ -5,8 +5,8 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
@@ -116,7 +116,7 @@ internal abstract class LilianaParser(
 			publicUrl = href.toAbsoluteUrl(domain),
 			coverUrl = element.selectFirst("img")?.src(),
 			title = element.selectFirst(".text-center a")?.text().orEmpty(),
-			altTitle = null,
+			altTitles = emptySet(),
 			rating = RATING_UNKNOWN,
 			tags = emptySet(),
 			authors = emptySet(),

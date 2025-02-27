@@ -3,10 +3,10 @@ package org.koitharu.kotatsu.parsers.site.vi
 import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
@@ -150,7 +150,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 				url = "/$slug",
 				publicUrl = mangaUrl,
 				title = item.getString("name"),
-				altTitle = item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() },
+				altTitles = setOfNotNull(item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() }),
 				description = item.optString("content"),
 				rating = RATING_UNKNOWN,
 				contentRating = if (checkNsfw || isNsfwSource) ContentRating.ADULT else null,

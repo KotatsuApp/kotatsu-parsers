@@ -2,10 +2,13 @@ package org.koitharu.kotatsu.parsers.site.guya
 
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.removeSuffix
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import java.util.*
 
 internal abstract class GuyaParser(
@@ -67,7 +70,7 @@ internal abstract class GuyaParser(
 			publicUrl = url,
 			title = name,
 			coverUrl = j.getString("cover").toAbsoluteUrl(domain),
-			altTitle = null,
+			altTitles = emptySet(),
 			rating = RATING_UNKNOWN,
 			tags = emptySet(),
 			description = j.getString("description"),

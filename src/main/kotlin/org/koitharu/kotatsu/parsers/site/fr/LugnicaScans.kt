@@ -4,8 +4,8 @@ import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -107,7 +107,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(urlManga),
 				title = j.getString("manga_title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
 				rating = j.getFloatOrDefault("manga_rate", RATING_UNKNOWN).div(5f),
@@ -128,7 +128,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(urlManga),
 				title = j.getString("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga.toAbsoluteUrl(domain),
 				rating = j.getString("rate").toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,

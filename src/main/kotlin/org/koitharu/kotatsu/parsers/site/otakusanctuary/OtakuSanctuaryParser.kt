@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.otakusanctuary
 import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -112,7 +112,7 @@ internal abstract class OtakuSanctuaryParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h4")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -174,7 +174,7 @@ internal abstract class OtakuSanctuaryParser(
 				)
 			},
 			description = desc,
-			altTitle = alt,
+			altTitles = setOfNotNull(alt),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = state,
 			chapters = doc.body().requireElementById("chapter").select("tr.chapter")

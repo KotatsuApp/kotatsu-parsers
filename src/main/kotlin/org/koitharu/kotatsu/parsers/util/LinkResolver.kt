@@ -47,7 +47,7 @@ public class LinkResolver internal constructor(
 		Manga(
 			id = id,
 			title = title,
-			altTitle = null,
+			altTitles = emptySet(),
 			url = url,
 			publicUrl = link.toString(),
 			rating = RATING_UNKNOWN,
@@ -70,7 +70,7 @@ public class LinkResolver internal constructor(
 		}
 		val query = when {
 			seed.title != STUB_TITLE && seed.title.isNotEmpty() -> seed.title
-			!seed.altTitle.isNullOrEmpty() -> seed.altTitle
+			seed.altTitles.isNotEmpty() -> seed.altTitles.first()
 			seed.authors.isNotEmpty() -> seed.authors.first()
 			else -> return seed // unfortunately we do not know a real manga title so unable to find it
 		}
@@ -97,7 +97,7 @@ public class LinkResolver internal constructor(
 				state = seed.state ?: resolved.state,
 				coverUrl = seed.coverUrl ?: resolved.coverUrl,
 				largeCoverUrl = seed.largeCoverUrl ?: resolved.largeCoverUrl,
-				altTitle = seed.altTitle ?: resolved.altTitle,
+				altTitles = seed.altTitles + resolved.altTitles,
 			)
 		}
 	}

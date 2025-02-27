@@ -7,8 +7,8 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -334,7 +334,7 @@ internal class BatoToParser(context: MangaLoaderContext) : LegacyPagedMangaParse
 			Manga(
 				id = generateUid(href),
 				title = title,
-				altTitle = div.selectFirst(".item-alias")?.text()?.takeUnless { it == title },
+				altTitles = setOfNotNull(div.selectFirst(".item-alias")?.textOrNull()?.takeUnless { it == title }),
 				url = href,
 				publicUrl = a.absUrl("href"),
 				rating = RATING_UNKNOWN,

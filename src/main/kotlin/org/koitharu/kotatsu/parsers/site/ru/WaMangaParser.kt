@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.ru
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -51,7 +51,7 @@ internal class WaMangaParser(
 			id = generateUid(url),
 			url = url,
 			title = doc.getString("title"),
-			altTitle = null,
+			altTitles = emptySet(),
 			publicUrl = url.toAbsoluteUrl(domain),
 			rating = doc.getFloatOrDefault("rating", 0f),
 			coverUrl = doc.getString("thumbnail_small"),

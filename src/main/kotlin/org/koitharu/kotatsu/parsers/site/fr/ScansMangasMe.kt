@@ -6,8 +6,8 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -83,7 +83,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("div.bigor div.tt").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirstOrThrow("div.rating i").ownText().toFloatOrNull()?.div(10f)
 					?: RATING_UNKNOWN,
 				tags = emptySet(),
@@ -124,8 +124,8 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			altTitle = alt,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			altTitles = setOfNotNull(alt),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirstOrThrow("div.spe span:contains(Statut:)").textOrNull()
 				?.substringAfterLast(':')) {
 				" En cours" -> MangaState.ONGOING

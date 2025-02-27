@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.pt
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -82,7 +82,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 				publicUrl = slug,
 				title = j.getString("name"),
 				coverUrl = cover,
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,
@@ -107,7 +107,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 		return manga.copy(
 			description = detailManga.getString("synopsis"),
 			coverUrl = detailManga.getString("cover"),
-			altTitle = detailManga.getStringOrNull("alternative_names"),
+			altTitles = setOfNotNull(detailManga.getStringOrNull("alternative_names")),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = detailManga.getStringOrNull("status")?.let {
 				when (it) {

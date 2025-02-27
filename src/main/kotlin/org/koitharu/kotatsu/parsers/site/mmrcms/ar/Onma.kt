@@ -32,7 +32,7 @@ internal class Onma(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirstOrThrow("h5.media-heading").text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirstOrThrow("span").ownText().toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -70,7 +70,7 @@ internal class Onma(context: MangaLoaderContext) :
 			},
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = desc,
-			altTitle = alt,
+			altTitles = setOfNotNull(alt),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

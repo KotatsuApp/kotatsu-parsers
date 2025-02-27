@@ -8,9 +8,9 @@ import kotlinx.coroutines.sync.withLock
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -112,9 +112,9 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 		val stateDoc = stateDocDeferred.await()
 		val author = infoEl.select("p:contains(Tác giả:) a").textOrNull()
 		manga.copy(
-			altTitle = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")
-				?.joinToString { it.text() }
-				?.nullIfEmpty(),
+			altTitles = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")
+				?.mapNotNullToSet { it.textOrNull() }
+				.orEmpty(),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tags,
@@ -195,7 +195,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 				Manga(
 					id = generateUid(relativeUrl),
 					title = descriptionsEl.selectFirst("a")?.text().orEmpty(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
@@ -222,7 +222,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 				Manga(
 					id = generateUid(relativeUrl),
 					title = titleEl.text(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,

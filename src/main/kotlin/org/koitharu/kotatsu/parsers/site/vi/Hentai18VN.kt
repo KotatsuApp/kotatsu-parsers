@@ -5,8 +5,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -100,7 +100,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				title = mangaInfo.attr("alt"),
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
@@ -122,7 +122,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 				publicUrl = mangaUrl,
 				url = mangaUrl.removePrefix("https://$domain"),
 				title = a.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				description = null,
 				tags = emptySet(),
@@ -161,8 +161,8 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 			)
 		}
 
-		val altTitle = doc.selectFirst("h2.alternative")?.text()
-		val author = doc.selectFirst("div.hentai-info .line:contains(Tác giả) .line-content")?.text()
+		val altTitle = doc.selectFirst("h2.alternative")?.textOrNull()
+		val author = doc.selectFirst("div.hentai-info .line:contains(Tác giả) .line-content")?.textOrNull()
 		val state = when (doc.selectFirst("div.hentai-info .line:contains(Tình trạng) .line-content")?.text()) {
 			"Đang cập nhật" -> MangaState.ONGOING
 			"Hoàn thành" -> MangaState.FINISHED
@@ -171,8 +171,8 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 
 		return manga.copy(
 			tags = tags,
-			authors = author?.let { setOf(it) } ?: emptySet(),
-			altTitle = altTitle,
+			authors = setOfNotNull(author),
+			altTitles = setOfNotNull(altTitle),
 			state = state,
 			chapters = chapters,
 			description = doc.select("div.about").text(),

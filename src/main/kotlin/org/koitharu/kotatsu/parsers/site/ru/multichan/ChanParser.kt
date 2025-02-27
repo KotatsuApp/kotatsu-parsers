@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.ru.multichan
 import okhttp3.HttpUrl
 import org.jsoup.internal.StringUtil
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -58,7 +58,7 @@ internal abstract class ChanParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
-				altTitle = title.second,
+				altTitles = setOfNotNull(title.second),
 				title = title.first,
 				authors = author?.let { setOf(it) } ?: emptySet(),
 				coverUrl = row.selectFirst("div.manga_images")?.selectFirst("img")
@@ -174,7 +174,7 @@ internal abstract class ChanParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
-				altTitle = title.second,
+				altTitles = setOfNotNull(title.second),
 				title = title.first,
 				authors = author?.let { setOf(it) } ?: emptySet(),
 				coverUrl = div.selectFirst("img")?.absUrl("src").orEmpty(),
@@ -249,7 +249,7 @@ internal abstract class ChanParser(
 			if (c == '(') {
 				depth--
 				if (depth == 0 && (i + 2) < lastIndex && i > 0) {
-					return substring(i + 1, lastIndex).trim() to substring(0, i).trim()
+					return substring(i + 1, lastIndex).trim() to substring(0, i).trim().nullIfEmpty()
 				}
 			} else if (c == ')') {
 				depth++

@@ -118,7 +118,7 @@ internal class AdultWebtoon(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			altTitle = alt,
+			altTitles = setOfNotNull(alt),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

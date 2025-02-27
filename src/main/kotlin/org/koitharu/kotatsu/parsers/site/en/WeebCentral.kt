@@ -7,7 +7,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -186,7 +185,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				url = mangaId,
 				publicUrl = "https://$domain/series/$mangaId",
 				title = element.selectFirstOrThrow("abbr[title] > a").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				contentRating = if (element.selectFirst("svg:has(style:containsData(ff0000))") == null) {
 					SAFE
@@ -233,8 +232,8 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 
 		manga.copy(
 			title = sectionRight.selectFirstOrThrow("h1").text(),
-			altTitle = sectionRight.select("li:has(strong:contains(Associated Name)) li")
-				.eachText().joinToString(),
+			altTitles = sectionRight.select("li:has(strong:contains(Associated Name)) li")
+				.eachText().toSet(),
 			publicUrl = "https://$domain/series/${manga.url}",
 			rating = RATING_UNKNOWN,
 			contentRating = if (sectionLeft.selectFirst("ul > li > strong:contains(Official Translation) + a:contains(Yes)") != null) {

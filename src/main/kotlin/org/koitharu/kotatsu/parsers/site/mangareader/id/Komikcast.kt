@@ -144,7 +144,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 				id = generateUid(relativeUrl),
 				url = relativeUrl,
 				title = name,
-				altTitle = null,
+				altTitles = emptySet(),
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				rating = rating,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,

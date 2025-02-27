@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.pt
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -71,7 +71,7 @@ internal class MangaOnline(context: MangaLoaderContext) :
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				title = div.selectLast(".data h3")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = div.selectFirst(".rating")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,
@@ -137,7 +137,7 @@ internal class MangaOnline(context: MangaLoaderContext) :
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				title = div.selectLast(".reltitle h3")?.text().orEmpty(),
 				coverUrl = div.selectFirst("img")?.src().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,

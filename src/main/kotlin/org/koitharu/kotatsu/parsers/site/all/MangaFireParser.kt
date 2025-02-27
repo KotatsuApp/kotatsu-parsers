@@ -11,9 +11,9 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -163,7 +163,7 @@ internal abstract class MangaFireParser(
 				title = a.ownText(),
 				coverUrl = it.selectFirstOrThrow("img").attrAsAbsoluteUrl("src"),
 				source = source,
-				altTitle = null,
+				altTitles = emptySet(),
 				largeCoverUrl = null,
 				authors = emptySet(),
 				contentRating = null,
@@ -184,7 +184,7 @@ internal abstract class MangaFireParser(
 
 		return manga.copy(
 			title = document.selectFirstOrThrow(".info > h1").ownText(),
-			altTitle = document.selectFirst(".info > h6")?.ownTextOrNull(),
+			altTitles = setOfNotNull(document.selectFirst(".info > h6")?.ownTextOrNull()),
 			rating = document.selectFirst("div.rating-box")?.attr("data-score")
 				?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
 			coverUrl = document.selectFirstOrThrow("div.manga-detail div.poster img")
@@ -331,7 +331,7 @@ internal abstract class MangaFireParser(
 					coverUrl = mangaDocument.selectFirstOrThrow("div.manga-detail div.poster img")
 						.attrAsAbsoluteUrl("src"),
 					source = source,
-					altTitle = null,
+					altTitles = emptySet(),
 					largeCoverUrl = null,
 					authors = emptySet(),
 					contentRating = null,
@@ -354,7 +354,7 @@ internal abstract class MangaFireParser(
 					title = it.selectFirstOrThrow(".info h6").ownText(),
 					coverUrl = it.selectFirstOrThrow(".poster img").attrAsAbsoluteUrl("src"),
 					source = source,
-					altTitle = null,
+					altTitles = emptySet(),
 					largeCoverUrl = null,
 					authors = emptySet(),
 					contentRating = null,

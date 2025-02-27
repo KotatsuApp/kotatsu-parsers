@@ -120,7 +120,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 			val manga = Manga(
 				id = j.getLong("id"),
 				title = title,
-				altTitle = j.getString("description"),
+				altTitles = emptySet(), //j.getString("description"), TODO check
 				url = urlManga.toRelativeUrl(domain),
 				publicUrl = urlManga,
 				rating = j.getFloatOrDefault("rating", RATING_UNKNOWN) / 10f,

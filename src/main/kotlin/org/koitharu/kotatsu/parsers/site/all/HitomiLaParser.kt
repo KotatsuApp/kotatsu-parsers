@@ -11,9 +11,9 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -528,7 +528,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 						tags = emptySet(),
 						contentRating = ContentRating.ADULT,
 						rating = RATING_UNKNOWN,
-						altTitle = null,
+						altTitles = emptySet(),
 						state = null,
 						source = source,
 					)

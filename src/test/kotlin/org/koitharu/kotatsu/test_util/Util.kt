@@ -62,7 +62,7 @@ fun mangaOf(source: MangaParserSource, url: String): Manga {
 	return Manga(
 		id = id,
 		title = httpUrl?.pathSegments?.last() ?: url,
-		altTitle = null,
+		altTitles = emptySet(),
 		url = httpUrl?.let { url.toRelativeUrl(it.host) } ?: url,
 		publicUrl = url,
 		rating = RATING_UNKNOWN,

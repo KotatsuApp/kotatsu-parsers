@@ -8,8 +8,8 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -200,7 +200,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		Manga(
 			id = generateUid(id),
 			title = name.replace(shortenTitleRegex, "").trim(),
-			altTitle = name,
+			altTitles = setOf(name),
 			coverUrl = when {
 				cover?.startsWith("http") == true -> cover
 				cover == null -> null
@@ -267,7 +267,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		val author = tags?.filter { it.type == "artist" }?.joinToString { it.name.toCamelCase() }?.nullIfEmpty()
 		return manga.copy(
 			title = name.replace(shortenTitleRegex, "").trim(),
-			altTitle = name,
+			altTitles = setOf(name),
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
 			authors = author?.let { setOf(it) } ?: emptySet(),

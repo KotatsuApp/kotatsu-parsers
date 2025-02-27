@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.onemanga
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -40,8 +40,10 @@ internal abstract class OneMangaParser(
 				publicUrl = url,
 				coverUrl = doc.selectFirst("div.elementor-widget-container img")?.src(),
 				title = doc.selectFirst("ul.elementor-nav-menu li a")?.text().orEmpty(),
-				altTitle = doc.selectFirst("div.elementor-widget-text-editor ul li:contains(Nom(s) Alternatif(s))")
-					?.text()?.replace("Nom(s) Alternatif(s) :", "").orEmpty(),
+				altTitles = setOfNotNull(
+					doc.selectFirst("div.elementor-widget-text-editor ul li:contains(Nom(s) Alternatif(s))")
+						?.text()?.replace("Nom(s) Alternatif(s) :", "")?.nullIfEmpty(),
+				),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = setOf(author),

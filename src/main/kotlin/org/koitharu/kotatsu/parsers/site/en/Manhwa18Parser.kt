@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.en
 import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -125,7 +125,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(absUrl.toRelativeUrl(domain)),
 					title = titleElement.text(),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = absUrl.toRelativeUrl(domain),
 					publicUrl = absUrl,
 					rating = RATING_UNKNOWN,
@@ -164,8 +164,10 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 			}
 
 		return manga.copy(
-			altTitle = cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
-				?.removePrefix(": "),
+			altTitles = setOfNotNull(
+				cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
+					?.removePrefix(": "),
+			),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),

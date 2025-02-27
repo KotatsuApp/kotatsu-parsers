@@ -9,10 +9,10 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -131,7 +131,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				title = thumb.attr("alt"),
 				coverUrl = thumb.attr("src"),
 				source = source,
-				altTitle = null,
+				altTitles = emptySet(),
 				authors = emptySet(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,
@@ -154,7 +154,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 					title = thumb.attr("alt"),
 					coverUrl = thumb.attrAsAbsoluteUrlOrNull("src"),
 					source = source,
-					altTitle = null,
+					altTitles = emptySet(),
 					authors = emptySet(),
 					contentRating = null,
 					rating = RATING_UNKNOWN,
@@ -174,7 +174,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 
 		return manga.copy(
 			title = document.selectFirst("h2.manga-name")!!.ownText(),
-			altTitle = document.selectFirst("div.manga-name-or")?.ownTextOrNull(),
+			altTitles = setOfNotNull(document.selectFirst("div.manga-name-or")?.ownTextOrNull()),
 			rating = document.selectFirst("div.anisc-info .item:contains(score:) > .name")
 				?.text()?.toFloatOrNull()?.div(10) ?: RATING_UNKNOWN,
 			coverUrl = document.selectFirst(".manga-poster > img")?.attrAsAbsoluteUrlOrNull("src"),

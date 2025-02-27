@@ -7,8 +7,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -152,7 +152,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(slug),
 				title = jo.getString("title"),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = slug,
 				publicUrl = "https://$domain/comic/$slug",
 				rating = jo.getDoubleOrDefault("rating", -10.0).toFloat() / 10f,
@@ -179,12 +179,12 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		val url = "https://api.$domain/comic/${manga.url}?tachiyomi=true"
 		val jo = webClient.httpGet(url).parseJson()
 		val comic = jo.getJSONObject("comic")
-		val alt = comic.getJSONArray("md_titles").asTypedList<JSONObject>().joinToString("\n") {
-			it.getStringOrNull("title").orEmpty()
+		val alt = comic.getJSONArray("md_titles").asTypedList<JSONObject>().mapNotNullToSet {
+			it.getStringOrNull("title")
 		}
 		val author = jo.getJSONArray("artists").optJSONObject(0)?.getStringOrNull("name")
 		return manga.copy(
-			altTitle = alt.nullIfEmpty(),
+			altTitles = alt,
 			contentRating = if (jo.getBooleanOrDefault("matureContent", false)
 				|| comic.getBooleanOrDefault("hentai", false)
 			) {

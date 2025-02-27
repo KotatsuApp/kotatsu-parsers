@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -122,7 +122,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 			Manga(
 				id = generateUid(href),
 				title = div.select("a.book_name").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -142,7 +142,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 		val author = doc.select("p:contains(Tác Giả) + p").joinToString { it.text() }.nullIfEmpty()
 
 		return manga.copy(
-			altTitle = doc.selectFirst("h2.other-name")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			tags = doc.select("a.clblue").mapToSet {
 				MangaTag(

@@ -1,10 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -98,7 +98,7 @@ internal class NudeMoonParser(
 				id = generateUid(href),
 				url = href,
 				title = title.substringAfter(" / "),
-				altTitle = title.substringBefore(" / ", "").takeUnless { it.isBlank() },
+				altTitles = setOfNotNull(title.substringBefore(" / ", "").takeUnless { it.isBlank() }),
 				authors = author?.let { setOf(it) } ?: emptySet(),
 				coverUrl = row.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = row.selectFirst(".tag-links")?.select("a")?.mapToSet {

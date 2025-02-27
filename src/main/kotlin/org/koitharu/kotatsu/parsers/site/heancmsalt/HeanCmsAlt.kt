@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.heancmsalt
 
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -67,7 +67,7 @@ internal abstract class HeanCmsAlt(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst(selectMangaTitle)?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -89,7 +89,7 @@ internal abstract class HeanCmsAlt(
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return manga.copy(
-			altTitle = doc.selectFirst(selectAlt)?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst(selectAlt)?.textOrNull()),
 			description = doc.selectFirst(selectDesc)?.html(),
 			chapters = doc.select(selectChapter)
 				.mapChapters(reversed = true) { i, a ->

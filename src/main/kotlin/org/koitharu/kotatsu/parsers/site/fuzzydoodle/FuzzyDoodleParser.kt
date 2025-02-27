@@ -7,8 +7,8 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -149,7 +149,7 @@ internal abstract class FuzzyDoodleParser(
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = div.selectFirst("h2")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -184,7 +184,7 @@ internal abstract class FuzzyDoodleParser(
 		val author = doc.selectFirst(selectAuthor)?.textOrNull()
 
 		manga.copy(
-			altTitle = doc.selectLast(selectAltTitle)?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectLast(selectAltTitle)?.textOrNull()),
 			state = when (doc.selectFirst(selectState)?.text()?.lowercase().orEmpty()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED

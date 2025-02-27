@@ -6,39 +6,12 @@ import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
-import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
-import org.koitharu.kotatsu.parsers.model.SortOrder
-import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
-import org.koitharu.kotatsu.parsers.util.attrOrNull
-import org.koitharu.kotatsu.parsers.util.attrOrThrow
-import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull
-import org.koitharu.kotatsu.parsers.util.mapChapters
-import org.koitharu.kotatsu.parsers.util.mapToSet
-import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.parseJson
-import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.src
-import org.koitharu.kotatsu.parsers.util.textOrNull
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
-import org.koitharu.kotatsu.parsers.util.urlEncoded
-import java.util.EnumSet
+import java.util.*
 import javax.crypto.Cipher
 import javax.crypto.SecretKeyFactory
 import javax.crypto.spec.IvParameterSpec
@@ -94,7 +67,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 					Manga(
 						id = generateUid(relativeUrl),
 						title = jo.getString("title"),
-						altTitle = null,
+						altTitles = emptySet(),
 						url = relativeUrl,
 						publicUrl = relativeUrl.toAbsoluteUrl(domain),
 						rating = RATING_UNKNOWN,
@@ -128,7 +101,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(relativeUrl),
 					title = linkEl.attrOrThrow("title"),
-					altTitle = null,
+					altTitles = emptySet(),
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
@@ -148,7 +121,8 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val content = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val info = content.selectFirstOrThrow(".comic-info")
-		val author = info.selectFirst(".comic-intro-text > strong:contains(Tác giả:)")?.nextElementSibling()?.textOrNull()
+		val author =
+			info.selectFirst(".comic-intro-text > strong:contains(Tác giả:)")?.nextElementSibling()?.textOrNull()
 		return manga.copy(
 			rating = info.getElementById("cate-rating")?.let {
 				val score = it.attrOrNull("data-score")?.toIntOrNull()
@@ -156,8 +130,10 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 				if (score == null || vote == null || vote == 0) return@let null
 				score / (vote * 10f)
 			} ?: RATING_UNKNOWN,
-			altTitle = info.selectFirst(".comic-intro-text > strong:contains(Tên khác:)")?.nextElementSibling()
-				?.textOrNull(),
+			altTitles = setOfNotNull(
+				info.selectFirst(".comic-intro-text > strong:contains(Tên khác:)")?.nextElementSibling()
+					?.textOrNull(),
+			),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = when (info.selectFirst(".comic-stt")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING

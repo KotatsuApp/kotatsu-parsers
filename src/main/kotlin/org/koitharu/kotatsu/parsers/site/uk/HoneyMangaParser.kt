@@ -7,8 +7,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
@@ -153,7 +153,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(id),
 				title = jo.getString("title"),
-				altTitle = jo.getStringOrNull("alternativeTitle"),
+				altTitles = setOfNotNull(jo.getStringOrNull("alternativeTitle")),
 				url = id,
 				publicUrl = "https://$domain/book/$id",
 				rating = RATING_UNKNOWN,

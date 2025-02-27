@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.gattsu
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -79,7 +79,7 @@ internal abstract class GattsuParser(
 				publicUrl = href,
 				title = li.selectLast(".thumb-titulo, .video-titulo")?.text().orEmpty(),
 				coverUrl = li.selectFirst("img")?.src(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,

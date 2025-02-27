@@ -5,7 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.gattsu.GattsuParser
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.selectLastOrThrow
+import org.koitharu.kotatsu.parsers.util.src
 
 @MangaSourceParser("MUNDOHENTAIOFICIAL", "MundoHentaiOficial", "pt", ContentType.HENTAI)
 internal class MundoHentaiOficial(context: MangaLoaderContext) :
@@ -27,7 +30,7 @@ internal class MundoHentaiOficial(context: MangaLoaderContext) :
 				publicUrl = href,
 				title = li.selectLastOrThrow(".thumb-titulo, .video-titulo").text(),
 				coverUrl = li.selectFirst("img")?.src(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,

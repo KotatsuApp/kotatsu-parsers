@@ -10,10 +10,10 @@ import okio.IOException
 import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -21,7 +21,6 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
-import java.util.TimeZone
 
 @MangaSourceParser("CUUTRUYEN", "Cứu Truyện", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
@@ -113,7 +112,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				url = "/api/v2/mangas/${jo.getLong("id")}",
 				publicUrl = "https://$domain/manga/${jo.getLong("id")}",
 				title = jo.getString("name"),
-				altTitle = null,
+				altTitles = emptySet(),
 				coverUrl = jo.getString("cover_mobile_url"),
 				largeCoverUrl = jo.getString("cover_url"),
 				authors = author?.let { setOf(it) } ?: emptySet(),

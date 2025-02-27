@@ -7,8 +7,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -111,7 +111,7 @@ internal abstract class LikeMangaParser(
 			Manga(
 				id = generateUid(href),
 				title = div.selectFirstOrThrow("p.title-manga").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -151,7 +151,7 @@ internal abstract class LikeMangaParser(
 		}
 		val author = doc.selectLast("li.author p")?.textOrNull()
 		return manga.copy(
-			altTitle = doc.selectFirst(".list-info li.othername h2")?.textOrNull(),
+			altTitles = setOfNotNull(doc.selectFirst(".list-info li.othername h2")?.textOrNull()),
 			tags = doc.select("li.kind a").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),

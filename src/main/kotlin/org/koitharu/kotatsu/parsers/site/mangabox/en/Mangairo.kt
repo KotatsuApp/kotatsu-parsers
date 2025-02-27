@@ -127,7 +127,7 @@ internal class Mangairo(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
 				title = (div.selectFirst("h2")?.text() ?: div.selectFirst("h3")?.text()).orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -177,8 +177,8 @@ internal class Mangairo(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			altTitle = alt,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			altTitles = setOfNotNull(alt),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

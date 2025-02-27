@@ -76,7 +76,7 @@ internal class BuonDuaParser(context: MangaLoaderContext) : LegacyMangaParser(co
 				id = generateUid(relUrl),
 				url = relUrl,
 				title = titleEl.text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				publicUrl = relUrl.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,

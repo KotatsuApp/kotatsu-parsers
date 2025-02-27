@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -131,7 +131,7 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 			Manga(
 				id = generateUid(href),
 				title = div.select("div.p-2 a.text-ellipsis").text(),
-				altTitle = null,
+				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -150,7 +150,7 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
-			altTitle = root.selectLast("div.grow div:contains(Tên khác) span")?.textOrNull(),
+			altTitles = setOfNotNull(root.selectLast("div.grow div:contains(Tên khác) span")?.textOrNull()),
 			state = when (root.selectFirst("div.mt-2:contains(Tình trạng) span.text-blue-500")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Đã hoàn thành" -> MangaState.FINISHED

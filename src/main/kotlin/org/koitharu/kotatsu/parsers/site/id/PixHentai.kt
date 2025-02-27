@@ -2,8 +2,8 @@ package org.koitharu.kotatsu.parsers.site.id
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -68,7 +68,7 @@ internal class PixHentai(context: MangaLoaderContext) :
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src()?.replace("-200x285", ""),
 				title = div.selectFirst("h2")?.text().orEmpty(),
-				altTitle = null,
+				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				authors = emptySet(),
@@ -98,7 +98,9 @@ internal class PixHentai(context: MangaLoaderContext) :
 		val author = doc.selectFirst("div.entry-content ul li:contains(Artists :) em")?.textOrNull()
 		return manga.copy(
 			description = doc.selectFirst("div.entry-content p")?.html(),
-			altTitle = doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.textOrNull(),
+			altTitles = setOfNotNull(
+				doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.textOrNull(),
+			),
 			authors = author?.let { setOf(it) } ?: emptySet(),
 			state = null,
 			chapters = listOf(

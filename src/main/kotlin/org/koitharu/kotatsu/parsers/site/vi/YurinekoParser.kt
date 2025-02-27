@@ -3,8 +3,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -70,7 +70,7 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(id),
 					title = jo.getString("originalName"),
-					altTitle = jo.getStringOrNull("otherName"),
+					altTitles = setOfNotNull(jo.getStringOrNull("otherName")),
 					url = relativeUrl,
 					publicUrl = relativeUrl.toAbsoluteUrl(domain),
 					rating = RATING_UNKNOWN,
