@@ -50,7 +50,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 				parseMangaSearch(response)
 			}
 
-			!filter.tags.isNullOrEmpty() -> {
+			filter.tags.isNotEmpty() -> {
 				val tag = filter.tags.first()
 				val url = buildString {
 					append("https://")

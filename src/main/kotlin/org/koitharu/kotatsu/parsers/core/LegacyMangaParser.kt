@@ -22,7 +22,7 @@ import java.util.*
 @InternalParsersApi
 public abstract class LegacyMangaParser @InternalParsersApi constructor(
 	@property:InternalParsersApi public val context: MangaLoaderContext,
-	public override val source: MangaParserSource,
+	public final override val source: MangaParserSource,
 ) : MangaParser {
 
 	public final override val searchQueryCapabilities: MangaSearchQueryCapabilities
@@ -36,14 +36,6 @@ public abstract class LegacyMangaParser @InternalParsersApi constructor(
 		get() = if (source.locale.isEmpty()) Locale.ROOT else Locale(source.locale)
 
 	protected val isNsfwSource: Boolean = source.contentType == ContentType.HENTAI
-
-	/**
-	 * Provide default domain and available alternatives, if any.
-	 *
-	 * Never hardcode domain in requests, use [domain] instead.
-	 */
-	@InternalParsersApi
-	public abstract val configKeyDomain: ConfigKey.Domain
 
 	protected open val userAgentKey: ConfigKey.UserAgent = ConfigKey.UserAgent(context.getDefaultUserAgent())
 
@@ -60,7 +52,7 @@ public abstract class LegacyMangaParser @InternalParsersApi constructor(
 			return SortOrder.entries.first { it in supported }
 		}
 
-	override val domain: String
+	final override val domain: String
 		get() = config[configKeyDomain]
 
 	@JvmField

@@ -52,7 +52,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 				}
 			}
 
-			!filter.tags.isNullOrEmpty() -> {
+			filter.tags.isNotEmpty() -> {
 				val tag = filter.tags.first()
 				buildString {
 					append("/the-loai/")
@@ -110,7 +110,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return when {
 			!filter.query.isNullOrEmpty() -> parseSearchManga(doc)
-			!filter.tags.isNullOrEmpty() -> parseSearchManga(doc)
+			filter.tags.isNotEmpty() -> parseSearchManga(doc)
 			else -> parseListManga(doc)
 		}
 	}

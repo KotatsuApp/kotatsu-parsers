@@ -39,7 +39,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 			append(domain)
 
 			when {
-				!filter.tags.isNullOrEmpty() -> {
+				filter.tags.isNotEmpty() -> {
 					val tag = filter.tags.first()
 					append(tag.key)
 					if (page > 1) {

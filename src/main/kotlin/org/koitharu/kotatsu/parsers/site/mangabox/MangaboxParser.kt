@@ -180,7 +180,7 @@ internal abstract class MangaboxParser(
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (source.contentType == ContentType.HENTAI) ContentRating.ADULT else ContentRating.SAFE,
+				contentRating = sourceContentRating,
 			)
 		}
 	}

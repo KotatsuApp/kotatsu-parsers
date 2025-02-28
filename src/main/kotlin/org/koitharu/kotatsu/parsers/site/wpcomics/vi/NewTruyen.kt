@@ -3,19 +3,18 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 import androidx.collection.ArraySet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NEWTRUYEN", "NewTruyen", "vi")
 internal class NewTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyen2.com", 36) {  
+	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyen2.com", 36) {
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getAvailableTags(),
@@ -26,14 +25,14 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val storyID = doc.selectFirst("input#storyID")?.attr("value")
-    		?: throw ParseException("Story ID not found", fullUrl)
+			?: throw ParseException("Story ID not found", fullUrl)
 		val chaptersDeferred = async { getChapterList(storyID) }
 		val tagsElement = doc.select("p.col-xs-12 a.tr-theloai")
 		val mangaTags = tagsElement.map {
 			MangaTag(
 				title = it.text(),
 				key = it.attr("href").substringAfterLast('/'),
-				source = source
+				source = source,
 			)
 		}.toSet()
 		val author = doc.body().select(selectAut).textOrNull()
@@ -54,7 +53,7 @@ internal class NewTruyen(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getChapterList(storyID: String): List<MangaChapter> {
-		val url = "/Story/ListChapterByStoryID?storyID=" + storyID
+		val url = "/Story/ListChapterByStoryID?storyID=$storyID"
 		val fullUrl = url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.col-xs-5.chapter").mapChapters(reversed = true) { i, li ->
