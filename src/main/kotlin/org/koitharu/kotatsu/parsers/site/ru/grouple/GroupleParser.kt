@@ -47,7 +47,6 @@ internal abstract class GroupleParser(
 
 	@Volatile
 	private var cachedPagesServer: String? = null
-	protected open val defaultIsNsfw = false
 
 	override val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
@@ -137,7 +136,7 @@ internal abstract class GroupleParser(
 		}
 		val hashRegex = Regex("window.user_hash\\s*=\\s*\'([^\']+)\'")
 		val userHash = doc.select("script").firstNotNullOfOrNull { it.html().findGroupValue(hashRegex) }
-		val author = root.selectFirst("a.person-link")?.textOrNull()
+		val hasNsfwAlert = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) }
 		return manga.copy(
 			source = newSource,
 			title = doc.metaValue("name") ?: manga.title,
@@ -147,7 +146,8 @@ internal abstract class GroupleParser(
 			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-full"),
-			coverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-thumb") ?: manga.coverUrl,
+			coverUrl = manga.coverUrl
+				?: coverImg?.attrAsAbsoluteUrlOrNull("data-thumb")?.replace("_p.", "."),
 			tags = root.selectFirstOrThrow("div.subject-meta")
 				.getElementsByAttributeValueContaining("href", "/list/genre/").mapTo(manga.tags.toMutableSet()) { a ->
 					MangaTag(
@@ -156,14 +156,11 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
-			authors = author?.let { setOf(it) } ?: manga.authors,
-			contentRating = if (manga.isNsfw || root.select(".alert-warning")
-					.any { it.ownText().contains(NSFW_ALERT) }
-			) {
-				ContentRating.ADULT
-			} else {
-				manga.contentRating
-			},
+			authors = root.select(".elem_author,.elem_illustrator,.elem_screenwriter")
+				.select("a.person-link")
+				.mapNotNullToSet { it.textOrNull() } + manga.authors,
+			contentRating = (if (hasNsfwAlert) ContentRating.SUGGESTIVE else ContentRating.SAFE)
+				.coerceAtLeast(manga.contentRating ?: ContentRating.SAFE),
 			chapters = chaptersList?.select("a.chapter-link")
 				?.flatMapChapters(reversed = true) { a ->
 					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()
@@ -423,12 +420,12 @@ internal abstract class GroupleParser(
 			publicUrl = href,
 			title = title,
 			altTitles = setOfNotNull(descDiv.selectFirst("h5")?.textOrNull()),
-			coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
+			coverUrl = imgDiv.selectFirst("img.lazy")?.attrAsAbsoluteUrlOrNull("data-original")?.replace("_p.", "."),
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)
 			}.getOrNull() ?: RATING_UNKNOWN,
 			authors = author?.let { setOf(it) } ?: emptySet(),
-			contentRating = if (defaultIsNsfw) ContentRating.ADULT else null,
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			tags = runCatching {
 				tileInfo?.select("a.element-link")?.mapToSet {
 					MangaTag(
