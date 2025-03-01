@@ -32,20 +32,18 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 			SearchCapability(
 				field = TAG,
 				criteriaTypes = setOf(Include::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiple = false,
 			),
 			SearchCapability(
 				field = TITLE_NAME,
 				criteriaTypes = setOf(Match::class),
-				multiValue = false,
-				otherCriteria = false,
+				isMultiple = false,
+				isExclusive = true,
 			),
 			SearchCapability(
 				field = STATE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiple = false,
 			),
 		)
 

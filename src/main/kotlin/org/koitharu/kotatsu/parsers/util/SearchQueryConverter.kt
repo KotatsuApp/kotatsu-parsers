@@ -87,10 +87,10 @@ internal fun convertToMangaListFilter(searchQuery: MangaSearchQuery): MangaListF
 }
 
 internal fun MangaSearchQueryCapabilities.toMangaListFilterCapabilities() = MangaListFilterCapabilities(
-	isMultipleTagsSupported = capabilities.any { x -> x.field == TAG && x.multiValue },
+	isMultipleTagsSupported = capabilities.any { x -> x.field == TAG && x.isMultiple },
 	isTagsExclusionSupported = capabilities.any { x -> x.field == TAG && x.criteriaTypes.contains(Exclude::class) },
 	isSearchSupported = capabilities.any { x -> x.field == TITLE_NAME },
-	isSearchWithFiltersSupported = capabilities.any { x -> x.field == TITLE_NAME && x.otherCriteria },
+	isSearchWithFiltersSupported = capabilities.any { x -> x.field == TITLE_NAME && !x.isExclusive },
 	isYearSupported = capabilities.any { x -> x.field == PUBLICATION_YEAR && x.criteriaTypes.contains(Match::class) },
 	isYearRangeSupported = capabilities.any { x -> x.field == PUBLICATION_YEAR && x.criteriaTypes.contains(Range::class) },
 	isOriginalLocaleSupported = capabilities.any { x -> x.field == ORIGINAL_LANGUAGE },
@@ -102,80 +102,76 @@ internal fun MangaListFilterCapabilities.toMangaSearchQueryCapabilities(): Manga
 		capabilities = setOfNotNull(
 			isMultipleTagsSupported.takeIf { it }?.let {
 				SearchCapability(
-					field = TAG, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true,
+					field = TAG,
+					criteriaTypes = setOf(Include::class),
+					isMultiple = true,
 				)
 			},
 			isTagsExclusionSupported.takeIf { it }?.let {
 				SearchCapability(
-					field = TAG, criteriaTypes = setOf(Exclude::class), multiValue = true, otherCriteria = true,
+					field = TAG,
+					criteriaTypes = setOf(Exclude::class),
+					isMultiple = true,
 				)
 			},
 			isSearchSupported.takeIf { it }?.let {
 				SearchCapability(
 					field = TITLE_NAME,
 					criteriaTypes = setOf(Match::class),
-					multiValue = false,
-					otherCriteria = false,
+					isMultiple = false,
+					isExclusive = true,
 				)
 			},
 			isSearchWithFiltersSupported.takeIf { it }?.let {
 				SearchCapability(
 					field = TITLE_NAME,
 					criteriaTypes = setOf(Match::class),
-					multiValue = false,
-					otherCriteria = true,
+					isMultiple = false,
 				)
 			},
 			isYearSupported.takeIf { it }?.let {
 				SearchCapability(
 					field = PUBLICATION_YEAR,
 					criteriaTypes = setOf(Match::class),
-					multiValue = false,
-					otherCriteria = true,
+					isMultiple = false,
 				)
 			},
 			isYearRangeSupported.takeIf { it }?.let {
 				SearchCapability(
 					field = PUBLICATION_YEAR,
 					criteriaTypes = setOf(Range::class),
-					multiValue = false,
-					otherCriteria = true,
+					isMultiple = false,
 				)
 			},
 			isOriginalLocaleSupported.takeIf { it }?.let {
 				SearchCapability(
 					field = ORIGINAL_LANGUAGE,
 					criteriaTypes = setOf(Include::class),
-					multiValue = true,
-					otherCriteria = true,
+					isMultiple = true,
 				)
 			},
 			SearchCapability(
 				field = LANGUAGE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
-				field = STATE, criteriaTypes = setOf(Include::class), multiValue = true, otherCriteria = true,
+				field = STATE, criteriaTypes = setOf(Include::class), isMultiple = true,
 			),
 			SearchCapability(
 				field = CONTENT_TYPE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = CONTENT_RATING,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = DEMOGRAPHIC,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 		),
 	)

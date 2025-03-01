@@ -14,10 +14,10 @@ class MangaSearchQueryCapabilitiesTest {
 
 	private val capabilities = MangaSearchQueryCapabilities(
 		capabilities = setOf(
-			SearchCapability(TITLE_NAME, setOf(Match::class), multiValue = false, otherCriteria = false),
-			SearchCapability(TAG, setOf(Include::class, Exclude::class), multiValue = true, otherCriteria = true),
-			SearchCapability(PUBLICATION_YEAR, setOf(Range::class), multiValue = false, otherCriteria = true),
-			SearchCapability(STATE, setOf(Include::class), multiValue = false, otherCriteria = true),
+			SearchCapability(TITLE_NAME, setOf(Match::class), isMultiple = false, isExclusive = true),
+			SearchCapability(TAG, setOf(Include::class, Exclude::class), isMultiple = true, isExclusive = false),
+			SearchCapability(PUBLICATION_YEAR, setOf(Range::class), isMultiple = false, isExclusive = false),
+			SearchCapability(STATE, setOf(Include::class), isMultiple = false, isExclusive = false),
 		),
 	)
 
