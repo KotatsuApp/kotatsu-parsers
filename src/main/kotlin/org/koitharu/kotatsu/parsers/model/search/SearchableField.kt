@@ -19,5 +19,5 @@ public enum class SearchableField(public val type: Class<*>) {
 	CONTENT_TYPE(ContentType::class.java),
 	CONTENT_RATING(ContentRating::class.java),
 	DEMOGRAPHIC(Demographic::class.java),
-	PUBLICATION_YEAR(Int::class.java);
+	PUBLICATION_YEAR(Int::class.javaObjectType);
 }
