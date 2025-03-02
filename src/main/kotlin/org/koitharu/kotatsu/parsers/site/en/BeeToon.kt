@@ -114,7 +114,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = doc.select(".items-chapters  a").mapChapters(reversed = true) { i, a ->
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(

@@ -94,6 +94,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val dateFormat = SimpleDateFormat("dd-MM-yyyy", Locale.US)
 		return manga.copy(
 			authors = setOfNotNull(doc.selectFirst("div.author i")?.textOrNull()),
 			tags = doc.select("div.genre.mb-3.mgen a").mapNotNullToSet { a ->
@@ -121,13 +122,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 				val name = div.selectFirst("a .name")?.text() ?: ""
 				val dateStr = div.selectFirst("a span:last-child")?.text()
 
-				val uploadDate = dateStr?.let {
-					try {
-						SimpleDateFormat("dd-MM-yyyy", Locale.US).parse(it)?.time ?: 0L
-					} catch (e: Exception) {
-						0L
-					}
-				} ?: 0L
+				val uploadDate = dateFormat.tryParse(dateStr)
 
 				MangaChapter(
 					id = generateUid(url),
@@ -147,15 +142,13 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select("div.content-text img").mapNotNull { img ->
-			val url = img.requireSrc().toAbsoluteUrl(domain)
-			if (url.isNotEmpty()) {
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
-			} else null
+			val url = img.src() ?: return@mapNotNull null
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
 		}
 	}
 

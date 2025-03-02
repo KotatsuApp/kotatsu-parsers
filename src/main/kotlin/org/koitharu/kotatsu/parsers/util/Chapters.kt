@@ -1,7 +1,10 @@
 package org.koitharu.kotatsu.parsers.util
 
+import org.json.JSONArray
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.util.json.asTypedList
 
 @InternalParsersApi
 public inline fun <T> List<T>.mapChapters(
@@ -18,6 +21,12 @@ public inline fun <T> List<T>.mapChapters(
 	}
 	return builder.toList()
 }
+
+@InternalParsersApi
+public inline fun JSONArray.mapChapters(
+	reversed: Boolean = false,
+	transform: (index: Int, JSONObject) -> MangaChapter?,
+): List<MangaChapter> = asTypedList<JSONObject>().mapChapters(reversed, transform)
 
 @InternalParsersApi
 public inline fun <T> List<T>.flatMapChapters(

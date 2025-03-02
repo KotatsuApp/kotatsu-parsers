@@ -90,7 +90,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 		val author = doc.selectFirst("div.summary-heading:contains(Tác giả) + div.summary-content")?.textOrNull()
 		return manga.copy(
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = doc.select("div.genres-content a[rel=tag]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
@@ -178,7 +178,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 		.mapToSet { a ->
 			val title = a.ownText().toTitleCase(sourceLocale)
 			MangaTag(
-				key = a.attr("href").substringAfterLast("/"),
+				key = a.attr("href").substringAfterLast('/'),
 				title = title,
 				source = source,
 			)

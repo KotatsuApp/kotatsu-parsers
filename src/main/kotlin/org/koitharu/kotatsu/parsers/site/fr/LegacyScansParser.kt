@@ -180,7 +180,7 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 				)
 			},
 			coverUrl = root.selectFirst("div.serieImg img")?.attrAsAbsoluteUrlOrNull("src"),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("div.serieDescription div")?.html(),
 			chapters = root.select("div.chapterList a")
 				.mapChapters(reversed = true) { i, a ->

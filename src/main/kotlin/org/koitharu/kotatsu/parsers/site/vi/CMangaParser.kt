@@ -22,8 +22,7 @@ private const val PAGE_SIZE = 20
 internal class CMangaParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("cmangax.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax.com")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
@@ -47,7 +46,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
 		return MangaListFilterOptions(
-			availableTags = tags.get().values.toSet(),
+			availableTags = tags.get().values.toArraySet(),
 			availableStates = arraySetOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 		)
 	}
@@ -80,14 +79,14 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			chapters = webClient
 				.httpGet("/api/chapter_list?album=$mangaId&page=1&limit=${Int.MAX_VALUE}&v=0v21".toAbsoluteUrl(domain))
 				.parseJsonArray()
-				.mapJSON { jo ->
+				.mapChapters(reversed = true) { _, jo ->
 					val chapterId = jo.getLong("id_chapter")
 					val info = jo.parseJson("info")
-					val chapterNumber = info.getString("num")
+					val chapterNumber = info.getFloatOrDefault("num", -1f) + 1f
 					MangaChapter(
 						id = generateUid(chapterId),
 						name = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
-						number = chapterNumber.toFloatOrNull()?.plus(1) ?: 0f,
+						number = chapterNumber,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",
 						uploadDate = df.tryParse(info.getString("last_update")),
@@ -95,7 +94,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 						scanlator = null,
 						source = source,
 					)
-				}.reversed(),
+				},
 		)
 	}
 

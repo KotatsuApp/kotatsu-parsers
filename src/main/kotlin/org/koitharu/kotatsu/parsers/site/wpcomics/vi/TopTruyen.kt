@@ -149,7 +149,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		}
 
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = description,
 			state = state,
 			tags = tags,

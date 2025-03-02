@@ -213,7 +213,7 @@ internal abstract class MangaFireParser(
 					else -> null
 				}
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)

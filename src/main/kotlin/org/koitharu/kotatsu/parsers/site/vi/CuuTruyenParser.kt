@@ -24,7 +24,7 @@ import java.util.*
 
 @MangaSourceParser("CUUTRUYEN", "Cứu Truyện", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
+	LegacyPagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20) {
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
@@ -115,7 +115,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				altTitles = emptySet(),
 				coverUrl = jo.getString("cover_mobile_url"),
 				largeCoverUrl = jo.getString("cover_url"),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				tags = emptySet(),
 				state = null,
 				description = null,
@@ -153,19 +153,21 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		// Remove old manga status from "tags"
 		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
 		val author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty()
+		val title = json.getStringOrNull("name") ?: manga.title
 
 		manga.copy(
-			title = json.getStringOrNull("name") ?: manga.title,
+			title = title,
+			altTitles = json.optJSONArray("titles")?.mapJSONToSet { it.getString("name") }?.minus(title).orEmpty(),
 			contentRating = if (json.getBooleanOrDefault("is_nsfw", manga.isNsfw)) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = json.getStringOrNull("full_description"),
 			tags = newTags,
 			state = state,
-			chapters = chapters.await().mapJSON { jo ->
+			chapters = chapters.await().mapChapters(reversed = true) { _, jo ->
 				val chapterId = jo.getLong("id")
 				val number = jo.getFloatOrDefault("number", 0f)
 				MangaChapter(
@@ -179,7 +181,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					branch = null,
 					source = source,
 				)
-			}.reversed(),
+			},
 		)
 	}
 

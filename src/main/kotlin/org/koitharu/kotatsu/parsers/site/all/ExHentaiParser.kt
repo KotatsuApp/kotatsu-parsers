@@ -184,7 +184,7 @@ internal class ExHentaiParser(
 					rawTitle.contains("(ongoing)", ignoreCase = true) -> MangaState.ONGOING
 					else -> null
 				},
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				source = source,
 			)
 		}

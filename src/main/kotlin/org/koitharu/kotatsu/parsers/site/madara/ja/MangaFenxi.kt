@@ -39,7 +39,7 @@ internal class MangaFenxi(context: MangaLoaderContext) :
 						source = source,
 					)
 				}.orEmpty(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (
 					summary?.selectFirst(".mg_status")
 						?.selectFirst(".summary-content")

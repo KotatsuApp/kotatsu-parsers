@@ -159,7 +159,7 @@ internal abstract class LikeMangaParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.requireElementById("summary_shortened").html(),
 			chapters = run {
 				if (maxPageChapter == 1) {

@@ -201,7 +201,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = getChapters(comic.getString("hid")),
 		)
 	}

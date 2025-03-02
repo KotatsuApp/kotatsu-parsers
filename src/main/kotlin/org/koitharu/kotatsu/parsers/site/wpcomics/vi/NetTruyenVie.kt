@@ -25,7 +25,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst("div.detail-content > div")?.html(),
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

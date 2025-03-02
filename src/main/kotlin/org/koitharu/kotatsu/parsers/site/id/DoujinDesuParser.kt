@@ -143,7 +143,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 		}
 		val author = metadataEl?.selectFirst("tr:contains(Author)")?.selectLast("td")?.text()
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = docs.selectFirst(".wrapper > .metadata > .pb-2")?.selectFirst("p")?.html(),
 			state = state,
 			rating = metadataEl?.selectFirst(".rating-prc")?.ownText()?.toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,

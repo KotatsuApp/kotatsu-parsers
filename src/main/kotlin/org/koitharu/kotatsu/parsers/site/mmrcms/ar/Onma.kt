@@ -68,7 +68,7 @@ internal class Onma(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = desc,
 			altTitles = setOfNotNull(alt),
 			state = state,

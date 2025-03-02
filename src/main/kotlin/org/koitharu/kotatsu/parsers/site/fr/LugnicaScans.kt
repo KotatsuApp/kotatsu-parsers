@@ -169,7 +169,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				"3" -> MangaState.ABANDONED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = jsonManga.getStringOrNull("description"),
 			chapters = chapters.mapChapters { i, it ->
 				val id = it.substringAfter("\"chapter\":").substringBefore(",")

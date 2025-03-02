@@ -133,7 +133,7 @@ internal class RizzComic(context: MangaLoaderContext) :
 					"hiatus" -> MangaState.PAUSED
 					else -> null
 				},
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				source = source,
 				description = j.getString("long_description"),
 			)

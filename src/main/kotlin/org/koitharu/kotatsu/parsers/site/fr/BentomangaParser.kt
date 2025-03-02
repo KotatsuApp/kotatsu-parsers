@@ -160,7 +160,7 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 				"En pause" -> MangaState.PAUSED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = run {
 				val input = root.selectFirst("input[name=\"limit\"]") ?: return@run parseChapters(root)
 				val max = input.attr("max").toInt()

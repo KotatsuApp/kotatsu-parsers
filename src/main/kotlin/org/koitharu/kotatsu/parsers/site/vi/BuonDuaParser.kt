@@ -32,7 +32,7 @@ internal class BuonDuaParser(context: MangaLoaderContext) : LegacyMangaParser(co
 		val df = SimpleDateFormat("HH:mm dd-MM-yyyy")
 		val time = content.selectFirst("div.article-info > small")?.text()?.trim()
 		val chapters = content.selectFirst("nav.pagination")?.select("a.pagination-link")
-			?.mapIndexed { index, element ->
+			?.mapChapters { index, element ->
 				val relUrl = element.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(relUrl),

@@ -234,7 +234,7 @@ internal abstract class ZMangaParser(
 			},
 			description = desc,
 			altTitles = setOfNotNull(alt),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 			contentRating = if (doc.getElementById("adt-warning") != null) {

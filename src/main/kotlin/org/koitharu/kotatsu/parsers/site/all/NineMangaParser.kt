@@ -140,7 +140,7 @@ internal abstract class NineMangaParser(
 			title = root.selectFirst("h1[itemprop=name]")?.textOrNull()?.removeSuffix("Manga")?.trimEnd()
 				?: manga.title,
 			tags = tags.orEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = parseStatus(infoRoot.select("li a.red").text()),
 			description = infoRoot.getElementsByAttributeValue("itemprop", "description").first()?.html()
 				?.substringAfter("</b>"),

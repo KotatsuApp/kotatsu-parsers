@@ -275,7 +275,7 @@ internal abstract class MangaReaderParser(
 		return manga.copy(
 			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

@@ -168,7 +168,7 @@ internal abstract class WpComicsParser(
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				description = tooltipElement?.selectFirst("div.box_text")?.text(),
 				chapters = null,
 				source = source,
@@ -220,7 +220,7 @@ internal abstract class WpComicsParser(
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING

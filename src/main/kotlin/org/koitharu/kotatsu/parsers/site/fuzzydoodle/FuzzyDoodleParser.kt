@@ -192,7 +192,7 @@ internal abstract class FuzzyDoodleParser(
 				in paused -> MangaState.PAUSED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.select(selectDescription).html(),
 			tags = doc.select(selectTagManga).mapToSet {
 				val key = it.attr("href").substringAfterLast('=')

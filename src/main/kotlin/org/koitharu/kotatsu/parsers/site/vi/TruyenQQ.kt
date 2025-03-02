@@ -166,7 +166,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				"Hoàn Thành" -> MangaState.FINISHED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select("div.list_chapter div.works-chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")

@@ -161,7 +161,7 @@ internal abstract class LilianaParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase().orEmpty()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED

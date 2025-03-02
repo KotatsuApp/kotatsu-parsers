@@ -154,7 +154,7 @@ internal abstract class MangaWorldParser(
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = tags,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state =
 					when (div.selectFirst(".status a")?.text()?.lowercase()) {
 						"in corso" -> MangaState.ONGOING

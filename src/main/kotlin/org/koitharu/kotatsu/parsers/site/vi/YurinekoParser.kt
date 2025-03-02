@@ -101,7 +101,6 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 		val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 		return manga.copy(
 			chapters = response.getJSONArray("chapters")
-				.asTypedList<JSONObject>()
 				.mapChapters(true) { i, jo ->
 					val mangaId = jo.getInt("mangaID")
 					val chapterId = jo.getInt("id")

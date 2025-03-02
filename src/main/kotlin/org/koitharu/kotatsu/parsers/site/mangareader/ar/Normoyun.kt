@@ -110,7 +110,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 		return manga.copy(
 			description = docs.selectFirst("span.desc")?.html(),
 			state = mangaState,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

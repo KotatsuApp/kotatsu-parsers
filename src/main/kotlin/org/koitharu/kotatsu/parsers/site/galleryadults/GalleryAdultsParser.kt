@@ -169,7 +169,7 @@ internal abstract class GalleryAdultsParser(
 		return manga.copy(
 			tags = tag.orEmpty(),
 			title = doc.selectFirst(selectTitle)?.textOrNull()?.cleanupTitle() ?: manga.title,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

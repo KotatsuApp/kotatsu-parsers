@@ -196,7 +196,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 		val author = doc.selectFirst("div[q:key=tz_4]")?.textOrNull()
 		manga.copy(
 			altTitles = setOfNotNull(doc.selectFirst("div[q:key=tz_2]")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst("react-island[q:key=0a_9]")?.html(),
 			state = when (doc.selectFirst("span[q:key=Yn_5]")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING

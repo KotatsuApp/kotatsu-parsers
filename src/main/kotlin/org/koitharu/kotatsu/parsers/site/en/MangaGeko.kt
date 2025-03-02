@@ -90,7 +90,7 @@ internal class MangaGeko(context: MangaLoaderContext) :
 				coverUrl = div.selectFirstOrThrow("img").src(),
 				tags = emptySet(),
 				state = null,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				source = source,
 			)
 		}
@@ -125,7 +125,7 @@ internal class MangaGeko(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirstOrThrow(".description").html(),
 			chapters = chaptersDeferred.await(),
 		)

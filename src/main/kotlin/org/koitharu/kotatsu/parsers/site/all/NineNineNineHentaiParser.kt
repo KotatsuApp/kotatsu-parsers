@@ -270,7 +270,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			altTitles = setOf(name),
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = ContentRating.ADULT,
 			tags = tags?.mapToSet {
 				MangaTag(

@@ -113,7 +113,7 @@ internal abstract class IkenParser(
 				description = it.getString("postContent"),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (it.getString("seriesStatus")) {
 					"ONGOING" -> MangaState.ONGOING
 					"COMPLETED" -> MangaState.FINISHED

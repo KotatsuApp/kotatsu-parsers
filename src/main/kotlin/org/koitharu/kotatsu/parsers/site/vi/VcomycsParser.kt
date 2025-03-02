@@ -134,7 +134,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 				info.selectFirst(".comic-intro-text > strong:contains(Tên khác:)")?.nextElementSibling()
 					?.textOrNull(),
 			),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (info.selectFirst(".comic-stt")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Trọn bộ" -> MangaState.FINISHED

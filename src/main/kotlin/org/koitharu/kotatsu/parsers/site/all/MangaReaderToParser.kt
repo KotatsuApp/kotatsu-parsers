@@ -203,7 +203,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 						else -> null
 					}
 				},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = document.select("div.description").html(),
 			chapters = parseChapters(document),
 			source = source,

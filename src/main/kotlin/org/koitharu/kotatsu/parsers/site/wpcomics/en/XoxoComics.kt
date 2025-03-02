@@ -138,7 +138,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)

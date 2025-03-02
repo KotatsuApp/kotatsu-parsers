@@ -558,7 +558,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 
 					"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
 				},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
 			tags =
 				buildSet

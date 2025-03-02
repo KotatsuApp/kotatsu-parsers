@@ -94,7 +94,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 	private fun parseMangaSearch(doc: Document): List<Manga> {
 		return doc.select("a.item").map { a ->
 			val href = a.attr("href")
-			val mangaInfo = a.selectFirst("img")
+			val mangaInfo = a.selectFirstOrThrow("img")
 			Manga(
 				id = generateUid(href),
 				url = href,
@@ -105,7 +105,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
-				coverUrl = mangaInfo.requireSrc(),
+				coverUrl = mangaInfo.src(),
 				contentRating = ContentRating.ADULT,
 				source = source,
 			)
@@ -138,13 +138,13 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val tags = doc.select("div.hentai-info .line-content a.item-tag")
-			.mapNotNull { a ->
+			.mapToSet { a ->
 				MangaTag(
-					title = a.text(),
-					key = a.attr("href").substringAfterLast("/"),
+					title = a.text().toTitleCase(sourceLocale),
+					key = a.attr("href").substringAfterLast('/'),
 					source = source,
 				)
-			}.toSet()
+			}
 
 		val chapters = doc.select("ul#chapter-list li.citem").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a") ?: return@mapChapters null
@@ -152,7 +152,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 				id = generateUid(a.attr("href")),
 				name = a.text(),
 				number = i + 1f,
-				url = a.attr("href").removePrefix("https://$domain"),
+				url = a.attrAsRelativeUrl("href"),
 				uploadDate = parseChapterDate(li.selectFirst(".time")?.text()),
 				source = source,
 				scanlator = null,

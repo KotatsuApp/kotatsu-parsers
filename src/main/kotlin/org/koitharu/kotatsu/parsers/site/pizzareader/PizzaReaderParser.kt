@@ -196,7 +196,7 @@ internal abstract class PizzaReaderParser(
 			rating = j.getString("rating").toFloatOrNull()?.div(10f)
 				?: RATING_UNKNOWN,
 			tags = emptySet(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (j.getString("status").lowercase()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED

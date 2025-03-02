@@ -162,7 +162,7 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
 				.mapChapters(reversed = true) { i, a ->

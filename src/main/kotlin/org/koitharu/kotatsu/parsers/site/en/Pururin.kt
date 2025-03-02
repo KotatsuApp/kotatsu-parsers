@@ -145,7 +145,7 @@ internal class Pururin(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

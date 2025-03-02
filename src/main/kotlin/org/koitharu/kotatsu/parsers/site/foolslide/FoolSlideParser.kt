@@ -126,7 +126,7 @@ internal abstract class FoolSlideParser(
 		manga.copy(
 			coverUrl = doc.selectFirst(".thumbnail img")?.src() ?: manga.coverUrl,
 			description = desc?.nullIfEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = chapters,
 		)
 	}

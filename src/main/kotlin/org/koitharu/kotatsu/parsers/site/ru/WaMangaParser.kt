@@ -62,7 +62,7 @@ internal class WaMangaParser(
 				"закончен" -> MangaState.FINISHED
 				else -> MangaState.UPCOMING
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			source = source,
 			contentRating = if (doc.getIntOrDefault("adult", 0) == 0) {
 				ContentRating.SAFE

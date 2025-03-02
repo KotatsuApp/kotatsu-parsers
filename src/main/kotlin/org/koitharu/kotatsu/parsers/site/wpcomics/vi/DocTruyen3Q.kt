@@ -147,7 +147,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		}
 
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = description,
 			state = state,
 			tags = tags,

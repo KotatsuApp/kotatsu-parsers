@@ -154,7 +154,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 				"Ongoing" -> MangaState.ONGOING
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			largeCoverUrl = if (cover != null) {
 				imageUrl(seriesId, cover, 640)
 			} else {

@@ -108,7 +108,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 			description = detailManga.getString("synopsis"),
 			coverUrl = detailManga.getString("cover"),
 			altTitles = setOfNotNull(detailManga.getStringOrNull("alternative_names")),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = detailManga.getStringOrNull("status")?.let {
 				when (it) {
 					"ongoing" -> MangaState.ONGOING

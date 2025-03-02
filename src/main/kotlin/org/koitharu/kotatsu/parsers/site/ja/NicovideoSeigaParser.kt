@@ -90,7 +90,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				title = item.selectFirst(".mg_body > .title > a")?.text() ?: return@mapNotNull null,
 				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src"),
 				altTitles = emptySet(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				rating = RATING_UNKNOWN,
 				url = href,
 				contentRating = null,

@@ -75,7 +75,7 @@ internal abstract class GuyaParser(
 			tags = emptySet(),
 			description = j.getString("description"),
 			state = null,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			source = source,
 		)

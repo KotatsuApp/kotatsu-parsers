@@ -116,7 +116,7 @@ internal abstract class GattsuParser(
 			description = doc.selectFirst("div.post-texto")?.html(),
 			tags = doc.selectFirst(".post-itens li:contains(Tags), .paginaPostInfo li:contains(Categorias)")
 				?.parseTags().orEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

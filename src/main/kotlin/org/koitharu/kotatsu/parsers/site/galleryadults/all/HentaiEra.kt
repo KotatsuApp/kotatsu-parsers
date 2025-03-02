@@ -129,7 +129,7 @@ internal class HentaiEra(context: MangaLoaderContext) :
 		val author = doc.selectFirst(selectAuthor)?.text()
 		return manga.copy(
 			tags = tag.orEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,

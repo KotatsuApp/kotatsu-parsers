@@ -60,7 +60,7 @@ internal abstract class ChanParser(
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
 				title = title.first,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = row.selectFirst("div.manga_images")?.selectFirst("img")
 					?.absUrl("src").orEmpty(),
 				tags = runCatching {
@@ -176,7 +176,7 @@ internal abstract class ChanParser(
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
 				title = title.first,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = div.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,

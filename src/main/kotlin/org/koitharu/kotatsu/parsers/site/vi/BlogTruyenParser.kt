@@ -83,7 +83,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.src().orEmpty(),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.src(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -129,7 +129,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 		return manga.copy(
 			tags = tags,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
 			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src(),

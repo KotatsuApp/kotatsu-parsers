@@ -187,7 +187,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 			},
 			largeCoverUrl = contents.selectFirst(".book-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = if (doc.select("div.chapters").isEmpty()) {
 				doc.select(oneShotChapterListSelector).mapChapters(reversed = true) { _, item ->
 					oneShotChapterFromElement(item)

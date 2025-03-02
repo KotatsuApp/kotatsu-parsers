@@ -118,7 +118,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	private fun parseSearchManga(doc: Document): List<Manga> {
 		return doc.select(".story-item-list.d-flex.align-items-center.position-relative.mb-1").map { div ->
 			val href = div.selectFirstOrThrow("a.story-item-list__image").attrAsRelativeUrl("href")
-			val coverUrl = div.selectFirst("img")?.attr("data-src").orEmpty()
+			val coverUrl = div.selectFirst("img")?.attr("data-src")
 			val title = div.selectFirst("img")?.attr("alt").orEmpty()
 			Manga(
 				id = generateUid(href),
@@ -163,11 +163,11 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty()
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = doc.select("div.mb-1 span a").mapToSet { element ->
 				MangaTag(
 					key = element.attr("href").substringAfter("/the-loai/"),
-					title = element.text().substringBefore(",").trim(), // force trim before , symbol and space
+					title = element.text().substringBefore(',').trim(), // force trim before , symbol and space
 					source = source,
 				)
 			},

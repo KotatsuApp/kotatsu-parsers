@@ -105,7 +105,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				"Full" -> MangaState.FINISHED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select(".list-chapters .chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow(".chap_name a")

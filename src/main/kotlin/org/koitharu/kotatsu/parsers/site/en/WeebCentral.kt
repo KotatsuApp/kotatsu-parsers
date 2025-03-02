@@ -211,7 +211,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 					"Hiatus" -> PAUSED
 					else -> null
 				},
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				largeCoverUrl = null,
 				chapters = null,
 				source = source,

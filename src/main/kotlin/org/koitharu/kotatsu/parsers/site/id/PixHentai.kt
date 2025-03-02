@@ -101,7 +101,7 @@ internal class PixHentai(context: MangaLoaderContext) :
 			altTitles = setOfNotNull(
 				doc.selectFirst("div.entry-content ul li:contains(Alternative Name(s) :) em")?.textOrNull(),
 			),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = null,
 			chapters = listOf(
 				MangaChapter(

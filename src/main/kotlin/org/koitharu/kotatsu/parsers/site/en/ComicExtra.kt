@@ -119,7 +119,7 @@ internal class ComicExtra(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirstOrThrow("div.detail-desc-content p").html(),
 			chapters = doc.select("ul.basic-list li").let { elements ->
 				elements.mapChapters { i, li ->

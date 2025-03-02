@@ -168,7 +168,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 				cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
 					?.removePrefix(": "),
 			),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),
 			state = state,

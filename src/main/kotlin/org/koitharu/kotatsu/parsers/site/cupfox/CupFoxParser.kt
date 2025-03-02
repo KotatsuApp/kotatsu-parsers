@@ -134,7 +134,7 @@ internal abstract class CupFoxParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(selectMangaDescription)?.html(),
 			chapters = doc.select(selectMangaChapters)
 				.mapChapters { i, li ->

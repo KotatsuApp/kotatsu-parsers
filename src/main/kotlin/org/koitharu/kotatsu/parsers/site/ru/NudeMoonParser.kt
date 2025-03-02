@@ -99,7 +99,7 @@ internal class NudeMoonParser(
 				url = href,
 				title = title.substringAfter(" / "),
 				altTitles = setOfNotNull(title.substringBefore(" / ", "").takeUnless { it.isBlank() }),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = row.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = row.selectFirst(".tag-links")?.select("a")?.mapToSet {
 					MangaTag(

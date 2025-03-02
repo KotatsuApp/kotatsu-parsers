@@ -138,7 +138,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("p.sContent")?.html(),
 			chapters = root.select("div.chapter-list li")
 				.mapChapters(reversed = true) { i, li ->
