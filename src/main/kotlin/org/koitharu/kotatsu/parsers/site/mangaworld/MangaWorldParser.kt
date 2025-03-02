@@ -198,7 +198,7 @@ internal abstract class MangaWorldParser(
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
-						name = a.selectFirst("span.d-inline-block")?.text() ?: "Chapter : ${i + 1f}",
+						title = a.selectFirst("span.d-inline-block")?.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = "$url?style=list",

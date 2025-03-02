@@ -193,7 +193,7 @@ internal abstract class KeyoappParser(
 					val dateText = a.selectLast("div.text-xs.w-fit")?.text() ?: "0"
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

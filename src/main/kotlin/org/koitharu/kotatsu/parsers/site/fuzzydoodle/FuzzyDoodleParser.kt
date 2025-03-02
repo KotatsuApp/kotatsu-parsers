@@ -240,7 +240,7 @@ internal abstract class FuzzyDoodleParser(
 				val chapterN = href.substringAfterLast('/').replace("-", ".").replace("[^0-9.]".toRegex(), "").toFloat()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = chapterN,
 					volume = 0,
 					url = href,

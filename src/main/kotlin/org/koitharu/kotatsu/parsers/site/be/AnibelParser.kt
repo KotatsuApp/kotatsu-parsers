@@ -159,7 +159,7 @@ internal class AnibelParser(context: MangaLoaderContext) : LegacyMangaParser(con
 				val number = jo.getInt("chapter")
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
-					name = "Глава $number",
+					title = null,
 					number = number.toFloat(),
 					volume = 0,
 					url = "${manga.url}/read/$number",

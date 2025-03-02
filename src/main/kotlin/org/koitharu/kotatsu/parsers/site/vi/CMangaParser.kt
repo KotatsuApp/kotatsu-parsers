@@ -85,7 +85,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 					val chapterNumber = info.getFloatOrDefault("num", -1f) + 1f
 					MangaChapter(
 						id = generateUid(chapterId),
-						name = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
+						title = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
 						number = chapterNumber,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",

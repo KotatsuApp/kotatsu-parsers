@@ -7,7 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("SSSSCANLATOR", "YomuComics", "pt")
 internal class SssScanlator(context: MangaLoaderContext) :
@@ -26,7 +25,7 @@ internal class SssScanlator(context: MangaLoaderContext) :
 			val numChap = findNumChap(name)
 			MangaChapter(
 				id = generateUid(url),
-				name = name,
+				title = name,
 				url = url,
 				number = numChap,
 				volume = 0,

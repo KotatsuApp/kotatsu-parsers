@@ -141,7 +141,7 @@ internal class NudeMoonParser(
 					source = source,
 					number = 0f,
 					volume = 0,
-					name = manga.title,
+					title = manga.title,
 					scanlator = root.getElementsByAttributeValueContaining("href", "/perevod/").firstOrNull()
 						?.textOrNull(),
 					uploadDate = dateFormat.tryParse(

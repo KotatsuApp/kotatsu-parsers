@@ -81,7 +81,7 @@ internal class HentaiReader(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst("h2")?.text() ?: "Chapter ${index + 1}",
+				title = element.selectFirst("h2")?.textOrNull(),
 				url = url,
 				number = index + 1f,
 				volume = 0,

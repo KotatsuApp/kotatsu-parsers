@@ -183,7 +183,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 				val number = jo.getFloatOrDefault("chapter", 0f)
 				MangaChapter(
 					id = generateUid(longOf(seriesId.toInt(), chapterId.toInt())),
-					name = jo.getStringOrNull("name") ?: ("Chapter " + number.formatSimple()),
+					title = jo.getStringOrNull("name"),
 					number = number,
 					volume = 0,
 					url = seriesId.toString() + "?" + jo.getStringOrNull("token").orEmpty(),

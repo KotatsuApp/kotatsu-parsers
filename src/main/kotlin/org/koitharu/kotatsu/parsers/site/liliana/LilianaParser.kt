@@ -173,7 +173,7 @@ internal abstract class LilianaParser(
 				val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					name = element.selectFirst("a")?.text() ?: "Chapter : ${i + 1f}",
+					title = element.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

@@ -126,7 +126,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 
 				MangaChapter(
 					id = generateUid(url),
-					name = name,
+					title = name,
 					number = i + 1f,
 					url = url,
 					scanlator = null,

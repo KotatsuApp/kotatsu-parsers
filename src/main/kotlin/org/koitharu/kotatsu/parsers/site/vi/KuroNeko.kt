@@ -173,7 +173,7 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

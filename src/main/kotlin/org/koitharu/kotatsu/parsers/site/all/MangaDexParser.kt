@@ -484,10 +484,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 			}
 			val chapter = MangaChapter(
 				id = generateUid(id),
-				name = attrs.getStringOrNull("title") ?: buildString {
-					if (volume > 0) append("Vol. ").append(volume).append(' ')
-					append("Chapter ").append(number.formatSimple())
-				},
+				title = attrs.getStringOrNull("title"),
 				number = number,
 				volume = volume,
 				url = id,

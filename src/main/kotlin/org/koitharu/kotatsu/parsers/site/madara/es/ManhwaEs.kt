@@ -28,7 +28,7 @@ internal class ManhwaEs(context: MangaLoaderContext) :
 			val name = li.selectFirstOrThrow(".mini-letters a").text()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,

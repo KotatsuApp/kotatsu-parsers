@@ -185,11 +185,11 @@ internal class LegacyScansParser(context: MangaLoaderContext) :
 			chapters = root.select("div.chapterList a")
 				.mapChapters(reversed = true) { i, a ->
 					val href = a.attrAsRelativeUrl("href")
-					val name = a.selectFirst("span")?.text()
+					val name = a.selectFirst("span")?.textOrNull()
 					val dateText = a.selectLast("span")?.text() ?: "0"
 					MangaChapter(
 						id = generateUid(href),
-						name = name ?: "Chapitre : ${i + 1f}",
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

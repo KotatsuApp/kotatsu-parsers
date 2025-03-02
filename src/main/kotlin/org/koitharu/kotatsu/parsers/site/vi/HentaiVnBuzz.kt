@@ -183,7 +183,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 					val name = element.text().removePrefix("- ")
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

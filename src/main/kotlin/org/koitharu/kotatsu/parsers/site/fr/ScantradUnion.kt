@@ -155,7 +155,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					val date = li.select(".name-chapter").first()?.children()?.elementAt(2)?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

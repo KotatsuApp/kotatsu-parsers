@@ -109,7 +109,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 				val a = element.selectFirst("a") ?: return@mapChapters null
 				MangaChapter(
 					id = generateUid(a.attrAsRelativeUrl("href")),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					url = a.attrAsRelativeUrl("href"),
 					uploadDate = parseChapterDate(element.selectFirst("span.chapter-release-date")?.text()),

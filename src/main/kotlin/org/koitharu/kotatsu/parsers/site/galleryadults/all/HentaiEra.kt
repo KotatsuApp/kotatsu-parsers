@@ -133,7 +133,7 @@ internal class HentaiEra(context: MangaLoaderContext) :
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					name = manga.title,
+					title = manga.title,
 					number = 1f,
 					volume = 0,
 					url = urlChapters,

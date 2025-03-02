@@ -162,7 +162,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 				val dateText = div.selectFirst(".time-chap")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = href,

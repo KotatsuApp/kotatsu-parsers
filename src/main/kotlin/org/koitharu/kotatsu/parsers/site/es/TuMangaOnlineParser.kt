@@ -210,7 +210,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
-			name = "One Shot",
+			title = "One Shot",
 			number = 1f,
 			volume = 0,
 			url = href,
@@ -227,7 +227,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
-			name = chName,
+			title = chName,
 			number = number + 1f,
 			volume = 0,
 			url = href,

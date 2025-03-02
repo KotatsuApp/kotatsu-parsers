@@ -583,7 +583,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 				MangaChapter(
 					id = generateUid(manga.url),
 					url = manga.url,
-					name = json.getString("title"),
+					title = json.getStringOrNull("title"),
 					scanlator = json.getString("type").toTitleCase(),
 					number = 1f,
 					volume = 0,

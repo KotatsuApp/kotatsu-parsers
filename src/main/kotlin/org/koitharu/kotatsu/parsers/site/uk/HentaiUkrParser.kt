@@ -73,7 +73,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : LegacyMangaParser(
             chapters = listOf(
                 MangaChapter(
                     id = generateUid(manga.id),
-                    name = manga.title,
+                    title = manga.title,
                     number = 1f,
                     volume = 0,
                     url = manga.url,

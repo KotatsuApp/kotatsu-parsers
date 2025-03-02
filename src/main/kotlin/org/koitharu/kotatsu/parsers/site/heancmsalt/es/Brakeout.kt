@@ -34,7 +34,7 @@ internal class Brakeout(context: MangaLoaderContext) :
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
-						name = div.selectFirstOrThrow(selectChapterTitle).text(),
+						title = div.selectFirstOrThrow(selectChapterTitle).text(),
 						number = i + 1f,
 						volume = 0,
 						url = url,

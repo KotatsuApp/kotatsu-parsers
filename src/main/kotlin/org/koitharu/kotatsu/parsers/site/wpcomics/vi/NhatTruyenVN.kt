@@ -28,7 +28,7 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
             val dateText = li.selectFirst(selectDate)?.text()
             MangaChapter(
                 id = generateUid(href),
-                name = a.text(),
+                title = a.text(),
                 number = chapterNumber,
                 volume = 0,
                 url = href,

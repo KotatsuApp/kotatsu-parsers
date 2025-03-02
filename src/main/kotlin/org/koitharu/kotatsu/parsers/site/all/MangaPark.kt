@@ -213,7 +213,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				val dateText = div.selectFirst("span[q:key=Ee_0]")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = a.text(),
+					title = a.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

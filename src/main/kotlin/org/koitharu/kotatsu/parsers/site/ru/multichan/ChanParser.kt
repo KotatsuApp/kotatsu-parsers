@@ -92,7 +92,7 @@ internal abstract class ChanParser(
 					?: return@mapChapters null
 				MangaChapter(
 					id = generateUid(href),
-					name = tr.selectFirst("a")?.text().orEmpty(),
+					title = tr.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

@@ -172,7 +172,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				val number = jo.getFloatOrDefault("number", 0f)
 				MangaChapter(
 					id = generateUid(chapterId),
-					name = jo.getStringOrNull("name") ?: number.formatSimple(),
+					title = jo.getStringOrNull("name"),
 					number = number,
 					volume = 0,
 					url = "/api/v2/chapters/$chapterId",

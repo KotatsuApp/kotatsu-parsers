@@ -155,7 +155,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 					val url = element.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
-						name = element.selectFirst("span")?.text().orEmpty().trim(),
+						title = element.selectFirst("span")?.textOrNull(),
 						number = index + 1f,
 						volume = 0,
 						url = url,

@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("NETTRUYENVIE", "NetTruyenVie", "vi")
@@ -52,7 +53,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 
 			MangaChapter(
 				id = generateUid(chapterUrl),
-				name = jo.getString("chapter_name"),
+				title = jo.getStringOrNull("chapter_name"),
 				number = i + 1f,
 				volume = 0,
 				url = chapterUrl,

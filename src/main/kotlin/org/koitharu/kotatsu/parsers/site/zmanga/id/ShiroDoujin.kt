@@ -27,7 +27,7 @@ internal class ShiroDoujin(context: MangaLoaderContext) :
 				.substringBefore("<span")
 			MangaChapter(
 				id = generateUid(href),
-				name = "Chapter $numChapter",
+				title = null,
 				number = i + 1f,
 				volume = 0,
 				url = href,

@@ -166,7 +166,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			val timeText = timeElement?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = number,
 				url = href,
 				uploadDate = parseChapterDate(timeText),

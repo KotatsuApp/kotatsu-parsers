@@ -120,7 +120,7 @@ internal abstract class GattsuParser(
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					name = manga.title,
+					title = manga.title,
 					number = 1f,
 					volume = 0,
 					url = urlChapter,

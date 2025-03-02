@@ -150,7 +150,7 @@ internal abstract class NineMangaParser(
 					val href = a.attrAsRelativeUrl("href").replace("%20", " ")
 					MangaChapter(
 						id = generateUid(href),
-						name = a.text(),
+						title = a.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = href,

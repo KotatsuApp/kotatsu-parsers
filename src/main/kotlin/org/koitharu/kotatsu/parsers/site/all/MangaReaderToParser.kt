@@ -222,7 +222,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				chapters.add(
 					MangaChapter(
 						id = generateUid(a.attrAsRelativeUrl("href")),
-						name = a.attr("title"),
+						title = a.attrOrNull("title"),
 						number = li.attr("data-number").toFloat(),
 						volume = 0,
 						url = a.attrAsRelativeUrl("href"),
@@ -242,7 +242,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				chapters.add(
 					MangaChapter(
 						id = generateUid(url),
-						name = name,
+						title = name,
 						number = numRegex.find(name)?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 0f,
 						volume = 0,
 						url = url,

@@ -45,7 +45,7 @@ internal class ScanIta(context: MangaLoaderContext) :
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
-				name = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
+				title = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
 				number = i + 1f,
 				volume = 0,
 				url = href,

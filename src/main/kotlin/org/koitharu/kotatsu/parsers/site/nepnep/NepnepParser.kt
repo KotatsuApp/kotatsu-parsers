@@ -225,7 +225,7 @@ internal abstract class NepnepParser(
                 val date = j.getStringOrNull("Date")
                 MangaChapter(
                     id = generateUid(url),
-                    name = name,
+                    title = name,
                     number = i + 1f,
                     volume = 0,
                     url = url,

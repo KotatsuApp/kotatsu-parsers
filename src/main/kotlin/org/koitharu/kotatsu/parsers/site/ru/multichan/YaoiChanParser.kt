@@ -33,7 +33,7 @@ internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context,
 				val href = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

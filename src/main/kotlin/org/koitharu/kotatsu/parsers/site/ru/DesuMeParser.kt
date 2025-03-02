@@ -132,13 +132,7 @@ internal class DesuMeParser(context: MangaLoaderContext) :
 					source = manga.source,
 					url = "$baseChapterUrl$chid",
 					uploadDate = jo.getLong("date") * 1000,
-					name = jo.getStringOrNull("title") ?: buildString {
-						append("Том ")
-						append(volume)
-						append(" Глава ")
-						append(number)
-						removeTrailingZero()
-					},
+					title = jo.getStringOrNull("title"),
 					volume = volume,
 					number = number,
 					scanlator = null,

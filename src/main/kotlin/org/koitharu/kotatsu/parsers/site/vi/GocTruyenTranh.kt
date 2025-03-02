@@ -180,7 +180,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 					val dateText = li.selectFirst("div.w-\\[50\\%\\].truncate.text-center")?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

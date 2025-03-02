@@ -184,7 +184,7 @@ internal abstract class Manga18Parser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.textOrNull(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

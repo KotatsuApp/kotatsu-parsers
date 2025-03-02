@@ -24,7 +24,7 @@ internal class WeLoveManga(context: MangaLoaderContext) :
 			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = a.selectFirstOrThrow("a").text(),
+				title = a.selectFirstOrThrow("a").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

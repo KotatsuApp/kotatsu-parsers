@@ -119,7 +119,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(
 					id = generateUid(url),
-					name = a.selectFirstOrThrow(".chap").text(),
+					title = a.selectFirstOrThrow(".chap").text(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

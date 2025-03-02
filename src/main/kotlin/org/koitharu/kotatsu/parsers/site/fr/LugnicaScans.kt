@@ -179,7 +179,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 				)
 				MangaChapter(
 					id = generateUid(url),
-					name = "Chapitre : $id",
+					title = null,
 					number = i.toFloat(),
 					volume = 0,
 					url = url,

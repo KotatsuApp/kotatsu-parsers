@@ -150,7 +150,7 @@ internal abstract class HotComicsParser(
 					val chapterNum = li.selectFirst(".num")?.text()?.toFloat() ?: (i + 1f)
 					MangaChapter(
 						id = generateUid(url),
-						name = "Chapter : $chapterNum",
+						title = null,
 						number = chapterNum,
 						volume = 0,
 						url = url,

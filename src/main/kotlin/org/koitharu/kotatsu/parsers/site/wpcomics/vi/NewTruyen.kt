@@ -62,7 +62,7 @@ internal class NewTruyen(context: MangaLoaderContext) :
 			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text() // Broken, will fix it later
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

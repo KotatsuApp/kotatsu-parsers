@@ -280,7 +280,7 @@ internal abstract class MangaFireParser(
 		return chapterElements.mapChapters(reversed = true) { _, it ->
 			MangaChapter(
 				id = generateUid(it.attr("href")),
-				name = it.attr("title").ifBlank {
+				title = it.attr("title").ifBlank {
 					"${branch.type.toTitleCase()} ${it.attr("data-number")}"
 				},
 				number = it.attr("data-number").toFloat(),

@@ -124,7 +124,7 @@ internal class PapScan(context: MangaLoaderContext) :
 			val dateText = li.selectFirst("span.date-chapter-title-rtl")?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow("span em").text(),
+				title = li.selectFirstOrThrow("span em").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

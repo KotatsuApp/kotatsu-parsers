@@ -116,7 +116,7 @@ internal class LireScan(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 					val dateText = div.select("p").last()?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

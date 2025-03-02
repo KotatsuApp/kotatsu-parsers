@@ -295,7 +295,7 @@ internal abstract class ZeistMangaParser(
 			MangaChapter(
 				id = generateUid(href),
 				url = href,
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				branch = null,

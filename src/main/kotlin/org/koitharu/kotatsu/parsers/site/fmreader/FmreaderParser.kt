@@ -218,7 +218,7 @@ internal abstract class FmreaderParser(
 			val dateText = a.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = a.selectFirstOrThrow("div.chapter-name").text(),
+				title = a.selectFirstOrThrow("div.chapter-name").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

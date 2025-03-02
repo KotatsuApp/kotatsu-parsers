@@ -6,10 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.asTypedList
-import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -147,8 +144,8 @@ internal abstract class IkenParser(
 				val chapterUrl = "/series/$slugName/${it.getString("slug")}"
 				MangaChapter(
 					id = it.getLong("id"),
-					name = "Chapter : ${it.getInt("number")}",
-					number = it.getInt("number").toFloat(),
+					title = null,
+					number = it.getFloatOrDefault("number", 0f),
 					volume = 0,
 					url = chapterUrl,
 					scanlator = null,

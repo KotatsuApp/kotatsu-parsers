@@ -137,7 +137,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 					?.attrAsRelativeUrl("href") ?: li.parseFailed()
 				MangaChapter(
 					id = generateUid(href),
-					name = li.select("div > div.description > div.title > a").text(),
+					title = li.select("div > div.description > div.title > a").text(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

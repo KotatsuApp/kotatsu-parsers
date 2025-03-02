@@ -129,7 +129,7 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 				val url = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = li.selectFirstOrThrow(".flex-grow-1 span").text(),
+					title = li.selectFirstOrThrow(".flex-grow-1 span").text(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

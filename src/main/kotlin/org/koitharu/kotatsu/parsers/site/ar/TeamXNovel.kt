@@ -195,7 +195,7 @@ internal class TeamXNovel(context: MangaLoaderContext) :
 				val url = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = li.selectFirstOrThrow(".epl-title").text(),
+					title = li.selectFirstOrThrow(".epl-title").text(),
 					number = url.substringAfterLast('/').toFloatOrNull() ?: 0f,
 					volume = 0,
 					url = url,

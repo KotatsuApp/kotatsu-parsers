@@ -303,7 +303,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 			MangaChapter(
 				id = generateUid(chapterId),
 				url = chapterId,
-				name = name,
+				title = name,
 				number = Regex("""(?<!S)\b(\d+(\.\d+)?)\b""").find(name)
 					?.groupValues?.get(1)?.toFloatOrNull()
 					?: i.toFloat(),

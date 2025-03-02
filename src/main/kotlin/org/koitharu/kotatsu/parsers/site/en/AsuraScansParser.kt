@@ -172,7 +172,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 				val cleanDate = date.replace(regexDate, "$1")
 				MangaChapter(
 					id = generateUid(url),
-					name = div.selectFirst("h3")?.text() ?: "Chapter : ${i + 1f}",
+					title = div.selectFirst("h3")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

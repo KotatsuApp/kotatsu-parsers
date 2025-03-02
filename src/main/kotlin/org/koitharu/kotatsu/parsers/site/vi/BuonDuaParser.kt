@@ -36,7 +36,7 @@ internal class BuonDuaParser(context: MangaLoaderContext) : LegacyMangaParser(co
 				val relUrl = element.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(relUrl),
-					name = "Chapter ${element.text()}",
+					title = null,
 					number = index + 1f,
 					volume = 0,
 					url = relUrl,

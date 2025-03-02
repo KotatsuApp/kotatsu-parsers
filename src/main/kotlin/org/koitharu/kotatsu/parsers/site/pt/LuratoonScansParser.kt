@@ -101,7 +101,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
                     val span = li.selectFirstOrThrow(".numero__capitulo")
                     MangaChapter(
                         id = generateUid(href),
-                        name = span.text(),
+                        title = span.text(),
                         number = 0.0f,
                         volume = 0,
                         url = href,

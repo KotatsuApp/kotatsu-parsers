@@ -174,7 +174,7 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

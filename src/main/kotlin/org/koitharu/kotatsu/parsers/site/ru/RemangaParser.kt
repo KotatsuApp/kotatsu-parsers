@@ -176,17 +176,7 @@ internal class RemangaParser(
 					url = "/api/titles/chapters/$id/",
 					number = jo.getIntOrDefault("index", chapters.size - i).toFloat(),
 					volume = 0,
-					name = buildString {
-						append("Том ")
-						append(jo.optString("tome", "0"))
-						append(". ")
-						append("Глава ")
-						append(jo.optString("chapter", "0"))
-						if (name.isNotEmpty()) {
-							append(" - ")
-							append(name)
-						}
-					},
+					title = name.nullIfEmpty(),
 					uploadDate = dateFormat.tryParse(jo.getString("upload_date")),
 					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
 					source = MangaParserSource.REMANGA,

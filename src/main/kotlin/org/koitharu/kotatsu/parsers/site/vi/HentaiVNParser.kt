@@ -246,7 +246,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			val dateStr = element.selectLast("td")?.text()
 			MangaChapter(
 				id = generateUid(titleEl.attrAsRelativeUrl("href")),
-				name = titleEl.text(),
+				title = titleEl.text(),
 				number = index + 1f,
 				volume = 0,
 				url = titleEl.attrAsRelativeUrl("href"),

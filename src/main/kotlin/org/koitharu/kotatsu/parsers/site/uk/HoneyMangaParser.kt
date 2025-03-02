@@ -75,17 +75,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 				val volume = jo.getIntOrDefault("volume", 0)
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
-					name = buildString {
-						append("Том ")
-						append(volume)
-						append(". ")
-						append("Розділ ")
-						append(number)
-						if (jo.optString("title") != "Title") {
-							append(" - ")
-							append(jo.optString("title"))
-						}
-					},
+					title = jo.getStringOrNull("title"),
 					number = number,
 					volume = volume,
 					url = jo.optString("chapterResourcesId"),

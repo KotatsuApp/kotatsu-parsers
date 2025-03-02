@@ -257,7 +257,7 @@ internal abstract class ZMangaParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow(".flexch-infoz span:not(.date)").text(),
+				title = li.selectFirstOrThrow(".flexch-infoz span:not(.date)").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

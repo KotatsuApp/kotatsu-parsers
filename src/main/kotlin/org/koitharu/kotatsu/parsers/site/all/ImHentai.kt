@@ -175,7 +175,7 @@ internal class ImHentai(context: MangaLoaderContext) :
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					name = manga.title,
+					title = null,
 					number = 1f,
 					volume = 0,
 					url = manga.url,

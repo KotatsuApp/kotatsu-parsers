@@ -235,7 +235,7 @@ internal class ExHentaiParser(
 					val url = "${manga.url}?p=${i - 1}"
 					chapters += MangaChapter(
 						id = generateUid(url),
-						name = "${manga.title} #$i",
+						title = null,
 						number = i.toFloat(),
 						volume = 0,
 						url = url,

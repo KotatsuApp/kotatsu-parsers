@@ -208,11 +208,7 @@ internal class MangaWtfParser(
 				val branchId = jo.getString("branchId")
 				MangaChapter(
 					id = generateUid(jo.getString("id")),
-					name =
-						jo.getStringOrNull("name") ?: buildString {
-							if (volume > 0) append("Том ").append(volume).append(' ')
-							if (number > 0) append("Глава ").append(number) else append("Без имени")
-						},
+					title = jo.getStringOrNull("name"),
 					number = number,
 					volume = volume,
 					url = jo.getString("id"),

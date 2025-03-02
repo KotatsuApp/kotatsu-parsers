@@ -159,7 +159,7 @@ internal abstract class HeanCms(
 					"/series/${it.getJSONObject("series").getString("series_slug")}/${it.getString("chapter_slug")}"
 				MangaChapter(
 					id = it.getLong("id"),
-					name = it.getString("chapter_name"),
+					title = it.getString("chapter_name"),
 					number = i + 1f,
 					volume = 0,
 					url = chapterUrl,

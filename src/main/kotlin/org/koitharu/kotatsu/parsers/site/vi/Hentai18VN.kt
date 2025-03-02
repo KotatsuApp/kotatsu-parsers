@@ -150,7 +150,7 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 			val a = li.selectFirst("a") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(a.attr("href")),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				url = a.attrAsRelativeUrl("href"),
 				uploadDate = parseChapterDate(li.selectFirst(".time")?.text()),

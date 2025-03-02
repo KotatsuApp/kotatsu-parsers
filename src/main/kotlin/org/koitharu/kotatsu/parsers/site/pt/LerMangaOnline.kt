@@ -119,7 +119,7 @@ internal class LerMangaOnline(context: MangaLoaderContext) :
 				val dateText = a.selectFirstOrThrow("span").text()
 				MangaChapter(
 					id = generateUid(href),
-					name = title,
+					title = title,
 					number = i + 1f,
 					volume = 0,
 					url = href,

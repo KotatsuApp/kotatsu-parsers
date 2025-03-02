@@ -31,7 +31,7 @@ internal class MangaDistrict(context: MangaLoaderContext) :
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(
 				id = generateUid(href),
-				name = a.ownText(),
+				title = a.ownText(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

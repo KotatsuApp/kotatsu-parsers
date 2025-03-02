@@ -161,7 +161,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 					val url = titleTag.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
-						name = titleTag.text(),
+						title = titleTag.text(),
 						number = index + 1f,
 						volume = 0,
 						url = url,

@@ -28,7 +28,7 @@ internal class ManhwaRaw(context: MangaLoaderContext) :
 			val name = a.selectFirst("h4")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,

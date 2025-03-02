@@ -178,7 +178,7 @@ internal class Manhwa18Com(context: MangaLoaderContext) :
 				val uploadDate = parseUploadDate(element.selectFirst(".chapter-time")?.text())
 				MangaChapter(
 					id = generateUid(chapterUrl),
-					name = element.selectFirst(".chapter-name")?.text().orEmpty(),
+					title = element.selectFirst(".chapter-name")?.textOrNull(),
 					number = index + 1f,
 					volume = 0,
 					url = chapterUrl,

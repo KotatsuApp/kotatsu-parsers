@@ -36,7 +36,7 @@ internal class AnimeXNovel(context: MangaLoaderContext) :
 				MangaChapter(
 					id = generateUid(url),
 					url = url,
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					branch = null,

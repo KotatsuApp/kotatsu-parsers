@@ -106,7 +106,7 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 					val chapterId = jo.getInt("id")
 					MangaChapter(
 						id = generateUid(chapterId.toLong()),
-						name = jo.getString("name"),
+						title = jo.getStringOrNull("name"),
 						number = i + 1f,
 						volume = 0,
 						scanlator = null,

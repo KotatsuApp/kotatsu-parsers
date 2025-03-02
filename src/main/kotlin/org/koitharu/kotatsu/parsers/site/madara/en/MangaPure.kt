@@ -127,7 +127,7 @@ internal class MangaPure(context: MangaLoaderContext) :
             MangaChapter(
                 id = generateUid(href),
                 url = link,
-                name = a.ownText(),
+                title = a.ownText(),
                 number = i + 1f,
                 volume = 0,
                 branch = null,

@@ -166,7 +166,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 				val name = t.substringAfter("name:\"").substringBefore('"')
 				MangaChapter(
 					id = generateUid(url),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = url,

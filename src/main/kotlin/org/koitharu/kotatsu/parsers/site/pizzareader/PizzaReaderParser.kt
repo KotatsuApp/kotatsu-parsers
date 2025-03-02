@@ -229,7 +229,7 @@ internal abstract class PizzaReaderParser(
 				val date = j.getStringOrNull("updated_at")
 				MangaChapter(
 					id = generateUid(url),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = url,

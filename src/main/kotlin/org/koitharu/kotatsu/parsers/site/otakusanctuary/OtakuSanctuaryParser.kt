@@ -185,7 +185,7 @@ internal abstract class OtakuSanctuaryParser(
 					val name = a.text()
 					MangaChapter(
 						id = generateUid(url),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = url,

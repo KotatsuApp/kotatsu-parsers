@@ -97,7 +97,7 @@ internal abstract class HeanCmsAlt(
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
-						name = a.selectFirst(selectChapterTitle)?.text() ?: "Chapter : ${i + 1f}",
+						title = a.selectFirst(selectChapterTitle)?.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = url,

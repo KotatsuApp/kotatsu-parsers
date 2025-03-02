@@ -143,7 +143,7 @@ internal class BrMangas(context: MangaLoaderContext) : LegacyPagedMangaParser(co
                     val name = a.text()
                     MangaChapter(
                         id = generateUid(url),
-                        name = name,
+                        title = name,
                         number = i + 1f,
                         volume = 0,
                         url = url,

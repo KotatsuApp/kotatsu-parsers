@@ -152,7 +152,7 @@ internal class VyManga(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = a.selectFirst("span")?.text() ?: "Chapter ${i + 1}",
+					title = a.selectFirst("span")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

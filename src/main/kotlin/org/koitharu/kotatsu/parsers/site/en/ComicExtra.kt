@@ -136,7 +136,7 @@ internal class ComicExtra(context: MangaLoaderContext) :
 					}
 					MangaChapter(
 						id = generateUid(url),
-						name = name,
+						title = name,
 						number = elements.size - i.toFloat(),
 						volume = 0,
 						url = url,

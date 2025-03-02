@@ -263,7 +263,7 @@ internal abstract class LibSocialParser(
                 val team = bjo.getJSONArray("teams").optJSONObject(0)?.getStringOrNull("name")
                 builder += MangaChapter(
                     id = generateUid(id),
-                    name = name,
+                    title = name,
                     number = number,
                     volume = volume,
                     url = "${manga.url}/chapter?number=$numberString&volume=$volume",

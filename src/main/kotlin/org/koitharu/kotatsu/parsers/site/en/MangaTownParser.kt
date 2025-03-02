@@ -176,7 +176,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 						dateFormat,
 						li.selectFirst("span.time")?.text(),
 					),
-					name = name.ifEmpty { "${manga.title} - ${i + 1}" },
+					title = name.nullIfEmpty(),
 					scanlator = null,
 					branch = null,
 				)
@@ -273,7 +273,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 					dateFormat,
 					li.selectFirst("span.time")?.text(),
 				),
-				name = name.ifEmpty { "${manga.title} - ${i + 1}" },
+				title = name.nullIfEmpty(),
 				scanlator = null,
 				branch = null,
 			)

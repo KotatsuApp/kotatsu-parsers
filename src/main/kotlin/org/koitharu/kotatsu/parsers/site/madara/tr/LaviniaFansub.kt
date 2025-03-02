@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseFailed
@@ -42,7 +41,7 @@ internal class LaviniaFansub(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				branch = null,

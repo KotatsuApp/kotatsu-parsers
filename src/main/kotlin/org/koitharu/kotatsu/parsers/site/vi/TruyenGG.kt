@@ -164,7 +164,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				val dateText = div.select("span.cl99").text()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = href,

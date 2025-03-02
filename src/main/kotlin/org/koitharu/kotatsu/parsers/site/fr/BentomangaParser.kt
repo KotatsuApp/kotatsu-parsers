@@ -234,11 +234,11 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 			.select(".component-chapter").map { div ->
 				val a = div.selectFirstOrThrow("a:not([style*='display:none'])")
 				val href = a.attrAsRelativeUrl("href")
-				val title = div.selectFirstOrThrow(".chapter_volume").text()
+				val title = div.selectFirstOrThrow(".chapter_volume").textOrNull()
 				val name = div.selectFirst(".chapter_title")?.textOrNull()
 				MangaChapter(
 					id = generateUid(href),
-					name = if (name != null && name != title) "$title: $name" else title,
+					title = if (name != null && name != title) "$title: $name" else title,
 					number = href.substringAfterLast('/').toFloatOrNull() ?: 0f,
 					volume = 0,
 					url = href,

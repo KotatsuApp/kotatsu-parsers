@@ -144,7 +144,7 @@ internal class MangaGeko(context: MangaLoaderContext) :
 					.replace(".", "").replace("Sept", "Sep")
 				MangaChapter(
 					id = generateUid(url),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = url,

@@ -27,7 +27,7 @@ internal class Hentaixdickgirl(context: MangaLoaderContext) :
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,

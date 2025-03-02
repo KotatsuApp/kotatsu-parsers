@@ -200,7 +200,7 @@ internal abstract class LikeMangaParser(
 			}
 			MangaChapter(
 				id = generateUid(url),
-				name = name,
+				title = name,
 				number = chapNum.toFloatOrNull() ?: 0f,
 				volume = 0,
 				url = url,
@@ -229,7 +229,7 @@ internal abstract class LikeMangaParser(
 
 				MangaChapter(
 					id = generateUid(url),
-					name = li.selectFirstOrThrow("a").text(),
+					title = li.selectFirstOrThrow("a").text(),
 					number = chapNum.toFloat(),
 					volume = 0,
 					url = url,

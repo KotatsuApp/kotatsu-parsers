@@ -224,7 +224,7 @@ internal abstract class MmrcmsParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirst("h5")?.text() ?: "Chapter : ${i + 1f}",
+				title = li.selectFirst("h5")?.textOrNull(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

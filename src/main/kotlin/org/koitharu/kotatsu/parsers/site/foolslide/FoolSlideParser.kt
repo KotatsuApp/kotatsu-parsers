@@ -143,7 +143,7 @@ internal abstract class FoolSlideParser(
 			val dateText = div.selectFirst(selectDate)?.text()?.substringAfter(", ")
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

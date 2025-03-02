@@ -226,13 +226,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			}
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
-				name = buildString {
-					if (vol > 0) {
-						append("Vol ").append(vol).append(' ')
-					}
-					append("Chap ").append(chap.formatSimple())
-					jo.getStringOrNull("title")?.let { append(": ").append(it) }
-				},
+				title = jo.getStringOrNull("title"),
 				number = chap,
 				volume = vol,
 				url = jo.getString("hid"),

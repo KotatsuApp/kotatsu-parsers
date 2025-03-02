@@ -205,7 +205,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			val uploadDate = dateFormat.tryParse(element.select("span.publishedDate").text())
 			MangaChapter(
 				id = generateUid(id),
-				name = name,
+				title = name,
 				number = index + 1f,
 				volume = 0,
 				url = relativeUrl,

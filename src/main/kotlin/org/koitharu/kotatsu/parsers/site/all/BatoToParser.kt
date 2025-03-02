@@ -365,7 +365,7 @@ internal class BatoToParser(context: MangaLoaderContext) : LegacyPagedMangaParse
 		val href = a.attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
-			name = a.text(),
+			title = a.textOrNull(),
 			number = index + 1f,
 			volume = 0,
 			url = href,

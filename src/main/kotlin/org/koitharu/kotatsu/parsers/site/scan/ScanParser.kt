@@ -156,8 +156,8 @@ internal abstract class ScanParser(
 					val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = div.selectFirst("h5")?.html()?.substringBefore("<div")?.substringAfter("</span>")
-							.orEmpty(),
+						title = div.selectFirst("h5")?.html()?.substringBefore("<div")?.substringAfter("</span>")
+							?.nullIfEmpty(),
 						number = i + 1f,
 						volume = 0,
 						url = href,

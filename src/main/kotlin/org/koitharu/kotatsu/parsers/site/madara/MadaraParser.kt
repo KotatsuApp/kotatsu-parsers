@@ -600,7 +600,7 @@ internal abstract class MadaraParser(
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,
@@ -635,7 +635,7 @@ internal abstract class MadaraParser(
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				branch = null,

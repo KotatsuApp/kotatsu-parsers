@@ -113,7 +113,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				val dateText = div.selectFirst(".chap_update")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					url = href,
 					scanlator = null,

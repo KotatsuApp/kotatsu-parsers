@@ -284,7 +284,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			chapters = listOf(
 				MangaChapter(
 					id = generateUid(id),
-					name = name,
+					title = name,
 					number = 1f,
 					volume = 0,
 					url = id,
