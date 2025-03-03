@@ -17,10 +17,10 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGAKAKALOT", "Mangakakalot.com", "en")
+@MangaSourceParser("MANGAKAKALOT", "Mangakakalot.gg", "en")
 internal class Mangakakalot(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaParserSource.MANGAKAKALOT) {
-	override val configKeyDomain = ConfigKey.Domain("mangakakalot.com", "chapmanganato.com")
+	override val configKeyDomain = ConfigKey.Domain("mangakakalot.gg", "chapmanganato.com")
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -48,7 +48,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		)
 
 	override val otherDomain = "chapmanganato.com"
-	override val listUrl = "/manga_list"
+	override val listUrl = "/genre/all"
 
 	private fun SearchableField.toParamName(): String = when (this) {
 		TAG -> "category"
@@ -96,7 +96,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 		var titleSearchUrl: String? = null
 		val url = buildString {
 			val pageQueryParameter = "page=$page"
-			append("https://$domain/?")
+			append("https://$domain/genre/all?")
 
 			query.criteria.forEach { criterion ->
 				when (criterion) {
@@ -150,17 +150,24 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 	}
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
-		val tags = doc.select("ul.tag li a").drop(1)
-		return tags.mapToSet { a ->
-			val key = a.attr("href").substringAfterLast("category=").substringBefore("&")
-			val name = a.attr("title").replace(" Manga", "")
-			MangaTag(
-				key = key,
-				title = name,
-				source = source,
-			)
+		val doc = webClient.httpGet("https://$domain").parseHtml()
+		val tags = doc.select("td a[href*='/genre/']").drop(1)
+		val uniqueTags = mutableSetOf<MangaTag>()
+		for (a in tags) {
+			val key = a.attr("href").substringAfter("/genre/").substringBefore("?")
+			val name = a.text().replaceFirstChar { it.uppercaseChar() }
+			if (uniqueTags.none { it.key == key }) {
+				uniqueTags.add(
+					MangaTag(
+						key = key,
+						title = name,
+						source = source,
+					)
+				)
+			}
 		}
+
+		return uniqueTags
 	}
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
