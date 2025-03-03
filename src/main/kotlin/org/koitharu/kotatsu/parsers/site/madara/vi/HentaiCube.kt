@@ -18,7 +18,7 @@ import java.util.*
 internal class HentaiCube(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicube.xyz") {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz", "hentaicb.love") // hentaicb.love broken
+	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz")
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true

@@ -578,7 +578,7 @@ internal abstract class MadaraParser(
 			altTitles = setOfNotNull(alt),
 			state = state,
 			chapters = chaptersDeferred.await(),
-			contentRating = if (doc.selectFirst(".adult-confirm") != null) {
+			contentRating = if (doc.selectFirst(".adult-confirm") != null || isNsfwSource) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
