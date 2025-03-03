@@ -143,7 +143,6 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				tags = emptySet(),
 				authors = emptySet(),
 				state = null,
-				description = div.selectFirst("h2")?.text() ?: "No Description",
 				source = source,
 				contentRating = null,
 			)
