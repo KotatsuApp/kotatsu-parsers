@@ -143,6 +143,7 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 				tags = emptySet(),
 				authors = emptySet(),
 				state = null,
+				description = div.selectFirst("h2")?.text() ?: "No Description",
 				source = source,
 				contentRating = null,
 			)
@@ -151,16 +152,23 @@ internal class Mangakakalot(context: MangaLoaderContext) :
 
 	override suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		val tags = doc.select("ul.tag li a").drop(1)
-		return tags.mapToSet { a ->
-			val key = a.attr("href").substringAfterLast("category=").substringBefore("&")
-			val name = a.attr("title").replace(" Manga", "")
-			MangaTag(
-				key = key,
-				title = name,
-				source = source,
-			)
+		val tags = doc.select("td a[href*='/genre/']").drop(1)
+		val uniqueTags = mutableSetOf<MangaTag>()
+		for (a in tags) {
+			val key = a.attr("href").substringAfter("/genre/").substringBefore("?")
+			val name = a.text().replaceFirstChar { it.uppercaseChar() }
+			if (uniqueTags.none { it.key == key }) {
+				uniqueTags.add(
+					MangaTag(
+						key = key,
+						title = name,
+						source = source,
+					)
+				)
+			}
 		}
+
+		return uniqueTags
 	}
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
