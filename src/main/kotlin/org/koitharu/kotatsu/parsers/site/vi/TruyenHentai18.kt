@@ -13,7 +13,10 @@ import java.util.*
 @MangaSourceParser("TRUYENHENTAI18", "TruyenHentai18", "vi", ContentType.HENTAI)
 internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.pro")
+	override val configKeyDomain = ConfigKey.Domain(
+		"truyenhentai18.pro",
+		"truyenhentai18.net"
+	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
