@@ -13,7 +13,7 @@ import java.util.*
 @MangaSourceParser("TRUYENHENTAI18", "TruyenHentai18", "vi", ContentType.HENTAI)
 internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.net")
+	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.pro")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -183,7 +183,7 @@ internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaPar
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("#viewer img").mapNotNull { img ->
+		return doc.select("div#viewer p img").mapNotNull { img -> // Need debug
 			val url = img.attr("src") ?: return@mapNotNull null
 			MangaPage(
 				id = generateUid(url),
