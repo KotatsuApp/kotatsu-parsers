@@ -10,11 +10,12 @@ import org.koitharu.kotatsu.parsers.site.mangabox.MangaboxParser
 internal class Manganato(context: MangaLoaderContext) :
 	MangaboxParser(context, MangaParserSource.MANGANATO) {
 	override val configKeyDomain = ConfigKey.Domain(
-		"manganato.com",
+		"natomanga.com",
+		"manganato.gg",
 		"chapmanganato.to",
 		"chapmanganato.com",
 	)
-	override val otherDomain = "chapmanganato.to"
+	override val otherDomain = "chapmanganato.gg"
 
 	override val authorUrl = "/author/story"
 	override val selectPage = ".container-chapter-reader > img"
