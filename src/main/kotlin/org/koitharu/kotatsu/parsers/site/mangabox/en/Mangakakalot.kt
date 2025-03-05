@@ -23,7 +23,6 @@ internal class Mangakakalot(context: MangaLoaderContext) : MangaboxParser(contex
 	override val configKeyDomain = ConfigKey.Domain(
 		"www.mangakakalot.gg",
 		"mangakakalot.gg",
-		"chapmanganato.com"
 	)
 	
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
