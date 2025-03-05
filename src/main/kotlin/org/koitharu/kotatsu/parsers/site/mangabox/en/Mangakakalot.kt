@@ -18,9 +18,14 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAKAKALOT", "Mangakakalot.gg", "en")
-internal class Mangakakalot(context: MangaLoaderContext) :
-	MangaboxParser(context, MangaParserSource.MANGAKAKALOT) {
-	override val configKeyDomain = ConfigKey.Domain("mangakakalot.gg", "chapmanganato.com")
+internal class Mangakakalot(context: MangaLoaderContext) : MangaboxParser(context, MangaParserSource.MANGAKAKALOT) {
+		
+	override val configKeyDomain = ConfigKey.Domain(
+		"www.mangakakalot.gg",
+		"mangakakalot.gg",
+		"chapmanganato.com"
+	)
+	
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
