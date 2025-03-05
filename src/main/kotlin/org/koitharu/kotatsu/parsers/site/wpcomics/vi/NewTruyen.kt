@@ -59,14 +59,16 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		return doc.select("div.col-xs-5.chapter").mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirstOrThrow("a")
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text() // Broken, will fix it later
+			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text()
+				?.replace("th&#225;ng", "tháng")?.replace("ng&#224;y", "ngày") // Testing
+
 			MangaChapter(
 				id = generateUid(href),
 				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,
-				uploadDate = parseChapterDate(dateText), // Broken, will fix it later
+				uploadDate = parseChapterDate(dateText),
 				source = source,
 				scanlator = null,
 				branch = null,
@@ -74,10 +76,10 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		}
 	}
 
-	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ng&#224;y|th&#225;ng) trước")
+	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tháng) trước")
 	private val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
 
-	private fun parseChapterDate(dateText: String?): Long { // Broken, will fix it later
+	private fun parseChapterDate(dateText: String?): Long {
 		if (dateText == null) return 0
 
 		return when {
@@ -93,13 +95,13 @@ internal class NewTruyen(context: MangaLoaderContext) :
 				System.currentTimeMillis() - hours * 3600 * 1000
 			}
 
-			dateText.contains("ng&#224;y trước") -> {
+			dateText.contains("ngày trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val days = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - days * 86400 * 1000
 			}
 
-			dateText.contains("th&#225;ng trước") -> {
+			dateText.contains("tháng trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val months = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - months * 30 * 86400 * 1000
