@@ -56,11 +56,12 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		val url = "/Story/ListChapterByStoryID?storyID=$storyID"
 		val fullUrl = url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.col-xs-5.chapter").mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirstOrThrow("a")
+		return doc.select("li.row ").mapChapters(reversed = true) { i, li ->
+			val chapter = li.select("div.col-xs-5.chapter")
+			val a = chapter.select("a").firstOrNull() ?: return@mapChapters null
 			val href = a.attrAsRelativeUrl("href")
 			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text()
-				?.replace("th&#225;ng", "tháng")?.replace("ng&#224;y", "ngày") // Testing
+				?.replace("th&#225;ng", "tháng")?.replace("ng&#224;y", "ngày")
 
 			MangaChapter(
 				id = generateUid(href),
