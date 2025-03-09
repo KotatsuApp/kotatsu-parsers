@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.es
 
+import org.koitharu.kotatsu.parsers.broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
@@ -7,6 +8,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
+@Broken // no longer works with MadaraParser, need fix
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.DRAGONTRANSLATION, "dragontranslation.net", 30) {
@@ -51,24 +53,23 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
-
-		return doc.select("div.video-bg div.col-6 ").map { div ->
-			val href =
-				div.selectFirst("a.series-link")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img.thumb-img")?.src(),
-				title = div.selectFirst("div.series-box h5")?.text().orEmpty(),
-				altTitles = emptySet(),
-				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
-				tags = emptySet(),
-				authors = emptySet(),
-				state = null,
-				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-			)
-		}
+		val row = doc.select("div.row.gy-3").firstOrNull() ?: return emptyList()
+			return row.select("article.position-relative.card").mapNotNull { div ->
+				val href = div.selectFirst("a.lanzador")?.attrAsRelativeUrlOrNull("href") ?: return@mapNotNull null
+				val coverUrl = div.selectFirst("img.card-img-top.wp-post-image.lazy.loaded")?.src().orEmpty()
+				Manga(
+					id = generateUid(href),
+					url = href,
+					publicUrl = href,
+					coverUrl = coverUrl,
+					title = div.selectFirst("h2.card-title.fs-6.entry-title").text(),
+					altTitles = emptySet(),
+					rating = RATING_UNKNOWN,
+					tags = emptySet(),
+					authors = emptySet(),
+					state = null,
+					source = source,
+					contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+				)
+			}
 	}
-}
