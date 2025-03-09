@@ -72,4 +72,5 @@ internal class DragonTranslationParser(context: MangaLoaderContext) :
 					contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				)
 			}
+		}
 	}
