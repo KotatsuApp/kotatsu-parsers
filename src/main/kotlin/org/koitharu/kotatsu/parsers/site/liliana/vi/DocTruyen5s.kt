@@ -9,7 +9,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.liliana.LilianaParser
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // cant fetch pages
 @MangaSourceParser("DOCTRUYEN5S", "DocTruyen5s", "vi")
 internal class DocTruyen5s(context: MangaLoaderContext) :
 	LilianaParser(context, MangaParserSource.DOCTRUYEN5S, "manga.io.vn", 42) {
