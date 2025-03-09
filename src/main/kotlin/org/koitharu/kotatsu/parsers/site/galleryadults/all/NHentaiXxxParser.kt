@@ -110,10 +110,23 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 		}
 	}
 
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val totalPages = doc.selectFirstOrThrow(selectTotalPage).text().toInt()
+		val firstPageUrl = doc.requireElementById(idImg).requireSrc()
+		return (1..totalPages).map {
+			val url = replacePageNumber(firstPageUrl, it)
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body()
-		return root.requireElementById(idImg).requireSrc()
+		return page.url
 	}
 
 	override fun Element.parseTags() = select("a").mapToSet {
@@ -124,5 +137,16 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 			title = name.toTitleCase(sourceLocale),
 			source = source,
 		)
+	}
+
+	private fun replacePageNumber(url: String, newPageNumber: Int): String {
+		val lastSegment = url.substringAfterLast("/")
+		val extension = lastSegment.substringAfterLast(".", "")
+
+		return if (extension.isNotEmpty()) {
+			url.substringBeforeLast("/") + "/$newPageNumber.$extension"
+		} else {
+			url.substringBeforeLast("/") + "/$newPageNumber"
+		}
 	}
 }
