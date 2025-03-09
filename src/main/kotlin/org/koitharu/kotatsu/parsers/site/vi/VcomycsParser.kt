@@ -23,7 +23,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.VCOMYCS, 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("vivicomi.info")
+		get() = ConfigKey.Domain("vivicomi.org")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
