@@ -49,44 +49,37 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("/genre/")
-			if (filter.tags.isEmpty()) {
-				append("all")
-			} else {
-				append(filter.tags.first().key)
-			}
-
-			append("?sort=")
-			append(
-				when (order) {
-					SortOrder.UPDATED -> "recent-update"
-					SortOrder.POPULARITY -> "view"
-					else -> "recent-update"
-				},
-			)
-
-			if (!filter.query.isNullOrEmpty()) {
-				append("&search=")
-				append(filter.query.urlEncoded())
-			}
-
-			if (filter.states.isNotEmpty()) {
-				append("&status=")
-				append(
-					when (filter.states.first()) {
-						MangaState.ONGOING -> "progress"
-						MangaState.FINISHED -> "completed"
-						else -> ""
-					},
-				)
-			}
-
-			append("&page=")
-			append(page)
+		val urlBuilder = urlBuilder()
+			.addPathSegment("genre")
+		filter.tags.oneOrThrowIfMany()?.also {
+			urlBuilder.addPathSegment(it.key)
+		} ?: urlBuilder.addPathSegment("all")
+		urlBuilder.addQueryParameter(
+			"sort",
+			when (order) {
+				SortOrder.UPDATED -> "recent-update"
+				SortOrder.POPULARITY -> "view"
+				else -> "recent-update"
+			},
+		)
+		filter.query?.nullIfEmpty()?.let {
+			urlBuilder.addQueryParameter("search", it)
 		}
 
-		val doc = webClient.httpGet(url.toAbsoluteUrl(domain)).parseHtml()
+		filter.states.oneOrThrowIfMany()?.let {
+			urlBuilder.addQueryParameter(
+				"status",
+				when (it) {
+					MangaState.ONGOING -> "progress"
+					MangaState.FINISHED -> "completed"
+					else -> ""
+				},
+			)
+		}
+
+		urlBuilder.addQueryParameter("page", page.toString())
+
+		val doc = webClient.httpGet(urlBuilder.build()).parseHtml()
 		return doc.select("div.relative.mb-1.h-full.max-h-\\[375px\\]").map { div ->
 			val img = div.selectFirst("img.hover\\:scale-105.transition-all.w-full.h-full")
 			val a = div.selectFirstOrThrow("a")
@@ -96,7 +89,7 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 			val href = a.attrAsRelativeUrl("href")
 
 			Manga(
-				id = generateUid(url),
+				id = generateUid(href),
 				title = title,
 				altTitles = emptySet(),
 				url = href,
@@ -211,7 +204,12 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("$domain/genre/all").parseHtml()
+		val doc = webClient.httpGet(
+			urlBuilder()
+				.addPathSegment("genre")
+				.addPathSegment("all")
+				.build(),
+		).parseHtml()
 		val tagItems = doc.select("div.genre-list a")
 		return tagItems.mapNotNullToSet { item ->
 			val title = item.text().toTitleCase(sourceLocale)
