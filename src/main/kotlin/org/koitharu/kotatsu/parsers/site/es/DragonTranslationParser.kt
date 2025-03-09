@@ -18,6 +18,10 @@ internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPage
 		keys.add(userAgentKey)
 	}
 
+	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+ 		.add("referer", "no-referrer")
+ 		.build()
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -124,7 +128,7 @@ internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPage
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div#chapter_imgs img").map { img ->
-			val url = img.requireSrc()
+			val url = img.attr("src")
 			MangaPage(
 				id = generateUid(url),
 				url = url,
