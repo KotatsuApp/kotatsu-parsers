@@ -116,6 +116,7 @@ internal class Kumapage(context: MangaLoaderContext) :
 				rating = RATING_UNKNOWN,
 				state = null,
 				coverUrl = img,
+                // TODO: Check if manga is NSFW by checking the genre
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
