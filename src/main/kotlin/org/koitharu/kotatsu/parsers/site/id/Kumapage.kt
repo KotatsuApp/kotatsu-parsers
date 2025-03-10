@@ -51,8 +51,17 @@ internal class Kumapage(context: MangaLoaderContext) :
 			}
 
 			filter.tags.isNotEmpty() -> {
-				val tags = filter.tags.joinToString("&genre[]=") { it.title.replace(" ", "+") }
-				val url = "https://$domain/daftar-komik?page=$page&genre[]=$tags"
+                val url = buildString {
+                    append("https://")
+                    append(domain)
+                    append("/daftar-komik")
+                    append("?page=")
+                    append(page)
+                    filter.tags.forEach {
+                        append("&genre[]=")
+                        append(it.title.replace(" ", "+"))
+                    }
+                }
 				val response = webClient.httpGet(url.toHttpUrl()).parseHtml()
 				parseMangaList(response)
 			}
