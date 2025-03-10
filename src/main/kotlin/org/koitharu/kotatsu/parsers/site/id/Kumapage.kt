@@ -51,7 +51,7 @@ internal class Kumapage(context: MangaLoaderContext) :
 			}
 
 			filter.tags.isNotEmpty() -> {
-				val tags = filter.tags.joinToString("&genre[]=") { it.key }
+				val tags = filter.tags.joinToString("&genre[]=") { it.title.replace(" ", "+") }
 				val url = "https://$domain/daftar-komik?page=$page&genre[]=$tags"
 				val response = webClient.httpGet(url.toHttpUrl()).parseHtml()
 				parseMangaList(response)
@@ -126,7 +126,7 @@ internal class Kumapage(context: MangaLoaderContext) :
             MangaChapter(
                 id = generateUid(row.select("td:nth-child(4) a").attr("href")),
                 title = row.select("td:nth-child(2)").text(),
-                number = i + 1f,
+                number = (doc.select("tbody#result-comic tr").size - i).toFloat(),
                 volume = 0,
                 url = row.select("td:nth-child(4) a").attr("href"),
                 scanlator = null,
@@ -134,7 +134,7 @@ internal class Kumapage(context: MangaLoaderContext) :
                 branch = null,
                 source = source,
             )
-        }
+        }.reversed()
 
         return manga.copy(
             description = description,
