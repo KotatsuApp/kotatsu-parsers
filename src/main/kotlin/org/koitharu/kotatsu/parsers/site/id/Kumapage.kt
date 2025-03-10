@@ -118,6 +118,13 @@ internal class Kumapage(context: MangaLoaderContext) :
         val state = if (doc.selectFirst("div.detail-singular:has(p:contains(Status)) + p")
             ?.text() == "Active") { MangaState.ONGOING } else { MangaState.FINISHED }
         val description = doc.selectFirst("td:contains(Synopsis) + td")?.text()
+        val altTitles = doc.select("div.comic-details p").let { paragraphs ->
+            if (paragraphs.size > 1) {
+                setOf(paragraphs[1].text())
+            } else {
+                emptySet()
+            }
+        }
         val tags = doc.select("div.categories p.category").map { tag ->
             MangaTag(title = tag.text(), key = "", source = source)
         }.toSet()
@@ -137,6 +144,7 @@ internal class Kumapage(context: MangaLoaderContext) :
         }.reversed()
 
         return manga.copy(
+            altTitles = altTitles,
             description = description,
             state = state,
             tags = tags,
