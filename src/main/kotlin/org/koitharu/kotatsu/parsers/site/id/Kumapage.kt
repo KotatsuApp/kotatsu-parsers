@@ -140,6 +140,9 @@ internal class Kumapage(context: MangaLoaderContext) :
             MangaTag(title = tag.text(), key = "", source = source)
         }.toSet()
 
+        val checkTags = setOf("Adult", "Ecchi", "Hentai", "Incest", "Josei(W)", "Loli", "Netorare", "Smut", "Violence")
+        val contentRating = if (tags.any { it.title in checkTags }) ContentRating.ADULT else null
+
         val chapters = doc.select("tbody#result-comic tr").mapIndexed { i, row ->
             MangaChapter(
                 id = generateUid(row.select("td:nth-child(4) a").attr("href")),
@@ -159,6 +162,7 @@ internal class Kumapage(context: MangaLoaderContext) :
             description = description,
             state = state,
             tags = tags,
+            contentRating = contentRating,
             chapters = chapters,
         )
     }
