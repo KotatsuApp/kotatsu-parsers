@@ -12,6 +12,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+// TODO: Check if manga is NSFW by checking the genre
+
 @MangaSourceParser("KUMAPAGE", "Kumapage", "id")
 internal class Kumapage(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.KUMAPAGE, 14) {
@@ -116,7 +118,6 @@ internal class Kumapage(context: MangaLoaderContext) :
 				rating = RATING_UNKNOWN,
 				state = null,
 				coverUrl = img,
-                // TODO: Check if manga is NSFW by checking the genre
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				source = source,
 			)
@@ -139,6 +140,9 @@ internal class Kumapage(context: MangaLoaderContext) :
             MangaTag(title = tag.text(), key = "", source = source)
         }.toSet()
 
+        val checkTags = setOf("Adult", "Ecchi", "Hentai", "Incest", "Josei(W)", "Loli", "Netorare", "Smut", "Violence")
+        val contentRating = if (tags.any { it.title in checkTags }) ContentRating.ADULT else null
+
         val chapters = doc.select("tbody#result-comic tr").mapIndexed { i, row ->
             MangaChapter(
                 id = generateUid(row.select("td:nth-child(4) a").attr("href")),
@@ -158,6 +162,7 @@ internal class Kumapage(context: MangaLoaderContext) :
             description = description,
             state = state,
             tags = tags,
+            contentRating = contentRating,
             chapters = chapters,
         )
     }
@@ -166,21 +171,29 @@ internal class Kumapage(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select("div.content_place img").mapNotNull { img ->
 			val url = img.attr("src")
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
+			if (!img.hasClass("ui") && !img.hasClass("avatar") && !img.hasClass("image")) {
+				MangaPage(
+					id = generateUid(url),
+					url = url,
+					preview = null,
+					source = source,
+				)
+			} else {
+				null
+			}
 		}
 	}
 
     private suspend fun fetchTags(): Set<MangaTag> {
         val doc = webClient.httpGet("https://$domain/search").parseHtml()
-		return doc.select("select#genre option").map { option ->
-			val key = option.attr("value")
-			val title = option.text()
-            MangaTag(title = title, key = key, source = source)
-		}.toSet()
-	}
+        return doc.select("select#genre option").mapNotNull { option ->
+            val key = option.attr("value")
+            val title = option.text()
+            if (title != "All Genres") { // remove "all" tags to avoid "Nothing found"
+                MangaTag(title = title, key = key, source = source)
+            } else {
+                null
+            }
+        }.toSet()
+    }
 }
