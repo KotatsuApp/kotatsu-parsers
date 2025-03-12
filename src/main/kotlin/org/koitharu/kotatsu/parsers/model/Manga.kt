@@ -176,6 +176,7 @@ public data class Manga(
 	public val hasRating: Boolean
 		get() = rating > 0f && rating <= 1f
 
+	@Deprecated("Use contentRating instead", ReplaceWith("contentRating == ContentRating.ADULT"))
 	public val isNsfw: Boolean
 		get() = contentRating == ContentRating.ADULT
 
