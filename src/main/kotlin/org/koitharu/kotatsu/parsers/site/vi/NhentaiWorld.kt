@@ -8,13 +8,14 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken // TODO
+@Broken // TODO: Fix tags
 @MangaSourceParser("NHENTAIWORLD", "Nhentai World", "vi", ContentType.HENTAI)
 internal class NhentaiWorld(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.NHENTAIWORLD, 24) {
@@ -105,89 +106,144 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 		}
 	}
 
-
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.selectFirst("div.flex-1.bg-neutral-900") ?: return manga
-		val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT).apply {
-			timeZone = TimeZone.getTimeZone("GMT+7")
-		}
+ 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+ 		val root = doc.selectFirst("div.flex-1.bg-neutral-900") ?: return manga
+ 		val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ROOT).apply {
+ 			timeZone = TimeZone.getTimeZone("GMT+7")
+ 		}
+ 
+ 		val tags = root.select("div.flex.flex-wrap.gap-2 button").mapNotNullToSet { button ->
+ 			val tagName = button.text().toTitleCase(sourceLocale)
+ 			val tagUrl = button.parent()?.attrOrNull("href")?.substringAfterLast('/')
+ 			if (tagUrl != null) {
+ 				MangaTag(title = tagName, key = tagUrl, source = source)
+ 			} else {
+ 				null
+ 			}
+ 		}
+ 
+ 		val state = when {
+ 			root.selectFirst("a[href*='status=completed']") != null -> MangaState.FINISHED
+ 			root.selectFirst("a[href*='status=progress']") != null -> MangaState.ONGOING
+ 			else -> null
+ 		}
+ 
+ 		val description = root.selectFirst("div#introduction-wrap p.font-light")?.html()?.nullIfEmpty()
+ 
+ 		val altTitles = description?.split("\n")?.mapNotNullToSet { line ->
+ 			when {
+ 				line.startsWith("Tên tiếng anh:", ignoreCase = true) ->
+ 					line.substringAfter(':').substringBefore("Tên gốc:").trim()
+ 
+ 				line.startsWith("Tên gốc:", ignoreCase = true) ->
+ 					line.substringAfter(':').trim().substringBefore(' ')
+ 
+ 				else -> null
+ 			}
+ 		}
+ 
+ 		val scriptTag = doc.select("script").firstOrNull { script ->
+ 			val data = script.data()
+ 			data.contains("data") && data.contains("chapterListEn")
+ 		}?.data()
+ 		val chapters = parseChapterList(scriptTag, manga, chapterDateFormat)
 
-		val tags = root.select("div.flex.flex-wrap.gap-2 button").mapNotNullToSet { button ->
-			val tagName = button.text().toTitleCase(sourceLocale)
-			val tagUrl = button.parent()?.attrOrNull("href")?.substringAfterLast('/')
-			if (tagUrl != null) {
-				MangaTag(title = tagName, key = tagUrl, source = source)
-			} else {
-				null
-			}
-		}
-
-		val state = when {
-			root.selectFirst("a[href*='status=completed']") != null -> MangaState.FINISHED
-			root.selectFirst("a[href*='status=progress']") != null -> MangaState.ONGOING
-			else -> null
-		}
-
-		val description = root.selectFirst("div#introduction-wrap p.font-light")?.html()?.nullIfEmpty()
-
-		val altTitles = description?.split("\n")?.mapNotNullToSet { line ->
-			when {
-				line.startsWith("Tên tiếng anh:", ignoreCase = true) ->
-					line.substringAfter(':').substringBefore("Tên gốc:").trim()
-
-				line.startsWith("Tên gốc:", ignoreCase = true) ->
-					line.substringAfter(':').trim().substringBefore(' ')
-
-				else -> null
-			}
-		}
-
-		val scriptTag = doc.select("script").firstOrNull { it.data().contains("\"data\":") }?.data()
-
+ 		return manga.copy(
+ 			tags = tags,
+ 			state = state,
+ 			description = description,
+ 			altTitles = altTitles.orEmpty(),
+ 			chapters = chapters.reversed(),
+ 		)
+ 	}
+ 
+ 	private suspend fun parseChapterList(scriptTag: String?, manga: Manga, chapterDateFormat: SimpleDateFormat): List<MangaChapter> {
+		val idManga = manga.url.substringAfter("detail/").toIntOrNull() ?: return emptyList()
+		
 		val chapters = ArrayList<MangaChapter>()
-		if (!scriptTag.isNullOrEmpty()) {
-			val jsonData = JSONObject(scriptTag)
+		if (scriptTag.isNullOrEmpty()) return chapters
 
-			val viChaptersArray: JSONArray = jsonData.optJSONArray("data") ?: JSONArray()
-			val enChaptersArray: JSONArray = jsonData.optJSONArray("chapterListEn") ?: JSONArray()
-
-			listOf(
-				Pair("Tiếng Việt", viChaptersArray),
-				Pair("English", enChaptersArray),
-			).flatMapTo(chapters) { (branch: String, chaptersArray: JSONArray) ->
-				List(chaptersArray.length()) { i ->
-					val chapterObj = chaptersArray.getJSONObject(i)
-					val chapterName = chapterObj.getStringOrNull("name")
-					val uploadDateStr = chapterObj.getStringOrNull("createdAt")
-					val uploadDate = chapterDateFormat.tryParse(uploadDateStr)
-
-					if (!chapterName.isNullOrEmpty()) {
-						MangaChapter(
-							id = generateUid("${manga.url}/$chapterName?lang=${if (branch == "Tiếng Việt") "VI" else "EN"}"),
-							title = chapterName,
-							number = chapterName.toFloatOrNull() ?: (i + 1).toFloat(),
-							url = "/read/${manga.id}/$chapterName?lang=${if (branch == "Tiếng Việt") "VI" else "EN"}",
-							scanlator = null,
-							uploadDate = uploadDate,
-							branch = branch,
-							source = source,
-							volume = 0,
-						)
-					} else null
-				}.filterNotNull()
-			}
+		val cleanedScript = scriptTag.replace("\\", "")
+		
+		val cutScript = "null,{\"data\""
+		val needScript = cleanedScript.indexOf(cutScript)
+		if (needScript == -1) return chapters
+		val finalScript = cleanedScript.substring(needScript)
+		
+		val vnPrefix = "null,{\"data\":"
+		val vnStart = finalScript.indexOf(vnPrefix)
+		if (vnStart == -1) return chapters
+		val beforeEn = ",\"chapterListEn\""
+		val vnEnd = finalScript.indexOf(beforeEn, vnStart)
+		if (vnEnd == -1) return chapters
+		val vnChapterStr = finalScript.substring(vnStart + vnPrefix.length, vnEnd)
+		
+		val vnArray = try {
+			JSONArray(vnChapterStr)
+		} catch (e: Exception) {
+			JSONArray()
+		}
+		
+		for (i in 0 until vnArray.length()) {
+			val chapter = vnArray.getJSONObject(i)
+			val name = chapter.optString("name", null) ?: continue
+			val uploadDateStr = chapter.optString("createdAt", null)
+			val uploadDate = chapterDateFormat.tryParse(uploadDateStr)
+			val href = "${idManga}/${name}?lang=VI"
+			chapters.add(
+				MangaChapter(
+					id = generateUid(href),
+					title = if (name.toFloatOrNull() != null) "Chapter $name" else name,
+					number = name.toFloatOrNull() ?: (i + 1).toFloat(),
+					url = "/read/${href}",
+					scanlator = null,
+					uploadDate = uploadDate,
+					branch = "Tiếng Việt",
+					source = source,
+					volume = 0
+				)
+			)
 		}
 
-		return manga.copy(
-			tags = tags,
-			state = state,
-			description = description,
-			altTitles = altTitles.orEmpty(),
-			chapters = chapters,
-		)
+		// Copy + Paste from VI
+		val enPrefix = ",\"chapterListEn\":"
+		val enStart = finalScript.indexOf(enPrefix)
+		if (enStart == -1) return chapters
+		val beforeId = ",\"id\""
+		val enEnd = finalScript.indexOf(beforeId, enStart)
+		if (enEnd == -1) return chapters
+		val enChapterStr = finalScript.substring(enStart + enPrefix.length, enEnd)
+		
+		val enArray = try {
+			JSONArray(enChapterStr)
+		} catch (e: Exception) {
+			JSONArray()
+		}
+		
+		for (i in 0 until enArray.length()) {
+			val chapter = enArray.getJSONObject(i)
+			val name = chapter.optString("name", null) ?: continue
+			val uploadDateStr = chapter.optString("createdAt", null)
+			val uploadDate = chapterDateFormat.tryParse(uploadDateStr)
+			val href = "${idManga}/${name}?lang=EN"
+			chapters.add(
+				MangaChapter(
+					id = generateUid(href),
+					title = if (name.toFloatOrNull() != null) "Chapter $name" else name,
+					number = name.toFloatOrNull() ?: (i + 1).toFloat(),
+					url = "/read/${href}",
+					scanlator = null,
+					uploadDate = uploadDate,
+					branch = "English",
+					source = source,
+					volume = 0
+				)
+			)
+		}
+		
+		return chapters
 	}
-
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
@@ -203,7 +259,7 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 			}
 	}
 
-	private suspend fun fetchTags(): Set<MangaTag> {
+	private suspend fun fetchTags(): Set<MangaTag> { // TODO
 		val doc = webClient.httpGet(
 			urlBuilder()
 				.addPathSegment("genre")
@@ -222,4 +278,3 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 		}
 	}
 }
-
