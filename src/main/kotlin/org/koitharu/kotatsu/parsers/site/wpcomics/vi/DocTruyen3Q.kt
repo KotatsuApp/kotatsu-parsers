@@ -16,7 +16,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"truyen3qvip.com",
-		"doctruyen3qui.pro", // Main domain
+		"doctruyen3qui3.pro", // Main domain
 	)
 
 	override val datePattern = "dd/MM/yyyy"
