@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import okhttp3.internal.closeQuietly
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -140,7 +141,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 					"truyen" to comicsId,
 					"chap" to chapterId,
 				),
-			)
+			).closeQuietly()
 		}
 
 		return doc.select(".content_view_chap img").mapIndexed { i, img ->

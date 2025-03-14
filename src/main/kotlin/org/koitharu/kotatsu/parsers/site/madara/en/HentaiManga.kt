@@ -2,9 +2,8 @@ package org.koitharu.kotatsu.parsers.site.madara.en
 
 import kotlinx.coroutines.*
 import okhttp3.Headers
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -120,10 +119,10 @@ internal class HentaiManga(context: MangaLoaderContext) :
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
-		val url = "https://$domain/wp-admin/admin-ajax.php"
+		val url = "https://$domain/wp-admin/admin-ajax.php".toHttpUrl()
 		val postData = "post_id=$mangaId&action=ajax_chap"
 		val headers = Headers.Builder().add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").build()
-		val doc = makeRequest(url, postData.toRequestBody(), headers)
+		val doc = makeRequest(url, postData, headers)
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return doc.select(selectChapter).mapChapters(reversed = true) { i, li ->
 			val a = li.selectFirst("a")
@@ -148,14 +147,12 @@ internal class HentaiManga(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun makeRequest(url: String, payload: RequestBody, headers: Headers): Document {
+	private suspend fun makeRequest(url: HttpUrl, payload: String, headers: Headers): Document {
 		var retryCount = 0
 		val backoffDelay = 2000L // Initial delay (milliseconds)
-		val request = Request.Builder().url(url).post(payload).headers(headers).build()
 		while (true) {
 			try {
-				return context.httpClient.newCall(request).execute().parseHtml()
-
+				return webClient.httpPost(url, payload, headers).parseHtml()
 			} catch (e: Exception) {
 				// Log or handle the exception as needed
 				if (++retryCount <= 5) {

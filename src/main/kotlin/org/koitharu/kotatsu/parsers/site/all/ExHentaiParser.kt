@@ -304,7 +304,7 @@ internal class ExHentaiParser(
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
 		if (response.headersContentLength() <= 256) {
-			val text = response.peekBody(256).string()
+			val text = response.peekBody(256).use { it.string() }
 			if (text.contains("IP address has been temporarily banned", ignoreCase = true)) {
 				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0

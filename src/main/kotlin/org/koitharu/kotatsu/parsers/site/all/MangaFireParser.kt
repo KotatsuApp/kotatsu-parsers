@@ -456,7 +456,7 @@ internal abstract class MangaFireParser(
 				}
 			}
 
-			return@redrawImageResponse result
+			result
 		}
 	}
 
