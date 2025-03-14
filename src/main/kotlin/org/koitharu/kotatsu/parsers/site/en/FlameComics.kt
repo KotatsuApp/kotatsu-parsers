@@ -156,7 +156,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 			},
 			authors = setOfNotNull(author),
 			largeCoverUrl = if (cover != null) {
-				imageUrl(seriesId, cover, 640)
+				imageUrl(seriesId, cover, 720)
 			} else {
 				null
 			},
