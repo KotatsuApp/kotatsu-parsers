@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.vi
 import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -14,7 +13,6 @@ import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken // TODO: Fix tags
 @MangaSourceParser("NHENTAIWORLD", "Nhentai World", "vi", ContentType.HENTAI)
 internal class NhentaiWorld(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.NHENTAIWORLD, 24) {
@@ -258,21 +256,46 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 			}
 	}
 
-	private suspend fun fetchTags(): Set<MangaTag> { // TODO
+	private suspend fun fetchTags(): Set<MangaTag> {
 		val doc = webClient.httpGet(
 			urlBuilder()
 				.addPathSegment("genre")
 				.addPathSegment("all")
 				.build(),
 		).parseHtml()
-		val tagItems = doc.select("div.genre-list a")
-		return tagItems.mapNotNullToSet { item ->
-			val title = item.text().toTitleCase(sourceLocale)
-			val key = item.attr("href").substringAfterLast('/')
-			if (key.isNotEmpty() && title.isNotEmpty()) {
-				MangaTag(title = title, key = key, source = source)
-			} else {
-				null
+		
+		val scriptTag = doc.select("script").firstOrNull { script ->
+			val data = script.data()
+			data.contains("buildId") && data.contains("options")
+		}?.data() ?: return emptySet()
+		
+		val cleanedScript = scriptTag.replace("\\", "")
+		
+		val optionsPrefix = "\"options\":"
+		val optionsStart = cleanedScript.indexOf(optionsPrefix)
+		if (optionsStart == -1) return emptySet()
+		
+		val optionsEnd = cleanedScript.indexOf("\"zombie\"}]", optionsStart) + "\"zombie\"}]".length
+		if (optionsEnd == -1) return emptySet()
+		
+		val optionsStr = cleanedScript.substring(optionsStart + optionsPrefix.length, optionsEnd)
+		
+		val optionsArray = try {
+			JSONArray(optionsStr)
+		} catch (e: Exception) {
+			return emptySet()
+		}
+		
+		return buildSet {
+			for (i in 0 until optionsArray.length()) {
+				val option = optionsArray.getJSONObject(i)
+				val title = option.getStringOrNull("label")?.toTitleCase(sourceLocale) ?: continue
+				val key = option.getStringOrNull("value") ?: continue
+				if (title.isNotEmpty() && key.isNotEmpty()) {
+					if (title != "Tất cả" || key != "all") { // remove "All" tags, default list = all
+						add(MangaTag(title = title, key = key, source = source))
+					}
+				}
 			}
 		}
 	}
