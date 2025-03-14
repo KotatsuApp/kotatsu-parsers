@@ -28,6 +28,9 @@ public interface MangaParser : Interceptor {
 
 	public val config: MangaSourceConfig
 
+	public val authorizationProvider: MangaParserAuthProvider?
+		get() = this as? MangaParserAuthProvider
+
 	/**
 	 * Provide default domain and available alternatives, if any.
 	 *

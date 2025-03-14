@@ -6,6 +6,7 @@ import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
 import org.koitharu.kotatsu.parsers.MangaParser
+import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.util.mergeWith
@@ -13,6 +14,9 @@ import org.koitharu.kotatsu.parsers.util.mergeWith
 internal class MangaParserWrapper(
 	private val delegate: MangaParser,
 ) : MangaParser by delegate {
+
+	override val authorizationProvider: MangaParserAuthProvider?
+		get() = delegate as? MangaParserAuthProvider
 
 	override suspend fun getList(query: MangaSearchQuery): List<Manga> = withContext(Dispatchers.Default) {
 		if (!query.skipValidation) {
