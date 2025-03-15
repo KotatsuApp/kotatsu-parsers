@@ -40,7 +40,7 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
 
 		val pageListDoc = Jsoup.parse(responseJson.getString("html"))
 
-		return pageListDoc.selectOrThrow("div.separator a, div.separator img").mapNotNull { element ->
+		return pageListDoc.selectOrThrow("div.separator a").mapNotNull { element ->
 			val originalUrl = element.attr("href").takeIf { it.isNotEmpty() } ?: element.attr("src")
 			if (originalUrl.isEmpty()) return@mapNotNull null
 			
