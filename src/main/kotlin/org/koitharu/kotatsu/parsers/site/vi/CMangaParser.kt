@@ -149,11 +149,13 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			val slug = info.getStringOrNull("url") ?: return@mapJSONNotNull null
 			val id = info.optLong("id").takeIf { it != 0L } ?: return@mapJSONNotNull null
 			val relativeUrl = "/album/$slug-$id"
+			val title = info.optString("name").replace("\\", "")
+			val altTitle = info.optJSONArray("name_other")?.asTypedList<String>()?.map { it.replace("\\", "") }
 
 			Manga(
 				id = generateUid(id),
-				title = info.optString("name").toTitleCase(),
-				altTitles = info.optJSONArray("name_other")?.toStringSet().orEmpty(),
+				title = title.toTitleCase(),
+				altTitles = altTitle?.toSet().orEmpty(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
