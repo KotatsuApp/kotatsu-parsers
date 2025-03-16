@@ -103,12 +103,15 @@ internal abstract class Manga18Parser(
 	protected open fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.story_item").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+			val title = div.selectFirst("div.mg_name")?.selectFirst("a")?.text()
+				?: div.selectFirst("a")?.attr("title")
+				?: "No name"
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
-				title = div.selectFirst("div.mg_info")?.selectFirst("div.mg_name a")?.text().orEmpty(),
+				title = title,
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
