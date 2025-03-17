@@ -222,7 +222,21 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.page-chapter img").mapNotNull { img ->
-			val url = img.attrAsAbsoluteUrlOrNull("src") ?: return@mapNotNull null
+			val url = img.attrAsRelativeUrlOrNull("data-original")
+				?: img.attrAsRelativeUrlOrNull("src")
+				?: return@mapNotNull null
+			
+			if (url.contains( // Remove ads images
+				"sp1.jpg") || 
+				url.contains("3q_fake") || 
+				url.contains("sp2.jpg") || 
+				url.contains("3qui3.jpg") || 
+				url.contains("3q_top") ||
+				url.contains("3q282.jpg")
+			) {
+				return@mapNotNull null
+			}
+			
 			MangaPage(
 				id = generateUid(url),
 				url = url,
