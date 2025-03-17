@@ -226,7 +226,14 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 				?: img.attrAsRelativeUrlOrNull("src")
 				?: return@mapNotNull null
 			
-			if (url.contains("sp1.jpg") || url.contains("3q_fake") || url.contains("sp2.jpg") || url.contains("3qui3.jpg")) {
+			if (url.contains( // Remove ads images
+				"sp1.jpg") || 
+				url.contains("3q_fake") || 
+				url.contains("sp2.jpg") || 
+				url.contains("3qui3.jpg") || 
+				url.contains("3q_top") ||
+				url.contains("3q282.jpg")
+			) {
 				return@mapNotNull null
 			}
 			

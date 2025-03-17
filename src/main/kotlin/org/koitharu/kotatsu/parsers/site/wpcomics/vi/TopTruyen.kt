@@ -222,7 +222,14 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.page-chapter img").mapNotNull { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: return@mapNotNull null
+			val url = img.attrAsRelativeUrlOrNull("data-original")
+				?: img.attrAsRelativeUrlOrNull("src")
+				?: return@mapNotNull null
+			
+			if (url.contains("toptruyentv.jpg") || url.contains("follow.png")) { // Remove ads images
+				return@mapNotNull null
+			}
+			
 			MangaPage(
 				id = generateUid(url),
 				url = url,
