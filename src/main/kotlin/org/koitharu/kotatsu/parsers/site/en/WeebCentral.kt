@@ -180,11 +180,13 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				.toHttpUrl()
 				.pathSegments[1]
 			val author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty()
+			val title = element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")?.text() 
+				?: "No name"
 			Manga(
 				id = generateUid(mangaId),
 				url = mangaId,
 				publicUrl = "https://$domain/series/$mangaId",
-				title = element.selectFirstOrThrow("abbr[title] > a").text(),
+				title = title,
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				contentRating = if (element.selectFirst("svg:has(style:containsData(ff0000))") == null) {
