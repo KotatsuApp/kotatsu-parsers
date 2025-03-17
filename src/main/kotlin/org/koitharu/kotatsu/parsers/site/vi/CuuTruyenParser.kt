@@ -250,7 +250,16 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		}.toByteArray()
 	}
 
-	private fun availableTags() = arraySetOf(
+	private fun availableTags() = arraySetOf( // big thanks to beer-psi
+		MangaTag("School life", "school-life", source),
+		MangaTag("Nsfw", "nsfw", source),
+		MangaTag("Monster girls", "monster-girls", source),
+		MangaTag("Magic", "magic", source),
+		MangaTag("tình yêu không được đáp lại", "tinh-yeu-khong-duoc-dap-lai", source),
+        MangaTag("tình yêu thuần khiết", "tinh-yeu-thuan-khiet", source),
+		MangaTag("Khỏa thân", "khoa-than", source),
+		MangaTag("Gyaru", "gyaru", source),
+		MangaTag("4-Koma", "4-koma", source),
 		MangaTag("Manga", "manga", source),
 		MangaTag("Đang tiến hành", "dang-tien-hanh", source),
 		MangaTag("Thể thao", "the-thao", source),
@@ -352,6 +361,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Vô CP", "vo-cp", source),
 		MangaTag("Xuyên không", "xuyen-khong", source),
 		MangaTag("Việt Nam", "viet-nam", source),
+		MangaTag("Việt nam", "viet-nam", source),
 		MangaTag("Toán học", "toan-hoc", source),
 		MangaTag("Thiếu niên", "thieu-nien", source),
 		MangaTag("Tình yêu", "tinh-yeu", source),
