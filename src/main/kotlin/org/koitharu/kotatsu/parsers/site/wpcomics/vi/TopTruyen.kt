@@ -9,9 +9,7 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // TODO: Fix chap imgs
 @MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
 internal class TopTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv.pro", 36) {
@@ -224,11 +222,11 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.page-chapter img").mapNotNull { img ->
-			val url = img.attrAsRelativeUrlOrNull("data-original")
-				?: img.attrAsRelativeUrlOrNull("src")
+			val url = img.attrAsRelativeUrlOrNull("src")
+				?: img.attrAsRelativeUrlOrNull("data-original")
 				?: return@mapNotNull null
 			
-			if (url.contains("toptruyentv.jpg") || url.contains("follow.png")) { // Remove ads images
+			if (url.contains("toptruyentv.jpg") || url.contains("follow.png") || url.contains("image_default.png")) { // Remove ads images
 				return@mapNotNull null
 			}
 			
