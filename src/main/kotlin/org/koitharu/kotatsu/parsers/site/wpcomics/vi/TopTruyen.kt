@@ -9,7 +9,9 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // TODO: Fix chap imgs
 @MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
 internal class TopTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv.pro", 36) {
