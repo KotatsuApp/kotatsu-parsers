@@ -13,7 +13,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // TODO: Fix tags, genres
 @MangaSourceParser("MYREADINGMANGA", "MyReadingManga")
 internal class MyReadingManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 20) {
 
@@ -104,7 +106,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : LegacyPagedMangaPar
             if (filter.tags.isNotEmpty()) {
                 filter.tags.forEach { tag ->
                     append("&wpsolr_fq[$paramIndex]=")
-                    append("genre_str:${tag.key}")
+                    append("tags:${tag.key}")
                     paramIndex++
                 }
             }
