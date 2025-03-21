@@ -4,17 +4,22 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("DAMCONUONG", "Dâm Cô Nương", "vi", type = ContentType.HENTAI)
-internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.DAMCONUONG, 30) {
+internal class DamCoNuong(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.DAMCONUONG, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("damconuong.fit")
+
+	private val availableTags = suspendLazy(initializer = ::fetchTags)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -38,7 +43,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchTags(),
+		availableTags = availableTags.get(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
 	)
 
@@ -57,10 +62,10 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 					SortOrder.ALPHABETICAL -> "name"
 					SortOrder.ALPHABETICAL_DESC -> "-name"
 					else -> "-updated_at"
-				}
+				},
 			)
 
-            if (filter.states.isNotEmpty()) {
+			if (filter.states.isNotEmpty()) {
 				append("&filter[status]=")
 				filter.states.forEach {
 					append(
@@ -91,41 +96,40 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 	}
 
 	private suspend fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical").map { element ->
-			val mainA = element.selectFirst("div.relative a")
-			val href = mainA?.attr("href") ?: ""
-			val title = element.selectFirst("div.latest-chapter a.text-white.capitalize").text() ?: "No name"
-			val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.attr("data-src") ?: ""
+		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical")
+			.map { element ->
+				val mainA = element.selectFirstOrThrow("div.relative a")
+				val href = mainA.attrAsRelativeUrl("href")
+				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "No name"
+				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.src()
 
-			Manga(
-				id = generateUid(href),
-				title = title,
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				rating = RATING_UNKNOWN,
-				contentRating = ContentRating.ADULT,
-				coverUrl = coverUrl,
-				tags = emptySet(),
-				state = null,
-				authors = emptySet(),
-				source = source,
-			)
-		}
+				Manga(
+					id = generateUid(href),
+					title = title,
+					altTitles = emptySet(),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					contentRating = ContentRating.ADULT,
+					coverUrl = coverUrl,
+					tags = emptySet(),
+					state = null,
+					authors = emptySet(),
+					source = source,
+				)
+			}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val url = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(url).parseHtml()
 
-		val altTitles = doc.select("div.mt-2:contains(Tên khác:) span").map { it.text() }.toSet().orEmpty()
-		val tags = doc.select("div.mt-2:contains(Thể loại:) a").map { a ->
-			MangaTag(
-				key = "", // Auto-detected by title, idk
-				title = a.text(),
-				source = source,
-			)
-		}.toSet()
+		val altTitles = doc.select("div.mt-2:contains(Tên khác:) span").mapNotNullToSet { it.textOrNull() }
+		val allTags = availableTags.getOrNull().orEmpty()
+		val tags = doc.select("div.mt-2:contains(Thể loại:) a").mapToSet { a ->
+			val title = a.text().toTitleCase()
+			allTags.find { x -> x.title == title }
+		}
 
 		val stateText = doc.selectFirst("div.mt-2:contains(Tình trạng:) span")?.text()
 		val state = when (stateText) {
@@ -133,19 +137,20 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 			else -> MangaState.FINISHED
 		}
 
-		val chapterListDiv = doc.selectFirst("div#chapterList.justify-between.border-2.border-gray-100.dark\\:border-dark-blue.p-3.bg-white.dark\\:bg-fire-blue.shadow-md.rounded.dark\\:shadow-gray-900.mb-4")
-			?: throw ParseException("Chapters list not found!", url)
+		val chapterListDiv =
+			doc.selectFirst("div#chapterList.justify-between.border-2.border-gray-100.dark\\:border-dark-blue.p-3.bg-white.dark\\:bg-fire-blue.shadow-md.rounded.dark\\:shadow-gray-900.mb-4")
+				?: throw ParseException("Chapters list not found!", url)
 
 		val chapterLinks = chapterListDiv.select("a.block")
-		val chapters = chapterLinks.mapIndexed { index, a ->
-			val title = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
-			val href = a.attr("href")
-			val uploadDate = a.selectFirst("span.ml-2.whitespace-nowrap")?.text().orEmpty()
+		val chapters = chapterLinks.mapChapters(reversed = true) { index, a ->
+			val title = a.selectFirst("span.text-ellipsis")?.textOrNull()
+			val href = a.attrAsRelativeUrl("href")
+			val uploadDate = a.selectFirst("span.ml-2.whitespace-nowrap")?.text()
 
 			MangaChapter(
 				id = generateUid(href),
 				title = title,
-				number = (chapterLinks.size - index).toFloat(),
+				number = index + 1f,
 				volume = 0,
 				url = href,
 				scanlator = null,
@@ -153,7 +158,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 				branch = null,
 				source = source,
 			)
-		}.reversed()
+		}
 
 		return manga.copy(
 			altTitles = altTitles,
@@ -163,9 +168,9 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		)
 	}
 
-    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").mapNotNull { img ->
+		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").map { img ->
 			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
@@ -176,7 +181,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		}
 	}
 
-    private fun parseChapterDate(date: String?): Long {
+	private fun parseChapterDate(date: String?): Long {
 		if (date == null) return 0
 		return when {
 			date.contains("giây trước") -> System.currentTimeMillis() - date.removeSuffix(" giây trước").toLong() * 1000
@@ -204,21 +209,17 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 
 	private suspend fun fetchTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem").parseHtml()
-		return doc.select("label.ml-3.inline-flex.items-center.cursor-pointer.select-none").map { label ->
-			val key = label.attr("@click").substringAfter("toggleGenre('").substringBefore("')").trim()
-			// val key = getKeyTags(rawKey)
-			val title = label.selectFirst("span.ml-2.text-sm.font-semibold.text-blueGray-600.text-ellipsis")?.text() ?: ""
-			MangaTag(
-				key = key,
-				title = title,
-				source = source,
-			)
-		}.toSet()
+		val regex = Regex("toggleGenre\\('([0-9]+)'\\)")
+		return doc.body().getElementsByAttribute("@click")
+			.mapNotNullToSet { label ->
+				// @click="toggleGenre('1')"
+				val attr = label.attr("@click")
+				val number = attr.findGroupValue(regex) ?: return@mapNotNullToSet null
+				MangaTag(
+					key = number,
+					title = label.textOrNull()?.toTitleCase(sourceLocale) ?: return@mapNotNullToSet null,
+					source = source,
+				)
+			}
 	}
-
-	// Fix tags, if its necessary!
-	// private fun getKeyTags(rawKey: String): String {
-	// 	val number = rawKey.trim().replace(Regex("[^0-9]"), "")
-	// 	return (number.toIntOrNull()?.plus(1) ?: 0).toString()
-	// }
 }
