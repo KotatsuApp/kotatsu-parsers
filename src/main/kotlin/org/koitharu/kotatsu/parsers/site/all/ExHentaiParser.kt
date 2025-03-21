@@ -13,6 +13,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
@@ -258,7 +259,7 @@ internal class ExHentaiParser(
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				preview = null,
+				preview = a.children().firstOrNull()?.extractPreview(),
 				source = source,
 			)
 		}
@@ -316,6 +317,22 @@ internal class ExHentaiParser(
 						+ TimeUnit.MINUTES.toMillis(minutes)
 						+ TimeUnit.SECONDS.toMillis(seconds),
 				)
+			}
+		}
+		val imageRect = response.request.url.fragment?.split(',')
+		if (imageRect != null && imageRect.size == 4) {
+			// rect: top,left,right,bottom
+			return context.redrawImageResponse(response) { bitmap ->
+				val srcRect = Rect(
+					left = imageRect[0].toInt(),
+					top = imageRect[1].toInt(),
+					right = imageRect[2].toInt(),
+					bottom = imageRect[3].toInt(),
+				)
+				val dstRect = Rect(0, 0, srcRect.width, srcRect.height)
+				val result = context.createBitmap(dstRect.width, dstRect.height)
+				result.drawBitmap(bitmap, srcRect, dstRect)
+				result
 			}
 		}
 		return response
@@ -392,6 +409,22 @@ internal class ExHentaiParser(
 			getElementsByAttributeValueStarting("title", prefix).mapNotNullTo(result, Element::parseTag)
 		}
 		return result
+	}
+
+	private fun Element.extractPreview(): String? {
+		val bg = backgroundOrNull() ?: return null
+		return buildString {
+			append(bg.url)
+			append('#')
+			// rect: left,top,right,bottom
+			append(bg.left)
+			append(',')
+			append(bg.top)
+			append(',')
+			append(bg.right)
+			append(',')
+			append(bg.bottom)
+		}
 	}
 
 	private fun getNextTimestamp(root: Element): Long {
