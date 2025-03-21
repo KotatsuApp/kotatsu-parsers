@@ -126,7 +126,7 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 
 		val altTitles = doc.select("div.mt-2:contains(Tên khác:) span").mapNotNullToSet { it.textOrNull() }
 		val allTags = availableTags.getOrNull().orEmpty()
-		val tags = doc.select("div.mt-2:contains(Thể loại:) a").mapToSet { a ->
+		val tags = doc.select("div.mt-2:contains(Thể loại:) a").mapNotNullToSet { a ->
 			val title = a.text().toTitleCase()
 			allTags.find { x -> x.title == title }
 		}
