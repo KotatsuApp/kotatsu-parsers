@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -74,7 +75,12 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 
 			if (filter.tags.isNotEmpty()) {
 				append("&filter[accept_genres]=")
-				append(filter.tags.joinToString(",") { (it.key.toInt() + 1).toString() })
+				append(filter.tags.joinTo(this, ",") { it.key })
+			}
+
+			if (!filter.query.isNullOrEmpty()) {
+				append("&filter[name]=")
+				append(filter.query.urlEncoded())
 			}
 
 			append("&page=$page")
@@ -84,11 +90,12 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		return parseMangaList(doc)
 	}
 
-	private fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.text-white.capitalize").map { element ->
-            val a = element.selectFirst("a")
-			val href = a?.attr("href") ?: ""
-			val title = a?.text().orEmpty()
+	private suspend fun parseMangaList(doc: Document): List<Manga> {
+		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical").map { element ->
+			val mainA = element.selectFirst("div.relative a")
+			val href = mainA?.attr("href") ?: ""
+			val title = element.selectFirst("div.latest-chapter a.text-white.capitalize").text() ?: "No name"
+			val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.attr("data-src") ?: ""
 
 			Manga(
 				id = generateUid(href),
@@ -98,7 +105,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
-				coverUrl = "",
+				coverUrl = coverUrl,
 				tags = emptySet(),
 				state = null,
 				authors = emptySet(),
@@ -114,7 +121,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		val altTitles = doc.select("div.mt-2:contains(Tên khác:) span").map { it.text() }.toSet().orEmpty()
 		val tags = doc.select("div.mt-2:contains(Thể loại:) a").map { a ->
 			MangaTag(
-				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+				key = "", // Auto-detected by title, idk
 				title = a.text(),
 				source = source,
 			)
@@ -126,16 +133,19 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 			else -> MangaState.FINISHED
 		}
 
-		val chapterElements = doc.select("ul#chapterList li")
-		val chapters = chapterElements.mapIndexed { index, li ->
-			val title = li.selectFirst("span.text-ellipsis")?.text().orEmpty()
-			val href = li.selectFirst("a")?.attr("href")?.toAbsoluteUrl(domain) ?: ""
-			val uploadDate = li.selectFirst("span.ml-2.whitespace-nowrap")?.text().orEmpty()
+		val chapterListDiv = doc.selectFirst("div#chapterList.justify-between.border-2.border-gray-100.dark\\:border-dark-blue.p-3.bg-white.dark\\:bg-fire-blue.shadow-md.rounded.dark\\:shadow-gray-900.mb-4")
+			?: throw ParseException("Chapters list not found!", url)
+
+		val chapterLinks = chapterListDiv.select("a.block")
+		val chapters = chapterLinks.mapIndexed { index, a ->
+			val title = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
+			val href = a.attr("href")
+			val uploadDate = a.selectFirst("span.ml-2.whitespace-nowrap")?.text().orEmpty()
 
 			MangaChapter(
 				id = generateUid(href),
 				title = title,
-				number = (chapterElements.size - index).toFloat(),
+				number = (chapterLinks.size - index).toFloat(),
 				volume = 0,
 				url = href,
 				scanlator = null,
@@ -155,7 +165,7 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("img.max-w-full.my-0.mx-auto").map { img ->
+		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").mapNotNull { img ->
 			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
@@ -192,10 +202,11 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		}
 	}
 
-    private suspend fun fetchTags(): Set<MangaTag> {
+	private suspend fun fetchTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem").parseHtml()
 		return doc.select("label.ml-3.inline-flex.items-center.cursor-pointer.select-none").map { label ->
-			val key = label.attr("onclick").substringAfter("toggleGenre('").substringBefore("')")
+			val key = label.attr("@click").substringAfter("toggleGenre('").substringBefore("')").trim()
+			// val key = getKeyTags(rawKey)
 			val title = label.selectFirst("span.ml-2.text-sm.font-semibold.text-blueGray-600.text-ellipsis")?.text() ?: ""
 			MangaTag(
 				key = key,
@@ -205,4 +216,9 @@ internal class DamCoNuong(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		}.toSet()
 	}
 
+	// Fix tags, if its necessary!
+	// private fun getKeyTags(rawKey: String): String {
+	// 	val number = rawKey.trim().replace(Regex("[^0-9]"), "")
+	// 	return (number.toIntOrNull()?.plus(1) ?: 0).toString()
+	// }
 }
