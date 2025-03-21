@@ -12,12 +12,9 @@ import java.util.*
 
 @MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
 internal class TopTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv.pro", 36) {
+	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv2.pro", 36) {
 
-	override val configKeyDomain = ConfigKey.Domain(
-		"www.toptruyentv.pro",
-		"www.toptruyentv2.pro"
-	)
+	override val configKeyDomain = ConfigKey.Domain("www.toptruyentv2.pro")
 
 	override val datePattern = "dd/MM/yyyy"
 
