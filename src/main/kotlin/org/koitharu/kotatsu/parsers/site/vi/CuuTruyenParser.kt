@@ -143,17 +143,16 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			)
 		}.orEmpty()
 
-		// Testing: Add custom manga status using available tags
 		val state = when {
 			tags.any { it.key == "da-hoan-thanh" } -> MangaState.FINISHED
 			tags.any { it.key == "dang-tien-hanh" } -> MangaState.ONGOING
 			else -> null
 		}
 
-		// Remove old manga status from "tags"
 		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
 		val author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty()
 		val title = json.getStringOrNull("name") ?: manga.title
+		val team = json.optJSONObject("team")?.getStringOrNull("name")
 
 		manga.copy(
 			title = title,
@@ -176,7 +175,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					number = number,
 					volume = 0,
 					url = "/api/v2/chapters/$chapterId",
-					scanlator = jo.optString("group_name"),
+					scanlator = team,
 					uploadDate = chapterDateFormat.tryParse(jo.getStringOrNull("created_at")),
 					branch = null,
 					source = source,
