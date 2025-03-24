@@ -76,6 +76,16 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					if (tag != null) {
 						append("/api/v2/tags/")
 						append(tag.key)
+					} else if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									MangaState.ONGOING -> "/api/v2/tags/dang-tien-hanh"
+									MangaState.FINISHED -> "/api/v2/tags/da-hoan-thanh"
+									else -> "/api/v2/mangas/recently_updated" // if not (default page)
+								}
+							)
+						}
 					} else {
 						append("/api/v2/mangas")
 						when (order) {
@@ -143,17 +153,15 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			)
 		}.orEmpty()
 
-		// Testing: Add custom manga status using available tags
 		val state = when {
 			tags.any { it.key == "da-hoan-thanh" } -> MangaState.FINISHED
-			tags.any { it.key == "dang-tien-hanh" } -> MangaState.ONGOING
-			else -> null
+			else -> MangaState.ONGOING // Mostly ONGOING but not marked by site owner
 		}
 
-		// Remove old manga status from "tags"
 		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
 		val author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty()
 		val title = json.getStringOrNull("name") ?: manga.title
+		val team = json.optJSONObject("team")?.getStringOrNull("name")
 
 		manga.copy(
 			title = title,
@@ -176,7 +184,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					number = number,
 					volume = 0,
 					url = "/api/v2/chapters/$chapterId",
-					scanlator = jo.optString("group_name"),
+					scanlator = team,
 					uploadDate = chapterDateFormat.tryParse(jo.getStringOrNull("created_at")),
 					branch = null,
 					source = source,
@@ -261,7 +269,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Gyaru", "gyaru", source),
 		MangaTag("4-Koma", "4-koma", source),
 		MangaTag("Manga", "manga", source),
-		MangaTag("Đang tiến hành", "dang-tien-hanh", source),
 		MangaTag("Thể thao", "the-thao", source),
 		MangaTag("Hài hước", "hai-huoc", source),
 		MangaTag("Shounen", "shounen", source),
@@ -280,7 +287,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Phiêu lưu", "phieu-luu", source),
 		MangaTag("Hậu tận thế", "hau-tan-the", source),
 		MangaTag("Hành động", "hanh-dong", source),
-		MangaTag("Đã hoàn thành", "da-hoan-thanh", source),
 		MangaTag("Sinh tồn", "sinh-ton", source),
 		MangaTag("Du hành thời gian", "du-hanh-thoi-gian", source),
 		MangaTag("Khoa học", "khoa-hoc", source),
