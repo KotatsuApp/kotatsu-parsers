@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -12,12 +13,14 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // Missing chapters = Server-side problem, idk ¯\_(ツ)_/¯
 @MangaSourceParser("DAMCONUONG", "Dâm Cô Nương", "vi", type = ContentType.HENTAI)
 internal class DamCoNuong(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.DAMCONUONG, 30) {
 
-	override val configKeyDomain = ConfigKey.Domain("damconuong.fit")
+	override val configKeyDomain = ConfigKey.Domain("damconuong.love", "damconuong.fit", "damconuong.cc")
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
 
@@ -25,6 +28,10 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
+
+	override fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("referer", "https://$domain")
+		.build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -101,7 +108,9 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 				val mainA = element.selectFirstOrThrow("div.relative a")
 				val href = mainA.attrAsRelativeUrl("href")
 				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "No name"
-				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.src()
+				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.let { img ->
+					img.attr("data-src").takeUnless { it.isNullOrEmpty() } ?: img.requireSrc()
+				}
 
 				Manga(
 					id = generateUid(href),
@@ -171,7 +180,7 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").map { img ->
-			val url = img.requireSrc()
+			val url = img.attr("src") ?: img.attr("data-src") ?: throw ParseException("Image src not found!", chapter.url)
 			MangaPage(
 				id = generateUid(url),
 				url = url,
