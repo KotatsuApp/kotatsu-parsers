@@ -16,7 +16,7 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 
 @MangaSourceParser("HAMTRUYEN", "Ham Truyện", "vi")
 internal class HamTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.HAMTRUYEN, "hamtruyen.cc", 44) {
+	WpComicsParser(context, MangaParserSource.HAMTRUYEN, "hamtruyen1.com", 44) {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)

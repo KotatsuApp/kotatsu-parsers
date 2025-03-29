@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -243,17 +244,23 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("img.m-auto.read-image.w-auto.h-auto.md\\:min-h-\\[800px\\].min-h-\\[300px\\]")
-			.map { img ->
-				val url = img.requireSrc()
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
-			}
+		val url = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(url).parseHtml()
+		val root = doc.select("img.m-auto.read-image.w-auto.h-auto.md\\:min-h-\\[800px\\].min-h-\\[300px\\]")
+		
+		if (root.isEmpty()) { // for Debug #1604
+			throw ParseException("Root not found!", url)
+		}
+		
+		return root.map { img ->
+			val imgUrl = img.requireSrc()
+			MangaPage(
+				id = generateUid(imgUrl),
+				url = imgUrl,
+				preview = null,
+				source = source,
+			)
+		}
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
