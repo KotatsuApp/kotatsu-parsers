@@ -752,12 +752,4 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			.replace("♂", "(male)")
 			.replace("♀", "(female)")
 	}
-
-	private suspend fun getThumbnailUrl(hash: String): String {
-		val commonId = commonImageId()
-		val imageId = imageIdFromHash(hash)
-		val subDomain = 'a' + subdomainOffset(imageId)
-
-		return "https://${subDomain}tn.$cdnDomain/avifbigtn/${thumbPathFromHash(hash)}/$hash.avif"
-	}
 }
