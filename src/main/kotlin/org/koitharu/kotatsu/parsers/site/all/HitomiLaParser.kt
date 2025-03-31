@@ -31,12 +31,14 @@ import kotlin.math.min
 internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(context, MangaParserSource.HITOMILA) {
 	override val configKeyDomain = ConfigKey.Domain("hitomi.la")
 
+	private val cdnDomain = "gold-usergeneratedcontent.net"
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 	}
 
-	private val ltnBaseUrl get() = "https://${getDomain("ltn")}"
+	private val ltnBaseUrl get() = "https://ltn.$cdnDomain"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -556,7 +558,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 					val imageId = imageIdFromHash(hash)
 					val subDomain = 'a' + subdomainOffset(imageId)
 
-					"https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp"
+					"https://${subDomain}tn.$cdnDomain/avifbigtn/${thumbPathFromHash(hash)}/$hash.avif"
 				},
 			authors = setOfNotNull(author),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
@@ -656,12 +658,12 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			val hash = image.getString("hash")
 			val commonId = commonImageId()
 			val imageId = imageIdFromHash(hash)
-			val subDomain = 'a' + subdomainOffset(imageId)
-
+			val subDomain = subdomainOffset(imageId) + 1
+			val thumbSubdomain = 'a' + subdomainOffset(imageId)
 			MangaPage(
 				id = generateUid(hash),
-				url = "https://${getDomain("${subDomain}a")}/webp/$commonId$imageId/$hash.webp",
-				preview = "https://${getDomain("${subDomain}tn")}/webpsmalltn/${thumbPathFromHash(hash)}/$hash.webp",
+				url = "https://a${subDomain}.$cdnDomain/$commonId$imageId/$hash.avif",
+				preview = "https://${thumbSubdomain}tn.$cdnDomain/webpsmalltn/${thumbPathFromHash(hash)}/$hash.webp",
 				source = source,
 			)
 		}
