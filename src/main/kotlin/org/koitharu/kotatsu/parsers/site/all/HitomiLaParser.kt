@@ -659,7 +659,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			val commonId = commonImageId()
 			val imageId = imageIdFromHash(hash)
 			val subDomain = subdomainOffset(imageId) + 1
-
+			val thumbSubdomain = 'a' + subdomainOffset(imageId)
 			MangaPage(
 				id = generateUid(hash),
 				url = "https://a${subDomain}.$cdnDomain/$commonId$imageId/$hash.avif",
