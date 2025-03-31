@@ -5,7 +5,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("PHENIXSCANS", "PhenixScans", "fr")
 internal class PhenixscansParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.PHENIXSCANS, "phenixscans.fr", pageSize = 20, searchPageSize = 10) {
