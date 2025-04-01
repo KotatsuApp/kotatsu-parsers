@@ -14,6 +14,9 @@ import java.util.*
 @MangaSourceParser("NHENTAI_XXX", "NHentai.xxx", type = ContentType.HENTAI)
 internal class NHentaiXxxParser(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.NHENTAI_XXX, "nhentai.xxx", 25) {
+
+	val supportedImageFormats = setOf("jpg", "webp", "jpeg", "png", "bmp")
+
 	override val selectGallery = "div.galleries_box .gallery_item, #related-container .gallery_item"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"
@@ -126,7 +129,35 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		return page.url
+		return if (hasError(page.url)) {
+			findAlternativeUrl(page.url) ?: page.url
+		} else {
+			page.url
+		}
+	}
+
+	private suspend fun hasError(url: String): Boolean {
+		return try {
+			webClient.httpHead(url)
+			false
+		} catch (e: Exception) {
+			true
+		}
+	}
+
+	private suspend fun findAlternativeUrl(originalUrl: String): String? {
+		val lastSegment = originalUrl.substringAfterLast("/")
+		val oldFormat = lastSegment.substringAfterLast(".", "")
+
+		return supportedImageFormats.firstNotNullOfOrNull { format ->
+			val newUrl = originalUrl.replace(".$oldFormat", ".$format")
+			try {
+				webClient.httpHead(newUrl)
+				newUrl
+			} catch (e: Exception) {
+				null // Skip errors and continue checking other formats
+			}
+		}
 	}
 
 	override fun Element.parseTags() = select("a").mapToSet {
