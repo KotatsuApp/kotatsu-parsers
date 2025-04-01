@@ -25,7 +25,7 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
 
 	private val preferredServerKey = ConfigKey.PreferredImageServer(
 		presetValues = mapOf(
-			SERVER_1 to "Server 1",
+			SERVER_1 to "Server 1 (Original)",
 			SERVER_2 to "Server 2",
 			SERVER_3 to "Server 3",
 			SERVER_4 to "Server 4",
