@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.site.liliana.LilianaParser
 import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
 import org.koitharu.kotatsu.parsers.util.*
@@ -26,7 +27,7 @@ internal class DocTruyen5s(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val script = doc.selectFirstOrThrow("script:containsData(const CHAPTER_ID)").data()
 		val chapterId = script.substringAfter("const CHAPTER_ID = ", "").substringBefore(';', "")
-		check(chapterId.isNotEmpty()) { "Không thể tìm thấy CHAPTER_ID, hãy kiểm tra nguồn" }
+		check(chapterId.isNotEmpty()) { ParseException("Không thể tìm thấy CHAPTER_ID, hãy kiểm tra nguồn!", fullUrl) }
 
 		val ajaxUrl = buildString {
 			append("https://")
