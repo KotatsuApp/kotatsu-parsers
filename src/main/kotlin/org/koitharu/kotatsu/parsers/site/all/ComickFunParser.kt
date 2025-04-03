@@ -32,6 +32,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
 		SortOrder.UPDATED,
+		SortOrder.FOLLOWS,
 		SortOrder.RATING,
 		SortOrder.NEWEST,
 	)
@@ -91,6 +92,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			when (order) {
 				SortOrder.NEWEST -> "created_at"
 				SortOrder.POPULARITY -> "view"
+				SortOrder.FOLLOWS -> "user_follow_count"
 				SortOrder.RATING -> "rating"
 				SortOrder.UPDATED -> "uploaded"
 				else -> "uploaded"
