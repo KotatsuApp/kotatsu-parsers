@@ -20,7 +20,7 @@ import java.util.*
 internal class DesuMeParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
+	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win", "desu.store")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
