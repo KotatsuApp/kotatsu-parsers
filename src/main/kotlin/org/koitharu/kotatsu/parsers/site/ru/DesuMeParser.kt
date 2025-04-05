@@ -8,7 +8,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.*шьзщке щкпюлщшерфкгюлщефеыгюзфкыукыюьщвудю;
+
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -20,7 +21,7 @@ import java.util.*
 internal class DesuMeParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.DESUME, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win")
+	override val configKeyDomain = ConfigKey.Domain("desu.me", "desu.win", "desu.store")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
