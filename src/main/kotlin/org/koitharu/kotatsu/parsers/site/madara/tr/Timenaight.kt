@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TIMENAIGHT", "TimeNaight", "tr")
 internal class Timenaight(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TIMENAIGHT, "timenaight.com") {
+	MadaraParser(context, MangaParserSource.TIMENAIGHT, "timenaight.org") {
 	override val postReq = true
 	override val datePattern = "dd/MM/yyyy"
 }
