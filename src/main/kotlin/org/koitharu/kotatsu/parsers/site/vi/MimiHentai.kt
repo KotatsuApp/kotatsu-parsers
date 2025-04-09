@@ -3,18 +3,22 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.json.JSONArray
 import org.json.JSONObject
 import androidx.collection.ArrayMap
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
 internal class MimiHentai(context: MangaLoaderContext) :
     LegacyPagedMangaParser(context, MangaParserSource.MIMIHENTAI, 20) {
@@ -102,7 +106,59 @@ internal class MimiHentai(context: MangaLoaderContext) :
         }
     }
 
-    // TODO: getDetails
+    override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
+        val url = "https://" + domain + manga.url
+        val json = webClient.httpGet(url).parseJson()
+        
+        val basicInfo = json.getJSONObject("basicInfo")
+        val id = basicInfo.getLong("id")
+        val state = when (basicInfo.getString("description")) {
+            "Đang Tiến Hành" -> MangaState.ONGOING
+            "Hoàn Thành" -> MangaState.FINISHED
+            else -> null
+        }
+        val description = basicInfo.getString("fdescription")
+        val uploaderName = json.getString("uploaderName")
+
+        val relationInfo = json.getJSONObject("relationInfo")
+        val authors = relationInfo.getJSONArray("authors").asTypedList<String>().mapToSet { it }
+        val differentNames = relationInfo.getJSONArray("differentNames").asTypedList<String>().mapToSet { it }
+        val tags = relationInfo.getJSONArray("genres").asTypedList<JSONObject>().mapToSet { jo ->
+            MangaTag(
+                title = jo.getString("name").toTitleCase(),
+                key = jo.getLong("id").toString(),
+                source = source,
+            )
+        }
+
+        val chapters = async {
+            webClient.httpGet("https://$domain/api/v1/manga/gallery/$id").parseJson().getJSONArray("data")
+        }
+
+        manga.copy(
+            description = description,
+            tags = tags,
+            state = state,
+            authors = authors,
+            altTitles = differentNames,
+            chapters = chapters.await().mapChapters(reversed = false) { i, jo ->
+                val chapterId = jo.getLong("id")
+                val title = jo.getString("title")
+                MangaChapter(
+                    id = generateUid(chapterId),
+                    title = title,
+                    number = i + 1f,
+                    volume = 0,
+                    url = "/$apiSuffix/chapter?id=$chapterId",
+                    scanlator = uploaderName,
+                    uploadDate = 0,
+                    branch = null,
+                    source = source,
+                )
+            },
+        )
+    }
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val json = webClient.httpGet("https://$domain${chapter.url}").parseJson()
         val imageUrls = json.getJSONArray("pages").asTypedList<String>()
