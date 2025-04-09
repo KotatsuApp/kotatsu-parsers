@@ -104,7 +104,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
     // TODO: getDetails
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val json = webClient.httpGet("path/to/page.html").parseJson()
+        val json = webClient.httpGet("https://$domain${chapter.url}").parseJson()
         val imageUrls = json.getJSONArray("pages").asTypedList<String>()
 
         return imageUrls.map { url ->
