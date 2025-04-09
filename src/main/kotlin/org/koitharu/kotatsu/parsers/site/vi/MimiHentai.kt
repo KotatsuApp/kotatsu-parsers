@@ -131,10 +131,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
             )
         }
 
-        val chapters = async {
-            webClient.httpGet("https://$domain/api/v1/manga/gallery/$id").parseJson().getJSONArray("data")
-        }
-
+        val chapters = async { webClient.httpGet("$apiSuffix/gallery/$id".toAbsoluteUrl(domain)).parseJson().getJSONArray("data") }
         manga.copy(
             description = description,
             tags = tags,
