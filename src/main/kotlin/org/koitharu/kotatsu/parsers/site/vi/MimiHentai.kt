@@ -102,7 +102,20 @@ internal class MimiHentai(context: MangaLoaderContext) :
         }
     }
 
-    // TODO: getDetails + getPages
+    // TODO: getDetails
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+        val json = webClient.httpGet("path/to/page.html").parseJson()
+        val imageUrls = json.getJSONArray("pages").asTypedList<String>()
+
+        return imageUrls.map { url ->
+            MangaPage(
+                id = generateUid(url),
+                url = url,
+                preview = null,
+                source = source,
+            )
+        }
+    }
 
     private suspend fun fetchTags(): Map<String, MangaTag> { // need fix
 		val tagList = webClient.httpGet("$apiSuffix/genres".toAbsoluteUrl(domain)).parseJson()
