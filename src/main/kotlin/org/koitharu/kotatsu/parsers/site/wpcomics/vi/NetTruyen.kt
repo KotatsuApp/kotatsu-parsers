@@ -13,11 +13,11 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
 internal class NetTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenrr.com", 36) {
+	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenr.com", 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"nettruyenrr.com",
-		"nettruyenxx.com",
+		"nettruyenr.com",
+		"nettruyenxyz.com",
 	)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {

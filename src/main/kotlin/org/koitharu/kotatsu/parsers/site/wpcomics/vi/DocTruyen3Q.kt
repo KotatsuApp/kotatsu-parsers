@@ -15,7 +15,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qui5.pro", 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"doctruyen3qui5.pro",
+		"doctruyen3qui6.pro",
 		"truyen3qvip.com"
 	)
 
@@ -246,7 +246,8 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	    return url.contains("sp1.jpg") ||
 	           url.contains("3q_fake") ||
 	           url.contains("sp2.jpg") ||
-	           url.contains("3qui5.jpg") ||
+			   url.contains("3qui5.jpg") ||
+	           url.contains("3qui6.jpg") ||
 	           url.contains("3q_top") ||
 	           url.contains("3q282.jpg") ||
 	           url.contains("3qui5_banner.jpg")

@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIZ", "HentaiZ", "vi", ContentType.HENTAI)
 internal class HentaiZ(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.HENTAIZ, "hentaiz.help", 24) {
+	MadaraParser(context, MangaParserSource.HENTAIZ, "hentaiz.dev", 24) {
 	override val listUrl = "truyen-hentai/"
 	override val tagPrefix = "the-loai/"
 	override val datePattern = "dd/MM/yyyy"
