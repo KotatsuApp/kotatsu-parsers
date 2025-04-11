@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import org.json.JSONArray
 import org.json.JSONObject
-import androidx.collection.ArrayMap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -11,7 +10,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
-import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
@@ -112,10 +110,9 @@ internal class MimiHentai(context: MangaLoaderContext) :
         val id = basicInfo.getLong("id")
         val description = basicInfo.optString("fdescription").takeUnless { it.isNullOrEmpty() }
         val uploaderName = json.getString("uploaderName")
-
         val urlChaps = "https://$domain/$apiSuffix/gallery/$id"
-        val parseUrlChaps = JSONArray(webClient.httpGet(urlChaps).parseHtml().text())
-        val chapters = parseUrlChaps.mapJSON { jo ->
+        val parseUrlChaps = async { JSONArray(webClient.httpGet(urlChaps).parseHtml().text()) }
+        val chapters = parseUrlChaps.await().mapJSON { jo ->
             MangaChapter(
                 id = generateUid(jo.getLong("id")),
                 title = jo.getString("title"),
