@@ -16,20 +16,17 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
 internal class MimiHentai(context: MangaLoaderContext) :
-    LegacyPagedMangaParser(context, MangaParserSource.MIMIHENTAI, 20) {
+    LegacyPagedMangaParser(context, MangaParserSource.MIMIHENTAI, 18) {
 
     private val apiSuffix = "api/v1/manga"
-    private val availableTags = suspendLazy(initializer = ::fetchTags)
-
     override val configKeyDomain = ConfigKey.Domain("mimihentai.com")
+
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
-    override suspend fun getFilterOptions() = MangaListFilterOptions(availableTags = availableTags.get().values.toSet())
+    override suspend fun getFilterOptions() = MangaListFilterOptions(availableTags = fetchTags())
     override val filterCapabilities: MangaListFilterCapabilities
         get() = MangaListFilterCapabilities(
             isSearchSupported = true,
@@ -44,7 +41,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
             append(domain)
             append("/$apiSuffix/advance-search?page=")
             append(page - 1) // first page is 0, not 1
-            append("&max=20") // page size
+            append("&max=18") // page size, avoid rate limit
             when {
                 !filter.query.isNullOrEmpty() -> {
                     append("&name=")
@@ -74,14 +71,6 @@ internal class MimiHentai(context: MangaLoaderContext) :
             val title = jo.getString("title")
             val description = jo.getString("description")
             val authors = jo.getJSONArray("authors").asTypedList<String>().mapToSet { it }
-            
-            val allTags = availableTags.getOrNull()?.values?.toSet().orEmpty()
-            val genresArray = jo.getJSONArray("genres")
-            val genres = (0 until genresArray.length()).mapNotNull { i ->
-                val genreName = genresArray.getString(i)
-                allTags.firstOrNull { it.title.equals(genreName, ignoreCase = true) }
-            }.toSet()
-            
             val differentNames = jo.getJSONArray("differentNames").asTypedList<String>().mapToSet { it }
             val state = when(description) {
                 "Đang Tiến Hành" -> MangaState.ONGOING
@@ -98,7 +87,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
                 rating = RATING_UNKNOWN,
                 contentRating = ContentRating.ADULT,
                 coverUrl = jo.getString("coverUrl"),
-                tags = genres,
+                tags = emptySet(),
                 state = state,
                 authors = authors,
                 source = source,
@@ -110,56 +99,46 @@ internal class MimiHentai(context: MangaLoaderContext) :
         val url = "https://" + domain + manga.url
         val json = webClient.httpGet(url).parseJson()
         
-        val basicInfo = json.getJSONObject("basicInfo")
-        val id = basicInfo.getLong("id")
-        val state = when (basicInfo.getString("description")) {
-            "Đang Tiến Hành" -> MangaState.ONGOING
-            "Hoàn Thành" -> MangaState.FINISHED
-            else -> null
-        }
-        val description = basicInfo.getString("fdescription")
-        val uploaderName = json.getString("uploaderName")
-
         val relationInfo = json.getJSONObject("relationInfo")
-        val authors = relationInfo.getJSONArray("authors").asTypedList<String>().mapToSet { it }
-        val differentNames = relationInfo.getJSONArray("differentNames").asTypedList<String>().mapToSet { it }
-        val tags = relationInfo.getJSONArray("genres").asTypedList<JSONObject>().mapToSet { jo ->
+        val tags = relationInfo.getJSONArray("genres").mapJSON { jo ->
             MangaTag(
-                title = jo.getString("name").toTitleCase(),
+                title = jo.getString("name"),
                 key = jo.getLong("id").toString(),
                 source = source,
             )
+        }.toSet()
+
+        val basicInfo = json.getJSONObject("basicInfo")
+        val id = basicInfo.getLong("id")
+        val description = basicInfo.optString("fdescription").takeUnless { it.isNullOrEmpty() }
+        val uploaderName = json.getString("uploaderName")
+
+        val urlChaps = "https://$domain/$apiSuffix/gallery/$id"
+        val parseUrlChaps = JSONArray(webClient.httpGet(urlChaps).parseHtml().text())
+        val chapters = parseUrlChaps.mapJSON { jo ->
+            MangaChapter(
+                id = generateUid(jo.getLong("id")),
+                title = jo.getString("title"),
+                number = jo.getInt("number").toFloat(),
+                url = "/$apiSuffix/chapter?id=${jo.getLong("id")}",
+                uploadDate = 0L,
+                source = source,
+                scanlator = uploaderName,
+                branch = null,
+                volume = 0
+            )
         }
 
-        val chapters = async { webClient.httpGet("$apiSuffix/gallery/$id".toAbsoluteUrl(domain)).parseJson().getJSONArray("data") }
         manga.copy(
-            description = description,
             tags = tags,
-            state = state,
-            authors = authors,
-            altTitles = differentNames,
-            chapters = chapters.await().mapChapters(reversed = false) { i, jo ->
-                val chapterId = jo.getLong("id")
-                val title = jo.getString("title")
-                MangaChapter(
-                    id = generateUid(chapterId),
-                    title = title,
-                    number = i + 1f,
-                    volume = 0,
-                    url = "/$apiSuffix/chapter?id=$chapterId",
-                    scanlator = uploaderName,
-                    uploadDate = 0,
-                    branch = null,
-                    source = source,
-                )
-            },
+            description = description,
+            chapters = chapters
         )
     }
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val json = webClient.httpGet("https://$domain${chapter.url}").parseJson()
         val imageUrls = json.getJSONArray("pages").asTypedList<String>()
-
         return imageUrls.map { url ->
             MangaPage(
                 id = generateUid(url),
@@ -170,23 +149,15 @@ internal class MimiHentai(context: MangaLoaderContext) :
         }
     }
 
-    private suspend fun fetchTags(): Map<String, MangaTag> { // need fix
-		val tagList = webClient.httpGet("$apiSuffix/genres".toAbsoluteUrl(domain)).parseJson()
-		val tags = ArrayMap<String, MangaTag>()
-		for (key in tagList.keys()) {
-			val jo = tagList.getJSONObject(key)
-			val name = jo.getString("name")
-            val key = jo.getLong("id").toString()
-			tags[name.lowercase()] = MangaTag(
-				title = name.toTitleCase(),
-				key = key,
-				source = source,
-			)
-		}
-		return tags
-	}
-
-    private fun JSONObject.parseJson(key: String): JSONObject {
-		return JSONObject(getString(key))
-	}
+    private suspend fun fetchTags(): Set<MangaTag> {
+        val url = "https://$domain/$apiSuffix/genres"
+        val response = JSONArray(webClient.httpGet(url).parseHtml().text())
+        return response.mapJSON { jo ->
+            MangaTag(
+                title = jo.getString("name"),
+                key = jo.getLong("id").toString(),
+                source = source,
+            )
+        }.toSet()
+    }
 }
