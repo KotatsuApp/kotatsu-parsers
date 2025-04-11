@@ -27,7 +27,7 @@ internal abstract class WpComicsParser(
 ) : LegacyPagedMangaParser(context, source, pageSize) {
 
 	companion object {
-		const val netDomain = "nettruyenfpt.com"
+		const val netDomain = "nettruyenvnpt.com"
 	}
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
