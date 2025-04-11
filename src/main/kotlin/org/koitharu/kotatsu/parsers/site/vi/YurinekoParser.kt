@@ -13,7 +13,9 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Original site closed")
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
 internal class YurinekoParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
