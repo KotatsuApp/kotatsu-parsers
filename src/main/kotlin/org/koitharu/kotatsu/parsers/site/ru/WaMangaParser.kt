@@ -84,7 +84,7 @@ internal class WaMangaParser(
 			title = doc.getString("title"),
 			largeCoverUrl = doc.getString("thumbnail"),
 			description = doc.getStringOrNull("description") ?: manga.description,
-			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters { _, it ->
+			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters(reversed = true) { _, it ->
 				val chapterUrl = it.getString("url")
 				MangaChapter(
 					id = generateUid(chapterUrl),
