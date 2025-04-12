@@ -257,13 +257,11 @@ internal class Hentalk(context: MangaLoaderContext) :
         for (i in 0 until dataArray.length()) {
             val item = dataArray.opt(i)
             if (item is JSONObject && item.has("hash")) {
-                if (i < 20) { // search in first 20 items
+                if (i < 20) {
                     val hashValue = dataArray.getString(item.getInt("hash"))
-                    if (hashValue.length == 8) { // hash is a key that has 8 chars
+                    if (hashValue.length == 8) {
                         compressID = hashValue
                         break
-                    } else {
-                        throw ParseException("Can't find type ID in this chapter!", chapter.url)
                     }
                 }
             }
@@ -284,16 +282,14 @@ internal class Hentalk(context: MangaLoaderContext) :
                 val item = dataArray.opt(i)
                 if (item is JSONObject && item.has("gallery")) {
                     val galleryIndex = item.getInt("gallery")
-                    val galleryTemp = dataArray.optJSONObject(galleryIndex)
-                    if (galleryTemp != null && galleryTemp.has("hash")) {
-                        val hashIndex = galleryTemp.getInt("hash")
+                    val galleryTemplate = dataArray.optJSONObject(galleryIndex)
+                    if (galleryTemplate != null && galleryTemplate.has("hash")) {
+                        val hashIndex = galleryTemplate.getInt("hash")
                         hashID = dataArray.getString(hashIndex)
                         break
                     }
                 }
             }
-        } else {
-            throw ParseException("Can't find hash ID in this chapter!", chapter.url)
         }
         
         val imgList = mutableListOf<String>()
@@ -306,8 +302,6 @@ internal class Hentalk(context: MangaLoaderContext) :
                     if (filename.isNotEmpty()) {
                         imgList.add(filename)
                     }
-                } else {
-                    throw ParseException("Can't find imageUrls in this chapter!", chapter.url)
                 }
             }
         }
