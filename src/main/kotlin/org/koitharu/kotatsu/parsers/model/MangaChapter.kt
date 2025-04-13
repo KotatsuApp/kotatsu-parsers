@@ -47,7 +47,7 @@ public data class MangaChapter(
 		get() = title.ifNullOrEmpty {
 			buildString {
 				if (volume > 0) append("Vol ").append(volume).append(' ')
-				if (number > 0) append("Chapter ").append(number) else append("Unnamed")
+				if (number > 0) append("Chapter ").append(number.formatSimple()) else append("Unnamed")
 			}
 		}
 

@@ -38,6 +38,11 @@ public abstract class LegacyPagedMangaParser(
 
 	public abstract suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
 
+	protected fun setFirstPage(firstPage: Int, firstPageForSearch: Int = firstPage) {
+		paginator.firstPage = firstPage
+		searchPaginator.firstPage = firstPageForSearch
+	}
+
 	private suspend fun getList(
 		paginator: Paginator,
 		offset: Int,
