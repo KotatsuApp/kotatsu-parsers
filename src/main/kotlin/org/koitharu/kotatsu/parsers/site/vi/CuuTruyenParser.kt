@@ -45,6 +45,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
+		SortOrder.POPULARITY_WEEK,
+		SortOrder.POPULARITY_MONTH,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -90,13 +92,23 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 						append("/api/v2/mangas")
 						when (order) {
 							SortOrder.UPDATED -> append("/recently_updated")
-							SortOrder.POPULARITY -> append("/top")
+							SortOrder.POPULARITY -> append("/top?duration=all")
+							SortOrder.POPULARITY_WEEK -> append("/top?duration=week")
+							SortOrder.POPULARITY_MONTH -> append("/top?duration=month")
 							SortOrder.NEWEST -> append("/recently_updated")
 							else -> append("/recently_updated")
 						}
 					}
-					append("?page=")
-					append(page.toString())
+					when (order) {
+						SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_MONTH -> {
+							append("&page=")
+							append(page.toString())
+						}
+						else -> {
+							append("?page=")
+							append(page.toString())
+						}
+					}
 				}
 			}
 
