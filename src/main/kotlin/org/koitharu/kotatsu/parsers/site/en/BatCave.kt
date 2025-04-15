@@ -46,9 +46,14 @@ internal class BatCave(context: MangaLoaderContext) :
 		val urlBuilder = StringBuilder()
 		when {
 			!filter.query.isNullOrEmpty() -> {
+				val encodedQuery = filter.query.splitByWhitespace().joinToString(separator = "%20") { part ->
+					part.urlEncoded()
+				}
 				urlBuilder.append("/search/")
-				urlBuilder.append(filter.query.urlEncoded())
-				if (page > 1) urlBuilder.append("/page/$page/")
+				urlBuilder.append(encodedQuery)
+				if (page > 1) {
+					urlBuilder.append("/page/$page/")
+				}
 			}
 
 			else -> {
