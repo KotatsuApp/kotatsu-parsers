@@ -16,13 +16,14 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("BATCAVE", "BatCave", "en", ContentType.COMICS)
-internal class BatCave(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.BATCAVE, 20) {
+@MangaSourceParser("COMX", "Com-X", "ru", ContentType.COMICS)
+internal class ComXParser(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.COMX, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("batcave.biz")
+	override val configKeyDomain = ConfigKey.Domain("com-x.life")
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
+    private val cdnImageUrl = "img.com-x.life/comix/"
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -79,7 +80,7 @@ internal class BatCave(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.readed.d-flex.short").map { item ->
 			val a = item.selectFirstOrThrow("a.readed__img.img-fit-cover.anim")
-			val titleElement = item.selectFirstOrThrow("h2.readed__title a")
+			val titleElement = item.selectFirstOrThrow("h3.readed__title a")
 			val img = item.selectFirst("img[data-src]")
 			val href = a.attrAsRelativeUrl("href")
 			Manga(
@@ -90,7 +91,7 @@ internal class BatCave(context: MangaLoaderContext) :
 				altTitles = emptySet(),
 				authors = emptySet(),
 				description = null,
-				tags = emptySet(),
+                tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
 				coverUrl = img?.attrAsAbsoluteUrlOrNull("data-src"),
@@ -107,29 +108,30 @@ internal class BatCave(context: MangaLoaderContext) :
 
 		val scriptData = doc.selectFirst("script:containsData(__DATA__)")?.data()
 			?.substringAfter("window.__DATA__ = ")
-			?.substringBefore(";")
-			?: doc.parseFailed("Script data not found")
+			?.substringBefore(";</script>")
+			?.trim()
+			?: throw ParseException("Script data not found", manga.url)
 
 		val jsonData = JSONObject(scriptData)
-		val newsId = jsonData.getLong("news_id")
 		val chaptersJson = jsonData.getJSONArray("chapters")
-
+		val newsId = jsonData.getLong("news_id")
+		
 		val chapters = List(chaptersJson.length()) { i ->
 			val chapter = chaptersJson.getJSONObject(i)
 			val chapterId = chapter.getLong("id")
-
+			
 			MangaChapter(
-				id = generateUid("$newsId/$chapterId"),
+				id = generateUid("$newsId/$chapterId"), 
 				url = "/reader/$newsId/$chapterId",
 				number = chapter.getFloatOrDefault("posi", 0f),
-				title = chapter.getStringOrNull("title"),
+				title = decodeText(chapter.getStringOrNull("title")),
 				uploadDate = dateFormat.tryParse(chapter.getStringOrNull("date")),
 				source = source,
 				scanlator = null,
 				branch = null,
-				volume = 0,
+				volume = chapter.optInt("volume", 0)
 			)
-		}
+		}.reversed()
 
 		val author = doc.selectFirst("li:contains(Publisher:)")
 			?.textOrNull()
@@ -177,9 +179,10 @@ internal class BatCave(context: MangaLoaderContext) :
 			?: throw ParseException("Image data not found", chapter.url)
 
 		return data.map { imageUrl ->
+			val finalUrl = "https://" + cdnImageUrl + imageUrl
 			MangaPage(
 				id = generateUid(imageUrl),
-				url = imageUrl,
+				url = finalUrl,
 				preview = null,
 				source = source,
 			)
@@ -204,6 +207,18 @@ internal class BatCave(context: MangaLoaderContext) :
 				title = genre.getString("value").toTitleCase(sourceLocale),
 				source = source,
 			)
+		}
+	}
+
+	private fun decodeText(text: String?): String? {
+		if (text == null) return null
+		return try {
+			text.replace("\\u([0-9a-fA-F]{4})".toRegex()) { matchResult ->
+				val codePoint = matchResult.groupValues[1].toInt(16)
+				codePoint.toChar().toString()
+			}
+		} catch (e: Exception) {
+			text
 		}
 	}
 }
