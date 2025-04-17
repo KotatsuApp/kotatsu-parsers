@@ -70,6 +70,6 @@ internal class NetTruyen(context: MangaLoaderContext) :
 				branch = null,
 				source = source,
 			)
-		}.reversed()
+		}
 	}
 }
