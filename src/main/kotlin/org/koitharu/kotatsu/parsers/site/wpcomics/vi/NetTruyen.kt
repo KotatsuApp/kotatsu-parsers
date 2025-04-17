@@ -56,7 +56,8 @@ internal class NetTruyen(context: MangaLoaderContext) :
 		return List(data.length()) { i ->
 			val jo = data.getJSONObject(data.length() - 1 - i)
 			val chapterSlug = jo.getString("chapter_slug")
-			val chapterUrl = "/truyen-tranh/$slug/$chapterSlug"
+			val chapterId = jo.getString("chapter_id")
+			val chapterUrl = "/truyen-tranh/$slug/$chapterSlug/$chapterId"
 
 			MangaChapter(
 				id = generateUid(chapterUrl),
@@ -69,6 +70,6 @@ internal class NetTruyen(context: MangaLoaderContext) :
 				branch = null,
 				source = source,
 			)
-		}
+		}.reversed()
 	}
 }
