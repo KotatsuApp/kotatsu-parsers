@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -12,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken("images canvas need to refactor")
 @MangaSourceParser("LEGACY_SCANS", "LegacyScans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
