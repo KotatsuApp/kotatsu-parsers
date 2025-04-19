@@ -137,7 +137,7 @@ internal class Shinigami(context: MangaLoaderContext) :
 		val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("data")
 		return data.mapJSON { jo ->
-			val id = generateUid(jo.getString("manga_id"))
+			val id = jo.getString("manga_id")
 			Manga(
 				id = generateUid(id),
 				url = "/manga/detail/$id",
