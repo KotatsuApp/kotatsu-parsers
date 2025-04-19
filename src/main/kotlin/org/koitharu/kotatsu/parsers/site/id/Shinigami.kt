@@ -1,25 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.id
 
-import androidx.collection.arraySetOf
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
 import okhttp3.Headers
-import okio.IOException
-import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.bitmap.Bitmap
-import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 import org.koitharu.kotatsu.parsers.Broken
@@ -180,8 +169,6 @@ internal class Shinigami(context: MangaLoaderContext) :
 			)
 		}
 	}
-
-	// Fake functions:
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val json = webClient.httpGet("https://$apiSuffix" + manga.url).parseJson()
