@@ -229,8 +229,9 @@ internal class Shinigami(context: MangaLoaderContext) :
 		val basePath = chapterData.getString("path")
 		val datas = chapterData.getJSONArray("data")
 		
-		return datas.mapJSON { imgs ->
-			val imageUrl = "https://$cdnSuffix" + basePath + imgs
+		return List(datas.length()) { i ->
+			val imgExt = datas.getString(i)
+			val imageUrl = "https://$cdnSuffix" + basePath + imgExt
 			MangaPage(
 				id = generateUid(imageUrl),
 				url = imageUrl,
