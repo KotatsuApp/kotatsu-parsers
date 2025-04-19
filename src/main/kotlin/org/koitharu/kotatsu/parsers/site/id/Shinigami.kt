@@ -198,7 +198,7 @@ internal class Shinigami(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getChapters(mangaId: String): List<MangaChapter> {
-		val url = "https://$apiSuffix/chapter/$mangaId/list?page=1&page_size=24&sort_by=chapter_number&sort_order=asc"
+		val url = "https://$apiSuffix/chapter/$mangaId/list?page=1&page_size=9999&sort_by=chapter_number&sort_order=asc"
 		val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("data")
 		
