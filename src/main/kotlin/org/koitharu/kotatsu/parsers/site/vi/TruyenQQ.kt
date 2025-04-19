@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("TRUYENQQ", "TruyenQQ", "vi")
 internal class TruyenQQ(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
+	override val configKeyDomain = ConfigKey.Domain("truyenqqgo.com")
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

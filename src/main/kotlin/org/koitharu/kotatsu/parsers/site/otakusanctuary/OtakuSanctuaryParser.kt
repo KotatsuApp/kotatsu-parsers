@@ -10,7 +10,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 internal abstract class OtakuSanctuaryParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
