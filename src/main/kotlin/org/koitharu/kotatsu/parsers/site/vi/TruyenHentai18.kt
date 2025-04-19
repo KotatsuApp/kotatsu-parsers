@@ -9,14 +9,13 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Need to remake parser")
 @MangaSourceParser("TRUYENHENTAI18", "TruyenHentai18", "vi", ContentType.HENTAI)
 internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
 
-	override val configKeyDomain = ConfigKey.Domain(
-		"truyenhentai18.pro",
-		"truyenhentai18.net"
-	)
+	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.app")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
