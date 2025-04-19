@@ -204,14 +204,14 @@ internal class Shinigami(context: MangaLoaderContext) :
 		
 		return data.mapJSON { jo ->
 			val chapterId = jo.getString("chapter_id")
-			val number = jo.getInt("chapter_number").toFloat()
+			val number = jo.getInt("chapter_number")
 			val title = jo.optString("chapter_title").takeIf { it.isNotEmpty() } 
 				?: "Chapter $number"
 			
 			MangaChapter(
 				id = generateUid(chapterId),
 				title = title,
-				number = number,
+				number = number.toFloat(),
 				url = "chapter/detail/$chapterId",
 				scanlator = null,
 				uploadDate = jo.getString("release_date").parseDate(),
