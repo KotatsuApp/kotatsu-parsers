@@ -147,9 +147,12 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		return mangaList.mapJSONNotNull { jo ->
 			val info = jo.parseJson("info")
 			val slug = info.getStringOrNull("url") ?: return@mapJSONNotNull null
-			val id = info.optLong("id").takeIf { it != 0L } ?: return@mapJSONNotNull null
+			val id = info.getLongOrDefault("id", 0L)
+			if (id == 0L) {
+				return@mapJSONNotNull null
+			}
 			val relativeUrl = "/album/$slug-$id"
-			val title = info.optString("name").replace("\\", "")
+			val title = info.getString("name").replace("\\", "")
 			val altTitle = info.optJSONArray("name_other")?.asTypedList<String>()?.map { it.replace("\\", "") }
 
 			Manga(
@@ -201,7 +204,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	private suspend fun getTags(): Map<String, MangaTag> {
 		val tagList = webClient.httpGet("assets/json/album_tags_image.json".toAbsoluteUrl(domain)).parseJson()
 			.getJSONObject("list")
-		val tags = ArrayMap<String, MangaTag>()
+		val tags = ArrayMap<String, MangaTag>(tagList.length())
 		for (key in tagList.keys()) {
 			val jo = tagList.getJSONObject(key)
 			val name = jo.getString("name")

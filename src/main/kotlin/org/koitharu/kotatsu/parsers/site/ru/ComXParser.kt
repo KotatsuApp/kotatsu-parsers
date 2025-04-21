@@ -10,6 +10,7 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
+import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -23,7 +24,7 @@ internal class ComXParser(context: MangaLoaderContext) :
 	override val configKeyDomain = ConfigKey.Domain("com-x.life")
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
-    private val cdnImageUrl = "img.com-x.life/comix/"
+	private val cdnImageUrl = "img.com-x.life/comix/"
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -86,12 +87,12 @@ internal class ComXParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(href),
 				url = href,
-				publicUrl = a.attr("href"),
+				publicUrl = a.attrAsAbsoluteUrl("href"),
 				title = titleElement.text(),
 				altTitles = emptySet(),
 				authors = emptySet(),
 				description = null,
-                tags = emptySet(),
+				tags = emptySet(),
 				rating = RATING_UNKNOWN,
 				state = null,
 				coverUrl = img?.attrAsAbsoluteUrlOrNull("data-src"),
@@ -115,13 +116,13 @@ internal class ComXParser(context: MangaLoaderContext) :
 		val jsonData = JSONObject(scriptData)
 		val chaptersJson = jsonData.getJSONArray("chapters")
 		val newsId = jsonData.getLong("news_id")
-		
+
 		val chapters = List(chaptersJson.length()) { i ->
 			val chapter = chaptersJson.getJSONObject(i)
 			val chapterId = chapter.getLong("id")
-			
+
 			MangaChapter(
-				id = generateUid("$newsId/$chapterId"), 
+				id = generateUid("$newsId/$chapterId"),
 				url = "/reader/$newsId/$chapterId",
 				number = chapter.getFloatOrDefault("posi", 0f),
 				title = decodeText(chapter.getStringOrNull("title")),
@@ -129,7 +130,7 @@ internal class ComXParser(context: MangaLoaderContext) :
 				source = source,
 				scanlator = null,
 				branch = null,
-				volume = chapter.optInt("volume", 0)
+				volume = chapter.getIntOrDefault("volume", 0),
 			)
 		}.reversed()
 
@@ -179,7 +180,7 @@ internal class ComXParser(context: MangaLoaderContext) :
 			?: throw ParseException("Image data not found", chapter.url)
 
 		return data.map { imageUrl ->
-			val finalUrl = "https://" + cdnImageUrl + imageUrl
+			val finalUrl = "https://$cdnImageUrl$imageUrl"
 			MangaPage(
 				id = generateUid(imageUrl),
 				url = finalUrl,

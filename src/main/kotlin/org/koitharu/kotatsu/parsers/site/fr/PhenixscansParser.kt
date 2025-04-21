@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import kotlinx.coroutines.*
+import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -115,14 +115,13 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 	private fun parseMangaList(json: JSONArray): List<Manga> {
 		return json.mapJSON { j ->
 			val slug = j.getString("slug")
-			val urlManga = "https://$domain/manga/$slug"
 			Manga(
 				id = generateUid(j.getString("_id")),
 				title = j.getString("title"),
 				altTitles = emptySet(),
-				url = urlManga,
-				publicUrl = urlManga,
-				rating = j.getFloatOrDefault("averageRating", RATING_UNKNOWN) / 10f,
+				url = slug,
+				publicUrl = "https://$domain/manga/$slug",
+				rating = j.getFloatOrDefault("averageRating", RATING_UNKNOWN * 10f) / 10f,
 				contentRating = null,
 				description = j.getStringOrNull("synopsis"),
 				coverUrl = "https://cdn.phenix-scans.com/?url=https://api.phenix-scans.com/" + j.getString("coverImage") + "&output=webp&w=400&ll",
@@ -142,7 +141,7 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 	private val dateFormat = SimpleDateFormat("d MMM yyyy", sourceLocale)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-		val mangaUrl = manga.url.toAbsoluteUrl(domain)
+		val mangaUrl = "https://$domain/manga/${manga.url}"
 		val doc = webClient.httpGet(mangaUrl).parseHtml()
 
 		manga.copy(
@@ -156,8 +155,8 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 			chapters = doc.select(" div.project__chapters a.project__chapter")
 				.mapChapters(reversed = true) { i, a ->
 					val href = a.attrAsRelativeUrl("href")
-					val name = a.selectFirst(".project__chapter-title")?.text().orEmpty()
-					val dateText = a.selectFirst(".project__chapter-date")?.text().orEmpty()
+					val name = a.selectFirst(".project__chapter-title")?.textOrNull()
+					val dateText = a.selectFirst(".project__chapter-date")?.textOrNull()
 					MangaChapter(
 						id = generateUid(href),
 						title = name,
@@ -180,7 +179,7 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.chapter-images img.chapter-image").map { img ->
-			val url = img.src() ?: img.parseFailed("Image src not found")
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -196,7 +195,7 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 		return json.mapJSONToSet {
 			MangaTag(
 				key = it.getString("_id"),
-				title = it.getString("name"),
+				title = it.getString("name").toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

@@ -141,7 +141,7 @@ internal class RemangaParser(
 		val content = try {
 			data.getJSONObject("content")
 		} catch (e: JSONException) {
-			throw ParseException(data.optString("msg"), manga.publicUrl, e)
+			throw ParseException(data.getStringOrNull("msg"), manga.publicUrl, e)
 		}
 		val branchId = content.getJSONArray("branches").optJSONObject(0)
 			?.getLong("id") ?: throw ParseException("No branches found", manga.publicUrl)
