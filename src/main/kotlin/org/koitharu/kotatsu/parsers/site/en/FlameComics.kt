@@ -140,7 +140,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 			rating = RATING_UNKNOWN,
 			contentRating = null,
 			coverUrl = if (cover != null) {
-				imageUrl(seriesId, cover, 256)
+				imageUrl(seriesId, cover, 384)
 			} else {
 				null
 			},
