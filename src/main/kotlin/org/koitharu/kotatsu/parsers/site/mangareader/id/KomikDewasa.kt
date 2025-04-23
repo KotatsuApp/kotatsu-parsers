@@ -13,7 +13,7 @@ internal class KomikDewasa(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.KOMIKDEWASA_ONLINE,
-		"komikdewasa.online",
+		"komikdewasa.art",
 		pageSize = 20,
 		searchPageSize = 10,
 	) {

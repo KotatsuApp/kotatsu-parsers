@@ -8,7 +8,6 @@ import java.util.*
 
 @MangaSourceParser("KOFISCANS", "KofiScans", "id")
 internal class KofiScans(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOFISCANS, "manhwalist.org", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.KOFISCANS, "isekaikomik.com", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
-	override val listUrl = "/manhwa"
 }

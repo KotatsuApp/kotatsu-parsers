@@ -11,7 +11,7 @@ internal class Mangayaro(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.MANGAYARO,
-		"www.nowheartruth.com",
+		"mangayaro.id",
 		pageSize = 20,
 		searchPageSize = 20,
 	) {

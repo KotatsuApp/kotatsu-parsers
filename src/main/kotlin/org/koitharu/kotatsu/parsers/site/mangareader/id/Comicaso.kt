@@ -17,7 +17,7 @@ import java.util.Base64
 
 @MangaSourceParser("COMICASO", "Comicaso", "id")
 internal class Comicaso(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.COMICASO, "comicaso.id", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.COMICASO, "comicaso.xyz", pageSize = 20, searchPageSize = 10) {
 	override val encodedSrc = true
 
 	override val filterCapabilities: MangaListFilterCapabilities
