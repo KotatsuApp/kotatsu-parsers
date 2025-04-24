@@ -17,7 +17,7 @@ internal class NetTruyen(context: MangaLoaderContext) :
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"nettruyenr.com",
-		"nettruyenxyz.com",
+		"nettruyenx.net",
 	)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
