@@ -11,109 +11,96 @@ import java.util.*
 
 @MangaSourceParser("RAGNARSCANS", "RagnarScans", "tr")
 internal class RagnarScans(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.RAGNARSCANS) {
+    LegacySinglePageMangaParser(context, MangaParserSource.RAGNARSCANS) {
 
-	override val configKeyDomain = ConfigKey.Domain("ragnarscans.com")
+    override val configKeyDomain = ConfigKey.Domain("ragnarscans.com")
 
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
+    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+        super.onCreateConfig(keys)
+        keys.add(userAgentKey)
+    }
 
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+    override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 
-	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities(
-			isSearchSupported = true,
-			isSearchWithFiltersSupported = true,
-		)
+    override val filterCapabilities: MangaListFilterCapabilities
+        get() = MangaListFilterCapabilities(
+            isSearchSupported = true,
+            isSearchWithFiltersSupported = true,
+        )
 
-	override suspend fun getFilterOptions() = MangaListFilterOptions()
+    override suspend fun getFilterOptions() = MangaListFilterOptions()
 
-	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val results = mutableListOf<Manga>()
-		var page = 1
-		var hasNext = true
-		while (hasNext) {
-			val url = if (filter.query.isNullOrBlank()) {
-				buildListUrl(page)
-			} else {
-				buildSearchUrl(page, filter.query)
-			}
-			val doc = webClient.httpGet(url).parseHtml()
-			val mangaDivs = if (filter.query.isNullOrBlank()) {
-				doc.select(".col-6.col-md-3.badge-pos-2")
-			} else {
-				doc.select(".row.c-tabs-item__content")
-			}
-			if (mangaDivs.isEmpty()) break
-			for (div in mangaDivs) {
-				val a = if (filter.query.isNullOrBlank()) {
-					div.selectFirstOrThrow(".item-thumb a")
-				} else {
-					div.selectFirstOrThrow(".tab-thumb a")
-				}
-				val href = a.attrAsRelativeUrl("href")
-				val title = if (filter.query.isNullOrBlank()) {
-					div.selectFirstOrThrow(".post-title.font-title a").text()
-				} else {
-					div.selectFirstOrThrow(".post-title a").text()
-				}
-				val img = if (filter.query.isNullOrBlank()) {
-					div.selectFirstOrThrow(".item-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
-				} else {
-					div.selectFirstOrThrow(".tab-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
-				}
-				results.add(
-					Manga(
-						id = generateUid(href),
-						title = title,
-						altTitles = emptySet(),
-						url = href,
-						publicUrl = href.toAbsoluteUrl(domain),
-						rating = RATING_UNKNOWN,
-						contentRating = null,
-						coverUrl = img,
-						tags = emptySet(),
-						state = null,
-						authors = emptySet(),
-						source = source,
-					)
-				)
-			}
-			hasNext = if (filter.query.isNullOrBlank()) {
-				doc.selectFirst(".nav-previous") != null && mangaDivs.size >= 20
-			} else {
-				doc.selectFirst(".pagination .next") != null || doc.selectFirst(".c-pagination .next") != null
-			}
-			page++
-			if (filter.query.isNullOrBlank()) {
-				if (mangaDivs.size < 20) break
-			}
-		}
-		return results
-	}
+    override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
+        val results = mutableListOf<Manga>()
+        var page = 1
+        while (true) {
+            val mangas = getListPage(page, filter.query)
+            if (mangas.isEmpty()) break
+            results.addAll(mangas)
+            if (mangas.size < 20) break
+            page++
+        }
+        return results
+    }
 
-	private fun buildListUrl(page: Int): String {
-		return buildString {
-			append("https://")
-			append(domain)
-			append("/manga/")
-			if (page > 1) append("page/$page/")
-		}
-	}
+    private suspend fun getListPage(page: Int, query: String?): List<Manga> {
+        val url = buildString {
+            append("https://")
+            append(domain)
+            if (query.isNullOrBlank()) {
+                append("/manga/")
+                if (page > 1) append("page/$page/")
+            } else {
+                append("/page/$page/?s=")
+                append(query.urlEncoded())
+                append("&post_type=wp-manga")
+            }
+        }
 
-	private fun buildSearchUrl(page: Int, query: String): String {
-		return buildString {
-			append("https://")
-			append(domain)
-			append("/page/$page/?s=")
-			append(query.urlEncoded())
-			append("&post_type=wp-manga")
-		}
-	}
+        val doc = webClient.httpGet(url).parseHtml()
+        val mangaDivs = if (query.isNullOrBlank()) {
+            doc.select(".col-6.col-md-3.badge-pos-2")
+        } else {
+            doc.select(".row.c-tabs-item__content")
+        }
 
-	override suspend fun getDetails(manga: Manga): Manga {
+        if (mangaDivs.isEmpty()) return emptyList()
+
+        return mangaDivs.map { div ->
+            val a = if (query.isNullOrBlank()) {
+                div.selectFirstOrThrow(".item-thumb a")
+            } else {
+                div.selectFirstOrThrow(".tab-thumb a")
+            }
+            val href = a.attrAsRelativeUrl("href")
+            val title = if (query.isNullOrBlank()) {
+                div.selectFirstOrThrow(".post-title.font-title a").text()
+            } else {
+                div.selectFirstOrThrow(".post-title a").text()
+            }
+            val img = if (query.isNullOrBlank()) {
+                div.selectFirstOrThrow(".item-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
+            } else {
+                div.selectFirstOrThrow(".tab-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
+            }
+            Manga(
+                id = generateUid(href),
+                title = title,
+                altTitles = emptySet(),
+                url = href,
+                publicUrl = href.toAbsoluteUrl(domain),
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = img,
+                tags = emptySet(),
+                state = null,
+                authors = emptySet(),
+                source = source,
+            )
+        }
+    }
+
+    override suspend fun getDetails(manga: Manga): Manga {
         val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         val author = doc.select(".author-content a").firstOrNull()?.textOrNull()
         val genres = doc.select(".genres-content a").mapNotNull { it.textOrNull() }.toSet()
@@ -144,7 +131,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 source = source,
             )
         }.reversed()
-    
+
         return manga.copy(
             state = state,
             authors = setOfNotNull(author),
@@ -153,21 +140,18 @@ internal class RagnarScans(context: MangaLoaderContext) :
             tags = genreTags,
         )
     }
-    
-    
-    
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".reading-content img").map { img ->
-			val url = img.requireSrc().toRelativeUrl(domain)
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
-	}
+    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+        val fullUrl = chapter.url.toAbsoluteUrl(domain)
+        val doc = webClient.httpGet(fullUrl).parseHtml()
+        return doc.select(".reading-content img").map { img ->
+            val url = img.requireSrc().toRelativeUrl(domain)
+            MangaPage(
+                id = generateUid(url),
+                url = url,
+                preview = null,
+                source = source,
+            )
+        }
+    }
 }
