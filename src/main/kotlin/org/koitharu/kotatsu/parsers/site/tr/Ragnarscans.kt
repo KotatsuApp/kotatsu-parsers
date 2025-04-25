@@ -169,7 +169,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 MangaChapter(
                     id = generateUid(url),
                     title = title,
-                    number = chapters.size + 1.toFloat(),
+                    number = -(chapters.size + 1).toFloat(), 
                     volume = 0,
                     url = url,
                     scanlator = null,
@@ -177,7 +177,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
                     branch = null,
                     source = source,
                 )
-            }.forEach { chapters.add(it) }
+            }.reversed().forEach { chapters.add(it) }
             
             currentPage++
         }
@@ -195,12 +195,21 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val fullUrl = chapter.url.toAbsoluteUrl(domain)
         val doc = webClient.httpGet(fullUrl).parseHtml()
         
-        return doc.select(".reading-content img, .page-break img").mapNotNull { img ->
-            val rawUrl = img.attr("data-src")?.ifBlank { img.attr("src") } ?: return@mapNotNull null
-            val fixedUrl = rawUrl
-                .replace("https://${domain}/https:/", "https:/")
-                .replace("https://${domain}/http:/", "http:/")
-                .let { if (it.startsWith("http")) it else it.toRelativeUrl(domain) }
+        return doc.select(".wp-manga-chapter-img, .page-break img").mapNotNull { img ->
+            val rawUrl = img.attr("src") ?: return@mapNotNull null
+            
+            val fixedUrl = when {
+                rawUrl.contains("https://$domain/https:/") -> rawUrl.replace(
+                    "https://$domain/https:/", 
+                    "https:/"
+                )
+                rawUrl.contains("https://$domain/http:/") -> rawUrl.replace(
+                    "https://$domain/http:/", 
+                    "http:/"
+                )
+                rawUrl.startsWith("/") -> rawUrl.toAbsoluteUrl(domain)
+                else -> rawUrl
+            }.removeSuffix("/") 
             
             MangaPage(
                 id = generateUid(fixedUrl),
@@ -208,18 +217,6 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 preview = null,
                 source = source,
             )
-        }
-    }
-
-    private fun String.toRelativeUrl(domain: String): String {
-        return if (startsWith("http")) {
-            if (contains(domain)) {
-                substring(indexOf(domain) + domain.length)
-            } else {
-                this
-            }
-        } else {
-            this
-        }
+        }.sortedBy { it.url } 
     }
 }
