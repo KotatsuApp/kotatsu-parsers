@@ -123,7 +123,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
-        val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         
         val author = doc.select(".author-content a, .manga-detail .author a").firstOrNull()?.textOrNull()
         val genres = doc.select(".genres-content a, .manga-detail .genres a").mapNotNull { it.textOrNull() }.toSet()
@@ -138,21 +138,24 @@ internal class RagnarScans(context: MangaLoaderContext) :
         }
 
         val chapters = mutableListOf<MangaChapter>()
-        var currentPage = 1
-        val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
-        
-        while (true) {
-            val chapterListUrl = if (currentPage == 1) {
-                manga.url.toAbsoluteUrl(domain) + "ajax/chapters/"
-            } else {
-                manga.url.toAbsoluteUrl(domain) + "ajax/chapters/?page=$currentPage"
-            }
+    var currentPage = 1
+    val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
+    
+    while (true) {
+        val chapterListUrl = if (currentPage == 1) {
+            manga.url.toAbsoluteUrl(domain) + "ajax/chapters/"
+        } else {
+            manga.url.toAbsoluteUrl(domain) + "ajax/chapters/?page=$currentPage"
+        }
             
             val chapterDoc = try {
-                webClient.httpPost(chapterListUrl).parseHtml()
-            } catch (e: Exception) {
-                break
-            }
+				webClient.httpPost(
+					url = chapterListUrl,
+					form = mapOf("action" to "manga_get_chapters")
+				).parseHtml()
+			} catch (e: Exception) {
+				break
+			}
             
             val chapterElements = chapterDoc.select("li.wp-manga-chapter, li.chapter-li")
             if (chapterElements.isEmpty()) break
