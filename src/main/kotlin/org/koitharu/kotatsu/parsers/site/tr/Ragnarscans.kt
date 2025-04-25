@@ -138,49 +138,49 @@ internal class RagnarScans(context: MangaLoaderContext) :
         }
 
         val chapters = mutableListOf<MangaChapter>()
-    var currentPage = 1
-    val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
-    
-    while (true) {
-        val chapterListUrl = if (currentPage == 1) {
-            manga.url.toAbsoluteUrl(domain) + "ajax/chapters/"
-        } else {
-            manga.url.toAbsoluteUrl(domain) + "ajax/chapters/?page=$currentPage"
-        }
-            
-            val chapterDoc = try {
-				webClient.httpPost(
-					url = chapterListUrl,
-					form = mapOf("action" to "manga_get_chapters")
-				).parseHtml()
-			} catch (e: Exception) {
-				break
-			}
-            
-            val chapterElements = chapterDoc.select("li.wp-manga-chapter, li.chapter-li")
-            if (chapterElements.isEmpty()) break
-            
-            chapterElements.mapIndexed { i, li ->
-                val a = li.selectFirstOrThrow("a")
-                val url = a.attrAsRelativeUrl("href")
-                val title = a.text()
-                val dateStr = li.select(".chapter-release-date i, .chapter-release-date").firstOrNull()?.textOrNull()
+        var currentPage = 1
+        val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
+        
+        while (true) {
+            val chapterListUrl = if (currentPage == 1) {
+                manga.url.toAbsoluteUrl(domain) + "ajax/chapters/"
+            } else {
+                manga.url.toAbsoluteUrl(domain) + "ajax/chapters/?page=$currentPage"
+            }
                 
-                MangaChapter(
-                    id = generateUid(url),
-                    title = title,
-                    number = (chapters.size + i + 1).toFloat(),
-                    volume = 0,
-                    url = url,
-                    scanlator = null,
-                    uploadDate = dateFormat.tryParse(dateStr),
-                    branch = null,
-                    source = source,
-                )
-            }.reversed().forEach { chapters.add(0, it) }
-            
-            currentPage++
-        }
+                val chapterDoc = try {
+                    webClient.httpPost(
+                        url = chapterListUrl,
+                        form = mapOf("action" to "manga_get_chapters")
+                    ).parseHtml()
+                } catch (e: Exception) {
+                    break
+                }
+                
+                val chapterElements = chapterDoc.select("li.wp-manga-chapter, li.chapter-li")
+                if (chapterElements.isEmpty()) break
+                
+                chapterElements.mapIndexed { i, li ->
+                    val a = li.selectFirstOrThrow("a")
+                    val url = a.attrAsRelativeUrl("href")
+                    val title = a.text()
+                    val dateStr = li.select(".chapter-release-date i, .chapter-release-date").firstOrNull()?.textOrNull()
+                    
+                    MangaChapter(
+                        id = generateUid(url),
+                        title = title,
+                        number = (chapters.size + i + 1).toFloat(),
+                        volume = 0,
+                        url = url,
+                        scanlator = null,
+                        uploadDate = dateFormat.tryParse(dateStr),
+                        branch = null,
+                        source = source,
+                    )
+                }.forEach { chapters.add(it) }
+                
+                currentPage++
+            }
 
         return manga.copy(
             state = state,
@@ -196,9 +196,8 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val doc = webClient.httpGet(fullUrl).parseHtml()
         
         return doc.select(".reading-content img, .page-break img").mapNotNull { img ->
-            val url = img.attr("data-src")?.ifBlank { img.attr("src") }?.toRelativeUrl(domain)
-                ?: return@mapNotNull null
-            
+            val rawUrl = img.attr("data-src")?.ifBlank { img.attr("src") } ?: return@mapNotNull null
+            val url = if (rawUrl.startsWith("http://") || rawUrl.startsWith("https://")) rawUrl else rawUrl.toRelativeUrl(domain)
             MangaPage(
                 id = generateUid(url),
                 url = url,
