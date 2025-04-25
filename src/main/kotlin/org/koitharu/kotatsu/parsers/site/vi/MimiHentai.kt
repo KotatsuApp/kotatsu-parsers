@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
@@ -112,13 +113,14 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		val uploaderName = json.getStringOrNull("uploaderName")
 		val urlChaps = "https://$domain/$apiSuffix/gallery/$id"
 		val parsedChapters = webClient.httpGet(urlChaps).parseJsonArray()
+		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS", Locale.US)
 		val chapters = parsedChapters.mapJSON { jo ->
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
 				title = jo.getStringOrNull("title"),
-				number = jo.getFloatOrDefault("number", 0f),
+				number = jo.getFloatOrDefault("order", 0f),
 				url = "/$apiSuffix/chapter?id=${jo.getLong("id")}",
-				uploadDate = 0L,
+				uploadDate = dateFormat.parse(jo.getString("createdAt"))?.time ?: 0L,
 				source = source,
 				scanlator = uploaderName,
 				branch = null,
