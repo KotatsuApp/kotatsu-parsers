@@ -114,45 +114,45 @@ internal class RagnarScans(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-        val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-        val author = doc.select(".author-content a").firstOrNull()?.textOrNull()
-        val genres = doc.select(".genres-content a").mapNotNull { it.textOrNull() }.toSet()
-        val summaryBlocks = doc.select(".summary-content")
-        val statusText = summaryBlocks.getOrNull(3)?.textOrNull()?.trim()
-        val description = doc.selectFirstOrThrow(".summary__content.show-more p").html()
-        val state = when (statusText) {
-            "Devam Ediyor" -> MangaState.ONGOING
-            "Tamamlandı" -> MangaState.FINISHED
-            else -> null
-        }
-        val chapters = doc.select("ul.main.version-chap.no-volumn.active li.wp-manga-chapter").mapIndexed { i, li ->
-            val a = li.selectFirstOrThrow("a")
-            val url = a.attrAsRelativeUrl("href")
-            val title = a.text()
-            val dateStr = li.select(".chapter-release-date i").firstOrNull()?.textOrNull()
-            val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
-            MangaChapter(
-                id = generateUid(url),
-                title = title,
-                number = (i + 1).toFloat(),
-                volume = 0,
-                url = url,
-                scanlator = null,
-                uploadDate = dateFormat.tryParse(dateStr),
-                branch = null,
-                source = source,
-            )
-        }.reversed()
-    
-        return manga.copy(
-            state = state,
-            authors = setOfNotNull(author),
-            description = description,
-            chapters = chapters,
-        )
-    }
-    
-    
+		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val author = doc.select(".author-content a").firstOrNull()?.textOrNull()
+		val genres = doc.select(".genres-content a").mapNotNull { it.textOrNull() }.toSet()
+		val genreTags = genres.map { MangaTag(it, "genre") }.toSet()
+		val summaryBlocks = doc.select(".summary-content")
+		val statusText = summaryBlocks.getOrNull(3)?.textOrNull()?.trim()
+		val description = doc.selectFirstOrThrow(".summary__content.show-more p").html()
+		val state = when (statusText) {
+			"Devam Ediyor" -> MangaState.ONGOING
+			"Tamamlandı" -> MangaState.FINISHED
+			else -> null
+		}
+		val chapters = doc.select("ul.main.version-chap.no-volumn.active li.wp-manga-chapter").mapIndexed { i, li ->
+			val a = li.selectFirstOrThrow("a")
+			val url = a.attrAsRelativeUrl("href")
+			val title = a.text()
+			val dateStr = li.select(".chapter-release-date i").firstOrNull()?.textOrNull()
+			val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
+			MangaChapter(
+				id = generateUid(url),
+				title = title,
+				number = (i + 1).toFloat(),
+				volume = 0,
+				url = url,
+				scanlator = null,
+				uploadDate = dateFormat.tryParse(dateStr),
+				branch = null,
+				source = source,
+			)
+		}.reversed()
+
+		return manga.copy(
+			state = state,
+			authors = setOfNotNull(author),
+			description = description,
+			chapters = chapters,
+			tags = genreTags,
+		)
+	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
