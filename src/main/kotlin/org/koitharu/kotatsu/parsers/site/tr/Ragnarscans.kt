@@ -38,20 +38,20 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val results = mutableListOf<Manga>()
         var page = 1
         var emptyPageCount = 0
-        
+
         while (true) {
             val mangas = getListPage(page, order, filter)
-            
+
             if (mangas.isEmpty()) {
                 emptyPageCount++
                 if (emptyPageCount >= 2) break
             } else {
                 emptyPageCount = 0
                 results.addAll(mangas)
-                
+
                 if (!filter.query.isNullOrBlank() && mangas.size < 10) break
             }
-            
+
             if (filter.query.isNullOrBlank() && page >= 10) break
             page++
         }
@@ -97,11 +97,11 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 val href = a.attrAsRelativeUrl("href")
                 val titleElement = div.selectFirstOrThrow(".post-title, .post-title.font-title")
                 val title = titleElement.text()
-                
+
                 val img = div.selectFirst("img")?.let { 
                     it.attr("data-src").ifBlank { it.attr("src") } 
                 }?.toAbsoluteUrl(domain) ?: ""
-                
+
                 Manga(
                     id = generateUid(href),
                     title = title,
@@ -124,13 +124,13 @@ internal class RagnarScans(context: MangaLoaderContext) :
 
     override suspend fun getDetails(manga: Manga): Manga {
         val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-        
+
         val author = doc.select(".author-content a, .manga-detail .author a").firstOrNull()?.textOrNull()
         val genres = doc.select(".genres-content a, .manga-detail .genres a").mapNotNull { it.textOrNull() }.toSet()
         val genreTags = genres.map { MangaTag(it, "genre", source) }.toSet()
         val statusText = doc.select(".post-status .summary-content, .manga-detail .status").firstOrNull()?.textOrNull()?.trim()
         val description = doc.selectFirstOrThrow(".summary__content.show-more, .description-summary").html()
-        
+
         val state = when (statusText?.lowercase()) {
             "devam ediyor", "ongoing" -> MangaState.ONGOING
             "tamamlandı", "completed" -> MangaState.FINISHED
@@ -140,14 +140,14 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val chapters = mutableListOf<MangaChapter>()
         var currentPage = 1
         val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
-        
+
         while (true) {
             val chapterListUrl = if (currentPage == 1) {
                 manga.url.toAbsoluteUrl(domain) + "ajax/chapters/"
             } else {
                 manga.url.toAbsoluteUrl(domain) + "ajax/chapters/?page=$currentPage"
             }
-            
+
             val chapterDoc = try {
                 webClient.httpPost(
                     url = chapterListUrl,
@@ -156,16 +156,16 @@ internal class RagnarScans(context: MangaLoaderContext) :
             } catch (e: Exception) {
                 break
             }
-            
+
             val chapterElements = chapterDoc.select("li.wp-manga-chapter, li.chapter-li")
             if (chapterElements.isEmpty()) break
-            
+
             chapterElements.map { li ->
                 val a = li.selectFirstOrThrow("a")
                 val url = a.attrAsRelativeUrl("href")
                 val title = a.text()
                 val dateStr = li.select(".chapter-release-date i, .chapter-release-date").firstOrNull()?.textOrNull()
-                
+
                 MangaChapter(
                     id = generateUid(url),
                     title = title,
@@ -178,7 +178,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
                     source = source,
                 )
             }.reversed().forEach { chapters.add(it) }
-            
+
             currentPage++
         }
 
@@ -194,18 +194,44 @@ internal class RagnarScans(context: MangaLoaderContext) :
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val fullUrl = chapter.url.toAbsoluteUrl(domain)
         val doc = webClient.httpGet(fullUrl).parseHtml()
-        
+
         return doc.select(".wp-manga-chapter-img, .page-break img").mapNotNull { img ->
-            val rawUrl = img.attr("src") ?: return@mapNotNull null
-            val fixedUrl = rawUrl.removeSuffix("/").let {
-                if (it.startsWith("http")) it else it.toAbsoluteUrl(domain)
+            var rawUrl = img.attr("src") ?: img.attr("data-src") ?: return@mapNotNull null
+            
+            // URL normalizasyonu için yardımcı fonksiyon
+            fun normalizeImageUrl(url: String): String {
+                var normalized = url
+                // Çift protokol varsa düzelt (http://https://...)
+                if (normalized.contains("://https://") || normalized.contains("://http://")) {
+                    normalized = normalized.substringAfter("://")
+                }
+                // Çift domain varsa düzelt
+                if (normalized.contains("$domain/$domain")) {
+                    normalized = normalized.replace("$domain/$domain", domain)
+                }
+                // Eksik protokol varsa ekle
+                if (!normalized.startsWith("http")) {
+                    normalized = when {
+                        normalized.startsWith("//") -> "https:$normalized"
+                        normalized.startsWith("/") -> "https://$domain$normalized"
+                        else -> "https://$domain/$normalized"
+                    }
+                }
+                // Tekrar eden slash'ları düzelt
+                normalized = normalized.replace(Regex("/{2,}"), "/")
+                // Yanlış oluşmuş protokolü düzelt
+                normalized = normalized.replace("https:/$domain", "https://$domain")
+                return normalized
             }
+
+            val fixedUrl = normalizeImageUrl(rawUrl)
+
             MangaPage(
                 id = generateUid(fixedUrl),
                 url = fixedUrl,
                 preview = null,
                 source = source,
             )
-        }.sortedBy { it.url } 
+        }
     }
 }
