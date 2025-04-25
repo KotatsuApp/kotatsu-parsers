@@ -126,7 +126,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				branch = null,
 				volume = 0,
 			)
-		}
+		}.reversed()
 
 		return manga.copy(
 			tags = tags,
