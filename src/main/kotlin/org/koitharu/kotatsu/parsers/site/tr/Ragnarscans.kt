@@ -196,7 +196,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val doc = webClient.httpGet(fullUrl).parseHtml()
         
         return doc.select(".wp-manga-chapter-img").mapNotNull { img ->
-            val rawUrl = img.attr("src") ?: return@mapNotNull null
+            val rawUrl = img.requireSrc() ?: return@mapNotNull null
             MangaPage(
                 id = generateUid(rawUrl),
                 url = rawUrl,
