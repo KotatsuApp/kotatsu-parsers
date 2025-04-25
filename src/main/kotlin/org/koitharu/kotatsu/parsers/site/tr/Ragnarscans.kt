@@ -197,7 +197,9 @@ internal class RagnarScans(context: MangaLoaderContext) :
         
         return doc.select(".wp-manga-chapter-img, .page-break img").mapNotNull { img ->
             val rawUrl = img.attr("src") ?: return@mapNotNull null
-            val fixedUrl = rawUrl.removeSuffix("/")
+            val fixedUrl = rawUrl.removeSuffix("/").let {
+                if (it.startsWith("http")) it else it.toAbsoluteUrl(domain)
+            }
             MangaPage(
                 id = generateUid(fixedUrl),
                 url = fixedUrl,
