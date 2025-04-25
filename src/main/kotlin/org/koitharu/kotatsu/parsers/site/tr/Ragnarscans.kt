@@ -20,7 +20,11 @@ internal class RagnarScans(context: MangaLoaderContext) :
         keys.add(userAgentKey)
     }
 
-    override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
+    override val availableSortOrders: Set<SortOrder> = EnumSet.of(
+        SortOrder.UPDATED,
+        SortOrder.POPULARITY,
+        SortOrder.ALPHABETICAL
+    )
 
     override val filterCapabilities: MangaListFilterCapabilities
         get() = MangaListFilterCapabilities(
@@ -34,22 +38,28 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val results = mutableListOf<Manga>()
         var page = 1
         while (true) {
-            val mangas = getListPage(page, filter.query)
+            val mangas = getListPage(page, order, filter.query)
             if (mangas.isEmpty()) break
             results.addAll(mangas)
-            if (mangas.size < 20) break
+            if (filter.query.isNullOrBlank() && mangas.size < 20) break
+            if (!filter.query.isNullOrBlank() && mangas.size < 10) break
             page++
         }
         return results
     }
 
-    private suspend fun getListPage(page: Int, query: String?): List<Manga> {
+    private suspend fun getListPage(page: Int, order: SortOrder, query: String?): List<Manga> {
         val url = buildString {
             append("https://")
             append(domain)
             if (query.isNullOrBlank()) {
                 append("/manga/")
                 if (page > 1) append("page/$page/")
+                when (order) {
+                    SortOrder.POPULARITY -> append("?m_orderby=trending")
+                    SortOrder.ALPHABETICAL -> append("?m_orderby=alphabet")
+                    else -> append("?m_orderby=latest")
+                }
             } else {
                 append("/page/$page/?s=")
                 append(query.urlEncoded())
@@ -113,7 +123,9 @@ internal class RagnarScans(context: MangaLoaderContext) :
             "Tamamlandı" -> MangaState.FINISHED
             else -> null
         }
-        val chapters = doc.select("ul.main.version-chap.no-volumn.active li.wp-manga-chapter").mapIndexed { i, li ->
+        // Bölüm çekme işlemini güncelle
+        val chapterElements = doc.select("li.wp-manga-chapter")
+        val chapters = chapterElements.dropLast(1).mapIndexed { i, li ->
             val a = li.selectFirstOrThrow("a")
             val url = a.attrAsRelativeUrl("href")
             val title = a.text()
