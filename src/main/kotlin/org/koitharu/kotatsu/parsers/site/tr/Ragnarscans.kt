@@ -38,7 +38,7 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val results = mutableListOf<Manga>()
         var page = 1
         while (true) {
-            val mangas = getListPage(page, order, filter.query)
+            val mangas = getListPage(page, order, filter)
             if (mangas.isEmpty()) break
             results.addAll(mangas)
             if (filter.query.isNullOrBlank() && mangas.size < 20) break
@@ -48,11 +48,11 @@ internal class RagnarScans(context: MangaLoaderContext) :
         return results
     }
 
-    private suspend fun getListPage(page: Int, order: SortOrder, query: String?): List<Manga> {
+    private suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
         val url = buildString {
             append("https://")
             append(domain)
-            if (query.isNullOrBlank()) {
+            if (filter.query.isNullOrBlank()) {
                 append("/manga/")
                 if (page > 1) append("page/$page/")
                 when (order) {
@@ -62,13 +62,13 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 }
             } else {
                 append("/page/$page/?s=")
-                append(query.urlEncoded())
+                append(filter.query.urlEncoded())
                 append("&post_type=wp-manga")
             }
         }
 
         val doc = webClient.httpGet(url).parseHtml()
-        val mangaDivs = if (query.isNullOrBlank()) {
+        val mangaDivs = if (filter.query.isNullOrBlank()) {
             doc.select(".col-6.col-md-3.badge-pos-2")
         } else {
             doc.select(".row.c-tabs-item__content")
@@ -77,18 +77,18 @@ internal class RagnarScans(context: MangaLoaderContext) :
         if (mangaDivs.isEmpty()) return emptyList()
 
         return mangaDivs.map { div ->
-            val a = if (query.isNullOrBlank()) {
+            val a = if (filter.query.isNullOrBlank()) {
                 div.selectFirstOrThrow(".item-thumb a")
             } else {
                 div.selectFirstOrThrow(".tab-thumb a")
             }
             val href = a.attrAsRelativeUrl("href")
-            val title = if (query.isNullOrBlank()) {
+            val title = if (filter.query.isNullOrBlank()) {
                 div.selectFirstOrThrow(".post-title.font-title a").text()
             } else {
                 div.selectFirstOrThrow(".post-title a").text()
             }
-            val img = if (query.isNullOrBlank()) {
+            val img = if (filter.query.isNullOrBlank()) {
                 div.selectFirstOrThrow(".item-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
             } else {
                 div.selectFirstOrThrow(".tab-thumb img").src()?.toAbsoluteUrl(domain).orEmpty()
@@ -115,22 +115,20 @@ internal class RagnarScans(context: MangaLoaderContext) :
         val author = doc.select(".author-content a").firstOrNull()?.textOrNull()
         val genres = doc.select(".genres-content a").mapNotNull { it.textOrNull() }.toSet()
         val genreTags = genres.map { MangaTag(it, "genre", source) }.toSet()
-        val summaryBlocks = doc.select(".summary-content")
-        val statusText = summaryBlocks.getOrNull(3)?.textOrNull()?.trim()
+        val statusText = doc.select(".post-status .summary-content").firstOrNull()?.textOrNull()?.trim()
         val description = doc.selectFirstOrThrow(".summary__content.show-more p").html()
         val state = when (statusText) {
             "Devam Ediyor" -> MangaState.ONGOING
             "Tamamlandı" -> MangaState.FINISHED
             else -> null
         }
-        // Bölüm çekme işlemini güncelle
-        val chapterElements = doc.select("li.wp-manga-chapter")
-        val chapters = chapterElements.dropLast(1).mapIndexed { i, li ->
+        val chapterElements = doc.select("ul.main li.wp-manga-chapter, ul.main li.chapter-li")
+        val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
+        val chapters = chapterElements.mapIndexed { i, li ->
             val a = li.selectFirstOrThrow("a")
             val url = a.attrAsRelativeUrl("href")
             val title = a.text()
-            val dateStr = li.select(".chapter-release-date i").firstOrNull()?.textOrNull()
-            val dateFormat = SimpleDateFormat("d MMMM yyyy", Locale("tr"))
+            val dateStr = li.select(".chapter-release-date i, .chapter-release-date").firstOrNull()?.textOrNull()
             MangaChapter(
                 id = generateUid(url),
                 title = title,
@@ -143,7 +141,6 @@ internal class RagnarScans(context: MangaLoaderContext) :
                 source = source,
             )
         }.reversed()
-
         return manga.copy(
             state = state,
             authors = setOfNotNull(author),
