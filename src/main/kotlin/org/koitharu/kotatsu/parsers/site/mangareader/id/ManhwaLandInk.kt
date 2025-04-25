@@ -12,7 +12,7 @@ internal class ManhwaLandInk(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.MANHWALAND_INK,
-		"www.manhwaland.ink",
+		"manhwaland.asia",
 		pageSize = 20,
 		searchPageSize = 10,
 	) {

@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("WESTMANGA", "WestManga", "id")
 internal class WestmangaParser(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.WESTMANGA, "westmanga.fun", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.WESTMANGA, "westmanga.me", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
