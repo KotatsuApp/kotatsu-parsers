@@ -88,17 +88,16 @@ internal class MangaTRCOM(context: MangaLoaderContext) : LegacyPagedMangaParser(
                 statusText.contains("Tamam", ignoreCase = true) -> MangaState.FINISHED
                 else -> null
             },
-            chapters = getChapters(manga, doc),
+            chapters = getChaptersSuspend(manga, doc),
         )
     }
 
-    private fun getChapters(manga: Manga, doc: org.jsoup.nodes.Document): List<MangaChapter> {
+    private suspend fun getChaptersSuspend(manga: Manga, doc: org.jsoup.nodes.Document): List<MangaChapter> {
         val id = manga.url.substringAfter("manga-").substringBefore(".")
         val requestUrl = "https://manga-tr.com/cek/fetch_pages_manga.php?manga_cek=$id"
-        val firstDoc = doc
         val chapters = mutableListOf<MangaChapter>()
         var nextPage = 2
-        var currentDoc = firstDoc
+        var currentDoc = doc
         do {
             chapters.addAll(currentDoc.select("tr.table-bordered").mapIndexed { i, el ->
                 val a = el.selectFirst("td[align=left] > a")
