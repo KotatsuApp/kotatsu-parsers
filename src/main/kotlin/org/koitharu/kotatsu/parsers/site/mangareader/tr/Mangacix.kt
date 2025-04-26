@@ -11,6 +11,6 @@ internal class Mangacix(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.MANGACIX, "https://mangacix.com", pageSize = 20, searchPageSize = 10) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
+			isTagsExclusionSupported = true,
 		)
 }
