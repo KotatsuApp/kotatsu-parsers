@@ -10,9 +10,16 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("UZAYMANGA", "Uzay Manga", "tr")
-internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.UZAYMANGA, 2) {
+internal class UzayManga(context: MangaLoaderContext):
+    LegacyPagedMangaParser(context, MangaParserSource.UZAYMANGA, 25) {
 
     override val configKeyDomain = ConfigKey.Domain("uzaymanga.com")
+    private val cdnSuffix = "cdn1.$domain"
+
+    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.NEWEST,
@@ -42,7 +49,7 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
             append("https://")
 			append(domain)
             append("/search")
-            append("&page=")
+            append("?page=")
 			append(page.toString())
 
             if (!filter.query.isNullOrEmpty()) {
@@ -69,7 +76,7 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
                 title = card.selectFirst("h2")?.text().orEmpty(),
                 altTitles = emptySet(),
                 url = href,
-                publicUrl = href.toAbsoluteUrl("uzaymanga.com"),
+                publicUrl = href.toAbsoluteUrl(domain),
                 rating = RATING_UNKNOWN,
                 contentRating = null,
                 coverUrl = card.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
@@ -82,7 +89,7 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
-        val doc = webClient.httpGet(manga.url.toAbsoluteUrl("uzaymanga.com")).parseHtml()
+        val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         val statusText = doc.selectFirst("span:contains(Durum) + span")?.text().orEmpty()
         return manga.copy(
             tags = doc.select("a[href^='search?categories']").mapToSet {
@@ -118,14 +125,14 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
     }
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl("uzaymanga.com")).parseHtml()
+        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
         val pageRegex = Regex("\\\\\"path\\\\\":\\\\\"([^\"]+)\\\\\"")
         val script = doc.select("script").find { it.html().contains(pageRegex) }?.html() ?: return emptyList()
         return pageRegex.findAll(script).mapNotNull { result ->
             result.groups[1]?.value?.let { url ->
                 MangaPage(
                     id = generateUid(url),
-                    url = "https://cdn1.uzaymanga.com/upload/series/$url",
+                    url = "https://$cdnSuffix/upload/series/$url",
                     preview = null, 
                     source = source,
                 )
