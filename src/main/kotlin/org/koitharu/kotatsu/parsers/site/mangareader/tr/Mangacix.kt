@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("MANGACIX", "Mangacix", "tr")
 internal class Mangacix(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.MANGACIX, "https://mangacix.com", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.MANGACIX, "mangacix.com", 20, 10) {
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isTagsExclusionSupported = true,
