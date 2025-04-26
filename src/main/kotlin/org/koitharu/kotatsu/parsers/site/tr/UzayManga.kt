@@ -29,7 +29,7 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
 
     override suspend fun getFilterOptions() = MangaListFilterOptions(
         availableTags = fetchAvailableTags(),
-        availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ON_HIATUS),
+        availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
         availableContentTypes = EnumSet.of(
             ContentType.MANGA,
             ContentType.MANHWA,
@@ -92,7 +92,6 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
             state = when {
                 statusText.contains("Devam Ediyor", ignoreCase = true) || statusText.contains("Birakildi", ignoreCase = true) -> MangaState.ONGOING
                 statusText.contains("Tamamlandi", ignoreCase = true) -> MangaState.FINISHED
-                statusText.contains("Ara Veridi", ignoreCase = true) -> MangaState.ON_HIATUS
                 else -> null
             },
             chapters = doc.select("div.list-episode a").mapChapters(reversed = true) { i, el ->
@@ -104,7 +103,7 @@ internal class UzayManga(context: MangaLoaderContext) : LegacyPagedMangaParser(c
                     volume = 0,
                     url = href,
                     scanlator = null,
-                    uploadDate = el.selectFirst("span")?.text()?.let { parseDate(it) },
+                    uploadDate = el.selectFirst("span")?.text()?.let { parseDate(it) } ?: 0L,
                     branch = null,
                     source = source,
                 )
