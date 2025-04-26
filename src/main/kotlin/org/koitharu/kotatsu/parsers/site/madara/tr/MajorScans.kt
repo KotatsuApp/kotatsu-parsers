@@ -5,8 +5,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("MAJORSCANS", "MajorScans", "tr")
-internal class MajorScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MAJORSCANS, "www.manga-tilkisi.com", pageSize = 18) {
+@MangaSourceParser("TILKISCANS", "TilkiScans", "tr")
+internal class TilkiScans(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.TILKISCANS, "www.tilkiscans.com", 20, 10) {
 	override val datePattern = "dd/MM/yyyy"
 }
