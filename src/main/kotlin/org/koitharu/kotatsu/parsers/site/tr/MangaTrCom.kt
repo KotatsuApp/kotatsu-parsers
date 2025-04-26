@@ -117,7 +117,7 @@ internal class MangaTRCOM(context: MangaLoaderContext) : LegacyPagedMangaParser(
             })
             val nextPageLink = currentDoc.selectFirst("a[data-page=$nextPage]")
             if (nextPageLink != null) {
-                val body = mapOf("page" to nextPage.toString())
+                val body = org.json.JSONObject(mapOf("page" to nextPage.toString()))
                 val resp = webClient.httpPost(requestUrl, body = body).parseHtml()
                 currentDoc = resp
                 nextPage++
