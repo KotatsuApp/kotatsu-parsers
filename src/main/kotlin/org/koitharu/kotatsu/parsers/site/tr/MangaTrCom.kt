@@ -9,8 +9,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("MANGATR", "Manga-TR", "tr")
-internal class MangaTR(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MANGATR, 2) {
+@MangaSourceParser("MANGATRCOM", "Manga-TR", "tr")
+internal class MangaTRCOM(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MANGATRCOM, 2) {
     override val configKeyDomain = ConfigKey.Domain("manga-tr.com")
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
