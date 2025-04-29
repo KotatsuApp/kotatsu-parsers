@@ -14,9 +14,9 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.EnumSet
 
-@MangaSourceParser("NETTRUYENFE", "NetTruyenFE", "vi")
-internal class NetTruyenFE(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYENFE, WpComicsParser.netDomain, 20) {
+@MangaSourceParser("NETTRUYEN1975", "NetTruyen1975", "vi")
+internal class NetTruyen1975(context: MangaLoaderContext) :
+	WpComicsParser(context, MangaParserSource.NETTRUYEN1975, WpComicsParser.netDomain, 20) {
 
 	override val listUrl = "/tim-kiem-nang-cao"
 
