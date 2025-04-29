@@ -183,17 +183,17 @@ internal class UzayManga(context: MangaLoaderContext):
 
     private suspend fun fetchTags(): Set<MangaTag> {
         val doc = webClient.httpGet("https://$domain/search").parseHtml()
-        val script = doc.select("script").find { it.html().contains("\"category\":[{\"id\":") }?.html() ?: return emptySet()
+        val script = doc.select("script").find { it.html().contains("self.__next_f.push([1,\"10:[\\\"\\$,\\\"section") }?.html() 
+            ?: return emptySet()
         
-        val jsonStr = script
-            .substringAfter("category\":[")
-            .substringBefore("],\"searchParams\"")
+        val jsonStr = script.substringAfter("\"category\":[")
+            .substringBefore("],\"searchParams\":{}")
             .replace("\\", "")
         
         val jsonArray = JSONArray("[$jsonStr]")
         return jsonArray.mapJSONToSet { jo ->
             MangaTag(
-                key = jo.getString("id"),
+                key = jo.getString("id"), 
                 title = jo.getString("name"),
                 source = source
             )
