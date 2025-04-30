@@ -1,43 +1,59 @@
 package org.koitharu.kotatsu.parsers
 
 import com.koushikdutta.quack.QuackContext
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.engine.java.*
+import io.ktor.client.plugins.cookies.*
+import io.ktor.client.plugins.observer.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.util.date.*
+import io.ktor.utils.io.*
+import io.ktor.utils.io.jvm.javaio.*
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.MangaSourceAttributeKey
 import org.koitharu.kotatsu.parsers.network.UserAgents
-import org.koitharu.kotatsu.parsers.util.await
-import org.koitharu.kotatsu.parsers.util.requireBody
+import org.koitharu.kotatsu.parsers.util.insertCookie
+import org.koitharu.kotatsu.parsers.util.interceptor
+import org.koitharu.kotatsu.parsers.util.splitByWhitespace
 import org.koitharu.kotatsu.test_util.BitmapTestImpl
+import org.koitharu.kotatsu.test_util.component6
+import org.koitharu.kotatsu.test_util.component7
 import java.awt.image.BufferedImage
-import java.security.SecureRandom
-import java.security.cert.X509Certificate
+import java.io.InputStream
+import java.util.*
 import java.util.concurrent.TimeUnit
 import javax.imageio.ImageIO
-import javax.net.ssl.SSLContext
-import javax.net.ssl.SSLSocketFactory
-import javax.net.ssl.X509TrustManager
 
 internal object MangaLoaderContextMock : MangaLoaderContext() {
 
-	override val cookieJar = InMemoryCookieJar()
+	override val cookiesStorage = AcceptAllCookiesStorage()
 
-	override val httpClient: OkHttpClient = OkHttpClient.Builder()
-		.cookieJar(cookieJar)
-		.permissiveSSL()
-		.addInterceptor(CommonHeadersInterceptor())
-		.addInterceptor(CloudFlareInterceptor())
-		.connectTimeout(20, TimeUnit.SECONDS)
-		.readTimeout(60, TimeUnit.SECONDS)
-		.writeTimeout(20, TimeUnit.SECONDS)
-		.build()
+	override val httpClient = HttpClient(Java) {
+		install(HttpCookies) {
+			storage = cookiesStorage
+		}
+	}
 
 	init {
-		loadTestCookies()
+		httpClient.interceptor(CommonHeadersInterceptor())
+		httpClient.interceptor(CloudFlareInterceptor())
+	}
+//		.permissiveSSL()
+//		.connectTimeout(20, TimeUnit.SECONDS)
+//		.readTimeout(60, TimeUnit.SECONDS)
+//		.writeTimeout(20, TimeUnit.SECONDS)
+//		.build()
+
+	init {
+		runBlocking {
+			loadTestCookies()
+		}
 	}
 
 	override suspend fun evaluateJs(script: String): String? {
@@ -52,37 +68,38 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 
 	override fun getDefaultUserAgent(): String = UserAgents.FIREFOX_MOBILE
 
-	override fun redrawImageResponse(response: Response, redraw: (Bitmap) -> Bitmap): Response {
-		val srcImage = response.requireBody().byteStream().use(ImageIO::read)
+	override suspend fun redrawImageResponse(call: HttpClientCall, redraw: (Bitmap) -> Bitmap): HttpClientCall {
+		val srcImage = call.response.bodyAsChannel().toInputStream().use(ImageIO::read)
 		checkNotNull(srcImage) { "Cannot decode image" }
 		val resImage = (redraw(BitmapTestImpl(srcImage)) as BitmapTestImpl)
-		return response.newBuilder()
-			.body(resImage.compress("png").toResponseBody("image/png".toMediaTypeOrNull()))
-			.build()
+		val headers = HeadersBuilder()
+		headers.appendAll(call.response.headers)
+		headers.append(HttpHeaders.ContentType, ContentType.Image.PNG.toString())
+		return call.wrap(ByteReadChannel(resImage.compress("png")), headers.build())
+
 	}
 
 	override fun createBitmap(width: Int, height: Int): Bitmap {
 		return BitmapTestImpl(BufferedImage(width, height, BufferedImage.TYPE_INT_RGB))
 	}
 
-	suspend fun doRequest(url: String, source: MangaSource?): Response {
-		val request = Request.Builder()
-			.get()
-			.url(url)
-		if (source != null) {
-			request.tag(MangaSource::class.java, source)
+	suspend fun doRequest(url: String, source: MangaSource?): HttpResponse {
+		return httpClient.get {
+			url(url)
+			if (source != null) {
+				attributes.put(MangaSourceAttributeKey, source)
+			}
 		}
-		return httpClient.newCall(request.build()).await()
 	}
 
-	private fun loadTestCookies() {
+	private suspend fun loadTestCookies() {
 		// https://addons.mozilla.org/ru/firefox/addon/cookies-txt/
 		javaClass.getResourceAsStream("/cookies.txt")?.use {
-			cookieJar.loadFromStream(it)
+			cookiesStorage.loadFromStream(it)
 		} ?: println("No cookies loaded!")
 	}
 
-	private fun OkHttpClient.Builder.permissiveSSL() = also { builder ->
+	/*private fun OkHttpClient.Builder.permissiveSSL() = also { builder ->
 		runCatching {
 			val trustAllCerts = object : X509TrustManager {
 				override fun checkClientTrusted(chain: Array<X509Certificate>, authType: String) = Unit
@@ -99,6 +116,27 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 		}.onFailure {
 			it.printStackTrace()
 		}
-	}
+	}*/
 
+	private suspend fun CookiesStorage.loadFromStream(stream: InputStream) {
+		val reader = stream.bufferedReader()
+		for (line in reader.lineSequence()) {
+			if (line.isBlank() || line.startsWith("# ")) {
+				continue
+			}
+			val (host, _, path, secure, expire, name, value) = line.splitByWhitespace()
+			val domain = host.removePrefix("#HttpOnly_").trimStart('.')
+			val httpOnly = host.startsWith("#HttpOnly_")
+			val cookie = Cookie(
+				name = name,
+				value = value,
+				expires = GMTDate(TimeUnit.SECONDS.toMillis(expire.toLong())),
+				domain = domain,
+				path = path,
+				secure = secure.lowercase(Locale.ROOT).toBooleanStrict(),
+				httpOnly = httpOnly,
+			)
+			insertCookie(domain, cookie)
+		}
+	}
 }

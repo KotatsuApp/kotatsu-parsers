@@ -2,7 +2,7 @@
 
 package org.koitharu.kotatsu.parsers.util
 
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import io.ktor.http.*
 import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import org.jsoup.select.QueryParser
@@ -18,7 +18,7 @@ public val Element.host: String?
 		return if (uri.isEmpty()) {
 			null
 		} else {
-			uri.toHttpUrlOrNull()?.host
+			parseUrl(uri)?.hostWithPortIfSpecified
 		}
 	}
 
@@ -52,7 +52,7 @@ public fun Element.attrAsRelativeUrlOrNull(attributeKey: String): String? {
 	if (attr.startsWith('/')) {
 		return attr
 	}
-	val host = baseUri().toHttpUrlOrNull()?.host ?: return null
+	val host = parseUrl(baseUri())?.hostWithPortIfSpecified ?: return null
 	return attr.substringAfter(host)
 }
 
@@ -80,7 +80,7 @@ public fun Element.attrAsAbsoluteUrlOrNull(attributeKey: String): String? {
 	if (attr.isEmpty() || attr.startsWith("data:")) {
 		return null
 	}
-	return (baseUri().toHttpUrlOrNull()?.resolve(attr) ?: return null).toString()
+	return attr.toAbsoluteUrl(parseUrl(baseUri())?.hostWithPortIfSpecified ?: return null)
 }
 
 /**

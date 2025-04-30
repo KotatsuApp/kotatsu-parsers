@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import okhttp3.Headers
+import io.ktor.http.HeadersBuilder
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -8,9 +8,11 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import sun.text.normalizer.UTF16.append
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -27,9 +29,9 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("referer", "https://$domain")
-		.build()
+	override fun getRequestHeaders() = HeadersBuilder().apply {
+		append("referer", "https://$domain")
+	}.build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -179,7 +181,7 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").map { img ->
 			val url = img.attr("src") ?: img.attr("data-src")
-				?: throw ParseException("Image src not found!", chapter.url)
+			?: throw ParseException("Image src not found!", chapter.url)
 			MangaPage(
 				id = generateUid(url),
 				url = url,

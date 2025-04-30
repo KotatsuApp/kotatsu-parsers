@@ -1,40 +1,28 @@
 package org.koitharu.kotatsu.parsers
 
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.util.*
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.MangaSource
+import org.koitharu.kotatsu.parsers.network.HttpInterceptor
+import org.koitharu.kotatsu.parsers.network.MangaSourceAttributeKey
 
 private const val HEADER_REFERER = "Referer"
 
-internal class CommonHeadersInterceptor : Interceptor {
+internal class CommonHeadersInterceptor : HttpInterceptor {
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val source = request.tag(MangaSource::class.java)
+	override suspend fun intercept(
+		sender: Sender,
+		request: HttpRequestBuilder,
+	): HttpClientCall {
+		val source = request.attributes[MangaSourceAttributeKey]
 		val parser = if (source is MangaParserSource) {
 			MangaLoaderContextMock.newParserInstance(source)
 		} else {
-			null
+			return sender.execute(request)
 		}
-		val headersBuilder = request.headers.newBuilder()
-		if (headersBuilder[HEADER_REFERER] == null && parser != null) {
-			headersBuilder[HEADER_REFERER] = "https://${parser.domain}/"
-		}
-		val newRequest = request.newBuilder().headers(headersBuilder.build()).build()
-		return if (parser is Interceptor) {
-			parser.intercept(ProxyChain(chain, newRequest))
-		} else {
-			chain.proceed(newRequest)
-		}
-	}
-
-	private class ProxyChain(
-		private val delegate: Interceptor.Chain,
-		private val request: Request,
-	) : Interceptor.Chain by delegate {
-
-		override fun request(): Request = request
+		request.headers.appendIfNameAbsent(HEADER_REFERER, "https://${parser.domain}/")
+		return parser.intercept(sender, request)
 	}
 }

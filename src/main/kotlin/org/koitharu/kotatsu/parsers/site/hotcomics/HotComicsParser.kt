@@ -2,9 +2,9 @@ package org.koitharu.kotatsu.parsers.site.hotcomics
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
+import io.ktor.http.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Headers
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -24,9 +24,7 @@ internal abstract class HotComicsParser(
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.CHROME_DESKTOP)
-		.build()
+	override fun getRequestHeaders() = headersOf(HttpHeaders.UserAgent, UserAgents.CHROME_DESKTOP)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -130,7 +128,7 @@ internal abstract class HotComicsParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val mangaUrl = manga.url.toAbsoluteUrl(domain)
-		val redirectHeaders = Headers.Builder().set("Referer", mangaUrl).build()
+		val redirectHeaders = headersOf(HttpHeaders.Referrer, mangaUrl)
 		val doc = webClient.httpGet(mangaUrl, redirectHeaders).parseHtml()
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
 		return manga.copy(

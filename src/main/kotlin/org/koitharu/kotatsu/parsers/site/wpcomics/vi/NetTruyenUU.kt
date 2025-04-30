@@ -5,6 +5,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Element
 import androidx.collection.ArrayMap
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -147,17 +149,16 @@ internal class NetTruyenUU(context: MangaLoaderContext) :
 
 	private suspend fun fetchPage(img: Element): MangaPage? = runCatchingCancellable {
 		val url = img.attrAsRelativeUrlOrNull("data-original") ?: return@runCatchingCancellable null
-		webClient.httpHead(url).use { response ->
-			if (response.mimeType?.startsWith("image/") == true) {
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
-			} else {
-				null
-			}
+		val response = webClient.httpHead(url)
+		if (response.contentType()?.contentType == ContentType.Image.TYPE) {
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		} else {
+			null
 		}
 	}.getOrNull()
 }

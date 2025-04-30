@@ -2,6 +2,9 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
+import io.ktor.http.ContentType.*
+import io.ktor.http.HttpHeaders
+import io.ktor.http.contentType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
@@ -28,9 +31,9 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("referer", "no-referrer")
-		.build()
+	override fun getRequestHeaders() = super.getRequestHeaders().withBuilder {
+		set(HttpHeaders.Referrer, "no-referrer")
+	}
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchTags(),
@@ -177,13 +180,13 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		
+
 		val imageUrls = doc.select("div.page-chapter").flatMap { div ->
 			div.select("img").mapNotNull { img ->
 				val src = img.attr("src").takeIf { it.isNotEmpty() }
 				val dataSrc = img.attr("data-src").takeIf { it.isNotEmpty() }
 				val imageUrl = src ?: dataSrc
-				
+
 				if (imageUrl != null && checkMangaImgs(imageUrl)) {
 					imageUrl
 				} else {
@@ -205,8 +208,8 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	private suspend fun checkMangaImgs(url: String): Boolean {
 		return try {
 			val response = webClient.httpHead(url)
-			val contentType = response.header("Content-Type") ?: ""
-			contentType.startsWith("image/")
+			val contentType = response.contentType()
+			contentType?.contentType == Image.TYPE
 		} catch (e: Exception) {
 			false
 		}

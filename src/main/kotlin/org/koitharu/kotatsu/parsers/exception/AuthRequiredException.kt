@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.exception
 
-import okio.IOException
+import kotlinx.io.IOException
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.model.MangaSource
 

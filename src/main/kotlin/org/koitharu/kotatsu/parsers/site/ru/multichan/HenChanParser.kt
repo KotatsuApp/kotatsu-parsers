@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
-import okhttp3.HttpUrl
+import io.ktor.http.Url
+import io.ktor.http.appendPathSegments
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -59,23 +60,24 @@ internal class HenChanParser(context: MangaLoaderContext) : ChanParser(context, 
 		)
 	}
 
-	override fun buildUrl(offset: Int, order: SortOrder, filter: MangaListFilter): HttpUrl = when {
+	override fun buildUrl(offset: Int, order: SortOrder, filter: MangaListFilter): Url = when {
 		filter.query.isNullOrEmpty() && filter.tags.isEmpty() && filter.tagsExclude.isEmpty() -> {
-			val builder = urlBuilder().addQueryParameter("offset", offset.toString())
+			val builder = urlBuilder().apply {
+				parameters.append("offset", offset.toString())
+			}
 			when (order) {
 				SortOrder.POPULARITY -> {
-					builder.addPathSegment("mostviews")
-					builder.addQueryParameter("sort", "manga")
+					builder.appendPathSegments("mostviews")
+					builder.parameters.append("sort", "manga")
 				}
 
 				SortOrder.RATING -> {
-					builder.addPathSegment("mostfavorites")
-					builder.addQueryParameter("sort", "manga")
+					builder.appendPathSegments("mostfavorites")
+					builder.parameters.append("sort", "manga")
 				}
 
 				else -> { // SortOrder.NEWEST
-					builder.addPathSegment("manga")
-					builder.addPathSegment("newest")
+					builder.appendPathSegments("manga", "newest")
 				}
 			}
 			builder.build()

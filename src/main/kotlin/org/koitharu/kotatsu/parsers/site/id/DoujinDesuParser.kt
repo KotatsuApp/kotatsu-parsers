@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.id
 
-import okhttp3.Headers
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.appendPathSegments
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -42,25 +43,19 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 		),
 	)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("X-Requested-With", "XMLHttpRequest")
-		.add("Referer", "https://$domain/")
-		.build()
+	override fun getRequestHeaders() = HeadersBuilder(2).apply {
+		append("X-Requested-With", "XMLHttpRequest")
+		append("Referer", "https://$domain/")
+	}.build()
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
-			addPathSegment("manga")
-			addPathSegment("page")
-			addPathSegment("$page/")
+			appendPathSegments("manga", "page", page.toString())
 
-			addQueryParameter(
-				"title",
-				filter.query?.let {
-					filter.query
-				},
-			)
-
-			addQueryParameter(
+			filter.query?.let {
+				parameters.append("title", it)
+			}
+			parameters.append(
 				"order",
 				when (order) {
 					SortOrder.UPDATED -> "update"
@@ -72,11 +67,11 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 			)
 
 			filter.tags.forEach {
-				addEncodedQueryParameter("genre[]".urlEncoded(), it.key.urlEncoded())
+				parameters.append("genre[]".urlEncoded(), it.key)
 			}
 
 			filter.states.oneOrThrowIfMany()?.let {
-				addEncodedQueryParameter(
+				parameters.append(
 					"statusx",
 					when (it) {
 						MangaState.ONGOING -> "Publishing"
@@ -87,7 +82,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 			}
 
 			filter.types.oneOrThrowIfMany()?.let {
-				addQueryParameter(
+				parameters.append(
 					"typex",
 					when (it) {
 						ContentType.MANGA -> "Manga"

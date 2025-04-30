@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.id
 
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
@@ -30,17 +32,16 @@ internal class ManhwaIndoParser(context: MangaLoaderContext) :
 
 	private suspend fun fetchPage(img: Element): MangaPage? = runCatchingCancellable {
 		val url = img.requireSrc().toAbsoluteUrl(domain)
-		webClient.httpHead(url).use { response ->
-			if (response.mimeType?.startsWith("image/") == true) {
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
-			} else {
-				null
-			}
+		val response = webClient.httpHead(url)
+		if (response.contentType()?.contentType == ContentType.Image.TYPE) {
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		} else {
+			null
 		}
 	}.getOrNull()
 }

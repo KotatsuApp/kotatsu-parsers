@@ -1,8 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.Interceptor
-import okhttp3.Response
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.HttpHeaders
+import io.ktor.http.hostWithPortIfSpecified
+import io.ktor.http.parseUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.Broken
@@ -23,7 +26,7 @@ import java.util.*
 @Broken
 @MangaSourceParser("NINENINENINEHENTAI", "AnimeH", type = ContentType.HENTAI)
 internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, PAGE_SIZE), Interceptor {
+	LegacyPagedMangaParser(context, MangaParserSource.NINENINENINEHENTAI, PAGE_SIZE) {
 
 	override val configKeyDomain = ConfigKey.Domain("animeh.to")
 
@@ -65,14 +68,9 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 	}
 
 	// Need for disable encoding (with encoding not working)
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val newRequest = if (request.header("Content-Encoding") != null) {
-			request.newBuilder().removeHeader("Content-Encoding").build()
-		} else {
-			request
-		}
-		return chain.proceed(newRequest)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		request.headers.remove(HttpHeaders.ContentEncoding)
+		return super.intercept(sender, request)
 	}
 
 	private val cdnHost = suspendLazy(initializer = ::getUpdatedCdnHost)
@@ -81,7 +79,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 		val url = "https://$domain/manga-home"
 		val response = webClient.httpGet(url).parseHtml()
 		val cdn = response.selectFirst("img.v-thumbnail")?.attr("data-src")
-		return cdn?.toHttpUrlOrNull()?.host ?: "edge.fast4speed.rsvp"
+		return cdn?.let { parseUrl(it) }?.hostWithPortIfSpecified ?: "edge.fast4speed.rsvp"
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {

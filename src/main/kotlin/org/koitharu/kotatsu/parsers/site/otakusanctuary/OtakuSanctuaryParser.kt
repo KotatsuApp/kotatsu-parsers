@@ -1,7 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.otakusanctuary
 
+import io.ktor.http.*
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
@@ -10,7 +11,6 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
 internal abstract class OtakuSanctuaryParser(
@@ -311,9 +311,9 @@ internal abstract class OtakuSanctuaryParser(
 				if (url1.contains("vi") && url1.contains("otakusan.net_")) {
 					url1
 				} else {
-					url1.toHttpUrl().newBuilder().apply {
-						addQueryParameter("vi", vi)
-					}.build().toString()
+					URLBuilder(url1).apply {
+						parameters.append("vi", vi)
+					}.buildString()
 				}
 			}
 
@@ -381,10 +381,10 @@ internal abstract class OtakuSanctuaryParser(
 		url = url.replace("//cdn.adtrue.com/rtb/async.js", "")
 
 		if (url.contains(".webp")) {
-			url = "https://otakusan.net/api/Value/ImageSyncing?ip=34512351".toHttpUrl().newBuilder()
+			url = URLBuilder("https://otakusan.net/api/Value/ImageSyncing?ip=34512351")
 				.apply {
-					addQueryParameter("url", url)
-				}.build().toString()
+					parameters.append("url", url)
+				}.buildString()
 		} else if (
 			(
 				url.contains("merakiscans") ||
@@ -408,28 +408,28 @@ internal abstract class OtakuSanctuaryParser(
 					!url.contains("shopotaku")
 				)
 		) {
-			url =
-				"https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&gadget=a&no_expand=1&resize_h=0&rewriteMime=image%2F*".toHttpUrl()
-					.newBuilder().apply {
-						addQueryParameter("url", url)
-					}.build().toString()
+			url = URLBuilder(
+				"https://images2-focus-opensocial.googleusercontent.com/gadgets/proxy?container=focus&gadget=a&no_expand=1&resize_h=0&rewriteMime=image%2F*",
+			).apply {
+				parameters.append("url", url)
+			}.buildString()
 		} else if (url.contains("imageinstant.com")) {
-			url = "https://images.weserv.nl/".toHttpUrl().newBuilder().apply {
-				addQueryParameter("url", url)
-			}.build().toString()
+			url = URLBuilder("https://images.weserv.nl/").apply {
+				parameters.append("url", url)
+			}.buildString()
 		} else if (!url.contains("otakusan.net")) {
-			url = "https://otakusan.net/api/Value/ImageSyncing?ip=34512351".toHttpUrl().newBuilder()
+			url = URLBuilder("https://otakusan.net/api/Value/ImageSyncing?ip=34512351")
 				.apply {
-					addQueryParameter("url", url)
-				}.build().toString()
+					parameters.append("url", url)
+				}.buildString()
 		}
 
 		return if (url.contains("vi=") && !url.contains("otakusan.net_")) {
 			url
 		} else {
-			url.toHttpUrl().newBuilder().apply {
-				addQueryParameter("vi", vi)
-			}.build().toString()
+			URLBuilder(url).apply {
+				parameters.append("vi", vi)
+			}.buildString()
 		}
 	}
 }

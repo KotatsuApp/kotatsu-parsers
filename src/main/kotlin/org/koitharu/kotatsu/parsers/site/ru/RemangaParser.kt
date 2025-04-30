@@ -1,9 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
-import okhttp3.Headers
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.Headers
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headersOf
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -29,14 +34,14 @@ private const val TOO_MANY_REQUESTS = 429
 @MangaSourceParser("REMANGA", "Реманга", "ru")
 internal class RemangaParser(
 	context: MangaLoaderContext,
-) : LegacyPagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider, Interceptor {
+) : LegacyPagedMangaParser(context, MangaParserSource.REMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
 	private val baseHeaders: Headers
-		get() = Headers.Builder()
-			.add("User-Agent", config[userAgentKey])
-			.build()
+		get() = headersOf(HttpHeaders.UserAgent, config[userAgentKey])
 
-	override fun getRequestHeaders() = getApiHeaders()
+	override fun getRequestHeaders() = runBlocking {
+		getApiHeaders()
+	}
 
 	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг")
 
@@ -51,8 +56,8 @@ internal class RemangaParser(
 	)
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.name == "user"
 			}
 		}
@@ -69,14 +74,13 @@ internal class RemangaParser(
 		availableTags = fetchAvailableTags(),
 	)
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val response = chain.proceed(chain.request())
-		if (response.code == TOO_MANY_REQUESTS) {
-			response.closeQuietly()
-			Thread.sleep(1000)
-			return chain.proceed(chain.request().newBuilder().build())
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
+		if (call.response.status.value == TOO_MANY_REQUESTS) {
+			delay(1000)
+			return sender.execute(request)
 		}
-		return response
+		return call
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -122,10 +126,10 @@ internal class RemangaParser(
 					MangaTag(
 						title = g.getString("name").toTitleCase(),
 						key = g.getInt("id").toString(),
-						source = MangaParserSource.REMANGA,
+						source = source,
 					)
 				}.orEmpty(),
-				source = MangaParserSource.REMANGA,
+				source = source,
 			)
 		}
 	}
@@ -158,7 +162,7 @@ internal class RemangaParser(
 				MangaTag(
 					title = g.getString("name").toTitleCase(),
 					key = g.getInt("id").toString(),
-					source = MangaParserSource.REMANGA,
+					source = source,
 				)
 			},
 			chapters = chapters.mapChapters { i, jo ->
@@ -179,7 +183,7 @@ internal class RemangaParser(
 					title = name.nullIfEmpty(),
 					uploadDate = dateFormat.tryParse(jo.getString("upload_date")),
 					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
-					source = MangaParserSource.REMANGA,
+					source = source,
 					branch = null,
 				)
 			}.asReversed(),
@@ -238,18 +242,18 @@ internal class RemangaParser(
 		keys.add(userAgentKey)
 	}
 
-	private fun getApiHeaders(): Headers {
-		val userCookie = context.cookieJar.getCookies(domain).find {
+	private suspend fun getApiHeaders(): Headers {
+		val userCookie = context.cookiesStorage.getCookies(domain).find {
 			it.name == "user"
 		} ?: return baseHeaders
 		val jo = JSONObject(userCookie.value.urlDecode())
 		val accessToken = jo.getStringOrNull("access_token") ?: return baseHeaders
-		return baseHeaders.newBuilder().add("authorization", "bearer $accessToken").build()
+		return baseHeaders.withBuilder { set(HttpHeaders.Authorization, "bearer $accessToken") }
 	}
 
-	private fun copyCookies() {
+	private suspend fun copyCookies() {
 		val domain = domain
-		context.cookieJar.copyCookies(domain, "api.$domain")
+		context.cookiesStorage.copyCookies(domain, "api.$domain")
 	}
 
 	private fun getSortKey(order: SortOrder?) = when (order) {

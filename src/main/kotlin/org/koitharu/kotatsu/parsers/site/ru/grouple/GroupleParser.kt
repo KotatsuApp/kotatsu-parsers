@@ -2,18 +2,16 @@ package org.koitharu.kotatsu.parsers.site.ru.grouple
 
 import androidx.collection.MutableScatterMap
 import androidx.collection.ScatterMap
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
-import okhttp3.internal.headersContentLength
-import okio.IOException
+import kotlinx.coroutines.runBlocking
+import kotlinx.io.IOException
 import org.json.JSONArray
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -43,7 +41,7 @@ internal abstract class GroupleParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteId: Int,
-) : LegacyMangaParser(context, source), MangaParserAuthProvider, Interceptor {
+) : LegacyMangaParser(context, source), MangaParserAuthProvider {
 
 	@Volatile
 	private var cachedPagesServer: String? = null
@@ -54,10 +52,10 @@ internal abstract class GroupleParser(
 	private val splitTranslationsKey = ConfigKey.SplitByTranslations(false)
 	private val tagsIndex = suspendLazy(initializer = ::fetchTagsMap)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", config[userAgentKey])
-		.add("Accept-Language", "ru,en-US;q=0.7,en;q=0.3")
-		.build()
+	override fun getRequestHeaders() = Headers.build {
+		append("User-Agent", config[userAgentKey])
+		append("Accept-Language", "ru,en-US;q=0.7,en;q=0.3")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
@@ -75,7 +73,7 @@ internal abstract class GroupleParser(
 		}
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
+		get() = runBlocking { context.cookiesStorage.getCookies(domain).any { it.name == "gwt" } }
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -212,7 +210,9 @@ internal abstract class GroupleParser(
 		if (chapter.source != source && chapter.source is MangaParserSource) { // handle redirects between websites
 			return context.newParserInstance(chapter.source).getPages(chapter)
 		}
-		val url = chapter.url.toAbsoluteUrl(domain).toHttpUrl().newBuilder().setQueryParameter("mtr", "1").build()
+		val url = URLBuilder(chapter.url.toAbsoluteUrl(domain)).apply {
+			parameters.set("mtr", "1")
+		}.build()
 		val doc = webClient.httpGet(url).parseHtml()
 		val scripts = doc.select("script")
 		for (script in scripts) {
@@ -265,7 +265,7 @@ internal abstract class GroupleParser(
 					}
 				}
 			}.first().also {
-				cachedPagesServer = it.toHttpUrlOrNull()?.host
+				cachedPagesServer = it.toUrlOrNull()?.hostWithPortIfSpecified
 			}
 		} catch (e: NoSuchElementException) {
 			candidates.randomOrNull() ?: throw ParseException("No page url candidates", page.url, e)
@@ -294,18 +294,16 @@ internal abstract class GroupleParser(
 		} else res
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		if (!request.header(HEADER_ACCEPT).isNullOrEmpty()) {
-			return chain.proceed(request).checkIfAuthRequired()
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		if (!request.headers.get(HEADER_ACCEPT).isNullOrEmpty()) {
+			return sender.execute(request).checkIfAuthRequired()
 		}
 		val ext = request.url.pathSegments.lastOrNull()?.substringAfterLast('.', "")?.lowercase(Locale.ROOT)
 		return if (ext == "jpg" || ext == "jpeg" || ext == "png" || ext == "webp") {
-			chain.proceed(
-				request.newBuilder().header(HEADER_ACCEPT, "image/webp,image/png;q=0.9,image/jpeg,*/*;q=0.8").build(),
-			)
+			request.header(HEADER_ACCEPT, "image/webp,image/png;q=0.9,image/jpeg,*/*;q=0.8")
+			sender.execute(request)
 		} else {
-			chain.proceed(request).checkIfAuthRequired()
+			sender.execute(request).checkIfAuthRequired()
 		}
 	}
 
@@ -322,7 +320,7 @@ internal abstract class GroupleParser(
 		return root.select("div.tile").mapNotNull(::parseManga)
 	}
 
-	protected open fun getSource(url: HttpUrl): MangaSource = when (url.host) {
+	protected open fun getSource(url: Url): MangaSource = when (url.host) {
 		in SeiMangaParser.domains -> MangaParserSource.SEIMANGA
 		in MintMangaParser.domains -> MangaParserSource.MINTMANGA
 		in ReadmangaParser.domains -> MangaParserSource.READMANGA_RU
@@ -343,22 +341,20 @@ internal abstract class GroupleParser(
 		else -> "rate"
 	}
 
-	private suspend fun advancedSearch(offset: Int, order: SortOrder, filter: MangaListFilter): Response {
+	private suspend fun advancedSearch(offset: Int, order: SortOrder, filter: MangaListFilter): HttpResponse {
 		val tagsMap = tagsIndex.get()
-		val url = urlBuilder()
-			.addPathSegment("search")
-			.addPathSegment("advancedResults")
-		url.addQueryParameter("q", filter.query)
-		url.addQueryParameter("offset", offset.toString())
+		val url = urlBuilder().appendPathSegments("search", "advancedResults")
+		url.parameters.append("q", filter.query.orEmpty())
+		url.parameters.append("offset", offset.toString())
 		filter.tags.forEach { tag ->
 			val tagId = requireNotNull(tagsMap[tag.title.lowercase()]) { "Tag ${tag.title} not found" }
-			url.addQueryParameter(tagId, "in")
+			url.parameters.append(tagId, "in")
 		}
 		filter.tagsExclude.forEach { tag ->
 			val tagId = requireNotNull(tagsMap[tag.title.lowercase()]) { "Tag ${tag.title} not found" }
-			url.addQueryParameter(tagId, "ex")
+			url.parameters.append(tagId, "ex")
 		}
-		url.addQueryParameter(
+		url.parameters.append(
 			"years",
 			buildString {
 				append(filter.yearFrom.ifZero { YEAR_MIN })
@@ -366,7 +362,7 @@ internal abstract class GroupleParser(
 				append(filter.yearTo.ifZero { YEAR_MAX })
 			},
 		)
-		url.addQueryParameter(
+		url.parameters.append(
 			"sortType",
 			when (order) {
 				SortOrder.RATING -> "USER_RATING"
@@ -385,7 +381,7 @@ internal abstract class GroupleParser(
 				MangaState.UPCOMING -> "s_wait_upload"
 				else -> null
 			}?.let {
-				url.addQueryParameter(it, "in")
+				url.parameters.append(it, "in")
 			}
 		}
 
@@ -393,12 +389,12 @@ internal abstract class GroupleParser(
 	}
 
 	private suspend fun tryHead(url: String): Boolean = runCatchingCancellable {
-		webClient.httpHead(url).use { response ->
-			response.isSuccessful && !response.isPumpkin() && response.headersContentLength() >= MIN_IMAGE_SIZE
-		}
+		val response = webClient.httpHead(url)
+		response.status.isSuccess() && !response.isPumpkin() && (response.contentLength()
+			?: Long.MAX_VALUE) >= MIN_IMAGE_SIZE
 	}.getOrDefault(false)
 
-	private fun Response.isPumpkin(): Boolean = request.url.host == "upload.wikimedia.org"
+	private fun HttpResponse.isPumpkin(): Boolean = request.url.host == "upload.wikimedia.org"
 
 	private fun parseManga(node: Element): Manga? {
 		val imgDiv = node.selectFirst("div.img") ?: return null
@@ -521,28 +517,24 @@ internal abstract class GroupleParser(
 
 	private fun String.withQueryParam(name: String, value: String?): String {
 		if (value == null) return this
-		return toAbsoluteUrl(domain)
-			.toHttpUrl()
-			.newBuilder()
-			.setQueryParameter(name, value)
-			.build()
+		val urlBuilder = URLBuilder(toAbsoluteUrl(domain))
+		urlBuilder.parameters[name] = value
+		return urlBuilder.build()
 			.toString()
 			.toRelativeUrl(domain)
 	}
 
 	@Throws(IOException::class)
-	private fun Response.checkIfAuthRequired(): Response {
-		val lastPathSegment = request.url.pathSegments.lastOrNull()
+	private fun HttpClientCall.checkIfAuthRequired(): HttpClientCall {
+		val lastPathSegment = request.url.segments.lastOrNull()
 		if (lastPathSegment == "login") {
-			closeQuietly()
 			throw AuthRequiredException(source)
 		}
-		if (code == HttpURLConnection.HTTP_NOT_FOUND) {
+		if (response.status.value == HttpURLConnection.HTTP_NOT_FOUND) {
 			if (!isAuthorized) {
-				closeQuietly()
 				throw AuthRequiredException(source)
 			} else {
-				return newBuilder().code(HttpURLConnection.HTTP_OK).build()
+//				return newBuilder().code(HttpURLConnection.HTTP_OK).build()
 			}
 		}
 		return this

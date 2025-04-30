@@ -1,11 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import okhttp3.Headers
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.Response
-import okhttp3.ResponseBody.Companion.toResponseBody
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.plugins.observer.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
+import io.ktor.utils.io.*
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -25,7 +26,7 @@ internal abstract class MangaPlusParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val sourceLang: String,
-) : LegacySinglePageMangaParser(context, source), Interceptor {
+) : LegacySinglePageMangaParser(context, source) {
 
 	private val apiUrl = "https://jumpg-webapi.tokyo-cdn.com/api"
 	override val configKeyDomain = ConfigKey.Domain("mangaplus.shueisha.co.jp")
@@ -48,7 +49,7 @@ internal abstract class MangaPlusParser(
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
-	private val extraHeaders = Headers.headersOf("Session-Token", UUID.randomUUID().toString())
+	private val extraHeaders = headersOf("Session-Token", UUID.randomUUID().toString())
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		return when {
@@ -220,20 +221,16 @@ internal abstract class MangaPlusParser(
 	}
 
 	// image descrambling
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
 		val encryptionKey = request.url.fragment
 
-		if (encryptionKey.isNullOrEmpty()) {
-			return response
+		if (encryptionKey.isEmpty()) {
+			return call
 		}
 
-		return response.map { responseBody ->
-			val contentType = response.headers["Content-Type"] ?: "image/jpeg"
-			val image = responseBody.bytes().decodeXorCipher(encryptionKey)
-			image.toResponseBody(contentType.toMediaTypeOrNull())
-		}
+		val image = call.response.bodyAsBytes().decodeXorCipher(encryptionKey)
+		return call.wrapWithContent(ByteReadChannel(image))
 	}
 
 	private fun ByteArray.decodeXorCipher(key: String): ByteArray {
@@ -246,9 +243,9 @@ internal abstract class MangaPlusParser(
 	}
 
 	private suspend fun apiCall(url: String): JSONObject {
-		val newUrl = "$apiUrl$url".toHttpUrl().newBuilder()
-			.addQueryParameter("format", "json")
-			.build()
+		val newUrl = URLBuilder("$apiUrl$url").apply {
+			parameters.append("format", "json")
+		}.build()
 		val response = webClient.httpGet(newUrl, extraHeaders).parseJson()
 
 		val success = response.optJSONObject("success")

@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
-import okhttp3.HttpUrl
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import org.jsoup.internal.StringUtil
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -27,7 +28,7 @@ internal abstract class ChanParser(
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
+		get() = runBlocking { context.cookiesStorage.getCookies(domain).any { it.name == "dle_user_id" } }
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -191,29 +192,29 @@ internal abstract class ChanParser(
 		offset: Int,
 		order: SortOrder,
 		filter: MangaListFilter,
-	): HttpUrl {
+	): Url {
 		val builder = urlBuilder()
-		builder.addQueryParameter("offset", offset.toString())
+		builder.parameters.append("offset", offset.toString())
 		when {
 			!filter.query.isNullOrEmpty() -> {
-				builder.addQueryParameter("do", "search")
-				builder.addQueryParameter("subaction", "search")
-				builder.addQueryParameter("search_start", ((offset / 40) + 1).toString())
-				builder.addQueryParameter("full_search", "0")
-				builder.addQueryParameter("result_from", (offset + 1).toString())
-				builder.addQueryParameter("result_num", "40")
-				builder.addQueryParameter("story", filter.query)
-				builder.addQueryParameter("need_sort_date", "false")
+				builder.parameters.append("do", "search")
+				builder.parameters.append("subaction", "search")
+				builder.parameters.append("search_start", ((offset / 40) + 1).toString())
+				builder.parameters.append("full_search", "0")
+				builder.parameters.append("result_from", (offset + 1).toString())
+				builder.parameters.append("result_num", "40")
+				builder.parameters.append("story", filter.query)
+				builder.parameters.append("need_sort_date", "false")
 			}
 
 			else -> {
 				if (filter.tags.isNotEmpty() || filter.tagsExclude.isNotEmpty()) {
-					builder.addPathSegment("tags")
+					builder.appendPathSegments("tags")
 					val joiner = StringUtil.StringJoiner("+")
 					filter.tags.forEach { joiner.add(it.key) }
 					filter.tagsExclude.forEach { joiner.add("-"); joiner.append(it.key) }
-					builder.addPathSegment(joiner.complete())
-					builder.addQueryParameter(
+					builder.appendPathSegments(joiner.complete())
+					builder.parameters.append(
 						"n",
 						when (order) {
 							SortOrder.RATING,
@@ -226,12 +227,12 @@ internal abstract class ChanParser(
 					)
 				} else {
 					when (order) {
-						SortOrder.POPULARITY -> builder.addPathSegment("mostviews")
-						SortOrder.ALPHABETICAL -> builder.addPathSegment("catalog")
-						SortOrder.RATING -> builder.addPathSegment("mostfavorites")
+						SortOrder.POPULARITY -> builder.appendPathSegments("mostviews")
+						SortOrder.ALPHABETICAL -> builder.appendPathSegments("catalog")
+						SortOrder.RATING -> builder.appendPathSegments("mostfavorites")
 						else -> { // SortOrder.NEWEST
-							builder.addPathSegment("manga")
-							builder.addPathSegment("new")
+							builder.appendPathSegments("manga")
+							builder.appendPathSegments("new")
 						}
 					}
 				}

@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ru.grouple
 
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -22,7 +23,9 @@ internal class AllHentaiParser(
 	)
 
 	override val isAuthorized: Boolean
-		get() = super.isAuthorized || context.cookieJar.getCookies(domain).any { it.name == "remember_me" }
+		get() = super.isAuthorized || runBlocking {
+			context.cookiesStorage.getCookies(domain).any { it.name == "remember_me" }
+		}
 
 	override val authUrl: String
 		get() {

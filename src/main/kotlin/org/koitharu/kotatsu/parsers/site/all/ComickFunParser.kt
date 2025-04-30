@@ -2,7 +2,8 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
-import okhttp3.HttpUrl
+import io.ktor.http.Url
+import io.ktor.http.appendPathSegments
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -65,28 +66,26 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val domain = domain
-		val url = urlBuilder()
-			.host("api.$domain")
-			.addPathSegment("v1.0")
-			.addPathSegment("search")
-			.addQueryParameter("type", "comic")
-			.addQueryParameter("tachiyomi", "true")
-			.addQueryParameter("limit", pageSize.toString())
-			.addQueryParameter("page", page.toString())
+		val url = urlBuilder("api")
+		url.appendPathSegments("v1.0", "search")
+		url.parameters.append("type", "comic")
+		url.parameters.append("tachiyomi", "true")
+		url.parameters.append("limit", pageSize.toString())
+		url.parameters.append("page", page.toString())
 
 		filter.query?.let {
-			url.addQueryParameter("q", filter.query)
+			url.parameters.append("q", filter.query)
 		}
 
 		filter.tags.forEach {
-			url.addQueryParameter("genres", it.key)
+			url.parameters.append("genres", it.key)
 		}
 
 		filter.tagsExclude.forEach {
-			url.addQueryParameter("excludes", it.key)
+			url.parameters.append("excludes", it.key)
 		}
 
-		url.addQueryParameter(
+		url.parameters.append(
 			"sort",
 			when (order) {
 				SortOrder.NEWEST -> "created_at"
@@ -98,7 +97,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		)
 
 		filter.states.oneOrThrowIfMany()?.let {
-			url.addQueryParameter(
+			url.parameters.append(
 				"status",
 				when (it) {
 					MangaState.ONGOING -> "1"
@@ -111,15 +110,15 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		}
 
 		if (filter.yearFrom != YEAR_UNKNOWN) {
-			url.addQueryParameter("from", filter.yearFrom.toString())
+			url.parameters.append("from", filter.yearFrom.toString())
 		}
 
 		if (filter.yearTo != YEAR_UNKNOWN) {
-			url.addQueryParameter("to", filter.yearTo.toString())
+			url.parameters.append("to", filter.yearTo.toString())
 		}
 
 		filter.types.forEach {
-			url.addQueryParameter(
+			url.parameters.append(
 				"country",
 				when (it) {
 					ContentType.MANGA -> "jp"
@@ -132,7 +131,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		}
 
 		filter.demographics.forEach {
-			url.addQueryParameter(
+			url.parameters.append(
 				"demographic",
 				when (it) {
 					Demographic.SHOUNEN -> "1"
@@ -252,8 +251,8 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
-		val slug = link.pathSegments.lastOrNull() ?: return null
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? {
+		val slug = link.segments.lastOrNull() ?: return null
 		return resolver.resolveManga(this, url = slug, id = generateUid(slug))
 	}
 

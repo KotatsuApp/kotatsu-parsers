@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ja
 
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -46,8 +47,10 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 		get() = "https://${getDomain("account")}/login?site=seiga"
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(getDomain("seiga")).any {
-			it.name == "user_session"
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(getDomain("seiga")).any {
+				it.name == "user_session"
+			}
 		}
 
 	override suspend fun getUsername(): String {

@@ -1,9 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -56,47 +56,60 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder()
-			.host(domain)
-			.addPathSegment("manga_list")
-			.addQueryParameter("limit", page.toString())
+		url.appendPathSegments("manga_list")
+		url.parameters.append("limit", page.toString())
 
 		filter.query?.let {
-			url.addQueryParameter("search", filter.query)
+			url.parameters.append("search", it)
 		}
 
 		when (order) {
-			SortOrder.UPDATED -> url.addQueryParameter("order_by", "update")
-				.addQueryParameter("order", "desc")
+			SortOrder.UPDATED -> {
+				url.parameters.append("order_by", "update")
+				url.parameters.append("order", "desc")
+			}
 
-			SortOrder.POPULARITY -> url.addQueryParameter("order_by", "views")
-				.addQueryParameter("order", "desc")
+			SortOrder.POPULARITY -> {
+				url.parameters.append("order_by", "views")
+				url.parameters.append("order", "desc")
+			}
 
-			SortOrder.RATING -> url.addQueryParameter("order_by", "top")
-				.addQueryParameter("order", "desc")
+			SortOrder.RATING -> {
+				url.parameters.append("order_by", "top")
+				url.parameters.append("order", "desc")
+			}
 
-			SortOrder.NEWEST -> url.addQueryParameter("order_by", "create")
-				.addQueryParameter("order", "desc")
+			SortOrder.NEWEST -> {
+				url.parameters.append("order_by", "create")
+				url.parameters.append("order", "desc")
+			}
 
-			SortOrder.ALPHABETICAL -> url.addQueryParameter("order_by", "name")
-				.addQueryParameter("order", "asc")
+			SortOrder.ALPHABETICAL -> {
+				url.parameters.append("order_by", "name")
+				url.parameters.append("order", "asc")
+			}
 
-			SortOrder.ALPHABETICAL_DESC -> url.addQueryParameter("order_by", "name")
-				.addQueryParameter("order", "desc")
+			SortOrder.ALPHABETICAL_DESC -> {
+				url.parameters.append("order_by", "name")
+				url.parameters.append("order", "desc")
+			}
 
-			else -> url.addQueryParameter("order_by", "update")
-				.addQueryParameter("order", "desc")
+			else -> {
+				url.parameters.append("order_by", "update")
+				url.parameters.append("order", "desc")
+			}
 		}
 
 		if (filter.tags.isNotEmpty()) {
-			url.addQueryParameter("withCategories", filter.tags.joinToString(",") { it.key })
+			url.parameters.append("withCategories", filter.tags.joinToString(",") { it.key })
 		}
 
 		if (filter.tagsExclude.isNotEmpty()) {
-			url.addQueryParameter("withoutCategories", filter.tagsExclude.joinToString(",") { it.key })
+			url.parameters.append("withoutCategories", filter.tagsExclude.joinToString(",") { it.key })
 		}
 
 		filter.states.oneOrThrowIfMany()?.let {
-			url.addQueryParameter(
+			url.parameters.append(
 				"state",
 				when (it) {
 					MangaState.ONGOING -> "1"
@@ -189,10 +202,10 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 		val chapterId = doc.head().getElementsByAttribute("data-chapter-id").first()!!.attr("data-chapter-id")
 		val json = webClient.httpGet(
 			"https://$domain/api/?id=$chapterId&type=chapter",
-			Headers.headersOf(
-				"Referer", chapterUrl,
-				"x-requested-with", "XMLHttpRequest",
-			),
+			Headers.build {
+				append("Referer", chapterUrl)
+				append("x-requested-with", "XMLHttpRequest")
+			},
 		).parseJson()
 		if (json.getIntOrDefault("type", 1) == 2) {
 			throw ParseException("Light Novels are not supported", chapterUrl)
@@ -211,7 +224,9 @@ internal class BentomangaParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val root = webClient.httpGet(urlBuilder().addPathSegment("manga_list").build())
+		val url = urlBuilder()
+		url.appendPathSegments("manga_list")
+		val root = webClient.httpGet(url.build())
 			.parseHtml()
 			.requireElementById("search_options-form")
 		return root.getElementsByAttributeValue("name", "categories[]")

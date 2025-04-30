@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.all
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.ktor.http.Url
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -46,10 +46,10 @@ internal class Koharu(context: MangaLoaderContext) :
 		keys.add(preferredImageResolutionKey)
 	}
 
-	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("referer", "https://$domain/")
-		.add("origin", "https://$domain")
-		.build()
+	override fun getRequestHeaders() = super.getRequestHeaders().withBuilder {
+		append("referer", "https://$domain/")
+		append("origin", "https://$domain")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -328,7 +328,7 @@ internal class Koharu(context: MangaLoaderContext) :
 		if (currentToken.isNullOrEmpty()) {
 			try {
 				val noTokenResponse = webClient.httpPost(
-					url = "https://$apiSuffix/books/detail/$id/$key".toHttpUrl(),
+					url = Url("https://$apiSuffix/books/detail/$id/$key"),
 					form = emptyMap(),
 					extraHeaders = getRequestHeaders(),
 				).parseJson()
@@ -348,7 +348,7 @@ internal class Koharu(context: MangaLoaderContext) :
 
 		val dataUrl = "https://$apiSuffix/books/detail/$id/$key?crt=$currentToken"
 		val dataResponse = webClient.httpPost(
-			url = dataUrl.toHttpUrl(),
+			url = Url(dataUrl),
 			form = emptyMap(),
 			extraHeaders = getRequestHeaders(),
 		).parseJson()

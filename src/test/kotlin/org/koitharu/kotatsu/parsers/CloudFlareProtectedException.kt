@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers
 
-import okhttp3.Headers
-import okio.IOException
+import io.ktor.http.*
+import kotlinx.io.IOException
 
 class CloudFlareProtectedException(
 	val url: String,

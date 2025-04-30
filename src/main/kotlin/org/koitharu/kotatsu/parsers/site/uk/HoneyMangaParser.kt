@@ -1,8 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.uk
 
 import androidx.collection.ArraySet
-import okhttp3.Interceptor
-import okhttp3.Response
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.HttpHeaders
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -22,13 +24,11 @@ import java.util.*
 
 private const val PAGE_SIZE = 20
 private const val INFINITE = 999999
-private const val HEADER_ENCODING = "Content-Encoding"
 private const val IMAGE_BASEURL_FALLBACK = "https://hmvolumestorage.b-cdn.net/public-resources"
 
 @MangaSourceParser("HONEYMANGA", "HoneyManga", "uk")
 internal class HoneyMangaParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE),
-	Interceptor {
+	LegacyPagedMangaParser(context, MangaParserSource.HONEYMANGA, PAGE_SIZE) {
 
 	private val urlApi get() = "https://data.api.$domain"
 	private val mangaApi get() = "$urlApi/v2/manga/cursor-list"
@@ -185,14 +185,9 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 	}
 
 	// Need for disable encoding (with encoding not working)
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val newRequest = if (request.header(HEADER_ENCODING) != null) {
-			request.newBuilder().removeHeader(HEADER_ENCODING).build()
-		} else {
-			request
-		}
-		return chain.proceed(newRequest)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		request.headers.remove(HttpHeaders.ContentEncoding)
+		return super.intercept(sender, request)
 	}
 
 	private fun isNsfw(adultValue: String?): Boolean {

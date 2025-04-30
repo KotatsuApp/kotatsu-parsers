@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.exception
 
-import okio.IOException
+import kotlinx.io.IOException
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 

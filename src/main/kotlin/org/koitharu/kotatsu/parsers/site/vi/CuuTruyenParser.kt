@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.arraySetOf
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
-import okio.IOException
+import kotlinx.io.IOException
 import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -85,7 +87,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 									MangaState.ONGOING -> "/api/v2/tags/dang-tien-hanh"
 									MangaState.FINISHED -> "/api/v2/tags/da-hoan-thanh"
 									else -> "/api/v2/mangas/recently_updated" // if not (default page)
-								}
+								},
 							)
 						}
 					} else {
@@ -104,6 +106,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 							append("&page=")
 							append(page.toString())
 						}
+
 						else -> {
 							append("?page=")
 							append(page.toString())
@@ -210,11 +213,11 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		val json = webClient.httpGet(url).parseJson().getJSONObject("data")
 
 		return json.getJSONArray("pages").mapJSON { jo ->
-			val imageUrl = jo.getString("image_url").toHttpUrl().newBuilder()
+			val imageUrl = URLBuilder(jo.getString("image_url"))
 			val id = jo.getLong("id")
 			val drm = jo.getStringOrNull("drm_data")
 			if (!drm.isNullOrEmpty()) {
-				imageUrl.fragment(DRM_DATA_KEY + drm)
+				imageUrl.fragment = DRM_DATA_KEY + drm
 			}
 			MangaPage(
 				id = generateUid(id),
@@ -225,15 +228,15 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val response = chain.proceed(chain.request())
-		val fragment = response.request.url.fragment
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
+		val fragment = call.request.url.fragment
 
-		if (fragment == null || !fragment.contains(DRM_DATA_KEY)) {
-			return response
+		if (!fragment.contains(DRM_DATA_KEY)) {
+			return call
 		}
 
-		return context.redrawImageResponse(response) { bitmap ->
+		return context.redrawImageResponse(call) { bitmap ->
 			val drmData = fragment.substringAfter(DRM_DATA_KEY)
 			unscrambleImage(bitmap, drmData)
 		}
@@ -270,13 +273,14 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		}.toByteArray()
 	}
 
-	private fun availableTags() = arraySetOf( // big thanks to beer-psi
+	private fun availableTags() = arraySetOf(
+		// big thanks to beer-psi
 		MangaTag("School life", "school-life", source),
 		MangaTag("Nsfw", "nsfw", source),
 		MangaTag("Monster girls", "monster-girls", source),
 		MangaTag("Magic", "magic", source),
 		MangaTag("tình yêu không được đáp lại", "tinh-yeu-khong-duoc-dap-lai", source),
-        MangaTag("tình yêu thuần khiết", "tinh-yeu-thuan-khiet", source),
+		MangaTag("tình yêu thuần khiết", "tinh-yeu-thuan-khiet", source),
 		MangaTag("Khỏa thân", "khoa-than", source),
 		MangaTag("Gyaru", "gyaru", source),
 		MangaTag("4-Koma", "4-koma", source),

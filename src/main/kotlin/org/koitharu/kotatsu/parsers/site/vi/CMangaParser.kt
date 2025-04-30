@@ -2,6 +2,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.ArrayMap
 import androidx.collection.arraySetOf
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -55,7 +57,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		get() = domain
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "login_password" }
+		get() = runBlocking { context.cookiesStorage.getCookies(domain).any { it.name == "login_password" } }
 
 	override suspend fun getUsername(): String {
 		val userId = webClient.httpGet("https://$domain").parseRaw()
@@ -106,15 +108,15 @@ internal class CMangaParser(context: MangaLoaderContext) :
 					order == SortOrder.POPULARITY_MONTH
 					)
 			) {
-				addPathSegments("api/home_album_top")
+				appendPathSegments("api", "home_album_top")
 			} else {
-				addPathSegments("api/home_album_list")
-				addQueryParameter("num_chapter", "0")
-				addQueryParameter("team", "0")
-				addQueryParameter("sort", "update")
-				addQueryParameter("tag", filter.tags.joinToString(separator = ",") { it.key })
-				addQueryParameter("string", filter.query.orEmpty())
-				addQueryParameter(
+				appendPathSegments("api", "home_album_list")
+				parameters.append("num_chapter", "0")
+				parameters.append("team", "0")
+				parameters.append("sort", "update")
+				parameters.append("tag", filter.tags.joinToString(separator = ",") { it.key })
+				parameters.append("string", filter.query.orEmpty())
+				parameters.append(
 					"status",
 					when (filter.states.oneOrThrowIfMany()) {
 						MangaState.ONGOING -> "doing"
@@ -125,10 +127,10 @@ internal class CMangaParser(context: MangaLoaderContext) :
 				)
 			}
 
-			addQueryParameter("file", "image")
-			addQueryParameter("limit", PAGE_SIZE.toString())
-			addQueryParameter("page", page.toString())
-			addQueryParameter(
+			parameters.append("file", "image")
+			parameters.append("limit", PAGE_SIZE.toString())
+			parameters.append("page", page.toString())
+			parameters.append(
 				"type",
 				when (order) {
 					SortOrder.UPDATED -> "update"

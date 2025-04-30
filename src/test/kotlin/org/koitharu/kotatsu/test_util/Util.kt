@@ -1,12 +1,13 @@
 package org.koitharu.kotatsu.test_util
 
 import androidx.collection.ArraySet
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
+import io.ktor.http.parseUrl
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.util.LONG_HASH_SEED
 import org.koitharu.kotatsu.parsers.util.toRelativeUrl
+import org.koitharu.kotatsu.parsers.util.toUrlOrNull
 
 private val PATTERN_URL_ABSOLUTE = Regex("^https?://[\\s\\S]+", setOf(RegexOption.IGNORE_CASE))
 private val PATTERN_URL_RELATIVE = Regex("^/[\\s\\S]+", setOf(RegexOption.IGNORE_CASE))
@@ -55,13 +56,13 @@ inline operator fun <T> List<T>.component6(): T = get(5)
 inline operator fun <T> List<T>.component7(): T = get(6)
 
 fun mangaOf(source: MangaParserSource, url: String): Manga {
-	val httpUrl = url.toHttpUrlOrNull()
+	val httpUrl = parseUrl(url)
 	var id = LONG_HASH_SEED
 	source.name.forEach { c -> id = 31 * id + c.code }
 	url.forEach { c -> id = 31 * id + c.code }
 	return Manga(
 		id = id,
-		title = httpUrl?.pathSegments?.last() ?: url,
+		title = httpUrl?.segments?.lastOrNull() ?: url,
 		altTitles = emptySet(),
 		url = httpUrl?.let { url.toRelativeUrl(it.host) } ?: url,
 		publicUrl = url,

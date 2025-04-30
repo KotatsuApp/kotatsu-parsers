@@ -1,7 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import androidx.collection.ArraySet
-import okhttp3.HttpUrl
+import io.ktor.http.Url
+import io.ktor.http.appendPathSegments
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -37,12 +38,9 @@ internal class FlameComics(context: MangaLoaderContext) :
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder()
-			.addPathSegment("_next")
-			.addPathSegment("data")
-			.addPathSegment(commonPrefix.get())
-			.addPathSegment("browse.json")
+		url.appendPathSegments("_next", "data", commonPrefix.get(), "browse.json")
 		if (!filter.query.isNullOrEmpty()) {
-			url.addQueryParameter("search", filter.query)
+			url.parameters.append("search", filter.query)
 		}
 		val json = webClient.httpGet(url.build()).parseJson().getJSONObject("pageProps").getJSONArray("series")
 		return json.mapJSONNotNull { jo ->
@@ -55,16 +53,11 @@ internal class FlameComics(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val (seriesId, token) = chapter.url.split('?')
 		val url = urlBuilder()
-			.addPathSegment("_next")
-			.addPathSegment("data")
-			.addPathSegment(commonPrefix.get())
-			.addPathSegment("series")
-			.addPathSegment(seriesId)
-			.addPathSegment("$token.json")
-			.addQueryParameter("id", seriesId)
-			.addQueryParameter("token", token)
-			.build()
-		val json = webClient.httpGet(url).parseJson().getJSONObject("pageProps")
+
+		url.appendPathSegments("_next", "data", commonPrefix.get(), "series", seriesId, "$token.json")
+		url.parameters.append("id", seriesId)
+		url.parameters.append("token", token)
+		val json = webClient.httpGet(url.build()).parseJson().getJSONObject("pageProps")
 			.getJSONObject("chapter")
 			.getJSONObject("images")
 			.entries<JSONObject>()
@@ -78,8 +71,8 @@ internal class FlameComics(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
-		val seriesId = link.pathSegments.lastOrNull()?.toLongOrNull() ?: return null
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? {
+		val seriesId = link.segments.lastOrNull()?.toLongOrNull() ?: return null
 		return getDetailsImpl(seriesId)
 	}
 
@@ -93,29 +86,22 @@ internal class FlameComics(context: MangaLoaderContext) :
 		return checkNotNull(raw.findGroupValue(regex)) { "Unable to find common prefix" }
 	}
 
-	private fun imageUrl(seriesId: Any, url: String, width: Int) = urlBuilder()
-		.addPathSegment("_next")
-		.addPathSegment("image")
-		.addQueryParameter(
+	private fun imageUrl(seriesId: Any, url: String, width: Int) = urlBuilder().apply {
+		appendPathSegments("_next", "image")
+		parameters.append(
 			"url",
-			urlBuilder("cdn")
-				.addPathSegment("series")
-				.addPathSegment(seriesId.toString())
-				.addPathSegments(url)
-				.build().toString(),
+			urlBuilder("cdn").apply {
+				appendPathSegments("series", seriesId.toString(), url)
+			}.buildString(),
 		)
-		.addQueryParameter("w", width.toString())
-		.addQueryParameter("q", "100")
-		.build()
-		.toString()
+		parameters.append("w", width.toString())
+		parameters.append("q", "100")
+	}.buildString()
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val url = urlBuilder()
-			.addPathSegment("_next")
-			.addPathSegment("data")
-			.addPathSegment(commonPrefix.get())
-			.addPathSegment("browse.json")
-			.build()
+		val url = urlBuilder().apply {
+			appendPathSegments("_next", "data", commonPrefix.get(), "browse.json")
+		}.build()
 		return webClient.httpGet(url).parseJson()
 			.getJSONObject("pageProps")
 			.getJSONArray("series")
@@ -166,14 +152,10 @@ internal class FlameComics(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getDetailsImpl(seriesId: Long): Manga {
-		val url = urlBuilder()
-			.addPathSegment("_next")
-			.addPathSegment("data")
-			.addPathSegment(commonPrefix.get())
-			.addPathSegment("series")
-			.addPathSegment("$seriesId.json")
-			.addQueryParameter("id", seriesId.toString())
-			.build()
+		val url = urlBuilder().apply {
+			appendPathSegments("_next", "data", commonPrefix.get(), "series", "$seriesId.json")
+			parameters.append("id", seriesId.toString())
+		}.build()
 		val json = webClient.httpGet(url).parseJson().getJSONObject("pageProps")
 		val series = json.getJSONObject("series")
 		val chapters = json.getJSONArray("chapters")

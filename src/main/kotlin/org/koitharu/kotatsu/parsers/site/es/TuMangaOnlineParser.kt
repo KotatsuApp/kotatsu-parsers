@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.es
 
-import okhttp3.Headers
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.ktor.http.Url
+import io.ktor.http.headersOf
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -275,7 +275,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 		val script4 = document.selectFirst("input#redir")
 		val script5 = document.selectFirst("script:containsData(window.opener):containsData(location.replace)")
 
-		val redirectHeaders = Headers.Builder().set("Referer", document.baseUri()).build()
+		val redirectHeaders = headersOf("Referer", document.baseUri())
 
 		if (script1 != null) {
 			val data = script1.data()
@@ -284,7 +284,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 			val regexParams = """\{uniqid:\s*'(\S+)',\s*cascade:\s*(\S+)\}""".toRegex()
 			val regexAction = """form\.action\s?=\s?'(.+)'""".toRegex()
 			val params = regexParams.find(data)!!
-			val action = regexAction.find(data)!!.groupValues[1].toHttpUrl()
+			val action = Url(regexAction.find(data)!!.groupValues[1])
 
 			val formBody = mapOf(
 				"uniqid" to params.groupValues[1],

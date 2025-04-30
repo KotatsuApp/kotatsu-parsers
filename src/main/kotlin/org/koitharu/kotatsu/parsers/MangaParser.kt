@@ -1,19 +1,18 @@
 package org.koitharu.kotatsu.parsers
 
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.Interceptor
+import io.ktor.http.*
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
+import org.koitharu.kotatsu.parsers.network.HttpInterceptor
 import org.koitharu.kotatsu.parsers.util.LinkResolver
 import org.koitharu.kotatsu.parsers.util.convertToMangaSearchQuery
 import org.koitharu.kotatsu.parsers.util.toMangaListFilterCapabilities
 import java.util.*
 
-public interface MangaParser : Interceptor {
+public interface MangaParser : HttpInterceptor {
 
 	public val source: MangaParserSource
 
@@ -78,7 +77,7 @@ public interface MangaParser : Interceptor {
 	 * @see [Manga.publicUrl]
 	 */
 	@InternalParsersApi
-	public suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga?
+	public suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga?
 
 	@Deprecated("Use getList(query: MangaSearchQuery) instead")
 	public suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

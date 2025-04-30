@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.mangadventure.en
 
+import io.ktor.http.appendPathSegments
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -16,8 +17,10 @@ internal class ArcRelight(context: MangaLoaderContext) :
 			seed.tags.find { it.key == franchise } != null
 		}
 		if (tags.isEmpty()) return emptyList()
-		val url = apiUrl.addEncodedPathSegment("series")
-			.addQueryParameter("categories", tags.joinToString(","))
+		val url = apiUrl.apply {
+			appendPathSegments("series")
+			parameters.append("categories", tags.joinToString(","))
+		}
 		return getManga(url.get())
 	}
 }

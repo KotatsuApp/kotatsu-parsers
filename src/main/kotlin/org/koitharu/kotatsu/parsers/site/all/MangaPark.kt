@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -80,7 +81,9 @@ internal class MangaPark(context: MangaLoaderContext) :
 	)
 
 	init {
-		context.cookieJar.insertCookies(domain, "nsfw", "2")
+		runBlocking {
+			context.cookiesStorage.insertCookies(domain, "nsfw", "2")
+		}
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {

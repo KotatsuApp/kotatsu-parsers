@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.id
 
-import okhttp3.Headers
+import io.ktor.http.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
+import sun.text.normalizer.UTF16.append
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -24,10 +25,10 @@ internal class Shinigami(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("referer", "https://$domain/")
-		.add("sec-fetch-dest", "empty")
-		.build()
+	override fun getRequestHeaders() = Headers.build {
+		append("referer", "https://$domain/")
+		append("sec-fetch-dest", "empty")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,

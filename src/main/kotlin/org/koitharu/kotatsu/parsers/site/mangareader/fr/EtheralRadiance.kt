@@ -1,11 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.fr
 
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.insertCookies
 
 @MangaSourceParser("ETHERALRADIANCE", "EtheralRadiance", "fr")
@@ -24,9 +24,11 @@ internal class EtheralRadiance(context: MangaLoaderContext) :
 		)
 
 	init {
-		context.cookieJar.insertCookies(
-			domain,
-			"_lscache_vary=1;",
-		)
+		runBlocking {
+			context.cookiesStorage.insertCookies(
+				domain,
+				"_lscache_vary=1;",
+			)
+		}
 	}
 }

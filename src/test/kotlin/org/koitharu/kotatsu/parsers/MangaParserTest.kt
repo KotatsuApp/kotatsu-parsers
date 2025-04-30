@@ -1,7 +1,8 @@
 package org.koitharu.kotatsu.parsers
 
+import io.ktor.client.statement.*
+import io.ktor.http.*
 import kotlinx.coroutines.test.runTest
-import okhttp3.HttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
@@ -13,7 +14,6 @@ import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Include
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.medianOrNull
-import org.koitharu.kotatsu.parsers.util.mimeType
 import org.koitharu.kotatsu.test_util.*
 import kotlin.time.Duration.Companion.minutes
 
@@ -224,13 +224,15 @@ internal class MangaParserTest {
 	fun domain(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
 		val defaultDomain = parser.domain
-		val url = HttpUrl.Builder().host(defaultDomain).scheme("https").toString()
+		val url = buildUrl {
+			host = defaultDomain
+			protocol = URLProtocol.HTTPS
+		}.toString()
 		val response = context.doRequest(url, source)
 		val realUrl = response.request.url
-		val realDomain = realUrl.topPrivateDomain()
 		val realHost = realUrl.host
-		assert(defaultDomain == realHost || defaultDomain == realDomain) {
-			"Domain mismatch:\nRequired:\t\t\t$defaultDomain\nActual:\t\t\t$realDomain\nHost:\t\t\t$realHost"
+		assert(defaultDomain == realHost) {
+			"Domain mismatch:\nRequired:\t\t\t$defaultDomain\nActual:\t\t\t$realHost"
 		}
 	}
 
@@ -280,11 +282,12 @@ internal class MangaParserTest {
 		if (url == null) {
 			return
 		}
-		context.doRequest(url, source).use {
-			assert(it.isSuccessful) { "Request failed: ${it.code}(${it.message}): $url" }
-			assert(it.mimeType?.startsWith("image/") == true) {
-				"Wrong response mime type: ${it.mimeType}"
-			}
+		val response = context.doRequest(url, source)
+		assert(response.status.isSuccess()) {
+			"Request failed: ${response.status}): $url"
+		}
+		assert(response.contentType()?.contentType == "image") {
+			"Wrong response mime type: ${response.contentType()}"
 		}
 	}
 

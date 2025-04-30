@@ -1,8 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import androidx.collection.ArrayMap
-import okhttp3.Headers
-import okhttp3.HttpUrl
+import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.Url
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -40,9 +41,9 @@ internal class DesuMeParser(context: MangaLoaderContext) :
 		availableTags = tagsCache.get().values.toSet(),
 	)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", UserAgents.KOTATSU)
-		.build()
+	override fun getRequestHeaders() = HeadersBuilder().apply {
+		append("User-Agent", UserAgents.KOTATSU)
+	}.build()
 
 	private val tagsCache = suspendLazy(initializer = ::fetchTags)
 
@@ -157,7 +158,7 @@ internal class DesuMeParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? {
 		val doc = webClient.httpGet(link).parseHtml()
 		val mangaId = doc.getElementsByAttribute("data-manga_id").firstNotNullOfOrNull { element ->
 			element.attrOrNull("data-manga_id")

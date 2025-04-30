@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.exception
 
-import okio.IOException
+import kotlinx.io.IOException
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNull

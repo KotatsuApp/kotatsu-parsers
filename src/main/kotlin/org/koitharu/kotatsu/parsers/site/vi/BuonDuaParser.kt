@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import io.ktor.http.appendPathSegments
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -52,12 +53,12 @@ internal class BuonDuaParser(context: MangaLoaderContext) : LegacyMangaParser(co
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
 			when {
-				!filter.query.isNullOrEmpty() -> addQueryParameter("search", filter.query)
-				filter.tags.isNotEmpty() -> addPathSegments(filter.tags.first().key)
-				order == SortOrder.POPULARITY -> addPathSegment("hot")
+				!filter.query.isNullOrEmpty() -> parameters.append("search", filter.query)
+				filter.tags.isNotEmpty() -> appendPathSegments(filter.tags.first().key)
+				order == SortOrder.POPULARITY -> appendPathSegments("hot")
 			}
 
-			addQueryParameter("start", offset.toString())
+			parameters.append("start", offset.toString())
 		}.build()
 
 		val content = webClient.httpGet(url).parseHtml()

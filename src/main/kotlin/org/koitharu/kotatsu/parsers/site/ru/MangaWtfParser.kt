@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import androidx.collection.ArrayMap
+import io.ktor.http.appendPathSegments
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONObject
@@ -55,16 +56,15 @@ internal class MangaWtfParser(
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("v2")
-				.addPathSegment("books")
-				.addQueryParameter("page", page.toString())
-				.addQueryParameter("size", pageSize.toString())
-				.addQueryParameter("type", "COMIC")
+		val url = urlBuilder("api").apply {
+			appendPathSegments("v2", "books")
+			parameters.append("page", page.toString())
+			parameters.append("size", pageSize.toString())
+			parameters.append("type", "COMIC")
+		}
 		when {
 			filter.query.isNullOrEmpty() -> {
-				url.addQueryParameter(
+				url.parameters.append(
 					"sort",
 					when (order) {
 						SortOrder.UPDATED -> "updatedAt,desc"
@@ -75,13 +75,13 @@ internal class MangaWtfParser(
 					},
 				)
 				if (filter.tags.isNotEmpty()) {
-					url.addQueryParameter("labelsInclude", filter.tags.joinToString(",") { it.key })
+					url.parameters.append("labelsInclude", filter.tags.joinToString(",") { it.key })
 				}
 				if (filter.tagsExclude.isNotEmpty()) {
-					url.addQueryParameter("labelsExclude", filter.tags.joinToString(",") { it.key })
+					url.parameters.append("labelsExclude", filter.tags.joinToString(",") { it.key })
 				}
 				if (filter.states.isNotEmpty()) {
-					url.addQueryParameter(
+					url.parameters.append(
 						"status",
 						filter.states.joinToString(",") {
 							when (it) {
@@ -95,7 +95,7 @@ internal class MangaWtfParser(
 					)
 				}
 				if (filter.contentRating.isNotEmpty()) {
-					url.addQueryParameter(
+					url.parameters.append(
 						"contentStatus",
 						filter.contentRating.joinToString(",") {
 							when (it) {
@@ -109,7 +109,7 @@ internal class MangaWtfParser(
 			}
 
 			else -> {
-				url.addQueryParameter("search", filter.query)
+				url.parameters.append("search", filter.query)
 			}
 		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
@@ -119,11 +119,9 @@ internal class MangaWtfParser(
 	override suspend fun getDetails(manga: Manga): Manga =
 		coroutineScope {
 			val chaptersDeferred = async { getChapters(manga.url) }
-			val url =
-				urlBuilder("api")
-					.addPathSegment("v2")
-					.addPathSegment("books")
-					.addPathSegment(manga.url)
+			val url = urlBuilder("api").apply {
+				appendPathSegments("v2", "books", manga.url)
+			}
 			val jo = webClient.httpGet(url.build()).parseJson()
 			val isNsfwSource = jo.getStringOrNull("contentStatus").isNsfw()
 			Manga(
@@ -152,11 +150,9 @@ internal class MangaWtfParser(
 		}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("v2")
-				.addPathSegment("chapters")
-				.addPathSegment(chapter.url)
+		val url = urlBuilder("api").apply {
+			appendPathSegments("v2", "chapters", chapter.url)
+		}
 		val json = webClient.httpGet(url.build()).parseJson()
 		return json.getJSONArray("pages").mapJSON { jo ->
 			MangaPage(
@@ -169,7 +165,9 @@ internal class MangaWtfParser(
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val url = urlBuilder("api").addPathSegment("label")
+		val url = urlBuilder("api").apply {
+			appendPathSegments("label")
+		}
 		val json = webClient.httpGet(url.build()).parseJson()
 		return json.getJSONArray("content").mapJSONToSet { jo ->
 			MangaTag(
@@ -181,11 +179,9 @@ internal class MangaWtfParser(
 	}
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("book")
-				.addPathSegment(seed.url)
-				.addPathSegment("related")
+		val url = urlBuilder("api").apply {
+			appendPathSegments("book", seed.url, "related")
+		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
 		return ja.mapJSON { jo -> jo.toManga() }
 	}
@@ -193,11 +189,10 @@ internal class MangaWtfParser(
 	override suspend fun getPageUrl(page: MangaPage): String = page.url
 
 	private suspend fun getChapters(mangaId: String): List<MangaChapter> {
-		val url =
-			urlBuilder("api")
-				.addPathSegment("v2")
-				.addPathSegment("chapters")
-				.addQueryParameter("bookId", mangaId)
+		val url = urlBuilder("api").apply {
+			appendPathSegments("v2", "chapters")
+			parameters.append("bookId", mangaId)
+		}
 		val ja = webClient.httpGet(url.build()).parseJsonArray()
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'", Locale.ROOT)
 		val branches = ArrayMap<String, String>()
@@ -222,10 +217,9 @@ internal class MangaWtfParser(
 
 	private suspend fun getBranchName(id: String): String? =
 		runCatchingCancellable {
-			val url =
-				urlBuilder("api")
-					.addPathSegment("branch")
-					.addPathSegment(id)
+			val url = urlBuilder("api").apply {
+				appendPathSegments("branch", id)
+			}
 			val json = webClient.httpGet(url.build()).parseJson()
 			json.getJSONArray("publishers").mapJSONToSet { it.getStringOrNull("name") }.firstOrNull()
 		}.getOrElse {

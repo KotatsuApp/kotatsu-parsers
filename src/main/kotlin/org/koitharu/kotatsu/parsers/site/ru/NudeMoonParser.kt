@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
+import kotlinx.coroutines.runBlocking
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -26,8 +27,8 @@ internal class NudeMoonParser(
 		get() = "https://${domain}/index.php"
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.name == "fusion_user"
 			}
 		}
@@ -45,11 +46,13 @@ internal class NudeMoonParser(
 		)
 
 	init {
-		context.cookieJar.insertCookies(
-			domain,
-			"NMfYa=1;",
-			"nm_mobile=1;",
-		)
+		runBlocking {
+			context.cookiesStorage.insertCookies(
+				domain,
+				"NMfYa=1;",
+				"nm_mobile=1;",
+			)
+		}
 	}
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(

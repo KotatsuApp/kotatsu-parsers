@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
+import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -28,7 +30,7 @@ internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteLang: String,
-) : LegacyPagedMangaParser(context, source, 30), Interceptor, MangaParserAuthProvider {
+) : LegacyPagedMangaParser(context, source, 30), MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 
@@ -50,8 +52,8 @@ internal abstract class MangaFireParser(
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.value.contains("user")
 			}
 		}
@@ -86,17 +88,14 @@ internal abstract class MangaFireParser(
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = "https://$domain/filter".toHttpUrl().newBuilder().apply {
-			addQueryParameter("page", page.toString())
-			addQueryParameter("language[]", siteLang)
+		val url = URLBuilder("https://$domain/filter").apply {
+			parameters.append("page", page.toString())
+			parameters.append("language[]", siteLang)
 
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					val encodedQuery = filter.query.splitByWhitespace().joinToString(separator = "+") { part ->
-						part.urlEncoded()
-					}
-					addEncodedQueryParameter("keyword", encodedQuery)
-					addQueryParameter(
+					parameters.append("keyword", filter.query.replace(' ', '+'))
+					parameters.append(
 						name = "sort",
 						value = when (order) {
 							SortOrder.UPDATED -> "recently_updated"
@@ -112,16 +111,16 @@ internal abstract class MangaFireParser(
 
 				else -> {
 					filter.tagsExclude.forEach { tag ->
-						addQueryParameter("genre[]", "-${tag.key}")
+						parameters.append("genre[]", "-${tag.key}")
 					}
 					filter.tags.forEach { tag ->
-						addQueryParameter("genre[]", tag.key)
+						parameters.append("genre[]", tag.key)
 					}
 					filter.locale?.let {
-						addQueryParameter("language[]", it.language)
+						parameters.append("language[]", it.language)
 					}
 					filter.states.forEach { state ->
-						addQueryParameter(
+						parameters.append(
 							name = "status[]",
 							value = when (state) {
 								MangaState.ONGOING -> "releasing"
@@ -132,7 +131,7 @@ internal abstract class MangaFireParser(
 							},
 						)
 					}
-					addQueryParameter(
+					parameters.append(
 						name = "sort",
 						value = when (order) {
 							SortOrder.UPDATED -> "recently_updated"
@@ -369,10 +368,9 @@ internal abstract class MangaFireParser(
 			// fallback: author's other works
 			document.select("div.meta a[href*=/author/]").map {
 				async {
-					val url = it.attrAsAbsoluteUrl("href").toHttpUrl()
-						.newBuilder()
-						.addQueryParameter("language[]", siteLang)
-						.build()
+					val url = URLBuilder(it.attrAsAbsoluteUrl("href")).apply {
+						parameters.append("language[]", siteLang)
+					}.build()
 
 					webClient.httpGet(url)
 						.parseHtml().parseMangaList()
@@ -413,16 +411,15 @@ internal abstract class MangaFireParser(
 		return pages
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
 
-		if (request.url.fragment?.startsWith("scrambled") != true) {
-			return response
+		if (!request.url.fragment.startsWith("scrambled")) {
+			return call
 		}
 
-		return context.redrawImageResponse(response) { bitmap ->
-			val offset = request.url.fragment!!.substringAfter("_").toInt()
+		return context.redrawImageResponse(call) { bitmap ->
+			val offset = request.url.fragment.substringAfter("_").toInt()
 			val width = bitmap.width
 			val height = bitmap.height
 

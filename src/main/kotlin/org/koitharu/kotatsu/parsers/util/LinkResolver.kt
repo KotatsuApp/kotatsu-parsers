@@ -1,9 +1,8 @@
 package org.koitharu.kotatsu.parsers.util
 
+import io.ktor.http.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runInterruptible
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
@@ -12,7 +11,7 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
 public class LinkResolver internal constructor(
 	private val context: MangaLoaderContext,
-	public val link: HttpUrl,
+	public val link: Url,
 ) {
 
 	private val source = suspendLazy(Dispatchers.Default, ::resolveSource)
@@ -25,13 +24,11 @@ public class LinkResolver internal constructor(
 	}
 
 	private suspend fun resolveSource(): MangaParserSource? = runInterruptible(Dispatchers.Default) {
-		val domains = setOfNotNull(link.host, link.topPrivateDomain())
+		val domain = link.hostWithPortIfSpecified
 		for (s in MangaParserSource.entries) {
 			val parser = context.newParserInstance(s)
-			for (d in parser.configKeyDomain.presetValues) {
-				if (d in domains) {
-					return@runInterruptible s
-				}
+			if (domain in parser.configKeyDomain.presetValues) {
+				return@runInterruptible s
 			}
 		}
 		null
@@ -101,7 +98,7 @@ public class LinkResolver internal constructor(
 		if (publicUrl == link.toString()) {
 			return true
 		}
-		val httpUrl = publicUrl.toHttpUrlOrNull() ?: return false
+		val httpUrl = parseUrl(publicUrl) ?: return false
 		return link.host == httpUrl.host
 			&& link.encodedPath == httpUrl.encodedPath
 	}

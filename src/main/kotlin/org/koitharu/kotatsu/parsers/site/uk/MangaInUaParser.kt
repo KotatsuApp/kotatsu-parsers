@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.uk
 
+import io.ktor.http.appendPathSegments
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -158,10 +159,13 @@ internal class MangaInUaParser(context: MangaLoaderContext) : LegacyPagedMangaPa
 		val userHash = doc.select("script").firstNotNullOf { script ->
 			userHashRegex.find(script.html())?.groupValues?.getOrNull(1)
 		}
-		val ajaxUrl = urlBuilder().addPathSegment("engine").addPathSegment("ajax").addPathSegment("controller.php")
-			.addEncodedQueryParameter("mod", "load_chapters_image")
-			.addQueryParameter("news_id", doc.requireElementById("comics").attrOrThrow("data-news_id"))
-			.addEncodedQueryParameter("action", "show").addQueryParameter("user_hash", userHash).build()
+		val ajaxUrl = urlBuilder().apply {
+			appendPathSegments("engine", "ajax", "controller.php")
+			parameters.append("mod", "load_chapters_image")
+			parameters.append("news_id", doc.requireElementById("comics").attrOrThrow("data-news_id"))
+			parameters.append("action", "show")
+			parameters.append("user_hash", userHash)
+		}.build()
 		val root = webClient.httpGet(ajaxUrl).parseHtml().root()
 		return root.select("li").map { ul ->
 			val img = ul.selectFirstOrThrow("img")

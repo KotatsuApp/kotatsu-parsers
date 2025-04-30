@@ -5,7 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
-import org.koitharu.kotatsu.parsers.util.domain
 
 @Broken // Not dead, changed template
 @MangaSourceParser("TEMPLESCAN", "TempleScan", "en")

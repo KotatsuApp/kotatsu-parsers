@@ -9,7 +9,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
-internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {
+internal class DragonTranslationParser(context: MangaLoaderContext) :
+	LegacyPagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("dragontranslation.net")
 
@@ -18,9 +19,9 @@ internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPage
 		keys.add(userAgentKey)
 	}
 
-	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
- 		.add("referer", "no-referrer")
- 		.build()
+	override fun getRequestHeaders() = super.getRequestHeaders().withBuilder {
+		set("referer", "no-referrer")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
@@ -148,24 +149,31 @@ internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPage
 			dateText.contains("minutos") -> {
 				now - (number * 60 * 1000L)
 			}
+
 			dateText.contains("horas") -> {
 				now - (number * 60 * 60 * 1000L)
 			}
+
 			dateText.contains("días") -> {
 				now - (number * 24 * 60 * 60 * 1000L)
 			}
+
 			dateText.contains("día") -> {
 				now - (number * 24 * 60 * 60 * 1000L)
 			}
+
 			dateText.contains("semanas") -> {
 				now - (number * 7 * 24 * 60 * 60 * 1000L)
 			}
+
 			dateText.contains("meses") -> {
 				now - (number * 30 * 24 * 60 * 60 * 1000L)
 			}
+
 			dateText.contains("años") -> {
 				now - (number * 365 * 24 * 60 * 60 * 1000L)
 			}
+
 			else -> 0L
 		}
 	}

@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.model
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.ktor.http.*
 
 public data class Favicon(
 	@JvmField public val url: String,
@@ -9,8 +9,8 @@ public data class Favicon(
 ) : Comparable<Favicon> {
 
 	@JvmField
-	public val type: String = url.toHttpUrl().pathSegments.last()
-		.substringAfterLast('.', "").lowercase()
+	public val type: String = Url(url).segments.lastOrNull()
+		?.substringAfterLast('.', "")?.lowercase().orEmpty()
 
 	override fun compareTo(other: Favicon): Int {
 		val res = size.compareTo(other.size)

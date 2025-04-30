@@ -1,15 +1,14 @@
 package org.koitharu.kotatsu.parsers.core
 
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.Interceptor
-import okhttp3.Request
-import okhttp3.Response
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
-import org.koitharu.kotatsu.parsers.util.mergeWith
 
 internal class MangaParserWrapper(
 	private val delegate: MangaParser,
@@ -49,20 +48,10 @@ internal class MangaParserWrapper(
 		delegate.getRelatedManga(seed)
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val headers = request.headers.newBuilder()
-			.mergeWith(delegate.getRequestHeaders(), replaceExisting = false)
-			.build()
-		val newRequest = request.newBuilder().headers(headers).build()
-		return delegate.intercept(ProxyChain(chain, newRequest))
-	}
-
-	private class ProxyChain(
-		private val delegate: Interceptor.Chain,
-		private val request: Request,
-	) : Interceptor.Chain by delegate {
-
-		override fun request(): Request = request
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		delegate.getRequestHeaders().forEach { name, values ->
+			request.headers.appendMissing(name, values)
+		}
+		return sender.execute(request)
 	}
 }

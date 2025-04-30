@@ -2,11 +2,11 @@ package org.koitharu.kotatsu.parsers.site.wpcomics
 
 import androidx.collection.ArrayMap
 import androidx.collection.ArraySet
+import io.ktor.http.parseUrl
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -340,7 +340,7 @@ internal abstract class WpComicsParser(
 
 	protected fun Element.findImageUrl(): String? {
 		val attrs = attributes().filter { attr ->
-			attr.value.toHttpUrlOrNull() != null
+			parseUrl(attr.value) != null
 		}
 		// src attribute should have a lowest priority
 		return attrs.maxByOrNull { it.key != "src" }?.value

@@ -1,12 +1,14 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
+import io.ktor.client.statement.request
+import io.ktor.http.Headers
+import io.ktor.http.headersOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Headers
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -488,8 +490,8 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 		range: LongRange? = null,
 	): ByteArray {
 		val rangeHeaders = when (range) {
-			null -> Headers.headersOf()
-			else -> Headers.headersOf("Range", "bytes=${range.first}-${range.last}")
+			null -> headersOf()
+			else -> headersOf("Range", "bytes=${range.first}-${range.last}")
 		}
 
 		return webClient.httpGet(url, rangeHeaders).parseBytes()

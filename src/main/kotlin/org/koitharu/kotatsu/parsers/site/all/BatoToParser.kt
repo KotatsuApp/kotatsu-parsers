@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Element
@@ -36,8 +37,8 @@ internal class BatoToParser(context: MangaLoaderContext) : LegacyPagedMangaParse
 		get() = "https://${domain}/signin"
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.name.contains("skey")
 			}
 		}

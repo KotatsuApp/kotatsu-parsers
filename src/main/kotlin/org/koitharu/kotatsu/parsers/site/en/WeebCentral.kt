@@ -1,9 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import io.ktor.http.URLBuilder
+import io.ktor.http.Url
+import io.ktor.http.appendPathSegments
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import kotlinx.coroutines.runBlocking
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -31,7 +33,9 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 		get() = "https://$domain"
 
 	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "access_token" }
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any { it.name == "access_token" }
+		}
 
 	override suspend fun getUsername(): String {
 		return webClient.httpGet("https://$domain/users/me/profiles")
@@ -95,17 +99,17 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 	}
 
 	override suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = "https://$domain/search/data".toHttpUrl().newBuilder().apply {
-			addQueryParameter("limit", "32")
-			addQueryParameter("offset", offset.toString())
+		val url = URLBuilder("https://$domain/search/data").apply {
+			parameters.set("limit", "32")
+			parameters.set("offset", offset.toString())
 			filter.query?.let {
 				val query = it
 					.replace(Regex("""[^a-zA-Z0-9\s]"""), " ")
 					.replace(Regex("""\s+"""), " ")
 					.trim()
-				addQueryParameter("text", query)
+				parameters.set("text", query)
 			}
-			addQueryParameter(
+			parameters.set(
 				name = "sort",
 				value = when (order) {
 					RELEVANCE -> "Best Match"
@@ -117,7 +121,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 					else -> throw UnsupportedOperationException("unsupported order: $order")
 				},
 			)
-			addQueryParameter(
+			parameters.set(
 				name = "order",
 				value = when (order) {
 					RELEVANCE, ALPHABETICAL, POPULARITY_ASC, RATING_ASC, ADDED_ASC, UPDATED_ASC -> "Ascending"
@@ -125,10 +129,10 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 					else -> throw UnsupportedOperationException("unsupported order: $order")
 				},
 			)
-			addQueryParameter("official", "Any")
-			addQueryParameter("anime", "Any")
+			parameters.append("official", "Any")
+			parameters.append("anime", "Any")
 			with(filter.contentRating) {
-				addQueryParameter(
+				parameters.append(
 					name = "adult",
 					value = when {
 						isEmpty() -> "Any"
@@ -140,7 +144,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				)
 			}
 			filter.states.forEach { state ->
-				addQueryParameter(
+				parameters.append(
 					name = "included_status",
 					value = when (state) {
 						ONGOING -> "Ongoing"
@@ -152,7 +156,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				)
 			}
 			filter.types.forEach { type ->
-				addQueryParameter(
+				parameters.append(
 					name = "included_type",
 					value = when (type) {
 						MANGA -> "Manga"
@@ -164,24 +168,26 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				)
 			}
 			filter.tags.forEach { tag ->
-				addQueryParameter("included_tag", tag.key)
+				parameters.append("included_tag", tag.key)
 			}
 			filter.tagsExclude.forEach { tag ->
-				addQueryParameter("excluded_tag", tag.key)
+				parameters.append("excluded_tag", tag.key)
 			}
-			addQueryParameter("display_mode", "Full Display")
+			parameters.append("display_mode", "Full Display")
 		}.build()
 
 		val document = webClient.httpGet(url).parseHtml()
 
 		return document.select("article:has(section)").map { element ->
-			val mangaId = element.selectFirstOrThrow("a")
-				.attrAsAbsoluteUrl("href")
-				.toHttpUrl()
-				.pathSegments[1]
+			val mangaId = Url(
+				element.selectFirstOrThrow("a")
+					.attrAsAbsoluteUrl("href"),
+			).segments[1]
 			val author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty()
-			val title = element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")?.text() 
-				?: "No name"
+			val title =
+				element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")
+					?.text()
+					?: "No name"
 			Manga(
 				id = generateUid(mangaId),
 				url = mangaId,
@@ -297,9 +303,9 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 		}
 
 		return document.select("div[x-data] > a").mapChapters(reversed = true) { i, element ->
-			val chapterId = element.attrAsAbsoluteUrl("href")
-				.toHttpUrl()
-				.pathSegments[1]
+			val chapterId = Url(
+				element.attrAsAbsoluteUrl("href"),
+			).segments[1]
 			val name = element.selectFirstOrThrow("span.flex > span").text()
 
 			MangaChapter(
@@ -328,12 +334,10 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 	private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url = "https://$domain".toHttpUrl().newBuilder().apply {
-			addPathSegment("chapters")
-			addPathSegment(chapter.url)
-			addPathSegment("images")
-			addQueryParameter("is_prev", "False")
-			addQueryParameter("reading_style", "long_strip")
+		val url = URLBuilder("https://$domain").apply {
+			appendPathSegments("chapters", chapter.url, "images")
+			parameters.append("is_prev", "False")
+			parameters.append("reading_style", "long_strip")
 		}.build()
 
 		val document = webClient.httpGet(url).parseHtml()
@@ -350,8 +354,8 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 		}
 	}
 
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
-		val mangaId = link.pathSegments[1]
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? {
+		val mangaId = link.segments[1]
 
 		return resolver.resolveManga(this, mangaId)
 	}

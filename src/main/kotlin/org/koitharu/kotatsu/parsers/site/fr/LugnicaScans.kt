@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import kotlinx.coroutines.runBlocking
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -43,10 +44,12 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 	)
 
 	init {
-		context.cookieJar.insertCookies(
-			domain,
-			"reader_render=continue;",
-		)
+		runBlocking {
+			context.cookiesStorage.insertCookies(
+				domain,
+				"reader_render=continue;",
+			)
+		}
 	}
 
 	override suspend fun getFavicons(): Favicons {

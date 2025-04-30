@@ -1,6 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fmreader.ja
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.ktor.http.URLBuilder
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -53,9 +53,9 @@ internal class Klz9(context: MangaLoaderContext) :
 
 	override suspend fun getChapters(doc: Document): List<MangaChapter> {
 		val slug = doc.selectFirstOrThrow("div.h0rating").attr("slug")
-		val xhrUrl = "https://$domain/${generateRandomStr()}.lstc".toHttpUrl().newBuilder()
-			.addQueryParameter("slug", slug)
-			.build()
+		val xhrUrl = URLBuilder("https://$domain/${generateRandomStr()}.lstc").apply {
+			parameters["slug"] = slug
+		}.build()
 		val docLoad = webClient.httpGet(xhrUrl).parseHtml()
 
 		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)

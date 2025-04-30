@@ -1,10 +1,9 @@
 package org.koitharu.kotatsu.parsers
 
-import okhttp3.CookieJar
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.OkHttpClient
-import okhttp3.Response
+import io.ktor.client.*
+import io.ktor.client.call.*
+import io.ktor.client.plugins.cookies.*
+import io.ktor.http.*
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
@@ -14,15 +13,15 @@ import java.util.*
 
 public abstract class MangaLoaderContext {
 
-	public abstract val httpClient: OkHttpClient
+	public abstract val httpClient: HttpClient
 
-	public abstract val cookieJar: CookieJar
+	public abstract val cookiesStorage: CookiesStorage
 
 	public fun newParserInstance(source: MangaParserSource): MangaParser = source.newParser(this)
 
-	public fun newLinkResolver(link: HttpUrl): LinkResolver = LinkResolver(this, link)
+	public fun newLinkResolver(link: Url): LinkResolver = LinkResolver(this, link)
 
-	public fun newLinkResolver(link: String): LinkResolver = newLinkResolver(link.toHttpUrl())
+	public fun newLinkResolver(link: String): LinkResolver = newLinkResolver(Url(link))
 
 	public open fun encodeBase64(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
 
@@ -44,13 +43,13 @@ public abstract class MangaLoaderContext {
 	/**
 	 * Helper function to be used in an interceptor
 	 * to descramble images
-	 * @param response Image response
+	 * @param call Image response
 	 * @param redraw lambda function to implement descrambling logic
 	 */
-	public abstract fun redrawImageResponse(
-		response: Response,
+	public abstract suspend fun redrawImageResponse(
+		call: HttpClientCall,
 		redraw: (image: Bitmap) -> Bitmap,
-	): Response
+	): HttpClientCall
 
 	/**
 	 * create a new empty Bitmap with given dimensions

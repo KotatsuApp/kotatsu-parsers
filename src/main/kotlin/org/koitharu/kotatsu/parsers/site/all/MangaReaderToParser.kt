@@ -1,9 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.MutableIntObjectMap
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
+import kotlinx.coroutines.runBlocking
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -24,7 +27,7 @@ import kotlin.math.min
 @MangaSourceParser("MANGAREADERTO", "MangaReader.To")
 internal class MangaReaderToParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.MANGAREADERTO, 16),
-	Interceptor, MangaParserAuthProvider {
+	MangaParserAuthProvider {
 
 	override val configKeyDomain = ConfigKey.Domain("mangareader.to")
 
@@ -37,8 +40,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		get() = "https://${domain}/home"
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.name.contains("connect.sid")
 			}
 		}
@@ -81,18 +84,18 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = "https://$domain".toHttpUrl().newBuilder().apply {
+		val url = URLBuilder("https://$domain").apply {
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					addPathSegment("search")
-					addQueryParameter("keyword", filter.query)
-					addQueryParameter("page", page.toString())
+					appendPathSegments("search")
+					parameters.append("keyword", filter.query)
+					parameters.append("page", page.toString())
 				}
 
 				else -> {
-					addPathSegment("filter")
-					addQueryParameter("page", page.toString())
-					addQueryParameter(
+					appendPathSegments("filter")
+					parameters.append("page", page.toString())
+					parameters.append(
 						name = "sort",
 						value = when (order) {
 							SortOrder.POPULARITY -> "most-viewed"
@@ -103,8 +106,8 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 							else -> "default"
 						},
 					)
-					addQueryParameter("genres", filter.tags.joinToString(",") { it.key })
-					addQueryParameter(
+					parameters.append("genres", filter.tags.joinToString(",") { it.key })
+					parameters.append(
 						name = "status",
 						value = when (filter.states.oneOrThrowIfMany()) {
 							MangaState.ONGOING -> "2"
@@ -290,13 +293,11 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 		}
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
+		if (call.request.url.fragment != "scrambled") return call
 
-		if (request.url.fragment != "scrambled") return response
-
-		return context.redrawImageResponse(response, ::descramble)
+		return context.redrawImageResponse(call, ::descramble)
 	}
 
 	private val memo = MutableIntObjectMap<IntArray>()

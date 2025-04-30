@@ -3,11 +3,13 @@ package org.koitharu.kotatsu.parsers.site.all
 import androidx.collection.ArraySet
 import androidx.collection.SparseArrayCompat
 import androidx.collection.set
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
-import okhttp3.internal.headersContentLength
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.client.statement.request
+import io.ktor.http.contentLength
+import io.ktor.http.parseUrl
+import kotlinx.coroutines.runBlocking
 import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -32,7 +34,7 @@ private val TAG_PREFIXES = arrayOf("male:", "female:", "other:")
 @MangaSourceParser("EXHENTAI", "ExHentai", type = ContentType.HENTAI)
 internal class ExHentaiParser(
 	context: MangaLoaderContext,
-) : LegacyPagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider, Interceptor {
+) : LegacyPagedMangaParser(context, MangaParserSource.EXHENTAI, pageSize = 25), MangaParserAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
@@ -64,12 +66,14 @@ internal class ExHentaiParser(
 			val authorized = isAuthorized(DOMAIN_UNAUTHORIZED)
 			if (authorized) {
 				if (!isAuthorized(DOMAIN_AUTHORIZED)) {
-					context.cookieJar.copyCookies(
-						DOMAIN_UNAUTHORIZED,
-						DOMAIN_AUTHORIZED,
-						authCookies,
-					)
-					context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
+					runBlocking {
+						context.cookiesStorage.copyCookies(
+							DOMAIN_UNAUTHORIZED,
+							DOMAIN_AUTHORIZED,
+							authCookies,
+						)
+						context.cookiesStorage.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
+					}
 				}
 				return true
 			}
@@ -77,8 +81,10 @@ internal class ExHentaiParser(
 		}
 
 	init {
-		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
-		context.cookieJar.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
+		runBlocking {
+			context.cookiesStorage.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
+			context.cookiesStorage.insertCookies(DOMAIN_UNAUTHORIZED, "nw=1", "sl=dm_2")
+		}
 		paginator.firstPage = 0
 		searchPaginator.firstPage = 0
 	}
@@ -131,20 +137,22 @@ internal class ExHentaiParser(
 		}
 
 		val url = urlBuilder()
-		url.addEncodedQueryParameter("next", next.toString())
-		url.addQueryParameter("f_search", filter.toSearchQuery())
+		url.parameters.append("next", next.toString())
+		filter.toSearchQuery()?.let {
+			url.parameters.append("f_search", it)
+		}
 
 		val fCats = filter.types.toFCats()
 		if (fCats != 0) {
-			url.addEncodedQueryParameter("f_cats", (1023 - fCats).toString())
+			url.parameters.append("f_cats", (1023 - fCats).toString())
 		}
 		if (updateDm) {
 			// by unknown reason cookie "sl=dm_2" is ignored, so, we should request it again
-			url.addQueryParameter("inline_set", "dm_e")
+			url.parameters.append("inline_set", "dm_e")
 		}
-		url.addQueryParameter("advsearch", "1")
+		url.parameters.append("advsearch", "1")
 		if (config[suspiciousContentKey]) {
-			url.addQueryParameter("f_sh", "on")
+			url.parameters.append("f_sh", "on")
 		}
 		val body = webClient.httpGet(url.build()).parseHtml().body()
 		val root = body.selectFirst("table.itg")?.selectFirst("tbody")
@@ -302,15 +310,15 @@ internal class ExHentaiParser(
 		return result
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val response = chain.proceed(chain.request())
-		if (response.headersContentLength() <= 256) {
-			val text = response.peekBody(256).use { it.string() }
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
+		val response = call.response
+		if ((response.contentLength() ?: Long.MAX_VALUE) <= 256) {
+			val text = response.peekBodyString(256)
 			if (text.contains("IP address has been temporarily banned", ignoreCase = true)) {
 				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val seconds = Regex("([0-9]+) seconds?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
-				response.closeQuietly()
 				throw TooManyRequestExceptions(
 					url = response.request.url.toString(),
 					retryAfter = TimeUnit.HOURS.toMillis(hours)
@@ -319,10 +327,10 @@ internal class ExHentaiParser(
 				)
 			}
 		}
-		val imageRect = response.request.url.fragment?.split(',')
-		if (imageRect != null && imageRect.size == 4) {
+		val imageRect = response.request.url.fragment.split(',')
+		if (imageRect.size == 4) {
 			// rect: top,left,right,bottom
-			return context.redrawImageResponse(response) { bitmap ->
+			return context.redrawImageResponse(call) { bitmap ->
 				val srcRect = Rect(
 					left = imageRect[0].toInt(),
 					top = imageRect[1].toInt(),
@@ -335,7 +343,7 @@ internal class ExHentaiParser(
 				result
 			}
 		}
-		return response
+		return call
 	}
 
 	private fun Locale.toLanguagePath() = when (language) {
@@ -363,7 +371,9 @@ internal class ExHentaiParser(
 	}
 
 	private fun isAuthorized(domain: String): Boolean {
-		val cookies = context.cookieJar.getCookies(domain).mapToSet { x -> x.name }
+		val cookies = runBlocking {
+			context.cookiesStorage.getCookies(domain)
+		}.mapToSet { x -> x.name }
 		return authCookies.all { it in cookies }
 	}
 
@@ -430,8 +440,8 @@ internal class ExHentaiParser(
 	private fun getNextTimestamp(root: Element): Long {
 		return root.getElementById("unext")
 			?.attrAsAbsoluteUrlOrNull("href")
-			?.toHttpUrlOrNull()
-			?.queryParameter("next")
+			?.let { parseUrl(it) }
+			?.parameters?.get("next")
 			?.toLongOrNull() ?: 1
 	}
 

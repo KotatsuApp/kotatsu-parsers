@@ -1,17 +1,18 @@
 package org.koitharu.kotatsu.parsers.core
 
 import androidx.annotation.CallSuper
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.http.*
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.config.MangaSourceConfig
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.network.KtorWebClient
 import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.FaviconParser
 import org.koitharu.kotatsu.parsers.util.LinkResolver
@@ -43,9 +44,9 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 		get() = config[configKeyDomain]
 
 	@Deprecated("Override intercept() instead")
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", config[userAgentKey])
-		.build()
+	override fun getRequestHeaders(): Headers = headersOf(
+		"User-Agent" to listOf(config[userAgentKey]),
+	)
 
 	/**
 	 * Used as fallback if value of `order` passed to [getList] is null
@@ -57,7 +58,7 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 		}
 
 	@JvmField
-	protected val webClient: WebClient = OkHttpWebClient(context.httpClient, source)
+	protected val webClient: WebClient = KtorWebClient(context.httpClient, source)
 
 	/**
 	 * Fetch direct link to the page image.
@@ -84,7 +85,10 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	 * Return [Manga] object by web link to it
 	 * @see [Manga.publicUrl]
 	 */
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? = null
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? = null
 
-	override fun intercept(chain: Interceptor.Chain): Response = chain.proceed(chain.request())
+	override suspend fun intercept(
+		sender: Sender,
+		request: HttpRequestBuilder,
+	): HttpClientCall = sender.execute(request)
 }

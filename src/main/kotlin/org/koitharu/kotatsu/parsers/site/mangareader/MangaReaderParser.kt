@@ -1,14 +1,15 @@
 package org.koitharu.kotatsu.parsers.site.mangareader
 
 import androidx.collection.ArrayMap
+import io.ktor.client.call.HttpClientCall
+import io.ktor.client.plugins.Sender
+import io.ktor.client.request.HttpRequestBuilder
+import io.ktor.http.Cookie
+import io.ktor.http.contentType
+import io.ktor.http.parseServerSetCookieHeader
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Cookie
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -25,7 +26,7 @@ internal abstract class MangaReaderParser(
 	domain: String,
 	pageSize: Int,
 	searchPageSize: Int,
-) : LegacyPagedMangaParser(context, source, pageSize, searchPageSize), Interceptor {
+) : LegacyPagedMangaParser(context, source, pageSize, searchPageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -366,23 +367,21 @@ internal abstract class MangaReaderParser(
 		return@withLock tagMap
 	}
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val response = chain.proceed(chain.request())
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
 		if (!isNetShieldProtected) {
-			return response
+			return call
 		}
-		val contentType = response.mimeType
+		val contentType = call.response.contentType()
 		if (
-			contentType?.endsWith("/html") != false &&
-			context.cookieJar.getCookies(domain).none { it.name.contains("NetShield") }
+			contentType?.contentSubtype?.equals("html") != false &&
+			context.cookiesStorage.getCookies(domain).none { it.name.contains("NetShield") }
 		) {
-			val cookie = runBlocking { response.copy().parseHtml().getNetShieldCookie() } ?: return response
-			context.cookieJar.insertCookie(domain, cookie)
-			return chain.proceed(response.request.newBuilder().build()).also {
-				response.closeQuietly()
-			}
+			val cookie = call.response.parseHtml().getNetShieldCookie() ?: return call
+			context.cookiesStorage.insertCookie(domain, cookie)
+			return sender.execute(request)
 		}
-		return response
+		return call
 	}
 
 	private suspend fun Document.getNetShieldCookie(): Cookie? = runCatchingCancellable {
@@ -392,7 +391,7 @@ internal abstract class MangaReaderParser(
 		val min = webClient.httpGet("https://$domain/min.js").parseRaw()
 		val res = context.evaluateJs(min + "\n\n" + script.replace(Regex("document.cookie\\s*=\\s*"), "return "))
 		res?.let {
-			Cookie.parse(baseUri().toHttpUrl(), it)
+			parseServerSetCookieHeader(it)
 		}
 	}.getOrNull()
 }

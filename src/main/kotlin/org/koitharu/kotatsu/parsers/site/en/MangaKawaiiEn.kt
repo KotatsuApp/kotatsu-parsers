@@ -1,8 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import io.ktor.http.HttpHeaders
+import io.ktor.http.headersOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -34,9 +35,7 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 		availableTags = fetchAvailableTags(),
 	)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("Accept-Language", "en")
-		.build()
+	override fun getRequestHeaders() = headersOf(HttpHeaders.AcceptLanguage, "en")
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {

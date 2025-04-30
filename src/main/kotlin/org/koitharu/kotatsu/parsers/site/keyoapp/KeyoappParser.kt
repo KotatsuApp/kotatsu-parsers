@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.keyoapp
 
 import androidx.collection.scatterSetOf
+import io.ktor.http.*
 import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -79,11 +80,13 @@ internal abstract class KeyoappParser(
 				tag = it.title
 			}
 
-			when (order) {
-				SortOrder.UPDATED -> addPathSegment("latest")
-				SortOrder.NEWEST -> addPathSegment("series")
-				else -> addPathSegment("series")
-			}
+			appendPathSegments(
+				when (order) {
+					SortOrder.UPDATED -> "latest"
+					SortOrder.NEWEST -> "series"
+					else -> "series"
+				},
+			)
 
 		}.build()
 

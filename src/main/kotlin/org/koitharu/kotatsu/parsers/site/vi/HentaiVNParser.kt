@@ -83,7 +83,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 				} else {
 					val site = if (order == SortOrder.UPDATED) "/chap-moi" else "/danh-sach"
 					val url = "$site.html?page=$page".toAbsoluteUrl(domain)
-					context.cookieJar.insertCookies(domain, *getSortCookies(order))
+					context.cookiesStorage.insertCookies(domain, *getSortCookies(order))
 					val docs = webClient.httpGet(url).parseHtml()
 					parseMainList(docs, page)
 				}

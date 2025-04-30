@@ -1,7 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import okhttp3.Headers
-import okhttp3.HttpUrl.Companion.toHttpUrl
+import io.ktor.http.Url
+import io.ktor.http.headersOf
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -45,8 +45,8 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 
 				val keyword = filter.query
 				val url = "http://$domain/search/html/1"
-				val headers = Headers.Builder().add("X-Requested-With", "XMLHttpRequest").build()
-				val response = webClient.httpPost(url.toHttpUrl(), payload = "keyword=$keyword", headers).parseHtml()
+				val headers = headersOf("X-Requested-With", "XMLHttpRequest")
+				val response = webClient.httpPost(Url(url), payload = "keyword=$keyword", headers).parseHtml()
 				parseMangaSearch(response)
 			}
 

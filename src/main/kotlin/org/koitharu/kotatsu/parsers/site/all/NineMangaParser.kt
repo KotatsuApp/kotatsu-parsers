@@ -1,11 +1,13 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArrayMap
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -19,7 +21,7 @@ internal abstract class NineMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	defaultDomain: String,
-) : LegacyPagedMangaParser(context, source, pageSize = 26), Interceptor {
+) : LegacyPagedMangaParser(context, source, pageSize = 26) {
 
 	override val configKeyDomain = ConfigKey.Domain(defaultDomain)
 
@@ -29,12 +31,14 @@ internal abstract class NineMangaParser(
 	}
 
 	init {
-		context.cookieJar.insertCookies(domain, "ninemanga_template_desk=yes")
+		runBlocking {
+			context.cookiesStorage.insertCookies(domain, "ninemanga_template_desk=yes")
+		}
 	}
 
-	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("Accept-Language", "en-US;q=0.7,en;q=0.3")
-		.build()
+	override fun getRequestHeaders() = super.getRequestHeaders().withBuilder {
+		set(HttpHeaders.AcceptLanguage, "en-US;q=0.7,en;q=0.3")
+	}
 
 	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,
@@ -56,14 +60,9 @@ internal abstract class NineMangaParser(
 		),
 	)
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val newRequest = if (request.url.host == domain) {
-			request.newBuilder().removeHeader("Referer").build()
-		} else {
-			request
-		}
-		return chain.proceed(newRequest)
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		request.headers.remove(HttpHeaders.Referrer)
+		return super.intercept(sender, request)
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -103,7 +102,7 @@ internal abstract class NineMangaParser(
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		val root = doc.body().selectFirstOrThrow("ul.direlist")
-		val baseHost = root.baseUri().toHttpUrl().host
+		val baseHost = Url(root.baseUri()).hostWithPortIfSpecified
 		return root.select("li").map { node ->
 			val href = node.selectFirstOrThrow("a").attrAsAbsoluteUrl("href")
 			val relUrl = href.toRelativeUrl(baseHost)

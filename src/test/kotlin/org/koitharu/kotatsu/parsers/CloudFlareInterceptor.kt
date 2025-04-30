@@ -1,22 +1,21 @@
 package org.koitharu.kotatsu.parsers
 
-import okhttp3.Interceptor
-import okhttp3.Response
-import okhttp3.internal.closeQuietly
+import io.ktor.client.call.*
+import io.ktor.client.plugins.*
+import io.ktor.client.request.*
 import org.koitharu.kotatsu.parsers.network.CloudFlareHelper
+import org.koitharu.kotatsu.parsers.network.HttpInterceptor
 
-internal class CloudFlareInterceptor : Interceptor {
+internal class CloudFlareInterceptor : HttpInterceptor {
 
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
-		if (CloudFlareHelper.checkResponseForProtection(response) != CloudFlareHelper.PROTECTION_NOT_DETECTED) {
-			response.closeQuietly()
+	override suspend fun intercept(sender: Sender, request: HttpRequestBuilder): HttpClientCall {
+		val call = sender.execute(request)
+		if (CloudFlareHelper.checkResponseForProtection(call.response) != CloudFlareHelper.PROTECTION_NOT_DETECTED) {
 			throw CloudFlareProtectedException(
-				url = response.request.url.toString(),
-				headers = request.headers,
+				url = call.request.url.toString(),
+				headers = call.request.headers,
 			)
 		}
-		return response
+		return call
 	}
 }

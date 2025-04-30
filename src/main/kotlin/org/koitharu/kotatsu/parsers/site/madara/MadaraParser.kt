@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.madara
 import androidx.collection.scatterSetOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
@@ -83,8 +84,8 @@ internal abstract class MadaraParser(
 		get() = "https://${domain}"
 
 	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
+		get() = runBlocking {
+			context.cookiesStorage.getCookies(domain).any {
 				it.name.contains("wordpress_logged_in")
 			}
 		}

@@ -1,9 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import io.ktor.http.Headers
+import io.ktor.http.Url
 import kotlinx.coroutines.*
-import okhttp3.Headers
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -165,10 +164,13 @@ internal class MangaMana(context: MangaLoaderContext) :
 			}
 		}
 
-		val url = "https://$domain/liste-mangas".toHttpUrl()
+		val url = Url("https://$domain/liste-mangas")
 		val token = webClient.httpGet(url).parseHtml().selectFirstOrThrow("meta[name=csrf-token]").attr("content")
-		val headers = Headers.Builder().add("X-CSRF-TOKEN", token).add("X-Requested-With", "XMLHttpRequest")
-			.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").build()
+		val headers = Headers.build {
+			append("X-CSRF-TOKEN", token)
+			append("X-Requested-With", "XMLHttpRequest")
+			append("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8")
+		}
 		val doc = makeRequest(url, postData, headers)
 
 		return doc.select("div.p-2 div.col").map { div ->
@@ -205,7 +207,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 	}
 
 
-	private suspend fun makeRequest(url: HttpUrl, payload: String, headers: Headers): Document {
+	private suspend fun makeRequest(url: Url, payload: String, headers: Headers): Document {
 		var retryCount = 0
 		val backoffDelay = 2000L // Initial delay (milliseconds)
 		while (true) {

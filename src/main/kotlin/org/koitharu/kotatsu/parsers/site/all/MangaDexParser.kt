@@ -1,10 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import io.ktor.http.Url
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -262,9 +262,9 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 		return getDetails(mangaId)
 	}
 
-	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+	override suspend fun resolveLink(resolver: LinkResolver, link: Url): Manga? {
 		val regex = Regex("[0-9a-f\\-]{10,}", RegexOption.IGNORE_CASE)
-		val mangaId = link.pathSegments.find { regex.matches(it) } ?: return null
+		val mangaId = link.segments.find { regex.matches(it) } ?: return null
 		return getDetails(mangaId)
 	}
 

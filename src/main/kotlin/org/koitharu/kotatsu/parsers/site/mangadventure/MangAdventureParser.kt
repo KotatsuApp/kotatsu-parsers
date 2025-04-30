@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.mangadventure
 
-import okhttp3.HttpUrl
+import io.ktor.http.URLBuilder
+import io.ktor.http.appendPathSegments
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -61,15 +62,17 @@ internal abstract class MangAdventureParser(
 		order: SortOrder,
 		filter: MangaListFilter,
 	): List<Manga> {
-		val url = apiUrl.addEncodedPathSegment("series")
-			.addEncodedQueryParameter("limit", pageSize.toString())
-			.addEncodedQueryParameter("page", page.toString())
-
-		filter.query?.let {
-			url.addQueryParameter("title", filter.query)
+		val url = apiUrl.apply {
+			appendPathSegments("series")
+			parameters.append("limit", pageSize.toString())
+			parameters.append("page", page.toString())
 		}
 
-		url.addQueryParameter(
+		filter.query?.let {
+			url.parameters.append("title", filter.query)
+		}
+
+		url.parameters.append(
 			"categories",
 			buildString {
 				filter.tags.joinTo(this, ",", postfix = ",") { it.key }
@@ -79,20 +82,20 @@ internal abstract class MangAdventureParser(
 
 		filter.states.oneOrThrowIfMany()?.let {
 			when (it) {
-				MangaState.ONGOING -> url.addEncodedQueryParameter("status", "ongoing")
-				MangaState.FINISHED -> url.addEncodedQueryParameter("status", "completed")
-				MangaState.ABANDONED -> url.addEncodedQueryParameter("status", "canceled")
-				MangaState.PAUSED -> url.addEncodedQueryParameter("status", "hiatus")
-				else -> url.addEncodedQueryParameter("status", "any")
+				MangaState.ONGOING -> url.parameters.append("status", "ongoing")
+				MangaState.FINISHED -> url.parameters.append("status", "completed")
+				MangaState.ABANDONED -> url.parameters.append("status", "canceled")
+				MangaState.PAUSED -> url.parameters.append("status", "hiatus")
+				else -> url.parameters.append("status", "any")
 			}
 		}
 
 		when (order) {
-			SortOrder.ALPHABETICAL -> url.addEncodedQueryParameter("sort", "title")
-			SortOrder.ALPHABETICAL_DESC -> url.addEncodedQueryParameter("sort", "-title")
-			SortOrder.UPDATED -> url.addEncodedQueryParameter("sort", "-latest_upload")
-			SortOrder.POPULARITY -> url.addEncodedQueryParameter("sort", "-views")
-			else -> url.addEncodedQueryParameter("sort", "-latest_upload")
+			SortOrder.ALPHABETICAL -> url.parameters.append("sort", "title")
+			SortOrder.ALPHABETICAL_DESC -> url.parameters.append("sort", "-title")
+			SortOrder.UPDATED -> url.parameters.append("sort", "-latest_upload")
+			SortOrder.POPULARITY -> url.parameters.append("sort", "-views")
+			else -> url.parameters.append("sort", "-latest_upload")
 		}
 
 		return runCatchingCancellable { getManga(url.get()) }.getOrElse {
@@ -101,10 +104,9 @@ internal abstract class MangAdventureParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val url = apiUrl.addEncodedPathSegment("series").addPathSegment(manga.slug)
+		val url = apiUrl.appendPathSegments("series", manga.slug)
 		val details = requireNotNull(url.get())
-		val chapters = url.addEncodedPathSegment("chapters")
-			.addEncodedQueryParameter("date_format", "timestamp").get()
+		val chapters = url.appendPathSegments("chapters", "date_format", "timestamp").get()
 		val author = buildString {
 			val authors = details.getJSONArray("authors")
 			val artists = details.getJSONArray("artists")
@@ -132,7 +134,7 @@ internal abstract class MangAdventureParser(
 				"hiatus" -> MangaState.PAUSED
 				else -> null
 			},
-			chapters = chapters?.optJSONArray("results")?.asTypedList<JSONObject>()?.mapChapters { _, it ->
+			chapters = chapters.optJSONArray("results")?.asTypedList<JSONObject>()?.mapChapters { _, it ->
 				MangaChapter(
 					id = generateUid(it.getLong("id")),
 					title = it.getStringOrNull("full_title"),
@@ -149,11 +151,11 @@ internal abstract class MangAdventureParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url = apiUrl.addEncodedPathSegment("chapters")
-			.addEncodedPathSegment(chapter.id.toString())
-			.addEncodedPathSegment("pages")
-			.addEncodedQueryParameter("track", "true")
-		return url.get()?.optJSONArray("results")?.mapJSON {
+		val url = apiUrl.apply {
+			appendPathSegments("chapters", chapter.id.toString(), "pages")
+			parameters.append("track", "true")
+		}
+		return url.get().optJSONArray("results")?.mapJSON {
 			MangaPage(
 				id = generateUid(it.getLong("id")),
 				url = it.getString("image"),
@@ -166,8 +168,10 @@ internal abstract class MangAdventureParser(
 	override suspend fun getPageUrl(page: MangaPage) = page.url
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val url = apiUrl.addEncodedPathSegment("categories")
-		return url.get()?.optJSONArray("results")?.mapJSONToSet {
+		val url = apiUrl.apply {
+			appendPathSegments("categories")
+		}
+		return url.get().optJSONArray("results")?.mapJSONToSet {
 			val name = it.getString("name")
 			MangaTag(name, name, source)
 		} ?: emptySet()
@@ -184,7 +188,9 @@ internal abstract class MangAdventureParser(
 			if (it.opt("chapters") == JSONObject.NULL)
 				return@mapJSONNotNull null
 			val path = it.getString("url")
-			val publicUrl = urlBuilder().addEncodedPathSegments(path).toString()
+			val publicUrl = urlBuilder().apply {
+				appendPathSegments(path)
+			}.buildString()
 			Manga(
 				id = generateUid(it.getString("slug")),
 				title = it.getString("title"),
@@ -202,12 +208,14 @@ internal abstract class MangAdventureParser(
 		} ?: emptyList()
 	}
 
-	protected val apiUrl: HttpUrl.Builder
-		get() = urlBuilder().addEncodedPathSegments("api/v2")
+	protected val apiUrl: URLBuilder
+		get() = urlBuilder().apply {
+			appendPathSegments("api", "v2")
+		}
 
 	// /reader/{slug}/
 	private val Manga.slug: String
 		get() = url.substring(8, url.length - 1)
 
-	protected suspend fun HttpUrl.Builder.get() = webClient.httpGet(build()).parseJson()
+	protected suspend fun URLBuilder.get() = webClient.httpGet(build()).parseJson()
 }

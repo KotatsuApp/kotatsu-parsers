@@ -1,10 +1,10 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import io.ktor.http.*
+import io.ktor.util.*
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
-import okhttp3.HttpUrl
-import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -14,6 +14,7 @@ import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -271,7 +272,7 @@ internal abstract class WebtoonsParser(
 	private suspend fun makeRequest(url: String): JSONObject {
 		val resp = webClient.httpGet(finalizeUrl(url))
 		val message: JSONObject? = resp.parseJson().optJSONObject("message")
-		return when (resp.code) {
+		return when (resp.status.value) {
 			in 200..299 -> checkNotNull(message).getJSONObject("result")
 			404 -> throw NotFoundException(message?.getStringOrNull("message").orEmpty(), url)
 			else -> {
@@ -282,14 +283,13 @@ internal abstract class WebtoonsParser(
 		}
 	}
 
-	private fun finalizeUrl(url: String): HttpUrl {
-		val httpUrl = url.toAbsoluteUrl(apiDomain).toHttpUrl()
-		val builder = httpUrl.newBuilder().addQueryParameter("serviceZone", "GLOBAL")
-		if (httpUrl.queryParameter("v") == null) {
-			builder.addQueryParameter("v", "1")
-		}
-		builder.addQueryParameter("language", languageCode).addQueryParameter("locale", "languageCode")
-			.addQueryParameter("platform", "APP_ANDROID")
+	private fun finalizeUrl(url: String): Url {
+		val builder = URLBuilder(url.toAbsoluteUrl(apiDomain))
+		builder.parameters["serviceZone"] = "GLOBAL"
+		builder.parameters.appendIfNameAbsent("v", "1")
+		builder.parameters.set("language", languageCode)
+		builder.parameters.set("locale", "languageCode")
+		builder.parameters.set("platform", "APP_ANDROID")
 		signer.makeEncryptUrl(builder)
 		return builder.build()
 	}
@@ -330,11 +330,11 @@ internal abstract class WebtoonsParser(
 			return context.encodeBase64(signedMessage)
 		}
 
-		fun makeEncryptUrl(urlBuilder: HttpUrl.Builder) {
+		fun makeEncryptUrl(urlBuilder: URLBuilder) {
 			val msgPad = Calendar.getInstance().timeInMillis.toString()
-			val digest = getMessageDigest(getMessage(urlBuilder.build().toString(), msgPad))
-			urlBuilder.addQueryParameter("msgpad", msgPad).addQueryParameter("md", digest)
-//				.addEncodedQueryParameter("md", digest.urlEncoded())
+			val digest = getMessageDigest(getMessage(urlBuilder.buildString(), msgPad))
+			urlBuilder.parameters["msgpad"] = msgPad
+			urlBuilder.parameters["md"] = digest
 		}
 	}
 

@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.en
 
 import androidx.collection.ArrayMap
+import io.ktor.http.parseUrl
 import kotlinx.coroutines.sync.withLock
-import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -35,9 +35,9 @@ internal class FreakComic(context: MangaLoaderContext) :
 			if (el.text().isEmpty()) continue
 			tagMap[el.text()] = MangaTag(
 				title = el.text().toTitleCase(),
-				key = el.attrAsAbsoluteUrl("href")
-					.toHttpUrlOrNull()
-					?.queryParameter("genre")
+				key = parseUrl(
+					el.attrAsAbsoluteUrl("href"),
+				)?.parameters?.get("genre")
 					?.nullIfEmpty()
 					?: continue,
 				source = source,
