@@ -3,12 +3,10 @@ package org.koitharu.kotatsu.parsers.site.hotcomics.en
 import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.hotcomics.HotComicsParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 @MangaSourceParser("HOTCOMICS", "HotComics", "en")
 internal class HotComics(context: MangaLoaderContext) :
@@ -35,7 +33,7 @@ internal class HotComics(context: MangaLoaderContext) :
 				branch = null,
 				source = source,
 			)
-		}.reversed()
+		}
 
 		return manga.copy(
 			description = doc.selectFirst("div.title_content_box h2")?.text() ?: manga.description,
