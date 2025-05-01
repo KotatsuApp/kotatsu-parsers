@@ -9,6 +9,4 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken("Need to fix getPages")
 @MangaSourceParser("HIVECOMIC", "HiveComic", "en")
 internal class HiveComic(context: MangaLoaderContext) :
-	IkenParser(context, MangaParserSource.HIVECOMIC, "hivecomic.com") {
-	override val selectPages = "main section img"
-}
+	IkenParser(context, MangaParserSource.HIVECOMIC, "hivecomic.com", 18)
