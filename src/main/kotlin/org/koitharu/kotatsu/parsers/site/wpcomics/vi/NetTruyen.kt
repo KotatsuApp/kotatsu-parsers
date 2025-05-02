@@ -13,10 +13,10 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
 internal class NetTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenr.com", 36) {
+	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyener.com", 36) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"nettruyenr.com",
+		"nettruyener.com",
 		"nettruyenx.net",
 	)
 

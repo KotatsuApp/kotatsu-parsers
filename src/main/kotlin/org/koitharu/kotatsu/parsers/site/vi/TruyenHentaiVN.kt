@@ -16,7 +16,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAIVN, 30) {
 
 	private var cacheTags = suspendLazy(initializer = ::fetchTags)
-	override val configKeyDomain = ConfigKey.Domain("truyenhentaivn.live")
+	override val configKeyDomain = ConfigKey.Domain("truyenhentaivn.life")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
