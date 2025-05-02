@@ -14,7 +14,7 @@ import java.util.*
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaivn.guru")
+	override val configKeyDomain = ConfigKey.Domain("hentaivn.uno")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

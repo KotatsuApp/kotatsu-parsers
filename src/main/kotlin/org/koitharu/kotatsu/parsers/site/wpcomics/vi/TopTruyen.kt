@@ -14,8 +14,6 @@ import java.util.*
 internal class TopTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv6.pro", 36) {
 
-	override val configKeyDomain = ConfigKey.Domain("www.toptruyentv6.pro")
-
 	override val datePattern = "dd/MM/yyyy"
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
