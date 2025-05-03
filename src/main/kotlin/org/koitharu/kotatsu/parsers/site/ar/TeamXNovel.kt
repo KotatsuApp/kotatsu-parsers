@@ -210,8 +210,8 @@ internal class TeamXNovel(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(".image_list canvas").map { img ->
-			val url = img.attrAsRelativeUrl("data-src")
+		return doc.select(".image_list img").map { img ->
+ 			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
 				url = url,
