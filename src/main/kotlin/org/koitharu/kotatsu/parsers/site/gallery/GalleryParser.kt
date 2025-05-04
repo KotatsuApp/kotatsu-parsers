@@ -16,6 +16,11 @@ internal abstract class GalleryParser(
 
     override val configKeyDomain = ConfigKey.Domain(domain)
 
+    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+	}
+
     override val availableSortOrders: Set<SortOrder>
         get() = EnumSet.of(SortOrder.NEWEST, SortOrder.POPULARITY)
 
