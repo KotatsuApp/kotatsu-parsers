@@ -10,9 +10,4 @@ import org.koitharu.kotatsu.parsers.site.gallery.GalleryParser
 
 @MangaSourceParser("KIUTAKU", "Kiutaku", type = ContentType.OTHER)
 internal class Kiutaku(context: MangaLoaderContext) :
-    GalleryParser(context, MangaParserSource.KIUTAKU, "kiutaku.com") {
-    
-    override suspend fun getFilterOptions():
-        MangaListFilterOptions = MangaListFilterOptions(availableTags = fetchTags())
-
-}
+    GalleryParser(context, MangaParserSource.KIUTAKU, "kiutaku.com")

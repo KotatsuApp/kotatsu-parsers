@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.site.gallery.GalleryParser
 
-@MangaSourceParser("XIUTAKU", "Xiutaku", type = ContentType.OTHER)
+@MangaSourceParser("XIUTAKU", "Xiutaku", "zh", type = ContentType.OTHER)
 internal class Xiutaku(context: MangaLoaderContext) :
     GalleryParser(context, MangaParserSource.XIUTAKU, "xiutaku.com") {
     
