@@ -57,7 +57,7 @@ internal class ElderManga(context: MangaLoaderContext):
 			append(page.toString())
 
             if (!filter.query.isNullOrEmpty()) {
-                append("&search")
+                append("&search=")
                 append(filter.query.urlEncoded())
             }
 
