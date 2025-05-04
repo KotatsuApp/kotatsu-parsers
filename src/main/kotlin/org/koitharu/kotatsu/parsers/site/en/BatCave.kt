@@ -29,6 +29,10 @@ internal class BatCave(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
+	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+		.add("referer", "no-referrer")
+		.build()
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -129,7 +133,7 @@ internal class BatCave(context: MangaLoaderContext) :
 				branch = null,
 				volume = 0,
 			)
-		}
+		}.reversed()
 
 		val author = doc.selectFirst("li:contains(Publisher:)")
 			?.textOrNull()
