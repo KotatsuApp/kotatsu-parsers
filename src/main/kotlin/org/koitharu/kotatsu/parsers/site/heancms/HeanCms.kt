@@ -143,9 +143,13 @@ internal abstract class HeanCms(
 
 	protected open val datePattern = "yyyy-MM-dd"
 
+	protected open fun reqUrl(seriesId: Long): String {
+		return "https://$apiPath/chapter/query?page=1&perPage=9999&series_id=$seriesId"
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga {
 		val seriesId = manga.url.toLongOrNull() ?: manga.id // backward compatibility
-		val url = "https://$apiPath/chapter/query?page=1&perPage=9999&series_id=$seriesId"
+		val url = reqUrl(seriesId) // keep old API url, can replace it
 		val response = webClient.httpGet(url).parseJson()
 		val data = response.getJSONArray("data").asTypedList<JSONObject>()
 		val dateFormat = SimpleDateFormat(datePattern, Locale.ENGLISH)
