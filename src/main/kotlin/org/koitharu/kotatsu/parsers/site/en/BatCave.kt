@@ -29,10 +29,6 @@ internal class BatCave(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
-	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("referer", "no-referrer")
-		.build()
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
