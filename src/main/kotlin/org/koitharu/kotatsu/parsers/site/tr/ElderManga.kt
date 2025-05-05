@@ -11,11 +11,11 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("UZAYMANGA", "Uzay Manga", "tr")
-internal class UzayManga(context: MangaLoaderContext):
-    LegacyPagedMangaParser(context, MangaParserSource.UZAYMANGA, 25) {
+@MangaSourceParser("ELDERMANGA", "Elder Manga", "tr")
+internal class ElderManga(context: MangaLoaderContext):
+    LegacyPagedMangaParser(context, MangaParserSource.ELDERMANGA, 25) {
 
-    override val configKeyDomain = ConfigKey.Domain("uzaymanga.com")
+    override val configKeyDomain = ConfigKey.Domain("eldermanga.com")
     private val cdnSuffix = "cdn1.$domain"
 
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
