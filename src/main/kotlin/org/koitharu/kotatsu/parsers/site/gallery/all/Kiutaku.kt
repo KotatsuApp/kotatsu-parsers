@@ -7,7 +7,9 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.site.gallery.GalleryParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Blocked by Cloudflare")
 @MangaSourceParser("KIUTAKU", "Kiutaku", type = ContentType.OTHER)
 internal class Kiutaku(context: MangaLoaderContext) :
     GalleryParser(context, MangaParserSource.KIUTAKU, "kiutaku.com")
