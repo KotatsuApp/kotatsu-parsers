@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -155,20 +156,17 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
         }
     }
 
-    private suspend fun fetchTags(): Set<MangaTag> {
-        return setOf(
-            MangaTag(key = "action", title = "Action", source = source),
-            MangaTag(key = "adventure", title = "Adventure", source = source),
-            MangaTag(key = "comedy", title = "Comedy", source = source),
-            MangaTag(key = "crime", title = "Crime", source = source),
-            MangaTag(key = "drama", title = "Drama", source = source),
-            MangaTag(key = "fantasy", title = "Fantasy", source = source),
-
-            MangaTag(key = "high-school", title = "High School", source = source),
-            MangaTag(key = "sports", title = "Sports", source = source),
-            MangaTag(key = "shonen", title = "Shonen", source = source),
-            MangaTag(key = "martial-arts", title = "Martial Arts", source = source),
-            MangaTag(key = "romance", title = "Romance", source = source)
-        )
-    }
+	private fun fetchTags() = arraySetOf(
+		MangaTag("Action", "action", source),
+		MangaTag("Adventure", "adventure", source),
+		MangaTag("Comedy", "comedy", source),
+		MangaTag("Crime", "crime", source),
+		MangaTag("Drama", "drama", source),
+		MangaTag("Fantasy", "fantasy", source),
+		MangaTag("High School", "high-school", source),
+		MangaTag("Sports", "sports", source),
+		MangaTag("Shonen", "shonen", source),
+		MangaTag("Martial Arts", "martial-arts", source),
+		MangaTag("Romance", "romance", source),
+	)
 }
