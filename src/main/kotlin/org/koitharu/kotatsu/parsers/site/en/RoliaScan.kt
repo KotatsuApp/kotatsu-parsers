@@ -40,9 +40,8 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
     )
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-        val baseUrl = "https://roliascan.com/manga"
         val url = buildString {
-            append(baseUrl)
+			append("/manga")
             append("?page=$page")
             if (!filter.query.isNullOrEmpty()) {
                 append("&_post_type_search_box=${filter.query.urlEncoded()}")
@@ -85,7 +84,7 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
             }
         }
 
-        val doc = webClient.httpGet(url).parseHtml()
+        val doc = webClient.httpGet(url.toAbsoluteUrl(domain)).parseHtml()
         return doc.select("div.post").map { element ->
             val href = element.selectFirstOrThrow("h6 a").attrAsRelativeUrl("href")
             Manga(
@@ -93,7 +92,7 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
                 title = element.selectFirst("h6 a")?.text().orEmpty(),
                 altTitles = emptySet(),
                 url = href,
-                publicUrl = href.toAbsoluteUrl("roliascan.com"),
+                publicUrl = href.toAbsoluteUrl(domain),
                 rating = RATING_UNKNOWN,
                 contentRating = null,
                 coverUrl = element.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
@@ -106,9 +105,9 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
-        val doc = webClient.httpGet(manga.url.toAbsoluteUrl("roliascan.com")).parseHtml()
+        val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
         val statusText = doc.selectFirst("tr:has(th:contains(Status)) > td")?.text().orEmpty()
-        val chapterListUrl = manga.url.toAbsoluteUrl("roliascan.com").removeSuffix("/") + "/chapterlist/"
+        val chapterListUrl = manga.url.toAbsoluteUrl(domain).removeSuffix("/") + "/chapterlist/"
         val chapterDoc = webClient.httpGet(chapterListUrl).parseHtml()
         return manga.copy(
             tags = doc.select("a[href*=genres]").mapToSet {
@@ -144,7 +143,7 @@ internal class RoliaScan(context: MangaLoaderContext) : LegacyPagedMangaParser(c
     }
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl("roliascan.com")).parseHtml()
+        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
         return doc.select(".manga-child-the-content img").map {
             val url = it.requireSrc()
             MangaPage(
