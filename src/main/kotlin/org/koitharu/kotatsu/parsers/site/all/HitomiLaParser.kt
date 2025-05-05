@@ -556,9 +556,9 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 					val hash = it.getString("hash")
 					val commonId = commonImageId()
 					val imageId = imageIdFromHash(hash)
-					val subDomain = 'a' + subdomainOffset(imageId)
+					// val subDomain = 'a' + subdomainOffset(imageId)
 
-					"https://${subDomain}tn.$cdnDomain/webpbigtn/${thumbPathFromHash(hash)}/$hash.webp"
+					"https://atn.$cdnDomain/webpbigtn/${thumbPathFromHash(hash)}/$hash.webp"
 				},
 			authors = setOfNotNull(author),
 			publicUrl = json.getString("galleryurl").toAbsoluteUrl(domain),
@@ -659,11 +659,11 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			val commonId = commonImageId()
 			val imageId = imageIdFromHash(hash)
 			val subDomain = subdomainOffset(imageId) + 1
-			val thumbSubdomain = 'a' + subdomainOffset(imageId)
+			// val thumbSubdomain = 'a' + subdomainOffset(imageId)
 			MangaPage(
 				id = generateUid(hash),
 				url = "https://a${subDomain}.$cdnDomain/$commonId$imageId/$hash.avif",
-				preview = "https://${thumbSubdomain}tn.$cdnDomain/webpbigtn/${thumbPathFromHash(hash)}/$hash.webp",
+				preview = "https://atn.$cdnDomain/webpbigtn/${thumbPathFromHash(hash)}/$hash.webp",
 				source = source,
 			)
 		}
