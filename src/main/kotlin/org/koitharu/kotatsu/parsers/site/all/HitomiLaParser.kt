@@ -663,7 +663,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			MangaPage(
 				id = generateUid(hash),
 				url = "https://a${subDomain}.$cdnDomain/$commonId$imageId/$hash.avif",
-				preview = "https://atn.$cdnDomain/webpbigtn/${thumbPathFromHash(hash)}/$hash.webp",
+				preview = "https://atn.$cdnDomain/webpsmallsmalltn/${thumbPathFromHash(hash)}/$hash.webp",
 				source = source,
 			)
 		}
