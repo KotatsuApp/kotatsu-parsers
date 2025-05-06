@@ -1,24 +1,11 @@
 package org.koitharu.kotatsu.parsers
 
 import kotlinx.coroutines.test.runTest
-import okhttp3.HttpUrl
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.params.ParameterizedTest
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
-import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
-import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.Include
-import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
-import org.koitharu.kotatsu.parsers.util.medianOrNull
-import org.koitharu.kotatsu.parsers.util.mimeType
-import org.koitharu.kotatsu.test_util.*
 import kotlin.time.Duration.Companion.minutes
 
-//@ExtendWith(AuthCheckExtension::class)
 internal class MangaParserSingleTest {
 
 	private val testUnit = MangaParserTest()
