@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
 @MangaSourceParser("READONEPIECE", "ReadOnePiece", "en")
 internal class ReadOnePiece(context: MangaLoaderContext) :
@@ -14,29 +15,26 @@ internal class ReadOnePiece(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("ww11.readonepiece.com")
 
-	override val availableSortOrders: Set<SortOrder>
-		get() = setOfNotNull(SortOrder.RELEVANCE)
+	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.RELEVANCE)
 
 	override val filterCapabilities: MangaListFilterCapabilities
-		get() = MangaListFilterCapabilities()
+		get() = MangaListFilterCapabilities(isSearchSupported = false)
+
+	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val doc = webClient.httpGet("https://$domain").parseHtml()
-		val root = doc.body().selectFirst("nav ul") ?: return emptyList()
+		val root = doc.body().selectFirstOrThrow("nav ul")
 		val manga = root.select("li")
-
-		if (manga.isEmpty()) {
-			return emptyList()
-		}
-
+		
 		return manga.mapNotNull { li ->
-			val a = li.selectFirst("a")
-			val href = a?.attrAsRelativeUrlOrNull("href").takeIf { ref -> ref != "/" }
+			val a = li.selectFirst("a") ?: return@mapNotNull null
+			val href = a.attrAsRelativeUrlOrNull("href").takeIf { ref -> ref != "/" }
 				?: return@mapNotNull null
 
 			Manga(
 				id = generateUid(href),
-				title = a!!.text(),
+				title = a.text(),
 				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
@@ -46,7 +44,7 @@ internal class ReadOnePiece(context: MangaLoaderContext) :
 				state = null,
 				tags = emptySet(),
 				authors = emptySet(),
-				source = MangaParserSource.READONEPIECE,
+				source = source,
 			)
 		}
 	}
@@ -80,18 +78,16 @@ internal class ReadOnePiece(context: MangaLoaderContext) :
 					scanlator = null,
 					uploadDate = 0L,
 					branch = null,
-					source = MangaParserSource.READONEPIECE,
+					source = source,
 				)
 			},
 		)
 	}
 
-	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val content = doc.body().selectFirstOrThrow("div#top>div.my-3>div.js-pages-container")
-		val pages = content.select("div.text-center>img")
+		val pages = content.select("div.text-center img")
 
 		return pages.mapNotNull { img ->
 			val url = img.attrAsRelativeUrlOrNull("src") ?: return@mapNotNull null
@@ -99,7 +95,7 @@ internal class ReadOnePiece(context: MangaLoaderContext) :
 				id = generateUid(url),
 				url = url,
 				preview = null,
-				source = MangaParserSource.READONEPIECE,
+				source = source,
 			)
 		}
 	}
