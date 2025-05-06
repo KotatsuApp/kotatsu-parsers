@@ -109,7 +109,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 		val basicInfo = json.getJSONObject("basicInfo")
 		val id = basicInfo.getLong("id")
-		val description = basicInfo.getStringOrNull("fdescription")
+		val description = basicInfo.getStringOrNull("description")
 		val uploaderName = json.getStringOrNull("uploaderName")
 		val urlChaps = "https://$domain/$apiSuffix/gallery/$id"
 		val parsedChapters = webClient.httpGet(urlChaps).parseJsonArray()
