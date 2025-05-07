@@ -21,6 +21,7 @@ import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
 import org.koitharu.kotatsu.parsers.util.LinkResolver
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
@@ -33,12 +34,12 @@ import java.util.Locale
 @MangaSourceParser("HENTAIREAD", "HentaiRead", type = ContentType.HENTAI)
 internal class HentaiRead(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.HENTAIREAD, "hentairead.com", 30) {
-	override val selectGallery = ".container div section .manga-grid"
+	override val selectGallery = ".manga-grid .manga-item"
 	override val selectGalleryLink = "a.btn-read"
 	override val selectGalleryTitle = ".manga-item__wrapper div:nth-child(3) a"
 	override val selectTitle = ".manga-titles h1"
-	override val selectTag = ""
-	override val selectAuthor = ""
+	override val selectTag = "div.text-primary:contains(Tags:)"
+	override val selectAuthor = "div.text-primary:contains(Artist:)"
 	override val selectLanguageChapter = ""
 	override val selectUrlChapter = ""
 	override val selectTotalPage = "[data-page]"
@@ -49,7 +50,6 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 	val selectAltTitle = ".manga-titles h2"
 	val selectParody = "div.text-primary:contains(Parody:)"
-	val selectAuthors = "div.text-primary:contains(Artist:)"
 	val selectUploadedDate = "div.text-primary:contains(Uploaded:)"
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -166,7 +166,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 	}
 
 	override fun parseMangaList(doc: Document): List<Manga> {
-		return doc.selectFirstOrThrow(selectGallery).select(".manga-item").map {div ->
+		return doc.select(selectGallery).map {div ->
 			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
 
 			val mangaDetails = div.select(selectGalleryDetails)
@@ -174,7 +174,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 			val title = buildString {
 				append( div.select(selectGalleryTitle).text().cleanupTitle() )
-				val parody = mangaDetails.get(l - 3).text()
+				val parody = mangaDetails[l - 3].text()
 				when {
 					!parody.contentEquals("Original") -> {
 						append(" (${parody.trim().cleanupTitle()})")
@@ -184,13 +184,12 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 			val altTitleSet = when {
 				l == 4 -> {
-					setOf(mangaDetails.get(0).text())
+					setOf(mangaDetails[0].text())
 				}
 				else -> {
 					emptySet()
 				}
 			}
-
 
 			Manga(
 				id = generateUid(href),
@@ -201,16 +200,16 @@ internal class HentaiRead(context: MangaLoaderContext) :
 				rating = div.selectFirstOrThrow(selectGalleryRating).text().toFloat(),
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = div.selectFirst(selectGalleryImg)?.src(),
-				tags = div.select(selectGalleryTags).mapToSet {
+				tags = div.select(selectGalleryTags).mapNotNullToSet {
 					val title = it.text()
 					MangaTag (
 						title = title,
-						key = mangaTags.firstOrNull { it.title == title }?.key ?: "", // <-- this is f**king slow
+						key = mangaTags.find { x -> x.title == title }?.key ?: "",
 						source = source
 					)
 				},
 				state = null,
-				authors = setOf(mangaDetails.get(l - 2).text()), // <-- should bug here, there are not always only one author
+				authors = setOf(mangaDetails[l - 2].text()), // <-- should bug here, there are not always only one author. But I didn't see any manga has more than one author
 				source = source,
 			)
 		}
@@ -232,16 +231,40 @@ internal class HentaiRead(context: MangaLoaderContext) :
 				}
 			}
 		}
-		val altTitleSet = doc.selectFirst(selectAltTitle)?.text()?.let { setOf(it) } ?: emptySet()
-		val authors = doc.selectFirst(selectAuthors)?.nextElementSibling()?.parent()?.select("a")?.mapToSet {
-			it.select("span:first-child").text()
+
+		var altTitleSet = manga.altTitles
+		if (altTitleSet.count() == 0) {
+			altTitleSet = doc.selectFirst(selectAltTitle)?.text()?.let { setOf(it) } ?: emptySet()
 		}
+
+		var authors = manga.authors
+		if (authors.count() == 0) {
+			authors = doc.selectFirst(selectAuthor)?.nextElementSibling()!!.parent()!!.select("a").mapToSet {
+				it.select("span:first-child").text()
+			}
+		}
+
 		val uploadedDateString = doc.selectFirst(selectUploadedDate)?.nextElementSibling()?.text()
+
+		var tags = manga.tags
+		if (tags.count() == 0) {
+			tags = doc.selectFirstOrThrow(selectTag).parent()!!.select("a").mapNotNullToSet {
+				val title = it.select("span:first-child").text()
+				MangaTag (
+					title = title,
+					key = mangaTags.find { x -> x.title == title }?.key ?: "",
+					source = source
+				)
+			}
+		}
+
 		return manga.copy(
 			title = title,
-			description = "",
 			altTitles = altTitleSet,
-			authors = authors ?: emptySet(),
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+			coverUrl = doc.selectFirst("#mangaSummary a.image--hover img")!!.src(),
+			tags = tags,
+			authors = authors,
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -254,7 +277,8 @@ internal class HentaiRead(context: MangaLoaderContext) :
 					branch = "English",
 					source = source,
 				)
-			)
+			),
+			description = "",
 		)
 	}
 
