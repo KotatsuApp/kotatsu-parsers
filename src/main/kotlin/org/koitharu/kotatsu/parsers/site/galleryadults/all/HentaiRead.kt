@@ -227,7 +227,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-        val dateFormat = SimpleDateFormat("MMMM d, yyyy h:mm a", Locale.ENGLISH)
+        	val dateFormat = SimpleDateFormat("MMMM d, yyyy h:mm a", Locale.ENGLISH)
 		val title = buildString {
 			val mangaTitle = doc.selectFirst(selectTitle)?.text()?.cleanupTitle()
 			val parody = doc.selectFirst(selectParody)?.nextElementSibling()?.select("span:first-child")?.text()
@@ -259,7 +259,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 		var tags = manga.tags
 		if (tags.count() == 0) {
-            val allTags = availableTags.get().orEmpty()
+            	val allTags = availableTags.get().orEmpty()
 			tags = doc.selectFirstOrThrow(selectTag).parent()!!.select("a").mapNotNullToSet {
 				val title = it.select("span:first-child").text()
 				allTags.find { x -> x.title == title }
