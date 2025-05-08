@@ -519,9 +519,8 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 						url = id.toString(),
 						coverUrl =
 							"https:" +
-								doc.selectFirstOrThrow("picture > source")
-									.attr("data-srcset")
-									.substringBefore(" "),
+								doc.selectFirstOrThrow("picture > img")
+									.attr("data-src"),
 						publicUrl =
 							doc.selectFirstOrThrow("h1 > a")
 								.attrAsRelativeUrl("href")
