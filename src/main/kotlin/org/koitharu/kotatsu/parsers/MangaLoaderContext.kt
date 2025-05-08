@@ -37,6 +37,13 @@ public abstract class MangaLoaderContext {
 	 */
 	public abstract suspend fun evaluateJs(script: String): String?
 
+	/**
+	 * Open [url] in browser and return data from storage
+	 */
+	public open suspend fun requestDataFromBrowser(url: String): Map<String, String?> {
+		throw UnsupportedOperationException("Browser is not available")
+	}
+
 	public abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
 	public abstract fun getDefaultUserAgent(): String
