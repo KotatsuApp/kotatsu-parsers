@@ -40,7 +40,7 @@ public abstract class MangaLoaderContext {
 	/**
 	 * Open [url] in browser and return data from storage
 	 */
-	public open suspend fun requestDataFromBrowser(url: String): Map<String, String?> {
+	public open suspend fun requestBrowserAction(url: String) {
 		throw UnsupportedOperationException("Browser is not available")
 	}
 
