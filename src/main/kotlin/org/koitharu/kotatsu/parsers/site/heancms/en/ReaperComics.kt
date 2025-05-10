@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.heancms.HeanCms
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Closed site")
 @MangaSourceParser("REAPERCOMICS", "ReaperComics", "en")
 internal class ReaperComics(context: MangaLoaderContext) :
 	HeanCms(context, MangaParserSource.REAPERCOMICS, "reaperscans.com") {

@@ -13,24 +13,29 @@ import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.lang.NullPointerException
+import java.net.URL
 import java.util.*
 
 @MangaSourceParser("MEHENTAIVN", "MeHentaiVN", "vi", ContentType.HENTAI)
 internal class MeHentaiVN(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.MEHENTAIVN, "www.mehentaivn.xyz", 44) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("www.mehentaivn.xyz", "www.hentaivnx.autos")
-
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"www.mehentaivn.xyz",
+		"www.hentaivnx.autos",
+		"www.hentaivnx.com"
+	)
 
 	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("referer", "no-referrer")
+		.add("referer", "https://$domain/")
 		.build()
+
+	override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities.copy(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true
+		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchTags(),
@@ -40,6 +45,7 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val response =
 			when {
+				// url template: https://www.mehentaivn.xyz/tim-truyen?keyword=${query}
 				!filter.query.isNullOrEmpty() -> {
 					val url = buildString {
 						append("https://")
@@ -47,11 +53,12 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 						append(listUrl)
 						append("?keyword=")
 						append(filter.query.urlEncoded())
-						append("&page=")
-						append(page.toString())
+						if (page > 1) {
+							append("&page=$page")
+						}
 					}
 
-					val result = runCatchingCancellable { webClient.httpGet(url) }
+					val result = runCatchingCancellable { webClient.httpGet(url) } // execute
 					val exception = result.exceptionOrNull()
 					if (exception is NotFoundException) {
 						return emptyList()
@@ -59,42 +66,54 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 					result.getOrThrow()
 				}
 
+				// url tempalte: https://www.mehentaivn.xyz/tim-truyen-nang-cao?{query}
+				// Query Structure:
+				// genres=19775801,1&                /* tags include */
+				// notgenres=19776383,19777327&      /* tags exclude */
+				// minchapter=0&                     /* chapter count. Leaves 0 to get everything */
+				// sort=15&                          /* Sort order */
+				// contain=                          /* Not supported */
 				else -> {
-					val url = buildString {
-						append("https://")
-						append(domain)
-						append(listUrl)
-						if (filter.tags.isNotEmpty()) {
-							append('/')
-							filter.tags.oneOrThrowIfMany()?.let {
-								append(it.key)
+					val queries = mutableListOf<String>()
+
+					// tags
+					queries.add("genres=${filter.tags.joinToString (",") { it.key }}")
+
+					// tags exclude
+					queries.add("notgenres=${filter.tagsExclude.joinToString (",") { it.key }}")
+
+					if (filter.tags.isNotEmpty() or filter.tagsExclude.isNotEmpty()) {
+						// This means our query is not empty!
+						val url = buildString {
+							append("http://$domain/tim-truyen-nang-cao?")
+							append(queries.joinToString("&"))
+
+							// order
+							when (order) {
+								SortOrder.NEWEST ->     append("&sort=15")      // Truyện mới
+								SortOrder.POPULARITY -> append("&sort=10")      // Top all
+								SortOrder.UPDATED ->    append("&sort=0")       // Truyện mới
+								SortOrder.RATING ->     append("&sort=20")      // Theo dõi
+								else -> throw IllegalArgumentException("Sort order ${order.name} not supported")
+							}
+
+							if (page > 1) {
+								append("&page=$page")
 							}
 						}
-						append("?sort=")
-						append(
-							when (order) {
-								SortOrder.UPDATED -> 0
-								SortOrder.POPULARITY -> 10
-								SortOrder.NEWEST -> 15
-								SortOrder.RATING -> 20
-								else -> throw IllegalArgumentException("Sort order ${order.name} not supported")
-							},
-						)
-						filter.states.oneOrThrowIfMany()?.let {
-							append("&status=")
-							append(
-								when (it) {
-									MangaState.ONGOING -> "1"
-									MangaState.FINISHED -> "2"
-									else -> "-1"
-								},
-							)
-						}
-						append("&page=")
-						append(page.toString())
-					}
 
-					webClient.httpGet(url)
+						webClient.httpGet(url) // execute
+						
+					} else {
+						val url = buildString {
+							append("https://$domain/")
+							if (page > 1) {
+								append("?page=$page")
+							}
+						}
+
+						webClient.httpGet(url)
+					}
 				}
 			}
 
@@ -102,11 +121,11 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 		return parseSearchList(response.parseHtml(), tagMap)
 	}
 
-	private suspend fun parseSearchList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
+	private fun parseSearchList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
 		return doc.select("div.items div.item").mapNotNull { item ->
 			val tooltipElement = item.selectFirst("div.box_tootip")
 			val absUrl = item.selectFirst("div.image > a")?.attrAsAbsoluteUrlOrNull("href") ?: return@mapNotNull null
-			val slug = absUrl.substringAfterLast('/')
+			val url = absUrl.toRelativeUrl(domain)
 			val mangaState =
 				when (tooltipElement?.selectFirst("div.message_main > p:contains(Tình trạng)")?.ownText()) {
 					in ongoing -> MangaState.ONGOING
@@ -117,13 +136,12 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 				tooltipElement?.selectFirst("div.message_main > p:contains(Thể loại)")?.ownText().orEmpty()
 			val mangaTags = tagsElement.split(',').mapNotNullToSet { tagMap[it.trim()] }
 			val author = tooltipElement?.selectFirst("div.message_main > p:contains(Tác giả)")?.ownText()
-			val coverUrl = item.selectFirst("div.image a img")?.requireSrc()
-			val largeCoverUrl = null
+			val coverUrl = checkImgUrl(item.selectFirst("div.image a img")?.requireSrc())
 			Manga(
-				id = generateUid(slug),
+				id = generateUid(url),
 				title = item.selectFirst("div.box_tootip div.title, h3 a")?.text().orEmpty(),
 				altTitles = emptySet(),
-				url = absUrl.toRelativeUrl(domain),
+				url = url,
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
 				contentRating = null,
@@ -157,7 +175,8 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 		val author = doc.body().selectFirst(selectAut)?.textOrNull()
 
 		manga.copy(
-			description = doc.selectFirst(selectDesc)?.html(),
+			title = doc.select("h1.title-detail").text(),
+			description = "", // no more description for manga on this source
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
@@ -175,24 +194,9 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		
-		val imageUrls = doc.select("div.page-chapter").flatMap { div ->
-			div.select("img").mapNotNull { img ->
-				val src = img.attr("src").takeIf { it.isNotEmpty() }
-				val dataSrc = img.attr("data-src").takeIf { it.isNotEmpty() }
-				val imageUrl = src ?: dataSrc
-				
-				if (imageUrl != null && checkMangaImgs(imageUrl)) {
-					imageUrl
-				} else {
-					null
-				}
-			}
-		}
-
-		return imageUrls.map { url ->
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		return doc.select(".page-chapter img").map {
+			val url = checkImgUrl(it.requireSrc())
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -202,14 +206,14 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun checkMangaImgs(url: String): Boolean {
-		return try {
-			val response = webClient.httpHead(url)
-			val contentType = response.header("Content-Type") ?: ""
-			contentType.startsWith("image/")
-		} catch (e: Exception) {
-			false
-		}
+	private fun checkImgUrl (url: String?) : String {
+		if (url.isNullOrEmpty()) return ""
+		val urlImage = URL(url)
+
+		// Need updating frequently
+		if (urlImage.host.contains("duckduckgo.com")) return url.split("?u=")[1]
+
+		return url
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {

@@ -37,6 +37,13 @@ public abstract class MangaLoaderContext {
 	 */
 	public abstract suspend fun evaluateJs(script: String): String?
 
+	/**
+	 * Open [url] in browser for some external action (e.g. captcha solving or non cookie-based authorization)
+	 */
+	public open fun requestBrowserAction(parser: MangaParser, url: String): Nothing {
+		throw UnsupportedOperationException("Browser is not available")
+	}
+
 	public abstract fun getConfig(source: MangaSource): MangaSourceConfig
 
 	public abstract fun getDefaultUserAgent(): String
