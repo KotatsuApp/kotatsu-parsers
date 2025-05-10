@@ -31,7 +31,7 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	}
 
 	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-		.add("referer", "no-referrer")
+		.add("referer", "https://$domain/")
 		.build()
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -51,20 +51,17 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 				// url template: https://www.mehentaivn.xyz/tim-truyen?keyword=${query}
 				!filter.query.isNullOrEmpty() -> {
 					val url = buildString {
-						append("https:/$domain/tim-truyen?keyword=${filter.query}")
+						append("https://")
+						append(domain)
+						append(listUrl)
+						append("?keyword=")
+						append(filter.query.urlEncoded())
 						if (page > 1) {
 							append("&page=$page")
 						}
 					}
 
-					val result = runCatchingCancellable {
-						webClient.httpGet(
-							url = url,
-							extraHeaders = super.getRequestHeaders().newBuilder()
-								.add("referer", "https://$domain")
-								.build()
-						)
-					}
+					val result = runCatchingCancellable { webClient.httpGet(url) } // execute
 					val exception = result.exceptionOrNull()
 					if (exception is NotFoundException) {
 						return emptyList()
@@ -108,23 +105,17 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 							}
 						}
 
-						webClient.httpGet(
-							url = url,
-							extraHeaders = super.getRequestHeaders().newBuilder()
-								.add("referer", "https://$domain/tim-truyen-nang-cao")
-								.build()
-						)
+						webClient.httpGet(url) // execute
+						
 					} else {
-						if (page > 1) {
-							webClient.httpGet(
-								url = "https://$domain/?page=$page",
-								extraHeaders = super.getRequestHeaders().newBuilder()
-									.add("referer", "https://$domain")
-									.build()
-							)
-						} else {
-							webClient.httpGet("https://$domain")
+						val url = buildString {
+							append("https://$domain/")
+							if (page > 1) {
+								append("?page=$page")
+							}
 						}
+
+						webClient.httpGet(url)
 					}
 				}
 			}
@@ -171,12 +162,7 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(
-			url = fullUrl,
-			extraHeaders = super.getRequestHeaders().newBuilder()
-				.add("referer", "https://$domain")
-				.build()
-		).parseHtml()
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val chaptersDeferred = async { getChapters(doc) }
 		val tagsElement = doc.select("li.kind p.col-xs-8 a")
 		val mangaTags = tagsElement.mapNotNullToSet {
@@ -211,13 +197,7 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(
-			url = chapter.url.toAbsoluteUrl(domain),
-			extraHeaders =  super.getRequestHeaders().newBuilder()
-				.add("referer", "https://$domain")
-				.build()
-		).parseHtml()
-
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		return doc.select(".page-chapter img").map {
 			val url = checkImgUrl(it.requireSrc())
 			MangaPage(
