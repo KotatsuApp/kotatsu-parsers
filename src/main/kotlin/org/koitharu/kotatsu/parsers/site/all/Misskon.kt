@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.text.SimpleDateFormat // TODO
 import java.util.*
 
 @MangaSourceParser("MISSKON", "MissKon", type = ContentType.OTHER)
@@ -83,11 +82,10 @@ internal class Misskon(context: MangaLoaderContext) : LegacyPagedMangaParser(con
                     source = source
                 )
             },
-            description = null,
             chapters = listOf(
                 MangaChapter(
                     id = manga.id,
-                    title = "Gallery",
+                    title = "Oneshot", // 1 album, idk
                     number = 1f,
                     volume = 0,
                     url = manga.url,
