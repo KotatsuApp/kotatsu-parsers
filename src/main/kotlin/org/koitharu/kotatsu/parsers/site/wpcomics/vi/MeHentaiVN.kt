@@ -21,14 +21,11 @@ import java.util.*
 internal class MeHentaiVN(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.MEHENTAIVN, "www.mehentaivn.xyz", 44) {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("www.mehentaivn.xyz", "www.hentaivnx.autos")
-
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
+		"www.mehentaivn.xyz",
+		"www.hentaivnx.autos",
+		"www.hentaivnx.com"
+	)
 
 	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
 		.add("referer", "https://$domain/")
