@@ -33,7 +33,7 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-@MangaSourceParser("HENTAIREAD", "HentaiRead", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAIREAD", "HentaiRead", "en", type = ContentType.HENTAI)
 internal class HentaiRead(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.HENTAIREAD, "hentairead.com", 30) {
 
