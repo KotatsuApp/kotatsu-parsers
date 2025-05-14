@@ -29,15 +29,15 @@ import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.Base64
 
-@MangaSourceParser("HENTAINEXUS", "HentaiNexus", type = ContentType.HENTAI)
+@MangaSourceParser("HENTAINEXUS", "HentaiNexus", "en", type = ContentType.HENTAI)
 internal class HentaiNexus(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.HENTAINEXUS, "hentainexus.com", 30) {
 	override val selectGallery = "div.container div.columns div.column"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".card-header"
 	override val selectTitle = ".title"
-	override val selectTag = "tr:contains(Tags) td:nth-child(2)"
-	override val selectAuthor = "tr:contains(Artist) td:nth-child(2)"
+	override val selectTag = "tr:contains(Tags) td:nth-child(2) span.tag a"
+	override val selectAuthor = "tr:contains(Artist) td:nth-child(2) a"
 	override val selectLanguageChapter = ""
 	override val selectUrlChapter = ""
 	override val selectTotalPage = ".section div.container:nth-child(2) > div.box > div.columns div.column"
@@ -53,6 +53,7 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
 			isMultipleTagsSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
@@ -88,7 +89,13 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 				}
 
 				else -> {
-					val tags = filter.tags.map {
+					val queries = mutableListOf<String>()
+
+					if (!filter.author.isNullOrEmpty()) {
+						queries.add("artist:${filter.author}")
+					}
+
+					filter.tags.map {
 						val key = it.key
 						when {
 							key.split(" ").count() > 1 -> {
@@ -98,9 +105,14 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 								key
 							}
 						}
+					}.also {
+						if (it.count() > 0) {
+							queries.add("tag:${ it.joinToString("+") }")
+						}
 					}
-					if (tags.count() > 0) {
-						append("?q=tag:${ tags.joinToString("+") }")
+
+					if (queries.count() > 0) {
+						append("?q=${queries.joinToString("+")}")
 					}
 				}
 			}
@@ -131,15 +143,24 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val tags = doc.selectFirst(selectTag)?.parseTags()
-		val authors = doc.selectFirst(selectAuthor)?.parseTags()?.mapToSet { it.title }
+		val tags = doc.select(selectTag).mapToSet {
+			val value = it.attr("href").substring(8).urlDecode()       /* /?q=tag:blowjob */
+			MangaTag(
+				title = value.replace(Regex("\\b[a-z]")) { x -> x.value.uppercase(sourceLocale) },
+				key = value,
+				source = source
+			)
+		}
+		val authors = doc.select(selectAuthor).mapToSet {
+			it.attr("href").substring(11).urlDecode()                  /* /?q=artist:Danchino */
+		}
 
 		mangaPages = getPagesInternal(manga.url, doc)
 
 		return manga.copy(
-			tags = tags.orEmpty(),
+			tags = tags,
 			title = doc.selectFirst(selectTitle)?.textOrNull()?.cleanupTitle() ?: manga.title,
-			authors = authors.orEmpty(),
+			authors = authors,
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
@@ -159,10 +180,8 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 
 	private fun parseDateString(dateString: String?) : Long {
 		if (dateString == null) return 0
-		val monthToNumber = mapOf("January" to 1, "February" to 2, "March" to 3, "April" to 4, "May" to 5, "June" to 6, "July" to 7, "August" to 8, "September" to 9, "October" to 10, "November" to 11, "December" to 12, "Jan" to 1, "Feb" to 2, "Mar" to 3, "Apr" to 4, "Jun" to 6, "Jul" to 7, "Aug" to 8, "Sep" to 9, "Oct" to 10, "Nov" to 11, "Dec" to 12, "january" to 1, "february" to 2, "march" to 3, "april" to 4, "may" to 5, "june" to 6, "july" to 7, "august" to 8, "september" to 9, "october" to 10, "november" to 11, "december" to 12, "jan" to 1, "feb" to 2, "mar" to 3, "apr" to 4, "jun" to 6, "jul" to 7, "aug" to 8, "sep" to 9, "oct" to 10, "nov" to 11, "dec" to 12)
-		val format = SimpleDateFormat("yyyy-MM-dd")
-		val dateValues = dateString.split(" ")
-		return format.parse("${dateValues[2]}-${(monthToNumber[dateValues[1]].toString()).padStart(2, '0')}-${dateValues[0].padStart(2, '0')}")?.time ?: 0
+		val format = SimpleDateFormat("dd MMMM yyyy")
+		return format.parse(dateString).time
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
