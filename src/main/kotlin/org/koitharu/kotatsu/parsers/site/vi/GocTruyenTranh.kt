@@ -197,7 +197,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("img.lozad[data-src]").map { img ->
+		return doc.select("img.lozad.mx-auto.transition-all.max-w-full.relative").map { img ->
 			val url = img.attr("data-src")
 			MangaPage(
 				id = generateUid(url),

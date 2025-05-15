@@ -166,8 +166,8 @@ internal class HangTruyen(context: MangaLoaderContext) : LegacyPagedMangaParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		
-		val script = doc.selectFirst("script:containsData(let mangaDetail)")?.data() ?: return emptyList()
-		val chapterDetailJson = script.substringAfter("chapterDetail=").substringBefore("}</script>") + "}"
+		val script = doc.selectFirst("script:containsData(const mangaDetail)")?.data() ?: return emptyList()
+		val chapterDetailJson = script.substringAfter("const chapterDetail = ").substringBefore("}</script>") + "}"
 		val chapterDetail = JSONObject(chapterDetailJson)
 		
 		return chapterDetail.getJSONArray("images").mapJSON { image ->
