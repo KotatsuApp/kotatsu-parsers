@@ -1,5 +1,7 @@
-package org.koitharu.kotatsu.parsers.site.galleryadults.all
+package org.koitharu.kotatsu.parsers.site.galleryadults.en
 
+import org.json.JSONArray
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -22,8 +24,8 @@ import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.src
-import org.koitharu.kotatsu.parsers.util.textOrNull
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.tryParse
 import org.koitharu.kotatsu.parsers.util.urlDecode
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
@@ -47,7 +49,10 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 	val selectPublishedDate = "tr:contains(Published) td:nth-child(2)"
 	val selectDescription = "tr:contains(Description) td:nth-child(2)"
 
+	var mangaInternalId: String = ""                    /* use as a flag for reloading data */
 	var mangaPages: List<MangaPage> = listOf()
+
+	var mangaPagesInternalId: String = ""               /* use as a flag for reloading data */
 	var decryptedPagesData: List<String> = listOf()
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -144,7 +149,7 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val tags = doc.select(selectTag).mapToSet {
-			val value = it.attr("href").substring(8).urlDecode()       /* /?q=tag:blowjob */
+			val value = it.attr("href").substring(8).urlDecode().trim('\"')       /* /?q=tag:"blow job" */
 			MangaTag(
 				title = value.replace(Regex("\\b[a-z]")) { x -> x.value.uppercase(sourceLocale) },
 				key = value,
@@ -152,14 +157,17 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 			)
 		}
 		val authors = doc.select(selectAuthor).mapToSet {
-			it.attr("href").substring(11).urlDecode()                  /* /?q=artist:Danchino */
+			it.attr("href").substring(11).urlDecode()                 /* /?q=artist:Danchino */
 		}
 
 		mangaPages = getPagesInternal(manga.url, doc)
+		mangaInternalId = manga.url.split("/").last()
+
+		val format = SimpleDateFormat("dd MMMM yyyy")
 
 		return manga.copy(
+			title = doc.select(selectTitle).text().cleanupTitle(),
 			tags = tags,
-			title = doc.selectFirst(selectTitle)?.textOrNull()?.cleanupTitle() ?: manga.title,
 			authors = authors,
 			chapters = listOf(
 				MangaChapter(
@@ -168,8 +176,8 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 					number = 0f,
 					volume = 0,
 					url = manga.url,
-					scanlator = doc.selectFirst(selectPublisher)?.text()?.replace(Regex(" \\([\\d,]+\\)")) { "" },
-					uploadDate = parseDateString(doc.selectFirst(selectPublishedDate)?.text()),
+					scanlator = doc.select(selectPublisher).text().replace(Regex(" \\([\\d,]+\\)")) { "" },
+					uploadDate = format.tryParse(doc.select(selectPublishedDate).text()),
 					branch = "English",
 					source = source,
 				),
@@ -178,23 +186,19 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 		)
 	}
 
-	private fun parseDateString(dateString: String?) : Long {
-		if (dateString == null) return 0
-		val format = SimpleDateFormat("dd MMMM yyyy")
-		return format.parse(dateString).time
-	}
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		if (mangaPages.count() == 0) {
+		if (mangaPages.isEmpty() or !chapter.url.contains(mangaInternalId)) {
 			mangaPages = getPagesInternal(chapter.url)
+			mangaInternalId = chapter.url.split("/").last()
 		}
 
 		return mangaPages
 	}
 
 	override suspend fun getPageUrl(page: MangaPage): String {
-		if (decryptedPagesData.count() == 0) {
+		if (decryptedPagesData.isEmpty() or !page.url.contains(mangaPagesInternalId)) {
 			decryptedPagesData = getPageUrlInternal(page.url)
+			mangaPagesInternalId = page.url.split("/").last().split("#")[0]
 		}
 
 		val pageNumber = page.url.split("#").last().toInt()
@@ -221,22 +225,17 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 		val encryptedPagesData = doc.selectFirstOrThrow("script:not([src])").toString()
 			.substringAfter("initReader(\"")
 			.substringBefore("\",")
-		var decryptedString = decrypt(encryptedPagesData).replace("\\/", "/")
-		val pageUrls : MutableList<String> = mutableListOf()
+		val decryptedString = decrypt(encryptedPagesData).replace("\\/", "/")
 
-		var foundIndex = decryptedString.indexOf("\",\"label\":", 0)
-		do {
-			val pageUrl = decryptedString
-				.substringAfter("{\"image\":\"")
-				.substringBefore("\",\"label\":")
+		val jsonArrayData = JSONArray(decryptedString)
+		val pagesData : MutableList<String> = mutableListOf()
 
-			pageUrls.add(pageUrl)
+		for (i in 0 until jsonArrayData.length()) {
+			val item = jsonArrayData.get(i) as JSONObject
+			pagesData.add(item.get("image") as String)
+		}
 
-			decryptedString = decryptedString.substring(foundIndex + 10)
-			foundIndex = decryptedString.indexOf("\",\"label\":", 0)
-		} while (foundIndex > -1)
-
-		return pageUrls
+		return pagesData
 	}
 
 	private fun decrypt(encodedData: String): String {
