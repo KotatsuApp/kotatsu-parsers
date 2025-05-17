@@ -18,7 +18,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.NEWEST,
-	// SortOrder.POPULARITY does not have code to handle it
+		// SortOrder.POPULARITY does not have code to handle it
         SortOrder.ALPHABETICAL,
         SortOrder.ALPHABETICAL_DESC
     )
@@ -27,7 +27,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
         get() = MangaListFilterCapabilities(
             isSearchSupported = true,
             isSearchWithFiltersSupported = true,
-            isMultipleTagsSupported = true
+            isMultipleTagsSupported = true,
         )
 
     override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -37,8 +37,8 @@ internal class DemonicScans(context: MangaLoaderContext) :
             ContentType.MANGA,
             ContentType.MANHWA,
             ContentType.MANHUA,
-            ContentType.COMICS
-        )
+            ContentType.COMICS,
+        ),
     )
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -184,7 +184,6 @@ internal class DemonicScans(context: MangaLoaderContext) :
             coverUrl = thumbnail,
             tags = genre.split(", ").filter { it.isNotBlank() }.mapToSet {
                 MangaTag(title = it.lowercase().replace(" ", "-").toTitleCase(sourceLocale), key = it, source)
-            
             },
             description = description,
             state = state,
@@ -207,7 +206,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     }
 
     private fun availableTags() = arraySetOf(
-	MangaTag("Action", "1", source),
+		MangaTag("Action", "1", source),
     	MangaTag("Adventure", "2", source),
     	MangaTag("Comedy", "3", source),
     	MangaTag("Cooking", "34", source),
@@ -217,7 +216,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     	MangaTag("Fantasy", "5", source),
     	MangaTag("Gender Bender", "30", source),
     	MangaTag("Harem", "10", source),
-   	MangaTag("Historical", "28", source),
+   		MangaTag("Historical", "28", source),
     	MangaTag("Horror", "8", source),
     	MangaTag("Isekai", "33", source),
     	MangaTag("Josei", "31", source),
