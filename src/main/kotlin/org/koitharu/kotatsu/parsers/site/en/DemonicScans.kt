@@ -215,6 +215,8 @@ internal class DemonicScans(context: MangaLoaderContext) :
     MangaTag("Tragedy", "18", source),
     MangaTag("Webtoons", "24", source)
 )
+}
+
 
 
 
