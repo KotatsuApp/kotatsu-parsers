@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.util.LocalDateFormat
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -46,43 +47,28 @@ internal class DemonicScans(context: MangaLoaderContext) :
         val isAlpha = order == SortOrder.ALPHABETICAL && !hasQuery && filter.tags.isEmpty()
         val isAlphaDesc = order == SortOrder.ALPHABETICAL_DESC && !hasQuery && filter.tags.isEmpty()
         val url = when {
-            hasQuery -> "https://demonicscans.org/search.php?manga=" + (filter.query ?: "")
-            isNewest -> "https://demonicscans.org/lastupdates.php?list=$page"
+            hasQuery -> "https://$domain/search.php?manga=${filter.query.urlEncoded()}"
+            isNewest -> "https://$domain/lastupdates.php?list=$page"
             isAlpha -> buildString {
-                append("https://demonicscans.org/advanced.php")
+                append("https://$domain/advanced.php")
                 append("?list=$page")
                 append("&status=all")
                 append("&orderby=NAME ASC")
-                if (filter.tags.isNotEmpty()) {
-                    filter.tags.forEach { tag ->
-                        append("&genre[]=")
-                        append(tag.key)
-                    }
-                }
+                filter.tags.forEach { append("&genre[]=${it.key}") }
             }
             isAlphaDesc -> buildString {
-                append("https://demonicscans.org/advanced.php")
+                append("https://$domain/advanced.php")
                 append("?list=$page")
                 append("&status=all")
                 append("&orderby=NAME DESC")
-                if (filter.tags.isNotEmpty()) {
-                    filter.tags.forEach { tag ->
-                        append("&genre[]=")
-                        append(tag.key)
-                    }
-                }
+                filter.tags.forEach { append("&genre[]=${it.key}") }
             }
             else -> buildString {
-                append("https://demonicscans.org/advanced.php")
+                append("https://$domain/advanced.php")
                 append("?list=$page")
                 append("&status=all")
                 append("&orderby=VIEWS DESC")
-                if (filter.tags.isNotEmpty()) {
-                    filter.tags.forEach { tag ->
-                        append("&genre[]=")
-                        append(tag.key)
-                    }
-                }
+                filter.tags.forEach { append("&genre[]=${it.key}") }
             }
         }
 
@@ -96,16 +82,13 @@ internal class DemonicScans(context: MangaLoaderContext) :
         return doc.select(selector).map { element ->
             if (isNewest) {
                 val info = element.selectFirst("div.updates-element-info")
-                val anchor = info?.selectFirst("a")
-                val href = anchor?.attr("href")?.let {
-                    if (it.startsWith("http")) it else "https://demonicscans.org${if (it.startsWith("/")) it else "/$it"}"
-                } ?: ""
+                val anchor = info?.selectFirst("a") ?: return@map null
                 Manga(
-                    id = generateUid(href),
-                    title = anchor?.ownText().orEmpty(),
+                    id = generateUid(anchor.attrAsAbsoluteUrl("href")),
+                    title = anchor.ownText().orEmpty(),
                     altTitles = emptySet(),
-                    url = href,
-                    publicUrl = href,
+                    url = anchor.attrAsRelativeUrl("href"),
+                    publicUrl = anchor.attrAsAbsoluteUrl("href"),
                     rating = RATING_UNKNOWN,
                     contentRating = null,
                     coverUrl = element.selectFirst("div.thumb img")?.attrAsAbsoluteUrlOrNull("src"),
@@ -116,18 +99,15 @@ internal class DemonicScans(context: MangaLoaderContext) :
                 )
             } else {
                 val anchor = if (hasQuery) element else element.selectFirstOrThrow("a")
-                val href = anchor.attr("href").let {
-                    if (it.startsWith("http")) it else "https://demonicscans.org${if (it.startsWith("/")) it else "/$it"}"
-                }
                 Manga(
-                    id = generateUid(href),
+                    id = generateUid(anchor.attrAsAbsoluteUrl("href")),
                     title = if (hasQuery)
                         element.selectFirst("div.seach-right > div")?.text().orEmpty()
                     else
                         element.selectFirst("h1")?.ownText().orEmpty(),
                     altTitles = emptySet(),
-                    url = href,
-                    publicUrl = href,
+                    url = anchor.attrAsRelativeUrl("href"),
+                    publicUrl = anchor.attrAsAbsoluteUrl("href"),
                     rating = RATING_UNKNOWN,
                     contentRating = null,
                     coverUrl = anchor.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
@@ -137,7 +117,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
                     source = source
                 )
             }
-        }
+        }.filterNotNull()
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
@@ -146,8 +126,8 @@ internal class DemonicScans(context: MangaLoaderContext) :
         val title = info?.selectFirst("h1.big-fat-titles")?.ownText().orEmpty()
         val thumbnail = info?.selectFirst("div#manga-page img")?.attrAsAbsoluteUrlOrNull("src")
         val genre = info?.select("div.genres-list > li")?.joinToString { it.text() } ?: ""
-        val description = info?.selectFirst("div#manga-info-rightColumn > div > div.white-font")?.text().orEmpty()
-        val author = info?.select("div#manga-info-stats > div:has(> li:eq(0):contains(Author)) > li:eq(1)")?.text()
+        val description = info?.selectFirst("div#manga-info-rightColumn > div > div.white-font")?.textOrNull()
+        val author = info?.select("div#manga-info-stats > div:has(> li:eq(0):contains(Author)) > li:eq(1)")?.textOrNull()
         val statusText = info?.select("div#manga-info-stats > div:has(> li:eq(0):contains(Status)) > li:eq(1)")?.text()
         val state = when {
             statusText?.contains("Ongoing", true) == true -> MangaState.ONGOING
@@ -156,9 +136,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
         }
 
         val chapters = doc.select("div#chapters-list a.chplinks").mapChapters(reversed = true) { i, el ->
-            val href = el.attr("href").let {
-                if (it.startsWith("http")) it else "https://demonicscans.org${if (it.startsWith("/")) it else "/$it"}"
-            }
+            val href = el.attrAsAbsoluteUrl("href")
             MangaChapter(
                 id = generateUid(href),
                 title = el.ownText(),
@@ -166,13 +144,10 @@ internal class DemonicScans(context: MangaLoaderContext) :
                 volume = 0,
                 url = href,
                 scanlator = null,
-                uploadDate = el.selectFirst("span")?.text()?.let { dateStr ->
-                    try {
-                        SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(dateStr)?.time ?: 0L
-                    } catch (_: Exception) {
-                        0L
-                    }
+                uploadDate = el.selectFirst("span")?.text()?.let {
+                    LocalDateFormat("yyyy-MM-dd", Locale.ENGLISH).tryParse(it)
                 } ?: 0L,
+                
                 branch = null,
                 source = source
             )
@@ -182,8 +157,8 @@ internal class DemonicScans(context: MangaLoaderContext) :
             title = title,
             coverUrl = thumbnail,
             tags = genre.split(", ").filter { it.isNotBlank() }.mapToSet {
-                MangaTag(it.lowercase().replace(" ", "-"), it, source)
-            },
+                MangaTag(title = it.lowercase().replace(" ", "-").toTitleCase(sourceLocale), key = it, source)           
+             },
             description = description,
             state = state,
             authors = if (author.isNullOrBlank()) emptySet() else setOf(author),
@@ -204,49 +179,43 @@ internal class DemonicScans(context: MangaLoaderContext) :
         }
     }
 
-    private suspend fun fetchTags(): Set<MangaTag> {
-        val genres = listOf(
-            "1" to "Action",
-            "2" to "Adventure",
-            "3" to "Comedy",
-            "34" to "Cooking",
-            "25" to "Doujinshi",
-            "4" to "Drama",
-            "19" to "Ecchi",
-            "5" to "Fantasy",
-            "30" to "Gender Bender",
-            "10" to "Harem",
-            "28" to "Historical",
-            "8" to "Horror",
-            "33" to "Isekai",
-            "31" to "Josei",
-            "6" to "Martial Arts",
-            "22" to "Mature",
-            "32" to "Mecha",
-            "15" to "Mystery",
-            "26" to "One Shot",
-            "11" to "Psychological",
-            "12" to "Romance",
-            "13" to "School Life",
-            "16" to "Sci-fi",
-            "17" to "Seinen",
-            "14" to "Shoujo",
-            "23" to "Shoujo Ai",
-            "7" to "Shounen",
-            "29" to "Shounen Ai",
-            "21" to "Slice of Life",
-            "27" to "Smut",
-            "20" to "Sports",
-            "9" to "Supernatural",
-            "18" to "Tragedy",
-            "24" to "Webtoons"
-        )
-        return genres.mapTo(mutableSetOf()) { (id, name) ->
-            MangaTag(
-                key = id,
-                title = name,
-                source = source
-            )
-        }
-    }
-}
+    private fun fetchTags() = arraySetOf(
+    MangaTag("Action", "1", source),
+    MangaTag("Adventure", "2", source),
+    MangaTag("Comedy", "3", source),
+    MangaTag("Cooking", "34", source),
+    MangaTag("Doujinshi", "25", source),
+    MangaTag("Drama", "4", source),
+    MangaTag("Ecchi", "19", source),
+    MangaTag("Fantasy", "5", source),
+    MangaTag("Gender Bender", "30", source),
+    MangaTag("Harem", "10", source),
+    MangaTag("Historical", "28", source),
+    MangaTag("Horror", "8", source),
+    MangaTag("Isekai", "33", source),
+    MangaTag("Josei", "31", source),
+    MangaTag("Martial Arts", "6", source),
+    MangaTag("Mature", "22", source),
+    MangaTag("Mecha", "32", source),
+    MangaTag("Mystery", "15", source),
+    MangaTag("One Shot", "26", source),
+    MangaTag("Psychological", "11", source),
+    MangaTag("Romance", "12", source),
+    MangaTag("School Life", "13", source),
+    MangaTag("Sci-fi", "16", source),
+    MangaTag("Seinen", "17", source),
+    MangaTag("Shoujo", "14", source),
+    MangaTag("Shoujo Ai", "23", source),
+    MangaTag("Shounen", "7", source),
+    MangaTag("Shounen Ai", "29", source),
+    MangaTag("Slice of Life", "21", source),
+    MangaTag("Smut", "27", source),
+    MangaTag("Sports", "20", source),
+    MangaTag("Supernatural", "9", source),
+    MangaTag("Tragedy", "18", source),
+    MangaTag("Webtoons", "24", source)
+)
+
+
+
+
