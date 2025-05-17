@@ -128,7 +128,7 @@ internal abstract class YuriGardenParser(
                     else -> null
                 },
                 description = jo.getString("description"),
-                contentRating = if (jo.getBooleanOrDefault("r18", false)) ContentRating.ADULT else ContentRating.SAFE,
+                contentRating = if (jo.getBooleanOrDefault("r18", false)) ContentRating.ADULT else ContentRating.SUGGESTIVE,
                 source = source,
                 rating = jo.getFloatOrDefault("rating", -5f) / 5f,
             )
@@ -163,7 +163,7 @@ internal abstract class YuriGardenParser(
             contentRating = if (json.getBooleanOrDefault("r18", false)) {
                 ContentRating.ADULT
             } else {
-                ContentRating.SAFE
+                ContentRating.SUGGESTIVE
             },
             authors = authors,
             tags = tags,
