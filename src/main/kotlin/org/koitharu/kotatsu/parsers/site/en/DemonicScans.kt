@@ -3,10 +3,11 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.util.LocalDateFormat
+import org.koitharu.kotatsu.parsers.util.date.LocalDateFormat
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.model.MangaParserSource.DEMONICSCANS
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -179,7 +180,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
         }
     }
 
-    private fun fetchTags() = arraySetOf(
+    private fun fetchTags() = mutableSetOf(
     MangaTag("Action", "1", source),
     MangaTag("Adventure", "2", source),
     MangaTag("Comedy", "3", source),
