@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.jsoup.nodes.Element
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,7 +19,6 @@ internal class DemonicScans(context: MangaLoaderContext) :
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.NEWEST,
-		// SortOrder.POPULARITY does not have code to handle it
         SortOrder.ALPHABETICAL,
         SortOrder.ALPHABETICAL_DESC
     )
@@ -32,13 +32,6 @@ internal class DemonicScans(context: MangaLoaderContext) :
 
     override suspend fun getFilterOptions() = MangaListFilterOptions(
         availableTags = fetchTags(),
-        availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-        availableContentTypes = EnumSet.of(
-            ContentType.MANGA,
-            ContentType.MANHWA,
-            ContentType.MANHUA,
-            ContentType.COMICS,
-        ),
     )
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -90,55 +83,66 @@ internal class DemonicScans(context: MangaLoaderContext) :
         val doc = webClient.httpGet(url).parseHtml()
         val selector = when {
             hasQuery -> "body > a[href]"
-            isNewest -> "div#updates-container > div.updates-element"
+            isNewest -> "div#updates-container > div.updates-element" 
             else -> "div#advanced-content > div.advanced-element"
         }
 
         return doc.select(selector).map { element ->
-            if (isNewest) {
-                val info = element.selectFirst("div.updates-element-info")!!
-                val anchor = info.selectFirst("a")!!
-                val href = anchor?.attr("href")?.let {
-                    if (it.startsWith("http")) it else "https://$domain${if (it.startsWith("/")) it else "/$it"}"
-                } ?: ""
-                Manga(
-                    id = generateUid(href),
-                    title = anchor?.ownText().orEmpty(),
-                    altTitles = emptySet(),
-                    url = href,
-                    publicUrl = href,
-                    rating = RATING_UNKNOWN,
-                    contentRating = null,
-                    coverUrl = element.selectFirst("div.thumb img")?.attrAsAbsoluteUrlOrNull("src"),
-                    tags = emptySet(),
-                    state = null,
-                    authors = emptySet(),
-                    source = source
-                )
-            } else {
-                val anchor = if (hasQuery) element else element.selectFirst("a")!!
-                val href = anchor.attr("href").let {
-                    if (it.startsWith("http")) it else "https://$domain${if (it.startsWith("/")) it else "/$it"}"
-                }
-                Manga(
-                    id = generateUid(href),
-                    title = if (hasQuery)
-                        element.selectFirst("div.seach-right > div")?.text().orEmpty()
-                    else
-                        element.selectFirst("h1")?.ownText().orEmpty(),
-                    altTitles = emptySet(),
-                    url = href,
-                    publicUrl = href,
-                    rating = RATING_UNKNOWN,
-                    contentRating = null,
-                    coverUrl = anchor.selectFirst("img")?.attrAsAbsoluteUrlOrNull("src"),
-                    tags = emptySet(),
-                    state = null,
-                    authors = emptySet(),
-                    source = source
-                )
+            when {
+                isNewest -> parseNewestManga(element)
+                else -> parseNormalManga(element, hasQuery)
             }
         }
+    }
+
+    private fun parseNewestManga(element: Element): Manga {
+        val info = element.selectFirst("div.updates-element-info")!!
+        val anchor = info.selectFirst("a")!!
+        val href = anchor.attr("href").let {
+            if (it.startsWith("http", ignoreCase = true)) it else "https://$domain${if (it.startsWith("/")) it else "/$it"}"
+        }
+        return Manga(
+            id = generateUid(href),
+            title = anchor.ownText(),
+            altTitles = emptySet(),
+            url = href,
+            publicUrl = href,
+            rating = RATING_UNKNOWN,
+            contentRating = null,
+            coverUrl = element.selectFirst("div.thumb img")?.attr("src")?.let { url ->
+                if (url.startsWith("http", ignoreCase = true)) url else "https://$domain$url"
+            },
+            tags = emptySet(),
+            state = null,
+            authors = emptySet(),
+            source = source
+        )
+    }
+
+    private fun parseNormalManga(element: Element, hasQuery: Boolean): Manga {
+        val anchor = if (hasQuery) element else element.selectFirst("a")!!
+        val href = anchor.attr("href").let {
+            if (it.startsWith("http", ignoreCase = true)) it else "https://$domain${if (it.startsWith("/")) it else "/$it"}"
+        }
+        return Manga(
+            id = generateUid(href),
+            title = if (hasQuery)
+                element.selectFirst("div.seach-right > div")?.text().orEmpty()
+            else
+                element.selectFirst("h1")?.ownText().orEmpty(),
+            altTitles = emptySet(),
+            url = href,
+            publicUrl = href,
+            rating = RATING_UNKNOWN,
+            contentRating = null,
+            coverUrl = anchor.selectFirst("img")?.attr("src")?.let { url ->
+                if (url.startsWith("http", ignoreCase = true)) url else "https://$domain$url"
+            },
+            tags = emptySet(),
+            state = null,
+            authors = emptySet(),
+            source = source
+        )
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
@@ -150,16 +154,18 @@ internal class DemonicScans(context: MangaLoaderContext) :
         val description = info?.selectFirst("div#manga-info-rightColumn > div > div.white-font")?.textOrNull()
         val author = info?.select("div#manga-info-stats > div:has(> li:eq(0):contains(Author)) > li:eq(1)")?.textOrNull()
         val statusText = info?.select("div#manga-info-stats > div:has(> li:eq(0):contains(Status)) > li:eq(1)")?.text()
-        val state = when {
-            statusText?.contains("Ongoing", true) == true -> MangaState.ONGOING
-            statusText?.contains("Completed", true) == true -> MangaState.FINISHED
+        val state = when (statusText) {
+            "Ongoing" -> MangaState.ONGOING
+            "Completed" -> MangaState.FINISHED
             else -> null
         }
 
         val chapters = doc.select("div#chapters-list a.chplinks").mapChapters(reversed = true) { i, el ->
+            val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
             val href = el.attr("href").let {
                 if (it.startsWith("http")) it else "https://$domain${if (it.startsWith("/")) it else "/$it"}"
             }
+            val date = el.selectFirst("span")?.text()
             MangaChapter(
                 id = generateUid(href),
                 title = el.ownText(),
@@ -167,13 +173,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
                 volume = 0,
                 url = href,
                 scanlator = null,
-                uploadDate = el.selectFirst("span")?.text()?.let { dateStr ->
-                    try {
-                        SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH).parse(dateStr)?.time ?: 0L
-                    } catch (_: Exception) {
-                        0L
-                    }
-                } ?: 0L,
+                uploadDate = dateFormat.tryParse(date),
                 branch = null,
                 source = source
             )
@@ -206,7 +206,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     }
 
     private fun fetchTags() = arraySetOf(
-		MangaTag("Action", "1", source),
+	MangaTag("Action", "1", source),
     	MangaTag("Adventure", "2", source),
     	MangaTag("Comedy", "3", source),
     	MangaTag("Cooking", "34", source),
@@ -216,7 +216,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     	MangaTag("Fantasy", "5", source),
     	MangaTag("Gender Bender", "30", source),
     	MangaTag("Harem", "10", source),
-   		MangaTag("Historical", "28", source),
+   	MangaTag("Historical", "28", source),
     	MangaTag("Horror", "8", source),
     	MangaTag("Isekai", "33", source),
     	MangaTag("Josei", "31", source),
@@ -242,8 +242,3 @@ internal class DemonicScans(context: MangaLoaderContext) :
     	MangaTag("Webtoons", "24", source),
     )
 }
-
-
-
-
-
