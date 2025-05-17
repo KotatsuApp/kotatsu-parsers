@@ -1,12 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.en
 
+import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.model.MangaParserSource.DEMONICSCANS
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,7 +18,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.NEWEST,
-        SortOrder.POPULARITY,
+	// SortOrder.POPULARITY does not have code to handle it
         SortOrder.ALPHABETICAL,
         SortOrder.ALPHABETICAL_DESC
     )
@@ -206,42 +206,42 @@ internal class DemonicScans(context: MangaLoaderContext) :
         }
     }
 
-    private fun fetchTags() = mutableSetOf(
-    MangaTag("Action", "1", source),
-    MangaTag("Adventure", "2", source),
-    MangaTag("Comedy", "3", source),
-    MangaTag("Cooking", "34", source),
-    MangaTag("Doujinshi", "25", source),
-    MangaTag("Drama", "4", source),
-    MangaTag("Ecchi", "19", source),
-    MangaTag("Fantasy", "5", source),
-    MangaTag("Gender Bender", "30", source),
-    MangaTag("Harem", "10", source),
-    MangaTag("Historical", "28", source),
-    MangaTag("Horror", "8", source),
-    MangaTag("Isekai", "33", source),
-    MangaTag("Josei", "31", source),
-    MangaTag("Martial Arts", "6", source),
-    MangaTag("Mature", "22", source),
-    MangaTag("Mecha", "32", source),
-    MangaTag("Mystery", "15", source),
-    MangaTag("One Shot", "26", source),
-    MangaTag("Psychological", "11", source),
-    MangaTag("Romance", "12", source),
-    MangaTag("School Life", "13", source),
-    MangaTag("Sci-fi", "16", source),
-    MangaTag("Seinen", "17", source),
-    MangaTag("Shoujo", "14", source),
-    MangaTag("Shoujo Ai", "23", source),
-    MangaTag("Shounen", "7", source),
-    MangaTag("Shounen Ai", "29", source),
-    MangaTag("Slice of Life", "21", source),
-    MangaTag("Smut", "27", source),
-    MangaTag("Sports", "20", source),
-    MangaTag("Supernatural", "9", source),
-    MangaTag("Tragedy", "18", source),
-    MangaTag("Webtoons", "24", source)
-)
+    private fun availableTags() = arraySetOf(
+	MangaTag("Action", "1", source),
+    	MangaTag("Adventure", "2", source),
+    	MangaTag("Comedy", "3", source),
+    	MangaTag("Cooking", "34", source),
+    	MangaTag("Doujinshi", "25", source),
+    	MangaTag("Drama", "4", source),
+    	MangaTag("Ecchi", "19", source),
+    	MangaTag("Fantasy", "5", source),
+    	MangaTag("Gender Bender", "30", source),
+    	MangaTag("Harem", "10", source),
+   	MangaTag("Historical", "28", source),
+    	MangaTag("Horror", "8", source),
+    	MangaTag("Isekai", "33", source),
+    	MangaTag("Josei", "31", source),
+    	MangaTag("Martial Arts", "6", source),
+    	MangaTag("Mature", "22", source),
+    	MangaTag("Mecha", "32", source),
+    	MangaTag("Mystery", "15", source),
+    	MangaTag("One Shot", "26", source),
+    	MangaTag("Psychological", "11", source),
+    	MangaTag("Romance", "12", source),
+    	MangaTag("School Life", "13", source),
+    	MangaTag("Sci-fi", "16", source),
+    	MangaTag("Seinen", "17", source),
+    	MangaTag("Shoujo", "14", source),
+    	MangaTag("Shoujo Ai", "23", source),
+    	MangaTag("Shounen", "7", source),
+    	MangaTag("Shounen Ai", "29", source),
+    	MangaTag("Slice of Life", "21", source),
+    	MangaTag("Smut", "27", source),
+    	MangaTag("Sports", "20", source),
+    	MangaTag("Supernatural", "9", source),
+    	MangaTag("Tragedy", "18", source),
+    	MangaTag("Webtoons", "24", source),
+    )
 }
 
 
