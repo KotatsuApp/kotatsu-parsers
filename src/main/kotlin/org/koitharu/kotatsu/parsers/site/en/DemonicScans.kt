@@ -205,7 +205,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
         }
     }
 
-    private fun availableTags() = arraySetOf(
+    private fun fetchTags() = arraySetOf(
 		MangaTag("Action", "1", source),
     	MangaTag("Adventure", "2", source),
     	MangaTag("Comedy", "3", source),
