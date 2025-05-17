@@ -206,7 +206,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     }
 
     private fun fetchTags() = arraySetOf(
-	MangaTag("Action", "1", source),
+		MangaTag("Action", "1", source),
     	MangaTag("Adventure", "2", source),
     	MangaTag("Comedy", "3", source),
     	MangaTag("Cooking", "34", source),
@@ -216,7 +216,7 @@ internal class DemonicScans(context: MangaLoaderContext) :
     	MangaTag("Fantasy", "5", source),
     	MangaTag("Gender Bender", "30", source),
     	MangaTag("Harem", "10", source),
-   	MangaTag("Historical", "28", source),
+   		MangaTag("Historical", "28", source),
     	MangaTag("Horror", "8", source),
     	MangaTag("Isekai", "33", source),
     	MangaTag("Josei", "31", source),
