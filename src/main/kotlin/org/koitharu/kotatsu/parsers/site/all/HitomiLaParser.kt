@@ -23,7 +23,9 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import java.security.MessageDigest
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
+import java.util.LinkedList
+import java.util.Locale
 import kotlin.math.min
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -49,33 +51,32 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 	)
 
 	private val localeMap: Map<Locale, String> = mapOf(
-		Locale("id") to "indonesian",
-		Locale("jv") to "javanese",
-		Locale("ca") to "catalan",
-		Locale("ceb") to "cebuano",
-		Locale("cs") to "czech",
-		Locale("da") to "danish",
-		Locale("de") to "german",
-		Locale("et") to "estonian",
+		Locale.forLanguageTag("id") to "indonesian",
+		Locale.forLanguageTag("jv") to "javanese",
+		Locale.forLanguageTag("ca") to "catalan",
+		Locale.forLanguageTag("ceb") to "cebuano",
+		Locale.forLanguageTag("cs") to "czech",
+		Locale.forLanguageTag("da") to "danish",
+		Locale.forLanguageTag("de") to "german",
+		Locale.forLanguageTag("et") to "estonian",
 		Locale.ENGLISH to "english",
-		Locale("es") to "spanish",
-		Locale("eo") to "esperanto",
-		Locale("fr") to "french",
-		Locale("it") to "italian",
-		Locale("hi") to "hindi",
-		Locale("hu") to "hungarian",
-		Locale("pl") to "polish",
-		Locale("pt") to "portuguese",
-		Locale("vi") to "vietnamese",
-		Locale("tr") to "turkish",
-		Locale("ru") to "russian",
-		Locale("uk") to "ukrainian",
-		Locale("ar") to "arabic",
+		Locale.forLanguageTag("es") to "spanish",
+		Locale.forLanguageTag("eo") to "esperanto",
+		Locale.forLanguageTag("fr") to "french",
+		Locale.forLanguageTag("it") to "italian",
+		Locale.forLanguageTag("hi") to "hindi",
+		Locale.forLanguageTag("hu") to "hungarian",
+		Locale.forLanguageTag("pl") to "polish",
+		Locale.forLanguageTag("pt") to "portuguese",
+		Locale.forLanguageTag("vi") to "vietnamese",
+		Locale.forLanguageTag("tr") to "turkish",
+		Locale.forLanguageTag("ru") to "russian",
+		Locale.forLanguageTag("uk") to "ukrainian",
+		Locale.forLanguageTag("ar") to "arabic",
 		Locale.KOREAN to "korean",
 		Locale.CHINESE to "chinese",
 		Locale.JAPANESE to "japanese",
 	)
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
@@ -553,7 +554,6 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			largeCoverUrl =
 				json.getJSONArray("files").getJSONObject(0).let {
 					val hash = it.getString("hash")
-					val commonId = commonImageId()
 					val imageId = imageIdFromHash(hash)
 					val subDomain = 'a' + subdomainOffset(imageId)
 
@@ -718,32 +718,51 @@ internal class HitomiLaParser(context: MangaLoaderContext) : LegacyMangaParser(c
 		return hash.replace(Regex("""^.*(..)(.)$"""), "$2/$1")
 	}
 
-	private suspend fun subdomainFromURL(url: String, base: String?): String {
-		var retval = "b"
-
-		if (!base.isNullOrBlank()) {
-			retval = base
-		}
-
-		val regex = Regex("""/[0-9a-f]{61}([0-9a-f]{2})([0-9a-f])""")
-		val hashMatch = regex.find(url) ?: return "a"
-		val imageId = hashMatch.groupValues.let { it[2] + it[1] }.toIntOrNull(16)
-
-		if (imageId != null) {
-			retval = ('a' + subdomainOffset(imageId)).toString() + retval
-		}
-
-		return retval
-	}
-
 	// rewrite_tn_paths <-- common.js
 	private suspend fun rewriteTnPaths(html: String): String {
-		val tnRegex = Regex("""//tn\.hitomi\.la/[^/]+/[0-9a-f]/[0-9a-f]{2}/[0-9a-f]{64}""")
-		val url = tnRegex.find(html)?.value ?: return html
-		val newSubdomain = subdomainFromURL(url, "tn")
-		val newUrl = url.replace(Regex("""//..?\.hitomi\.la/"""), "//${getDomain(newSubdomain)}/")
+		val thumbUrlRegex = Regex(
+			"""(?<protocol>//)(?<host>[a-z0-9.-]+\.(?:hitomi\.la|${Regex.escape(cdnDomain)}))/(?<pathAfterHost>(?:avif|webp)?(?:small)?(?:big|small|medium)tn/[0-9a-f]/[0-9a-f]{2}/[0-9a-f]{64}\.(?:webp|avif|gif|png|jpe?g))""",
+		)
 
-		return html.replace(tnRegex, newUrl)
+		var resultHtml = html
+		thumbUrlRegex.findAll(html).forEach { matchResult ->
+			val originalUrl = matchResult.value
+			val groups = matchResult.groups
+
+			val pathAfterHost = groups["pathAfterHost"]?.value ?: return@forEach
+			val newTnSubdomain = subdomainFromURL(originalUrl, "tn")
+			val correctedUrl = "${groups["protocol"]!!.value}$newTnSubdomain.$cdnDomain/$pathAfterHost"
+
+			if (originalUrl != correctedUrl) {
+				resultHtml = resultHtml.replace(originalUrl, correctedUrl)
+			}
+		}
+		return resultHtml
+	}
+
+	private suspend fun subdomainFromURL(url: String, base: String?): String {
+		val resultSubdomain = base ?: "b"
+
+		// This regex extracts the last 3 hex characters from the hash in the URL
+		// The hash is 64 characters, so we look for the 61st character onward
+		val hashRegex = Regex("""/([0-9a-f]{61}[0-9a-f]{3})[./]""")
+		val fullHashMatch = hashRegex.find(url)
+			?: // If no hash is found, default to "a" + base (typically "atn")
+			return "a$resultSubdomain"
+
+		val fullHash = fullHashMatch.groupValues[1]
+
+		val lastThreeChars = fullHash.takeLast(3)
+		val lastDigit = lastThreeChars.last()
+		val lastTwoDigits = lastThreeChars.take(2)
+
+		val imageId = "$lastDigit$lastTwoDigits".toIntOrNull(16)
+
+		return if (imageId != null) {
+			('a' + subdomainOffset(imageId)).toString() + resultSubdomain
+		} else {
+			"a$resultSubdomain"
+		}
 	}
 
 	private fun String.toTagTitle(): String {
