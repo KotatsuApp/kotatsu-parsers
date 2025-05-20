@@ -78,6 +78,7 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
 		val mangaChapters = chapters.mapNotNull { li ->
 			val url = li.selectFirstOrThrow(".manga-detail__list-link").attr("href")
 			val title = li.selectFirstOrThrow(".manga-detail__list-title").text()
+			val number = title.substringAfter("Chapter ").substringBefore("】").toFloatOrNull() ?: 0f
 			val dateStr = li.selectFirstOrThrow(".manga-detail__list-date").text()
 			val uploadDate = dateFormat.tryParse(dateStr) ?: 0L
 			val scanlator = root.selectFirst(".manga-detail__person")?.text()?.let { text ->
@@ -89,7 +90,7 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(url),
 				title = title,
-				number = 0F,
+				number = number,
 				volume = 0,
 				url = url,
 				scanlator = scanlator,
