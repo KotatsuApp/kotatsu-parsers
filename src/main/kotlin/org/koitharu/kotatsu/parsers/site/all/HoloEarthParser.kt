@@ -35,7 +35,7 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableLocales = setOf(
             Locale("en"),
-            Locale("jp"),
+            Locale.JAPANESE,
             Locale("id"),
         ),
 	)
@@ -48,9 +48,9 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
                 append(
                     when (it) {
                         Locale("en") -> "/en"
-						Locale("jp") -> ""
+						Locale.JAPANESE -> ""
                         Locale("id") -> "/id"
-                        else -> "/en" // default
+                        else -> "" // default
                     }
                 )
             }
