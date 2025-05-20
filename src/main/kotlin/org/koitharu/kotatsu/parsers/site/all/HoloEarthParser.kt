@@ -74,13 +74,13 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
 		val dateFormat = SimpleDateFormat("yyyy.MM.dd", Locale.US)
 		val root = doc.body().selectFirstOrThrow(".manga-detail__wrapper")
 		val coverUrl = root.selectFirstOrThrow(".manga-detail__thumb img").attr("src")
-		val chapters = root.selectFirstOrThrow(".manga-detail__list li")
+		val chapters = root.select(".manga-detail__list-item")
 		val mangaChapters = chapters.mapNotNull { li ->
-			val url = li.selectFirstOrThrow("a").attr("href")
+			val url = li.selectFirstOrThrow(".manga-detail__list-link").attr("href")
 			val title = li.selectFirstOrThrow(".manga-detail__list-title").text()
 			val dateStr = li.selectFirstOrThrow(".manga-detail__list-date").text()
 			val uploadDate = dateFormat.tryParse(dateStr) ?: 0L
-			val scanlator = li.selectFirst(".manga-detail__person")?.text()?.let { text ->
+			val scanlator = root.selectFirst(".manga-detail__person")?.text()?.let { text ->
 				if (text.contains("Translation:")) {
 					text.substringAfter("Translation:").substringBefore("\n").trim()
 				} else null
