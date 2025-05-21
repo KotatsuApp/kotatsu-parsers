@@ -8,19 +8,23 @@ import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
+import org.koitharu.kotatsu.parsers.model.search.SearchCapability
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
+import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.model.search.SearchableField
+import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.mapChapters
 import java.text.SimpleDateFormat
 import java.util.Locale
 
 @MangaSourceParser("VIOLETSCANS", "VioletScans", "en")
 internal class VioletScans(context: MangaLoaderContext):
-        PagedMangaParser(context, MangaParserSource.VIOLETSCANS, 12) {
+	PagedMangaParser(context, MangaParserSource.VIOLETSCANS, 12) {
 	
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("violetscans.com")
 
@@ -32,7 +36,13 @@ internal class VioletScans(context: MangaLoaderContext):
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
 	override val searchQueryCapabilities: MangaSearchQueryCapabilities
-		get() = MangaSearchQueryCapabilities()
+		get() = MangaSearchQueryCapabilities(
+			SearchCapability(
+				field = TITLE_NAME,
+				criteriaTypes = setOf(Match::class),
+				isMultiple = false,
+			),
+		)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
@@ -190,16 +200,19 @@ internal class VioletScans(context: MangaLoaderContext):
 		val chaptersList = root.selectFirstOrThrow("#chapterlist ul")
 		val chapters = chaptersList.select("li")
 
-		val mangaChapters = chapters.mapIndexedNotNull { i, li ->
+		val mangaChapters = chapters.mapNotNull { li ->
 			val url = li.getElementsByTag("a").attr("href")
 
-			//if url is empty it means the manga is paid
+			// if url is empty it means the manga is paid
 			if (url.isEmpty()) null else {
 				val title = li.selectFirstOrThrow(".chapternum").text()
+				val regex = Regex("""\d+""")
+				val matchResult = regex.find(title)
+				val chapterNumber = matchResult?.value?.toFloat() ?: 0f
 				MangaChapter(
 					id = generateUid(url),
 					title = title,
-					number = i + 1f,
+					number = chapterNumber,
 					volume = 0,
 					url = url,
 					scanlator = scanlator,
