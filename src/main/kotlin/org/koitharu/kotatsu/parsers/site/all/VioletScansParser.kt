@@ -20,7 +20,7 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @MangaSourceParser("VIOLETSCANS", "VioletScans")
-class  VioletScansParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VIOLETSCANS, pageSize = 3) {
+class  VioletScansParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.VIOLETSCANS, pageSize = 12) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("violetscans.com")
 
