@@ -102,8 +102,12 @@ internal class VioletScans(context: MangaLoaderContext):
 		val url = buildString {
 			append("https://")
 			append(domain)
-			append("/page/")
-			append(page)
+
+			if (page > 1) {
+				append("/page/")
+				append(page)
+			}
+
 			append("/?s=")
 			append(searchParameter.urlEncoded())
 		}
@@ -225,7 +229,7 @@ internal class VioletScans(context: MangaLoaderContext):
 
 		return manga.copy(
 			coverUrl = coverUrl,
-			chapters = mangaChapters,
+			chapters = mangaChapters.reversed(),
 			state = status,
 			description = description.toString(),
 			tags = tags,
