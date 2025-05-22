@@ -31,6 +31,10 @@ internal class ComXParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
+	init {
+		context.cookieJar.insertCookies(domain, "adt-accepted", "1")
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
