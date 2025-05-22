@@ -31,6 +31,10 @@ internal class ComXParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
+	init {
+		context.cookieJar.insertCookies(domain, "adt-accepted", "1")
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -168,6 +172,9 @@ internal class ComXParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val newsId = chapter.url.substringAfter("/reader/").substringBefore("/")
+		context.cookieJar.insertCookies(domain, "adult=$newsId")
+		
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val data = doc.selectFirst("script:containsData(__DATA__)")?.data()
 			?.substringAfter("=")
