@@ -172,6 +172,9 @@ internal class ComXParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val newsId = chapter.url.substringAfter("/reader/").substringBefore("/")
+		context.cookieJar.insertCookies(domain, "adult=$newsId")
+		
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val data = doc.selectFirst("script:containsData(__DATA__)")?.data()
 			?.substringAfter("=")
