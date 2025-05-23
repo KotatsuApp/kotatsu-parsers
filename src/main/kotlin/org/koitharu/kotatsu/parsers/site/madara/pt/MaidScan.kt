@@ -8,6 +8,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("MAIDSCAN", "MaidScan", "pt", ContentType.HENTAI)
 internal class MaidScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MAIDSCAN, "empreguetes.site", 10) {
+	MadaraParser(context, MangaParserSource.MAIDSCAN, "novo.empreguetes.site", 10) {
 	override val datePattern: String = "dd/MM/yyyy"
 }
