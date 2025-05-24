@@ -21,8 +21,8 @@ internal class AllHentaiParser(
 		"2023.allhen.online",
 	)
 
-	override val isAuthorized: Boolean
-		get() = super.isAuthorized || context.cookieJar.getCookies(domain).any { it.name == "remember_me" }
+	override suspend fun isAuthorized(): Boolean =
+		super.isAuthorized() || context.cookieJar.getCookies(domain).any { it.name == "remember_me" }
 
 	override val authUrl: String
 		get() {

@@ -50,12 +50,11 @@ internal class RemangaParser(
 		SortOrder.NEWEST,
 	)
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name == "user"
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name == "user"
 		}
+	}
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
 

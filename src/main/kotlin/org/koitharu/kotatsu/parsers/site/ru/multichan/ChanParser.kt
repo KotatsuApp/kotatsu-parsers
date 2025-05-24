@@ -26,8 +26,7 @@ internal abstract class ChanParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
+	override suspend fun isAuthorized(): Boolean = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(

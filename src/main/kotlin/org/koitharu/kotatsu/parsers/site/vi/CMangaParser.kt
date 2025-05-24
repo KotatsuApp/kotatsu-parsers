@@ -54,8 +54,8 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = domain
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "login_password" }
+	override suspend fun isAuthorized(): Boolean =
+		context.cookieJar.getCookies(domain).any { it.name == "login_password" }
 
 	override suspend fun getUsername(): String {
 		val userId = webClient.httpGet("https://$domain").parseRaw()

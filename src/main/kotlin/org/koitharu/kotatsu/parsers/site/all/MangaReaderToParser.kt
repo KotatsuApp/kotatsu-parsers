@@ -36,12 +36,11 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = "https://${domain}/home"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("connect.sid")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("connect.sid")
 		}
+	}
 
 	// It will be easier to connect to a manga page, as the source redirects to a lot of advertising.
 	override suspend fun getUsername(): String {

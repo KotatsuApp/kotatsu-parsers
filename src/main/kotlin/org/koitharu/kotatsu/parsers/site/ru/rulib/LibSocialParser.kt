@@ -5,6 +5,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 import okhttp3.HttpUrl
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -31,10 +33,10 @@ internal abstract class LibSocialParser(
 	override val authUrl: String
 		get() = "https://$domain/ru/front/auth"
 
-	override val isAuthorized: Boolean
-		get() = runBlocking {
-			runCatchingCancellable { getAuthData() }.getOrNull() != null
-		}
+	override suspend fun isAuthorized(): Boolean {
+		val token = getAuthData()?.optJSONObject("token")?.getStringOrNull("access_token")
+		return !token.isNullOrEmpty()
+	}
 
 	override suspend fun getUsername(): String = getAuthData()
 		?.getJSONObject("auth")
@@ -64,6 +66,18 @@ internal abstract class LibSocialParser(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.allOf(MangaState::class.java),
 	)
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val token = runBlocking { getAuthData() }?.optJSONObject("token")?.getStringOrNull("access_token")
+		return if (!token.isNullOrEmpty()) {
+			val request = chain.request().newBuilder()
+				.header("Authorization", "Bearer $token")
+				.build()
+			chain.proceed(request)
+		} else {
+			super.intercept(chain)
+		}
+	}
 
 	private val statesMap = intObjectMapOf(
 		1, MangaState.ONGOING,
@@ -374,7 +388,8 @@ internal abstract class LibSocialParser(
 	}
 
 	private suspend fun getAuthData(): JSONObject? {
-		return JSONObject(WebViewHelper(context, domain).getLocalStorageValue("auth") ?: return null)
+		val raw = WebViewHelper(context).getLocalStorageValue(domain, "auth") ?: return null
+		return JSONObject(raw.unescapeJson().removeSurrounding('"'))
 	}
 
 	protected companion object {

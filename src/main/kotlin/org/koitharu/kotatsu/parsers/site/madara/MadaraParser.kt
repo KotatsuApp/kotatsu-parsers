@@ -82,12 +82,11 @@ internal abstract class MadaraParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("wordpress_logged_in")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("wordpress_logged_in")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/").parseHtml().body()

@@ -35,12 +35,11 @@ internal class BatoToParser(context: MangaLoaderContext) : LegacyPagedMangaParse
 	override val authUrl: String
 		get() = "https://${domain}/signin"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("skey")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("skey")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/account/profiles").parseHtml().body()

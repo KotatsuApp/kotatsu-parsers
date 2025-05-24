@@ -4,10 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 
 public class WebViewHelper(
 	private val context: MangaLoaderContext,
-	private val domain: String,
 ) {
 
-	public suspend fun getLocalStorageValue(key: String): String? {
-		return context.evaluateJs("window.localStorage.getItem(\"$key\")")
+	public suspend fun getLocalStorageValue(domain: String, key: String): String? {
+		return context.evaluateJs("$SCHEME_HTTPS://$domain/", "window.localStorage.getItem(\"$key\")")
 	}
 }

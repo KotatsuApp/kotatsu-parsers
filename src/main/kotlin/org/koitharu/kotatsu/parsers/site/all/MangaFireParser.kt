@@ -49,12 +49,11 @@ internal abstract class MangaFireParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.value.contains("user")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.value.contains("user")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/user/profile").parseHtml().body()

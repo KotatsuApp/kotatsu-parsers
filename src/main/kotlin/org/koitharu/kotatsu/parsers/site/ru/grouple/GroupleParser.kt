@@ -74,8 +74,7 @@ internal abstract class GroupleParser(
 			return "https://grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
 		}
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
+	override suspend fun isAuthorized(): Boolean = hasAuthCookie()
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -511,7 +510,7 @@ internal abstract class GroupleParser(
 				id = generateUid(url),
 				url = if (fullUrl.contains("one-way.work")) {
 					// domain that does not need a token
-					fullUrl.substringBefore("?") 
+					fullUrl.substringBefore("?")
 				} else {
 					fullUrl
 				},
@@ -556,7 +555,7 @@ internal abstract class GroupleParser(
 			throw AuthRequiredException(source)
 		}
 		if (code == HttpURLConnection.HTTP_NOT_FOUND) {
-			if (!isAuthorized) {
+			if (!hasAuthCookie()) {
 				closeQuietly()
 				throw AuthRequiredException(source)
 			} else {
@@ -565,4 +564,6 @@ internal abstract class GroupleParser(
 		}
 		return this
 	}
+
+	private fun hasAuthCookie() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
 }
