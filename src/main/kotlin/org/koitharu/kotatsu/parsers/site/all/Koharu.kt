@@ -321,30 +321,11 @@ internal class Koharu(context: MangaLoaderContext) :
 		val id = parts[0]
 		val key = parts[1]
 
-		val detailResponse = webClient.httpGet("https://$apiSuffix/books/detail/$id/$key").parseJson()
+		val chapUrl = "https://$domain/g/$mangaUrl/read/1" // request from first page
+		context.requestBrowserAction(this, chapUrl)
 
-		var currentToken = detailResponse.getStringOrNull("crt") ?: cachedToken
-
-		if (currentToken.isNullOrEmpty()) {
-			try {
-				val noTokenResponse = webClient.httpPost(
-					url = "https://$apiSuffix/books/detail/$id/$key".toHttpUrl(),
-					form = emptyMap(),
-					extraHeaders = getRequestHeaders(),
-				).parseJson()
-
-				currentToken = noTokenResponse.getStringOrNull("crt")
-				if (!currentToken.isNullOrEmpty()) {
-					cachedToken = currentToken
-				}
-			} catch (e: Exception) {
-				throw IllegalStateException("Cant get auth token", e)
-			}
-		}
-
-		if (currentToken.isNullOrEmpty()) {
-			throw IllegalStateException("Cant get auth token")
-		}
+		val currentToken = WebViewHelper(context).getLocalStorageValue(chapUrl, "clearance")
+			?: throw IllegalStateException("Cant get auth token")
 
 		val dataUrl = "https://$apiSuffix/books/detail/$id/$key?crt=$currentToken"
 		val dataResponse = webClient.httpPost(
