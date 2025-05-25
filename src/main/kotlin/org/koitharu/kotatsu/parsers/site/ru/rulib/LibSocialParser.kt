@@ -15,6 +15,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -29,6 +30,8 @@ internal abstract class LibSocialParser(
 ) : LegacyPagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
 
 	protected val apiHost = "api.cdnlibs.org"
+
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 
 	override val authUrl: String
 		get() = "https://$domain/ru/front/auth"
