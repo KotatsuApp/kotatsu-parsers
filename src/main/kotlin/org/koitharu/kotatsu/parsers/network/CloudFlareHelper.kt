@@ -28,8 +28,9 @@ public object CloudFlareHelper {
 		}
 		return when {
 			content.selectFirst("h2[data-translate=\"blocked_why_headline\"]") != null -> PROTECTION_BLOCKED
-			content.getElementById("challenge-error-title") != null || content.getElementById("challenge-error-text") != null -> PROTECTION_CAPTCHA
-
+			content.getElementById("challenge-error-title") != null ||
+			content.getElementById("challenge-error-text") != null ||
+			content.selectFirst("iframe[id^=\"cf-chl-widget-\"]") != null -> PROTECTION_CAPTCHA
 			else -> PROTECTION_NOT_DETECTED
 		}
 	}
