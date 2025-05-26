@@ -24,6 +24,7 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.attrOrThrow
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
@@ -41,19 +42,12 @@ import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.util.EnumSet
 import java.util.Locale
 
-/*******************************************************
- * Parser class
- ******************************************************/
-
 @MangaSourceParser("MANHUAGUI", "Manhuagui", "zh")
 internal class ManhuaguiParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.MANHUAGUI, pageSize = 42) {
 
-	/*******************************************************
-	 * Important constants and helper functions
-	 ******************************************************/
-
 	override val configKeyDomain = ConfigKey.Domain("www.manhuagui.com")
+    override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 
 	val configKeyImgServer = ConfigKey.PreferredImageServer(
 		presetValues = arrayOf("us", "us2", "us3", "eu", "eu2", "eu3").associateWith { it },
@@ -62,21 +56,18 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 
 	val imgServer = "${config[configKeyImgServer]}.hamreus.com"
 
-	private val uaList = arrayOf(
-		"Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.2651.70 Safari/537.36 Edg/127.0.2651.70",
-		"Mozilla/5.0 (Windows NT 6.3; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.1774.54 Safari/537.36 Edg/113.0.1774.54",
-		"Mozilla/5.0 (Windows NT 6.2; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.5615.193 Safari/537.36",
-		"Mozilla/5.0 (Windows NT 6.1; WOW64; rv:115.0.2) Gecko/20100101 Firefox/115.0.2",
-		"Mozilla/5.0 (Macintosh; Intel Mac OS X 14_1_1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.1245.66 Safari/537.36 Edg/102.0.1245.66",
-		"Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:135.0.0) Gecko/20100101 Firefox/135.0.0",
-		"Mozilla/5.0 (X11; Linux x86_64; rv:128.2.0) Gecko/20100101 Firefox/128.2.0",
-		"Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0.6478.158 Safari/537.36",
-		"Mozilla/5.0 (Macintosh; Intel Mac OS X 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.6834.154 Safari/537.36",
-		"Mozilla/5.0 (Macintosh; Intel Mac OS X 13_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/105.0.1343.79 Safari/537.36 Edg/105.0.1343.79",
-	)
+    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(userAgentKey)
+		keys.add(configKeyImgServer)
+	}
 
-	val configKeyUserAgent: ConfigKey.UserAgent
-		get() = ConfigKey.UserAgent(uaList.random())
+	override fun getRequestHeaders(): Headers = super.getRequestHeaders().newBuilder()
+		.add("Referer", "https://$domain")
+		.build()
+
+    override val defaultSortOrder: SortOrder
+		get() = SortOrder.UPDATED
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
@@ -86,9 +77,6 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 			SortOrder.RATING, // 评分最高
 		)
 
-	override val defaultSortOrder: SortOrder
-		get() = SortOrder.UPDATED
-
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
@@ -96,168 +84,26 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 			isOriginalLocaleSupported = true,
 		)
 
-	override fun getRequestHeaders(): Headers = Headers.Builder()
-		.add("User-Agent", config[configKeyUserAgent])
-		.add("Referer", "https://${domain}")
-		.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8")
-		.add("Accept-Language", "en-US,en;q=0.7,zh-CN;q=0.3")
-		.add("Cache-Control", "no-cache")
-		.add("Pragma", "no-cache")
-		.add("Sec-Fetch-Dest", "image")
-		.add("Sec-Fetch-Mode", "no-cors")
-		.add("Sec-Fetch-Site", "cross-site")
-		.add("Sec-GPC", "1")
-		.add("DNT", "1")
-		.add("Connection", "keep-alive")
-		.build()
+    private val fetchedTags = suspendLazy(initializer = ::fetchAvailableTags)
 
-	private val fetchedTags = suspendLazy(initializer = ::fetchAvailableTags)
+    override suspend fun getFilterOptions() = MangaListFilterOptions(
+		availableLocales = setOf(
+			Locale.JAPAN, Locale.TRADITIONAL_CHINESE, Locale.ROOT,
+			Locale.US, Locale.SIMPLIFIED_CHINESE, Locale.KOREA,
+		),
+		availableTags = fetchedTags.get(),
+		availableDemographics = EnumSet.complementOf(EnumSet.of(Demographic.JOSEI)),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+	)
 
 	private val listUrl = "/list"
 	private val searchUrl = "/s"
 	private val ratingUrl = "/tools/vote.ashx"
 	private val sectionChaptersSelector = ".chapter-list"
 
-	private fun decompressLZStringFromBase64(input: String): String? {
-		if (input.isBlank()) return null
-
-		data class Data(
-			var value: Char = '0',
-			var position: Int = 0,
-			var index: Int = 1,
-		)
-
-		fun Int.power() = 1 shl this
-		fun Int.string() = this.toChar().toString()
-
-		val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-		val length = input.length
-		val resetValue = 32
-		val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
-
-		val builder = StringBuilder()
-		val dictionary = mutableListOf(0.string(), 1.string(), 2.string())
-		var bits = 0
-		var maxpower: Int
-		var power: Int
-		val data = Data(getNextValue(0), resetValue, 1)
-		var resb: Int
-		var c = ""
-		var w: String
-		var entry: String
-		var numBits = 3
-		var enlargeIn = 4
-		var dictSize = 4
-		var next: Int
-
-		fun doPower(initBits: Int, initPower: Int, initMaxPowerFactor: Int, mode: Int = 0) {
-			bits = initBits
-			maxpower = initMaxPowerFactor.power()
-			power = initPower
-			while (power != maxpower) {
-				resb = data.value.code and data.position
-				data.position = data.position shr 1
-				if (data.position == 0) {
-					data.position = resetValue
-					data.value = getNextValue(data.index++)
-				}
-				bits = bits or (if (resb > 0) 1 else 0) * power
-				power = power shl 1
-			}
-			when (mode) {
-				0 -> Unit
-				1 -> c = bits.string()
-				2 -> {
-					dictionary.add(dictSize++, bits.string())
-					next = (dictSize - 1)
-					enlargeIn--
-				}
-			}
-		}
-
-		fun checkEnlargeIn() {
-			if (enlargeIn == 0) {
-				enlargeIn = numBits.power()
-				numBits++
-			}
-		}
-
-		doPower(bits, 1, 2)
-		next = bits
-		when (next) {
-			0 -> doPower(0, 1, 8, 1)
-			1 -> doPower(0, 1, 16, 1)
-			2 -> return ""
-		}
-		dictionary.add(3, c)
-		w = c
-		builder.append(w)
-		while (true) {
-			if (data.index > length) {
-				return ""
-			}
-			doPower(0, 1, numBits)
-			next = bits
-			when (next) {
-				0 -> doPower(0, 1, 8, 2)
-				1 -> doPower(0, 1, 16, 2)
-				2 -> return builder.toString()
-			}
-			checkEnlargeIn()
-			entry = when {
-				dictionary.size > next -> dictionary[next]
-				next == dictSize -> w + w[0]
-				else -> return null
-			}
-			builder.append(entry)
-			// Add w+entry[0] to the dictionary.
-			dictionary.add(dictSize++, w + entry[0])
-			enlargeIn--
-			w = entry
-			checkEnlargeIn()
-		}
-	}
-
-	private fun unpack(src: String, syms: List<String>): JSONObject {
-		val BASE = 62
-
-		// Convert integer (0–61) to a single base-62 character
-		fun base62(n: Int): String = when {
-			n < 10 -> n.toString()
-			n < 36 -> ('a' + (n - 10)).toString()
-			else -> ('A' + (n - 36)).toString()
-		}
-
-		// Recursive radix-62 encoding
-		fun encode62(num: Int): String =
-			if (num >= BASE) encode62(num / BASE) + base62(num % BASE)
-			else base62(num)
-
-		// 1× replacement pass
-		var working = src
-		val c = syms.size
-		for (idx in c - 1 downTo 0) {
-			val replacement = syms[idx]
-			if (replacement.isNotEmpty()) {
-				val token = encode62(idx)
-				// \b for word-boundary; escape token in case it contains regex metachars
-				val pattern = Regex("\\b${Regex.escape(token)}\\b")
-				working = pattern.replace(working, replacement)
-			}
-		}
-
-		// Grab the JSON object literal inside parentheses
-		val objRegex = Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
-		val match = objRegex.find(working)
-			?: throw IllegalArgumentException("JSON payload not found after unpacking.")
-		val jsonBlob = match.groupValues[1]
-
-		return JSONObject(jsonBlob)
-	}
-
 	private fun Any?.toQueryParam(): String? = when (this) {
-		// Title
-		is String -> urlEncoded()
+
+		is String -> urlEncoded() // Title
 
 		is Locale -> when (this) {
 			Locale.JAPAN -> "japan" // 日本
@@ -280,8 +126,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 			else -> null
 		}
 
-		// Year
-		is Int -> when {
+		is Int -> when { // Year
 			this >= 2010 && this <= 2025 -> toString()
 			this >= 2000 && this < 2010 -> "200x"
 			this >= 1990 && this < 2000 -> "199x"
@@ -311,91 +156,14 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		return builder.build().toString()
 	}
 
-	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet(listUrl.toAbsoluteUrl(domain)).parseHtml()
-		val tags = doc.selectOrThrow("div.filter-nav > .filter.genre > ul > li > a").drop(1)
-		return tags.mapToSet { a ->
-			val title = a.text()
-			val key = a.attr("href").removePrefix(listUrl).removeSurrounding("/")
-			MangaTag(
-				title = title,
-				key = key,
-				source = source,
-			)
-		}
-	}
-
-	private fun parseChapters(doc: Document, url: String? = null): List<MangaChapter> {
-		// Parse chapters of sections
-		val (sectionTitles, sectionChapters) = doc.selectFirst("#__VIEWSTATE").let {
-			if (it != null) {
-				val viewStateStr = decompressLZStringFromBase64(it.attrOrThrow("value"))
-					?: throw ParseException("Cannot decompress __VIEWSTATE", url.ifNullOrEmpty { "" })
-				val doc1 = Jsoup.parse(viewStateStr)
-				Pair(
-					doc1.select("h4 span"),
-					doc1.select(sectionChaptersSelector),
-				)
-			} else {
-				Pair(
-					doc.select(".chapter h4 span"),
-					doc.select(sectionChaptersSelector),
-				)
-			}
-		}
-
-		// Parse chapters from each section
-		val chapters = sectionTitles
-			.zip(sectionChapters)
-			.flatMapIndexed { index, (title, section) ->
-				val chaps = section.select("ul").flatMap {
-					it.select("li a").asReversed()
-				}
-				chaps.mapChapters { chapIdx, chap ->
-					MangaChapter(
-						url = chap.attrOrThrow("href"),
-						id = generateUid(chap.attrOrThrow("href")),
-						title = chap.attrOrThrow("title"),
-						number = (chapIdx + 1).toFloat(),
-						volume = index + 1,
-						scanlator = null,
-						uploadDate = 0,
-						branch = title.text(),
-						source = source,
-					)
-				}
-			}
-
-		return chapters
-	}
-
-	/*******************************************************
-	 * Class method overrides
-	 ******************************************************/
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(configKeyUserAgent)
-		keys.add(configKeyImgServer)
-	}
-
-	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableLocales = setOf(
-			Locale.JAPAN, Locale.TRADITIONAL_CHINESE, Locale.ROOT,
-			Locale.US, Locale.SIMPLIFIED_CHINESE, Locale.KOREA,
-		),
-		availableTags = fetchedTags.get(),
-		availableDemographics = EnumSet.complementOf(EnumSet.of(Demographic.JOSEI)),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-	)
-
 	override suspend fun getListPage(
 		page: Int,
 		order: SortOrder,
 		filter: MangaListFilter,
 	): List<Manga> {
-		// Flag of whether there is title query param
-		var flagHasTitleQuery = false
+        
+        // Flag of whether there is title query param
+		var flagHasTitleQuery = false 
 
 		val url = buildString {
 			var queryFull: String?
@@ -445,15 +213,15 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 				Manga(
 					id = generateUid(href),
 					title = a.attr("title"),
-					altTitles = emptySet<String>(),
+					altTitles = emptySet(),
 					url = href,
 					publicUrl = href.toAbsoluteUrl(domain),
 					rating = rating,
-					contentRating = null, // It can be fetched afterwards. Mark it null temporarily.
+					contentRating = null,
 					coverUrl = a.selectFirst("img")?.src(),
-					tags = setOf(),
+					tags = emptySet(),
 					state = null,
-					authors = emptySet<String>(),
+					authors = emptySet(),
 					source = source,
 				)
 			}
@@ -523,4 +291,158 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+    // private funs
+
+    private suspend fun fetchAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet(listUrl.toAbsoluteUrl(domain)).parseHtml()
+		val tags = doc.selectOrThrow("div.filter-nav > .filter.genre > ul > li > a").drop(1)
+		return tags.mapToSet { a ->
+			val title = a.text()
+			val key = a.attr("href").removePrefix(listUrl).removeSurrounding("/")
+			MangaTag(
+				title = title,
+				key = key,
+				source = source,
+			)
+		}
+	}
+
+	private fun parseChapters(doc: Document, url: String? = null): List<MangaChapter> {
+		val (sectionTitles, sectionChapters) = doc.selectFirst("#__VIEWSTATE").let {
+			if (it != null) {
+				val viewStateStr = decompressLZStringFromBase64(it.attrOrThrow("value"))
+					?: throw ParseException("Cannot decompress __VIEWSTATE", url.ifNullOrEmpty { "" })
+				val doc1 = Jsoup.parse(viewStateStr)
+				Pair(
+					doc1.select("h4 span"),
+					doc1.select(sectionChaptersSelector),
+				)
+			} else {
+				Pair(
+					doc.select(".chapter h4 span"),
+					doc.select(sectionChaptersSelector),
+				)
+			}
+		}
+
+		// Parse chapters from each section
+		val chapters = sectionTitles
+			.zip(sectionChapters)
+			.flatMapIndexed { index, (title, section) ->
+				val chaps = section.select("ul").flatMap {
+					it.select("li a").asReversed()
+				}
+				chaps.mapChapters { chapIdx, chap ->
+					MangaChapter(
+						url = chap.attrOrThrow("href"),
+						id = generateUid(chap.attrOrThrow("href")),
+						title = chap.attrOrThrow("title"),
+						number = (chapIdx + 1).toFloat(),
+						volume = index + 1,
+						scanlator = null,
+						uploadDate = 0,
+						branch = title.text(),
+						source = source,
+					)
+				}
+			}
+
+		return chapters
+	}
+
+    private fun decompressLZStringFromBase64(input: String): String? {
+        if (input.isBlank()) return null
+
+        data class Data(var value: Char = '0', var position: Int = 0, var index: Int = 1)
+
+        val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+        val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
+        val builder = StringBuilder()
+        val dictionary = mutableListOf("0", "1", "2")
+        val data = Data(getNextValue(0), 32, 1)
+        var (bits, numBits, enlargeIn, dictSize) = listOf(0, 3, 4, 4)
+        var (c, w, entry) = listOf("", "", "")
+        
+        fun Int.power() = 1 shl this
+        fun Int.string() = this.toChar().toString()
+        
+        fun doPower(initBits: Int, initPower: Int, initMaxPower: Int, mode: Int = 0) {
+            bits = initBits
+            var power = initPower
+            val maxpower = initMaxPower.power()
+            while (power != maxpower) {
+                val resb = data.value.code and data.position
+                data.position = data.position shr 1
+                if (data.position == 0) {
+                    data.position = 32
+                    data.value = getNextValue(data.index++)
+                }
+                bits = bits or ((if (resb > 0) 1 else 0) * power)
+                power = power shl 1
+            }
+            when (mode) {
+                1 -> c = bits.string()
+                2 -> dictionary.add(dictSize++.also { enlargeIn-- }, bits.string())
+            }
+        }
+
+        fun checkEnlargeIn() {
+            if (enlargeIn-- == 0) {
+                enlargeIn = numBits.power()
+                numBits++
+            }
+        }
+
+        doPower(bits, 1, 2)
+        when (bits) {
+            0 -> doPower(0, 1, 8, 1)
+            1 -> doPower(0, 1, 16, 1)
+            2 -> return ""
+        }
+        
+        dictionary.add(3, c)
+        w = c
+        builder.append(w)
+        
+        while (true) {
+            if (data.index > input.length) return ""
+            doPower(0, 1, numBits)
+            when (bits) {
+                0 -> doPower(0, 1, 8, 2).also { checkEnlargeIn() }
+                1 -> doPower(0, 1, 16, 2).also { checkEnlargeIn() }
+                2 -> return builder.toString()
+            }
+            entry = when {
+                dictionary.size > bits -> dictionary[bits]
+                bits == dictSize -> w + w[0]
+                else -> return null
+            }
+            builder.append(entry)
+            dictionary.add(dictSize++, w + entry[0])
+            w = entry
+            checkEnlargeIn()
+        }
+    }
+
+    private fun unpack(src: String, syms: List<String>): JSONObject {
+        fun base62(n: Int) = when {
+            n < 10 -> n.toString()
+            n < 36 -> ('a' + (n - 10)).toString()
+            else -> ('A' + (n - 36)).toString()
+        }
+        
+        fun encode62(num: Int): String = if (num >= 62) encode62(num / 62) + base62(num % 62) else base62(num)
+
+        val working = syms.foldRightIndexed(src) { idx, replacement, acc ->
+            if (replacement.isNotEmpty()) {
+                val token = encode62(idx)
+                Regex("\\b${Regex.escape(token)}\\b").replace(acc, replacement)
+            } else acc
+        }
+
+        return JSONObject(Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
+            .find(working)?.groupValues?.get(1)
+            ?: throw IllegalArgumentException("JSON payload not found after unpacking."))
+    }
 }
