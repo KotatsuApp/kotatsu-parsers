@@ -47,7 +47,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.MANHUAGUI, pageSize = 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.manhuagui.com")
-    override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+    	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 
 	val configKeyImgServer = ConfigKey.PreferredImageServer(
 		presetValues = arrayOf("us", "us2", "us3", "eu", "eu2", "eu3").associateWith { it },
@@ -56,7 +56,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 
 	val imgServer = "${config[configKeyImgServer]}.hamreus.com"
 
-    override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+    	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
 		keys.add(configKeyImgServer)
@@ -66,7 +66,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		.add("Referer", "https://$domain")
 		.build()
 
-    override val defaultSortOrder: SortOrder
+    	override val defaultSortOrder: SortOrder
 		get() = SortOrder.UPDATED
 
 	override val availableSortOrders: Set<SortOrder>
@@ -84,9 +84,9 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 			isOriginalLocaleSupported = true,
 		)
 
-    private val fetchedTags = suspendLazy(initializer = ::fetchAvailableTags)
+    	private val fetchedTags = suspendLazy(initializer = ::fetchAvailableTags)
 
-    override suspend fun getFilterOptions() = MangaListFilterOptions(
+    	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableLocales = setOf(
 			Locale.JAPAN, Locale.TRADITIONAL_CHINESE, Locale.ROOT,
 			Locale.US, Locale.SIMPLIFIED_CHINESE, Locale.KOREA,
@@ -292,9 +292,9 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		}
 	}
 
-    // private funs
+    	// private funs
 
-    private suspend fun fetchAvailableTags(): Set<MangaTag> {
+    	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet(listUrl.toAbsoluteUrl(domain)).parseHtml()
 		val tags = doc.selectOrThrow("div.filter-nav > .filter.genre > ul > li > a").drop(1)
 		return tags.mapToSet { a ->
@@ -351,98 +351,98 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		return chapters
 	}
 
-    private fun decompressLZStringFromBase64(input: String): String? {
-        if (input.isBlank()) return null
+    	private fun decompressLZStringFromBase64(input: String): String? {
+	        if (input.isBlank()) return null
+	
+	        data class Data(var value: Char = '0', var position: Int = 0, var index: Int = 1)
+	
+	        val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+	        val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
+	        val builder = StringBuilder()
+	        val dictionary = mutableListOf("0", "1", "2")
+	        val data = Data(getNextValue(0), 32, 1)
+	        var (bits, numBits, enlargeIn, dictSize) = listOf(0, 3, 4, 4)
+	        var (c, w, entry) = listOf("", "", "")
+	        
+	        fun Int.power() = 1 shl this
+	        fun Int.string() = this.toChar().toString()
+	        
+	        fun doPower(initBits: Int, initPower: Int, initMaxPower: Int, mode: Int = 0) {
+	            bits = initBits
+	            var power = initPower
+	            val maxpower = initMaxPower.power()
+	            while (power != maxpower) {
+	                val resb = data.value.code and data.position
+	                data.position = data.position shr 1
+	                if (data.position == 0) {
+	                    data.position = 32
+	                    data.value = getNextValue(data.index++)
+	                }
+	                bits = bits or ((if (resb > 0) 1 else 0) * power)
+	                power = power shl 1
+	            }
+	            when (mode) {
+	                1 -> c = bits.string()
+	                2 -> dictionary.add(dictSize++.also { enlargeIn-- }, bits.string())
+	            }
+	        }
+	
+	        fun checkEnlargeIn() {
+	            if (enlargeIn-- == 0) {
+	                enlargeIn = numBits.power()
+	                numBits++
+	            }
+	        }
+	
+	        doPower(bits, 1, 2)
+	        when (bits) {
+	            0 -> doPower(0, 1, 8, 1)
+	            1 -> doPower(0, 1, 16, 1)
+	            2 -> return ""
+	        }
+	        
+	        dictionary.add(3, c)
+	        w = c
+	        builder.append(w)
+	        
+	        while (true) {
+	            if (data.index > input.length) return ""
+	            doPower(0, 1, numBits)
+	            when (bits) {
+	                0 -> doPower(0, 1, 8, 2).also { checkEnlargeIn() }
+	                1 -> doPower(0, 1, 16, 2).also { checkEnlargeIn() }
+	                2 -> return builder.toString()
+	            }
+	            entry = when {
+	                dictionary.size > bits -> dictionary[bits]
+	                bits == dictSize -> w + w[0]
+	                else -> return null
+	            }
+	            builder.append(entry)
+	            dictionary.add(dictSize++, w + entry[0])
+	            w = entry
+	            checkEnlargeIn()
+        	}
+    	}
 
-        data class Data(var value: Char = '0', var position: Int = 0, var index: Int = 1)
-
-        val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-        val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
-        val builder = StringBuilder()
-        val dictionary = mutableListOf("0", "1", "2")
-        val data = Data(getNextValue(0), 32, 1)
-        var (bits, numBits, enlargeIn, dictSize) = listOf(0, 3, 4, 4)
-        var (c, w, entry) = listOf("", "", "")
-        
-        fun Int.power() = 1 shl this
-        fun Int.string() = this.toChar().toString()
-        
-        fun doPower(initBits: Int, initPower: Int, initMaxPower: Int, mode: Int = 0) {
-            bits = initBits
-            var power = initPower
-            val maxpower = initMaxPower.power()
-            while (power != maxpower) {
-                val resb = data.value.code and data.position
-                data.position = data.position shr 1
-                if (data.position == 0) {
-                    data.position = 32
-                    data.value = getNextValue(data.index++)
-                }
-                bits = bits or ((if (resb > 0) 1 else 0) * power)
-                power = power shl 1
-            }
-            when (mode) {
-                1 -> c = bits.string()
-                2 -> dictionary.add(dictSize++.also { enlargeIn-- }, bits.string())
-            }
-        }
-
-        fun checkEnlargeIn() {
-            if (enlargeIn-- == 0) {
-                enlargeIn = numBits.power()
-                numBits++
-            }
-        }
-
-        doPower(bits, 1, 2)
-        when (bits) {
-            0 -> doPower(0, 1, 8, 1)
-            1 -> doPower(0, 1, 16, 1)
-            2 -> return ""
-        }
-        
-        dictionary.add(3, c)
-        w = c
-        builder.append(w)
-        
-        while (true) {
-            if (data.index > input.length) return ""
-            doPower(0, 1, numBits)
-            when (bits) {
-                0 -> doPower(0, 1, 8, 2).also { checkEnlargeIn() }
-                1 -> doPower(0, 1, 16, 2).also { checkEnlargeIn() }
-                2 -> return builder.toString()
-            }
-            entry = when {
-                dictionary.size > bits -> dictionary[bits]
-                bits == dictSize -> w + w[0]
-                else -> return null
-            }
-            builder.append(entry)
-            dictionary.add(dictSize++, w + entry[0])
-            w = entry
-            checkEnlargeIn()
-        }
-    }
-
-    private fun unpack(src: String, syms: List<String>): JSONObject {
-        fun base62(n: Int) = when {
-            n < 10 -> n.toString()
-            n < 36 -> ('a' + (n - 10)).toString()
-            else -> ('A' + (n - 36)).toString()
-        }
-        
-        fun encode62(num: Int): String = if (num >= 62) encode62(num / 62) + base62(num % 62) else base62(num)
-
-        val working = syms.foldRightIndexed(src) { idx, replacement, acc ->
-            if (replacement.isNotEmpty()) {
-                val token = encode62(idx)
-                Regex("\\b${Regex.escape(token)}\\b").replace(acc, replacement)
-            } else acc
-        }
-
-        return JSONObject(Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
-            .find(working)?.groupValues?.get(1)
-            ?: throw IllegalArgumentException("JSON payload not found after unpacking."))
-    }
+	private fun unpack(src: String, syms: List<String>): JSONObject {
+	        fun base62(n: Int) = when {
+	            n < 10 -> n.toString()
+	            n < 36 -> ('a' + (n - 10)).toString()
+	            else -> ('A' + (n - 36)).toString()
+	        }
+	        
+	        fun encode62(num: Int): String = if (num >= 62) encode62(num / 62) + base62(num % 62) else base62(num)
+	
+	        val working = syms.foldRightIndexed(src) { idx, replacement, acc ->
+	            if (replacement.isNotEmpty()) {
+	                val token = encode62(idx)
+	                Regex("\\b${Regex.escape(token)}\\b").replace(acc, replacement)
+	            } else acc
+	        }
+	
+	        return JSONObject(Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
+	            .find(working)?.groupValues?.get(1)
+	            ?: throw IllegalArgumentException("JSON payload not found after unpacking."))
+	    }
 }
