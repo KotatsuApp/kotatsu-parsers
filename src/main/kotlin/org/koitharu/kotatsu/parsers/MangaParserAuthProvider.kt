@@ -18,7 +18,7 @@ public interface MangaParserAuthProvider {
 	 * Quick check if user is logged in.
 	 * In most case you should check for cookies in [MangaLoaderContext.cookieJar].
 	 */
-	public val isAuthorized: Boolean
+	public suspend fun isAuthorized(): Boolean
 
 	/**
 	 * Fetch and return current user`s name or login.

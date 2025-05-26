@@ -22,7 +22,7 @@ private const val PAGE_SIZE = 20
 internal class CMangaParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax1.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax2.com")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
@@ -54,8 +54,8 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = domain
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "login_password" }
+	override suspend fun isAuthorized(): Boolean =
+		context.cookieJar.getCookies(domain).any { it.name == "login_password" }
 
 	override suspend fun getUsername(): String {
 		val userId = webClient.httpGet("https://$domain").parseRaw()

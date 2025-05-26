@@ -40,7 +40,10 @@ internal object MangaLoaderContextMock : MangaLoaderContext() {
 		loadTestCookies()
 	}
 
-	override suspend fun evaluateJs(script: String): String? {
+	@Deprecated("Provide a base url")
+	override suspend fun evaluateJs(script: String): String? = evaluateJs("", script)
+
+	override suspend fun evaluateJs(baseUrl: String, script: String): String? {
 		return QuackContext.create().use {
 			it.evaluate(script)?.toString()
 		}

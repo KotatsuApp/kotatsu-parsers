@@ -45,10 +45,9 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = "https://${getDomain("account")}/login?site=seiga"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(getDomain("seiga")).any {
-			it.name == "user_session"
-		}
+	override suspend fun isAuthorized(): Boolean = context.cookieJar.getCookies(getDomain("seiga")).any {
+		it.name == "user_session"
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${getDomain("app")}/my/apps").parseHtml().body()

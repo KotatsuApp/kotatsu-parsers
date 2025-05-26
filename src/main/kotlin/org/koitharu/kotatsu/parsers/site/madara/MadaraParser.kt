@@ -82,12 +82,11 @@ internal abstract class MadaraParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("wordpress_logged_in")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("wordpress_logged_in")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/").parseHtml().body()
@@ -615,11 +614,13 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	protected open val postDataReq = "action=manga_get_chapters&manga="
+
 	protected open suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val doc = if (postReq) {
 			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 			val url = "https://$domain/wp-admin/admin-ajax.php"
-			val postData = "action=manga_get_chapters&manga=$mangaId"
+			val postData = postDataReq + mangaId
 			webClient.httpPost(url, postData).parseHtml()
 		} else {
 			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"

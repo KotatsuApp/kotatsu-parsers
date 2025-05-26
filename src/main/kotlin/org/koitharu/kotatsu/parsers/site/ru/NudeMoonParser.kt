@@ -25,12 +25,11 @@ internal class NudeMoonParser(
 	override val authUrl: String
 		get() = "https://${domain}/index.php"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name == "fusion_user"
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name == "fusion_user"
 		}
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -61,7 +60,7 @@ internal class NudeMoonParser(
 
 		val url = when {
 			!filter.query.isNullOrEmpty() -> {
-				if (!isAuthorized) {
+				if (!isAuthorized()) {
 					throw AuthRequiredException(source)
 				}
 				"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"

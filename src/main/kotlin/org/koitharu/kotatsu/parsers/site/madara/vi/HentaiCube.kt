@@ -22,6 +22,7 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
+	override val postDataReq = "action=manga_views&manga="
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchTags(),

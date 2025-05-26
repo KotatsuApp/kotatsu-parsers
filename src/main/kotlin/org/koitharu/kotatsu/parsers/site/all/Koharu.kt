@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getLongOrDefault
@@ -26,6 +27,7 @@ internal class Koharu(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("niyaniya.moe")
 	private val apiSuffix = "api.schale.network"
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
 
 	private val authorsIds = suspendLazy { fetchAuthorsIds() }
 
@@ -308,9 +310,6 @@ internal class Koharu(context: MangaLoaderContext) :
 		)
 	}
 
-	@Volatile
-	private var cachedToken: String? = null
-
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val mangaUrl = chapter.url
 		val parts = mangaUrl.split('/')
@@ -321,32 +320,9 @@ internal class Koharu(context: MangaLoaderContext) :
 		val id = parts[0]
 		val key = parts[1]
 
-		val detailResponse = webClient.httpGet("https://$apiSuffix/books/detail/$id/$key").parseJson()
+		val clearance = getClearance(chapter.url)
 
-		var currentToken = detailResponse.getStringOrNull("crt") ?: cachedToken
-
-		if (currentToken.isNullOrEmpty()) {
-			try {
-				val noTokenResponse = webClient.httpPost(
-					url = "https://$apiSuffix/books/detail/$id/$key".toHttpUrl(),
-					form = emptyMap(),
-					extraHeaders = getRequestHeaders(),
-				).parseJson()
-
-				currentToken = noTokenResponse.getStringOrNull("crt")
-				if (!currentToken.isNullOrEmpty()) {
-					cachedToken = currentToken
-				}
-			} catch (e: Exception) {
-				throw IllegalStateException("Cant get auth token", e)
-			}
-		}
-
-		if (currentToken.isNullOrEmpty()) {
-			throw IllegalStateException("Cant get auth token")
-		}
-
-		val dataUrl = "https://$apiSuffix/books/detail/$id/$key?crt=$currentToken"
+		val dataUrl = "https://$apiSuffix/books/detail/$id/$key?crt=$clearance"
 		val dataResponse = webClient.httpPost(
 			url = dataUrl.toHttpUrl(),
 			form = emptyMap(),
@@ -389,7 +365,7 @@ internal class Koharu(context: MangaLoaderContext) :
 		}
 
 		val imagesResponse = webClient.httpGet(
-			"https://$apiSuffix/books/data/$id/$key/$selectedImageId/$selectedPublicKey/$selectedQuality?crt=$currentToken",
+			"https://$apiSuffix/books/data/$id/$key/$selectedImageId/$selectedPublicKey/$selectedQuality?crt=$clearance",
 		).parseJson()
 
 		val base = imagesResponse.getString("base")
@@ -429,4 +405,8 @@ internal class Koharu(context: MangaLoaderContext) :
 
 	private suspend fun fetchAuthorsIds(): Map<String, String> = fetchTags(namespace = 1)
 		.associate { it.title.lowercase() to it.key }
+
+	private suspend fun getClearance(mangaId: String): String = WebViewHelper(context)
+		.getLocalStorageValue(domain, "clearance")?.removeSurrounding('"')?.nullIfEmpty()
+		?: context.requestBrowserAction(this, "https://$domain/g/$mangaId/read/1")
 }

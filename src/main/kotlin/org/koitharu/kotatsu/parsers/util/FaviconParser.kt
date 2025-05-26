@@ -30,6 +30,10 @@ public class FaviconParser(
 		links.mapNotNullTo(result) { link ->
 			parseLink(link)
 		}
+		val touchIcons = doc.getElementsByAttributeValue("rel", "apple-touch-icon")
+		touchIcons.mapNotNullTo(result) { link ->
+			parseLink(link)
+		}
 		if (result.isEmpty()) {
 			result.add(createFallback())
 		}

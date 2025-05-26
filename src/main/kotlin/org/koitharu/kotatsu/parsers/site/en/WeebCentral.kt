@@ -30,8 +30,8 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 	override val authUrl: String
 		get() = "https://$domain"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "access_token" }
+	override suspend fun isAuthorized(): Boolean =
+		context.cookieJar.getCookies(domain).any { it.name == "access_token" }
 
 	override suspend fun getUsername(): String {
 		return webClient.httpGet("https://$domain/users/me/profiles")
@@ -180,8 +180,10 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				.toHttpUrl()
 				.pathSegments[1]
 			val author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty()
-			val title = element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")?.text() 
-				?: "No name"
+			val title =
+				element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")
+					?.text()
+					?: "No name"
 			Manga(
 				id = generateUid(mangaId),
 				url = mangaId,

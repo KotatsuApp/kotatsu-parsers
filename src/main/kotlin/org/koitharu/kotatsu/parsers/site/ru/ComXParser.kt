@@ -31,6 +31,10 @@ internal class ComXParser(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
+	init {
+		context.cookieJar.insertCookies(domain, "adt-accepted", "1")
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -81,15 +85,26 @@ internal class ComXParser(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.readed.d-flex.short").map { item ->
 			val a = item.selectFirstOrThrow("a.readed__img.img-fit-cover.anim")
-			val titleElement = item.selectFirstOrThrow("h3.readed__title a")
 			val img = item.selectFirst("img[data-src]")
 			val href = a.attrAsRelativeUrl("href")
+			val titleElement = item.selectFirstOrThrow("h3.readed__title a")
+			val (mainTitle, altTitle) = titleElement.text()
+				.split("\\s*/\\s*".toRegex())
+				.map { it.trim() }
+				.let { parts ->
+					when {
+						parts.size >= 2 -> parts[1] to parts[0]
+						parts.isNotEmpty() -> parts[0] to ""
+						else -> "" to ""
+					}
+				}
+
 			Manga(
 				id = generateUid(href),
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
-				title = titleElement.text(),
-				altTitles = emptySet(),
+				title = mainTitle,
+				altTitles = if (altTitle.isNotEmpty()) setOf(altTitle) else emptySet(),
 				authors = emptySet(),
 				description = null,
 				tags = emptySet(),
@@ -168,6 +183,9 @@ internal class ComXParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val newsId = chapter.url.substringAfter("/reader/").substringBefore("/")
+		context.cookieJar.insertCookies(domain, "adult=$newsId")
+		
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val data = doc.selectFirst("script:containsData(__DATA__)")?.data()
 			?.substringAfter("=")

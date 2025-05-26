@@ -37,10 +37,13 @@ internal class ExHentaiParser(
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain(
-			if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED,
-			if (isAuthorized) DOMAIN_UNAUTHORIZED else DOMAIN_AUTHORIZED,
-		)
+		get() {
+			val isAuthorized = checkAuth()
+			return ConfigKey.Domain(
+				if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED,
+				if (isAuthorized) DOMAIN_UNAUTHORIZED else DOMAIN_AUTHORIZED,
+			)
+		}
 
 	override val authUrl: String
 		get() = "https://${domain}/bounce_login.php"
@@ -59,22 +62,7 @@ internal class ExHentaiParser(
 			isAuthorSearchSupported = true,
 		)
 
-	override val isAuthorized: Boolean
-		get() {
-			val authorized = isAuthorized(DOMAIN_UNAUTHORIZED)
-			if (authorized) {
-				if (!isAuthorized(DOMAIN_AUTHORIZED)) {
-					context.cookieJar.copyCookies(
-						DOMAIN_UNAUTHORIZED,
-						DOMAIN_AUTHORIZED,
-						authCookies,
-					)
-					context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
-				}
-				return true
-			}
-			return false
-		}
+	override suspend fun isAuthorized(): Boolean = checkAuth()
 
 	init {
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
@@ -483,5 +471,21 @@ internal class ExHentaiParser(
 			else -> 449 // 1 or 64 or 128 or 256
 		}
 		acc or cat
+	}
+
+	private fun checkAuth(): Boolean {
+		val authorized = isAuthorized(DOMAIN_UNAUTHORIZED)
+		if (authorized) {
+			if (!isAuthorized(DOMAIN_AUTHORIZED)) {
+				context.cookieJar.copyCookies(
+					DOMAIN_UNAUTHORIZED,
+					DOMAIN_AUTHORIZED,
+					authCookies,
+				)
+				context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
+			}
+			return true
+		}
+		return false
 	}
 }
