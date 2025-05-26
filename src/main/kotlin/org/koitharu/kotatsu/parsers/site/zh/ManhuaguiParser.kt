@@ -1,9 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.zh
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import okhttp3.Headers
-import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.jsoup.Jsoup
@@ -27,7 +24,6 @@ import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
-import org.koitharu.kotatsu.parsers.site.zh.LZ4K.decompressFromBase64
 import org.koitharu.kotatsu.parsers.util.attrOrThrow
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.ifNullOrEmpty
@@ -36,7 +32,6 @@ import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.mapToSet
 import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.selectOrThrow
 import org.koitharu.kotatsu.parsers.util.src
@@ -45,156 +40,6 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.util.EnumSet
 import java.util.Locale
-
-private object LZ4K {
-	private const val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-
-	private data class Data(
-		var value: Char = '0',
-		var position: Int = 0,
-		var index: Int = 1,
-	)
-
-	private fun Int.power() = 1 shl this
-
-	private val Int.string get() = this.toChar().toString()
-
-	private fun _decompress(length: Int, resetValue: Int, getNextValue: (idx: Int) -> Char): String? {
-		val builder = StringBuilder()
-		val dictionary = mutableListOf(0.string, 1.string, 2.string)
-		var bits = 0
-		var maxpower: Int
-		var power: Int
-		val data = Data(getNextValue(0), resetValue, 1)
-		var resb: Int
-		var c = ""
-		var w: String
-		var entry: String
-		var numBits = 3
-		var enlargeIn = 4
-		var dictSize = 4
-		var next: Int
-
-		fun doPower(initBits: Int, initPower: Int, initMaxPowerFactor: Int, mode: Int = 0) {
-			bits = initBits
-			maxpower = initMaxPowerFactor.power()
-			power = initPower
-			while (power != maxpower) {
-				resb = data.value.code and data.position
-				data.position = data.position shr 1
-				if (data.position == 0) {
-					data.position = resetValue
-					data.value = getNextValue(data.index++)
-				}
-				bits = bits or (if (resb > 0) 1 else 0) * power
-				power = power shl 1
-			}
-			when (mode) {
-				0 -> Unit
-				1 -> c = bits.string
-				2 -> {
-					dictionary.add(dictSize++, bits.string)
-					next = (dictSize - 1)
-					enlargeIn--
-				}
-			}
-		}
-
-		fun checkEnlargeIn() {
-			if (enlargeIn == 0) {
-				enlargeIn = numBits.power()
-				numBits++
-			}
-		}
-
-		doPower(bits, 1, 2)
-		next = bits
-		when (next) {
-			0 -> doPower(0, 1, 8, 1)
-			1 -> doPower(0, 1, 16, 1)
-			2 -> return ""
-		}
-		dictionary.add(3, c)
-		w = c
-		builder.append(w)
-		while (true) {
-			if (data.index > length) {
-				return ""
-			}
-			doPower(0, 1, numBits)
-			next = bits
-			when (next) {
-				0 -> doPower(0, 1, 8, 2)
-				1 -> doPower(0, 1, 16, 2)
-				2 -> return builder.toString()
-			}
-			checkEnlargeIn()
-			entry = when {
-				dictionary.size > next -> dictionary[next]
-				next == dictSize -> w + w[0]
-				else -> return null
-			}
-			builder.append(entry)
-			// Add w+entry[0] to the dictionary.
-			dictionary.add(dictSize++, w + entry[0])
-			enlargeIn--
-			w = entry
-			checkEnlargeIn()
-		}
-	}
-
-	fun decompressFromBase64(input: String) = when {
-		input.isBlank() -> null
-		else -> _decompress(input.length, 32) {
-			keyStr.indexOf(input[it]).toChar()
-		}
-	}
-}
-
-private object PACKERDecoder {
-	/**
-	 * @param src The string to be unpacked.
-	 * @param syms A list of replacement symbols.
-	 *
-	 * @return The unpacked JSON object.
-	 */
-	fun unpack(src: String, syms: List<String>): JSONObject {
-		val BASE = 62
-
-		// Convert integer (0–61) to a single base-62 character
-		fun base62(n: Int): String = when {
-			n < 10 -> n.toString()
-			n < 36 -> ('a' + (n - 10)).toString()
-			else -> ('A' + (n - 36)).toString()
-		}
-
-		// Recursive radix-62 encoding
-		fun encode62(num: Int): String =
-			if (num >= BASE) encode62(num / BASE) + base62(num % BASE)
-			else base62(num)
-
-		// 1× replacement pass
-		var working = src
-		val c = syms.size
-		for (idx in c - 1 downTo 0) {
-			val replacement = syms[idx]
-			if (replacement.isNotEmpty()) {
-				val token = encode62(idx)
-				// \b for word-boundary; escape token in case it contains regex metachars
-				val pattern = Regex("\\b${Regex.escape(token)}\\b")
-				working = pattern.replace(working, replacement)
-			}
-		}
-
-		// Grab the JSON object literal inside parentheses
-		val objRegex = Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
-		val match = objRegex.find(working)
-			?: throw IllegalArgumentException("JSON payload not found after unpacking.")
-		val jsonBlob = match.groupValues[1]
-
-		return JSONObject(jsonBlob)
-	}
-}
 
 /*******************************************************
  * Parser class
@@ -273,6 +118,143 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	private val ratingUrl = "/tools/vote.ashx"
 	private val sectionChaptersSelector = ".chapter-list"
 
+	private fun decompressLZStringFromBase64(input: String): String? {
+		if (input.isBlank()) return null
+
+		data class Data(
+			var value: Char = '0',
+			var position: Int = 0,
+			var index: Int = 1,
+		)
+
+		fun Int.power() = 1 shl this
+		fun Int.string() = this.toChar().toString()
+
+		val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+		val length = input.length
+		val resetValue = 32
+		val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
+
+		val builder = StringBuilder()
+		val dictionary = mutableListOf(0.string(), 1.string(), 2.string())
+		var bits = 0
+		var maxpower: Int
+		var power: Int
+		val data = Data(getNextValue(0), resetValue, 1)
+		var resb: Int
+		var c = ""
+		var w: String
+		var entry: String
+		var numBits = 3
+		var enlargeIn = 4
+		var dictSize = 4
+		var next: Int
+
+		fun doPower(initBits: Int, initPower: Int, initMaxPowerFactor: Int, mode: Int = 0) {
+			bits = initBits
+			maxpower = initMaxPowerFactor.power()
+			power = initPower
+			while (power != maxpower) {
+				resb = data.value.code and data.position
+				data.position = data.position shr 1
+				if (data.position == 0) {
+					data.position = resetValue
+					data.value = getNextValue(data.index++)
+				}
+				bits = bits or (if (resb > 0) 1 else 0) * power
+				power = power shl 1
+			}
+			when (mode) {
+				0 -> Unit
+				1 -> c = bits.string()
+				2 -> {
+					dictionary.add(dictSize++, bits.string())
+					next = (dictSize - 1)
+					enlargeIn--
+				}
+			}
+		}
+
+		fun checkEnlargeIn() {
+			if (enlargeIn == 0) {
+				enlargeIn = numBits.power()
+				numBits++
+			}
+		}
+
+		doPower(bits, 1, 2)
+		next = bits
+		when (next) {
+			0 -> doPower(0, 1, 8, 1)
+			1 -> doPower(0, 1, 16, 1)
+			2 -> return ""
+		}
+		dictionary.add(3, c)
+		w = c
+		builder.append(w)
+		while (true) {
+			if (data.index > length) {
+				return ""
+			}
+			doPower(0, 1, numBits)
+			next = bits
+			when (next) {
+				0 -> doPower(0, 1, 8, 2)
+				1 -> doPower(0, 1, 16, 2)
+				2 -> return builder.toString()
+			}
+			checkEnlargeIn()
+			entry = when {
+				dictionary.size > next -> dictionary[next]
+				next == dictSize -> w + w[0]
+				else -> return null
+			}
+			builder.append(entry)
+			// Add w+entry[0] to the dictionary.
+			dictionary.add(dictSize++, w + entry[0])
+			enlargeIn--
+			w = entry
+			checkEnlargeIn()
+		}
+	}
+
+	private fun unpack(src: String, syms: List<String>): JSONObject {
+		val BASE = 62
+
+		// Convert integer (0–61) to a single base-62 character
+		fun base62(n: Int): String = when {
+			n < 10 -> n.toString()
+			n < 36 -> ('a' + (n - 10)).toString()
+			else -> ('A' + (n - 36)).toString()
+		}
+
+		// Recursive radix-62 encoding
+		fun encode62(num: Int): String =
+			if (num >= BASE) encode62(num / BASE) + base62(num % BASE)
+			else base62(num)
+
+		// 1× replacement pass
+		var working = src
+		val c = syms.size
+		for (idx in c - 1 downTo 0) {
+			val replacement = syms[idx]
+			if (replacement.isNotEmpty()) {
+				val token = encode62(idx)
+				// \b for word-boundary; escape token in case it contains regex metachars
+				val pattern = Regex("\\b${Regex.escape(token)}\\b")
+				working = pattern.replace(working, replacement)
+			}
+		}
+
+		// Grab the JSON object literal inside parentheses
+		val objRegex = Regex("""\((\{.+\})\)""", RegexOption.DOT_MATCHES_ALL)
+		val match = objRegex.find(working)
+			?: throw IllegalArgumentException("JSON payload not found after unpacking.")
+		val jsonBlob = match.groupValues[1]
+
+		return JSONObject(jsonBlob)
+	}
+
 	private fun Any?.toQueryParam(): String? = when (this) {
 		// Title
 		is String -> urlEncoded()
@@ -343,90 +325,11 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun getDetailsByLink(link: HttpUrl): Manga? = coroutineScope {
-		val url = link.encodedPath
-		val id = generateUid(url)
-		val publicUrl = url.toAbsoluteUrl(domain)
-		val source = source
-
-		val detailsAsync = async {
-			val doc = webClient.httpGet(link).parseHtml()
-
-			val title = doc.selectFirst("div.book-title h1")?.text() ?: ""
-			val coverUrl = doc.selectFirst("div.book-cover > p > img")?.src()?.toAbsoluteUrl(imgServer)
-			val altTitles = doc.select(".book-title h2").eachText().toSet()
-			val contentRating: ContentRating = doc.selectFirst("input#__VIEWSTATE").let {
-				when (it) {
-					null -> ContentRating.SAFE
-					else -> ContentRating.ADULT
-				}
-			}
-			val tags = doc.select("ul.detail-list > li:nth-child(2) > span:first-child > a").mapToSet { e ->
-				MangaTag(
-					title = e.text(),
-					key = e.attr("href").removePrefix(listUrl).removeSurrounding("/"),
-					source = source,
-				)
-			}
-			val state = doc.selectFirst("li.status > span > span")?.className()?.let { className ->
-				when (className) {
-					"red" -> MangaState.ONGOING
-					"dgreen" -> MangaState.FINISHED
-					else -> null
-				}
-			}
-			val authors = doc.select("a[href^=\"/author\"]").eachText().toSet()
-			val description = doc.selectFirst("div.book-intro > #intro-all > p")?.text()
-			val chapters = parseChapters(doc)
-
-			Manga(
-				id = id,
-				title = title,
-				altTitles = altTitles,
-				url = url,
-				publicUrl = publicUrl,
-				rating = 0f, // fetched afterwards
-				contentRating = contentRating,
-				coverUrl = coverUrl,
-				tags = tags,
-				state = state,
-				authors = authors,
-				description = description,
-				chapters = chapters,
-				source = source,
-			)
-		}
-
-		val ratingAsync = async {
-			val bid = link.pathSegments[1]
-			val url = ratingUrl.toAbsoluteUrl(domain).addQueryParameters(
-				JSONObject().apply {
-					put("bid", bid)
-					put("act", "get")
-				},
-			)
-			val result = webClient.httpGet(url).parseJson()
-			require(result.optBoolean("success")) { "Rating XHR request is not successful" }
-			// Count of score 1, 2, 3, 4, 5, respectively
-			val a = result.optJSONObject("data")?.optInt("s1") ?: 0
-			val b = result.optJSONObject("data")?.optInt("s2") ?: 0
-			val c = result.optJSONObject("data")?.optInt("s3") ?: 0
-			val d = result.optJSONObject("data")?.optInt("s4") ?: 0
-			val e = result.optJSONObject("data")?.optInt("s5") ?: 0
-			(a + b * 2 + c * 3 + d * 4 + e * 5) / (a + b + c + d + e).toFloat() * 2
-		}
-
-		val details = detailsAsync.await()
-		val rating = ratingAsync.await()
-
-		details.copy(rating = rating)
-	}
-
 	private fun parseChapters(doc: Document, url: String? = null): List<MangaChapter> {
 		// Parse chapters of sections
 		val (sectionTitles, sectionChapters) = doc.selectFirst("#__VIEWSTATE").let {
 			if (it != null) {
-				val viewStateStr = decompressFromBase64(it.attrOrThrow("value"))
+				val viewStateStr = decompressLZStringFromBase64(it.attrOrThrow("value"))
 					?: throw ParseException("Cannot decompress __VIEWSTATE", url.ifNullOrEmpty { "" })
 				val doc1 = Jsoup.parse(viewStateStr)
 				Pair(
@@ -557,9 +460,41 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		return getDetailsByLink(manga.publicUrl.toHttpUrl()) ?: throw ParseException(
-			"Cannot resolve link",
-			manga.publicUrl,
+		val doc = webClient.httpGet(manga.publicUrl).parseHtml()
+
+		val altTitles = doc.select(".book-title h2").eachText().toSet()
+		val contentRating: ContentRating = doc.selectFirst("input#__VIEWSTATE").let {
+			when (it) {
+				null -> ContentRating.SAFE
+				else -> ContentRating.ADULT
+			}
+		}
+		val tags = doc.select("ul.detail-list > li:nth-child(2) > span:first-child > a").mapToSet { e ->
+			MangaTag(
+				title = e.text(),
+				key = e.attr("href").removePrefix(listUrl).removeSurrounding("/"),
+				source = source,
+			)
+		}
+		val state = doc.selectFirst("li.status > span > span")?.className()?.let { className ->
+			when (className) {
+				"red" -> MangaState.ONGOING
+				"dgreen" -> MangaState.FINISHED
+				else -> null
+			}
+		}
+		val authors = doc.select("a[href^=\"/author\"]").eachText().toSet()
+		val description = doc.selectFirst("div.book-intro > #intro-all > p")?.text()
+		val chapters = parseChapters(doc)
+
+		return manga.copy(
+			altTitles = altTitles,
+			contentRating = contentRating,
+			tags = tags,
+			state = state,
+			authors = authors,
+			description = description,
+			chapters = chapters,
 		)
 	}
 
@@ -568,11 +503,11 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(chapUrl).parseHtml()
 		val regex = Regex("""^.*\}\('(.*)',(\d*),(\d*),'([\w\+/=]*)'.*${'$'}""", RegexOption.MULTILINE)
 		val result = regex.find(doc.html()) ?: throw ParseException("Cannot find chapter metadata", chapUrl)
-		val metadataRaw = decompressFromBase64(result.groupValues[4]) ?: throw ParseException(
+		val metadataRaw = decompressLZStringFromBase64(result.groupValues[4]) ?: throw ParseException(
 			"Cannot decompress chapter metadata",
 			chapUrl,
 		)
-		val json = PACKERDecoder.unpack(result.groupValues[1], metadataRaw.split("|"))
+		val json = unpack(result.groupValues[1], metadataRaw.split("|"))
 
 		val files = json.getJSONArray("files")
 		val semiFullUrl = json.getString("path").toAbsoluteUrl(imgServer)
