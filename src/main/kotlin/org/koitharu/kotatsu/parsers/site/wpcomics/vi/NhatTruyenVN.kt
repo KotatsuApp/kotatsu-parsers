@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -16,34 +17,10 @@ import java.util.*
 internal class NhatTruyenVN(context: MangaLoaderContext) :
     WpComicsParser(context, MangaParserSource.NHATTRUYENVN, "nhattruyenqq.com", 36) {
 
-    override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nhattruyenqq.com", "www.nhattruyenss.net")
-
-    private val selectChap = "ul#asc li.row:not(.heading)"
-
-    private fun getChaps(doc: Document): List<MangaChapter> {
-        return doc.body().select(selectChap).mapChapters(reversed = false) { i, li ->
-            val a = li.selectFirstOrThrow("a")
-            val href = a.attrAsRelativeUrl("href")
-            val chapterNumber = a.text().substringAfter("Chapter ").substringBefore(" ").toFloatOrNull() ?: (i + 1f)
-            val dateText = li.selectFirst(selectDate)?.text()
-            MangaChapter(
-                id = generateUid(href),
-                title = a.text(),
-                number = chapterNumber,
-                volume = 0,
-                url = href,
-                uploadDate = parseChapterDate(dateText),
-                source = source,
-                scanlator = null,
-                branch = null,
-            )
-        }
-    }
-
     override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
         val fullUrl = manga.url.toAbsoluteUrl(domain)
         val doc = webClient.httpGet(fullUrl).parseHtml()
-        val chaptersDeferred = async { getChaps(doc) }
+        val chaptersDeferred = async { fetchChapters(manga.url) }
         val tagMap = getOrCreateTagMap()
         val tagsElement = doc.select("li.kind p.col-xs-8 a")
         val mangaTags = tagsElement.mapNotNullToSet { tagMap[it.text()] }
@@ -64,6 +41,32 @@ internal class NhatTruyenVN(context: MangaLoaderContext) :
             chapters = chaptersDeferred.await(),
         )
     }
+
+    private suspend fun fetchChapters(mangaUrl: String): List<MangaChapter> {
+		val slug = mangaUrl.substringAfterLast('/')
+		val chaptersUrl = "/Comic/Services/ComicService.asmx/ChapterList?slug=$slug".toAbsoluteUrl(domain)
+		val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+
+		val data = webClient.httpGet(chaptersUrl).parseJson().getJSONArray("data")
+		return List(data.length()) { i ->
+			val jo = data.getJSONObject(data.length() - 1 - i)
+			val chapterSlug = jo.getString("chapter_slug")
+			val chapterUrl = "/truyen-tranh/$slug/$chapterSlug"
+            val chapterNum = jo.getString("chapter_num").toFloat() ?: 0f
+
+			MangaChapter(
+				id = generateUid(chapterUrl),
+				title = jo.getStringOrNull("chapter_name"),
+				number = chapterNum,
+				volume = 0,
+				url = chapterUrl,
+				scanlator = null,
+				uploadDate = df.tryParse(jo.getString("updated_at")),
+				branch = null,
+				source = source,
+			)
+		}
+	}
 
     private fun parseChapterDate(dateText: String?): Long {
         if (dateText == null) return 0
