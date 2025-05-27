@@ -18,6 +18,22 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	private val apiSuffix = "api/v1/manga"
 	override val configKeyDomain = ConfigKey.Domain("mimihentai.com")
 
+	private val preferredServerKey = ConfigKey.PreferredImageServer(
+		presetValues = mapOf(
+			"original" to "Server ảnh gốc (Original)",
+			"600" to "Nén xuống 600x",
+			"800" to "Nén xuống 800x",
+			"1200" to "Nén xuống 1200x",
+			"1600" to "Nén xuống 1600x",
+		),
+		defaultValue = "original",
+	)
+
+	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
+		super.onCreateConfig(keys)
+		keys.add(preferredServerKey)
+	}
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -138,10 +154,16 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val json = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseJson()
 		val imageUrls = json.getJSONArray("pages").asTypedList<String>()
+		val server = config[preferredServerKey] ?: "original"
 		return imageUrls.map { url ->
+			val cleanUrl = url.removePrefix("http://").removePrefix("https://")
+			val finalUrl = when (server) {
+				"original" -> cleanUrl
+				else -> "https://i0.wp.com/$cleanUrl?w=$server"
+			}
 			MangaPage(
 				id = generateUid(url),
-				url = url,
+				url = finalUrl,
 				preview = null,
 				source = source,
 			)
