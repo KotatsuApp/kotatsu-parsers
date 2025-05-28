@@ -156,10 +156,12 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		val imageUrls = json.getJSONArray("pages").asTypedList<String>()
 		val server = config[preferredServerKey] ?: "original"
 		return imageUrls.map { url ->
-			val cleanUrl = url.removePrefix("http://").removePrefix("https://")
 			val finalUrl = when (server) {
-				"original" -> cleanUrl
-				else -> "https://i0.wp.com/$cleanUrl?w=$server"
+				"original" -> url
+				else -> {
+					val cleanUrl = url.removePrefix("http://").removePrefix("https://")
+					"https://i0.wp.com/$cleanUrl?w=$server"
+				}
 			}
 			MangaPage(
 				id = generateUid(url),
