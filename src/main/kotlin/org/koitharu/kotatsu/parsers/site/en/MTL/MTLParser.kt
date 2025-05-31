@@ -1,10 +1,9 @@
-package org.koitharu.kotatsu.parsers.site.en
+package org.koitharu.kotatsu.parsers.site.en.MTL
 
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
-import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
@@ -18,11 +17,13 @@ import org.koitharu.kotatsu.parsers.exception.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("SNOWMTL", "SnowMtl", "en", ContentType.OTHER)
-internal class SnowMTL(context: MangaLoaderContext):
-    PagedMangaParser(context, MangaParserSource.SNOWMTL, 24) {
+internal abstract class MTLParser(
+    context: MangaLoaderContext,
+    source: MangaParserSource,
+    domain: String
+): PagedMangaParser(context, source, 24) {
 
-    override val configKeyDomain = ConfigKey.Domain("snowmtl.ru")
+    override val configKeyDomain = ConfigKey.Domain(domain)
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.UPDATED,
