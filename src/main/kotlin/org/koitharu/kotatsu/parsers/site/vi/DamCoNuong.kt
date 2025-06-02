@@ -18,7 +18,7 @@ import java.util.*
 internal class DamCoNuong(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.DAMCONUONG, 30) {
 
-	override val configKeyDomain = ConfigKey.Domain("damconuong.site")
+	override val configKeyDomain = ConfigKey.Domain("damconuong.cam", "damconuong.cc")
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
 
