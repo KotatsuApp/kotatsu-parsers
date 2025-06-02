@@ -19,7 +19,6 @@ internal class NetTruyenX(context: MangaLoaderContext) :
 		.add("referer", "https://$domain/")
 		.build()
 
-    	override val coverDiv = "div.col-xs-4.col-image img.image-thumb"
     	override val selectDesc = "div.detail-content div.shortened"
     	override val selectState = "li.status p.col-xs-8"
 	override val selectAut = "li.author p.col-xs-8"
