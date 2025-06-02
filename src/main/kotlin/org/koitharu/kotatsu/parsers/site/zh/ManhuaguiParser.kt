@@ -47,7 +47,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.MANHUAGUI, pageSize = 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.manhuagui.com")
-    	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+    	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
 	val configKeyImgServer = ConfigKey.PreferredImageServer(
 		presetValues = arrayOf("us", "us2", "us3", "eu", "eu2", "eu3").associateWith { it },
@@ -64,6 +64,7 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 
 	override fun getRequestHeaders(): Headers = super.getRequestHeaders().newBuilder()
 		.add("Referer", "https://$domain")
+		.add("Accept-Encoding", "identity")
 		.build()
 
     	override val defaultSortOrder: SortOrder
@@ -355,17 +356,17 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	        if (input.isBlank()) return null
 	
 	        data class Data(var value: Char = '0', var position: Int = 0, var index: Int = 1)
+
+			fun Int.power() = 1 shl this
+			fun Int.string() = this.toChar().toString()
 	
 	        val keyStr = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
 	        val getNextValue = { it: Int -> keyStr.indexOf(input[it]).toChar() }
 	        val builder = StringBuilder()
-	        val dictionary = mutableListOf("0", "1", "2")
+	        val dictionary = mutableListOf(0.string(), 1.string(), 2.string())
 	        val data = Data(getNextValue(0), 32, 1)
-	        var (bits, numBits, enlargeIn, dictSize) = listOf(0, 3, 4, 4)
+	        var (next, bits, numBits, enlargeIn, dictSize) = listOf(0, 0, 3, 4, 4)
 	        var (c, w, entry) = listOf("", "", "")
-	        
-	        fun Int.power() = 1 shl this
-	        fun Int.string() = this.toChar().toString()
 	        
 	        fun doPower(initBits: Int, initPower: Int, initMaxPower: Int, mode: Int = 0) {
 	            bits = initBits
@@ -383,19 +384,23 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	            }
 	            when (mode) {
 	                1 -> c = bits.string()
-	                2 -> dictionary.add(dictSize++.also { enlargeIn-- }, bits.string())
+	                2 -> dictionary.add(dictSize++.also {
+						enlargeIn--
+						next = dictSize - 1
+					}, bits.string())
 	            }
 	        }
 	
 	        fun checkEnlargeIn() {
-	            if (enlargeIn-- == 0) {
+	            if (enlargeIn == 0) {
 	                enlargeIn = numBits.power()
 	                numBits++
 	            }
 	        }
 	
 	        doPower(bits, 1, 2)
-	        when (bits) {
+			next = bits
+	        when (next) {
 	            0 -> doPower(0, 1, 8, 1)
 	            1 -> doPower(0, 1, 16, 1)
 	            2 -> return ""
@@ -408,18 +413,19 @@ internal class ManhuaguiParser(context: MangaLoaderContext) :
 	        while (true) {
 	            if (data.index > input.length) return ""
 	            doPower(0, 1, numBits)
-	            when (bits) {
+				next = bits
+	            when (next) {
 	                0 -> doPower(0, 1, 8, 2).also { checkEnlargeIn() }
 	                1 -> doPower(0, 1, 16, 2).also { checkEnlargeIn() }
 	                2 -> return builder.toString()
 	            }
 	            entry = when {
-	                dictionary.size > bits -> dictionary[bits]
-	                bits == dictSize -> w + w[0]
+	                dictionary.size > next -> dictionary[next]
+	                next == dictSize -> w + w[0]
 	                else -> return null
 	            }
 	            builder.append(entry)
-	            dictionary.add(dictSize++, w + entry[0])
+	            dictionary.add(dictSize++, w + entry[0]).also { enlargeIn-- }
 	            w = entry
 	            checkEnlargeIn()
         	}
