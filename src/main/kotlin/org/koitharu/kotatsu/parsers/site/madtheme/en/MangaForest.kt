@@ -7,4 +7,9 @@ import org.koitharu.kotatsu.parsers.site.madtheme.MadthemeParser
 
 @MangaSourceParser("MANGAFOREST", "MangaForest", "en")
 internal class MangaForest(context: MangaLoaderContext) :
-	MadthemeParser(context, MangaParserSource.MANGAFOREST, "mangaforest.me")
+	MadthemeParser(context, MangaParserSource.MANGAFOREST, "mangaforest.me") {
+	
+	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+		.add("referer", "https://$domain/")
+		.build()
+}
