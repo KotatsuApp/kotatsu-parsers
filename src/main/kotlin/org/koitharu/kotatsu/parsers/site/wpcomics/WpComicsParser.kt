@@ -145,6 +145,8 @@ internal abstract class WpComicsParser(
 		return parseMangaList(response.parseHtml(), tagMap)
 	}
 
+	protected open val coverDiv = "div.image a img"
+
 	protected open fun parseMangaList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
 		return doc.select("div.items div.item").mapNotNull { item ->
 			val tooltipElement = item.selectFirst("div.box_tootip")
@@ -168,7 +170,7 @@ internal abstract class WpComicsParser(
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
 				contentRating = null,
-				coverUrl = item.selectFirst("div.image a img")?.findImageUrl().orEmpty(),
+				coverUrl = item.selectFirst(coverDiv)?.findImageUrl().orEmpty(),
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,

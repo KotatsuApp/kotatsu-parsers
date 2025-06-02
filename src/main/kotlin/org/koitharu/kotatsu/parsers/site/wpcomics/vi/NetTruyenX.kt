@@ -11,9 +11,18 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 
-@MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
-internal class NetTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyener.com", 36) {
+@MangaSourceParser("NETTRUYENX", "NetTruyenX", "vi")
+internal class NetTruyenX(context: MangaLoaderContext) :
+	WpComicsParser(context, MangaParserSource.NETTRUYENX, "nettruyenx.net", 36) {
+
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+		.add("referer", "https://$domain/")
+		.build()
+
+    override val coverDiv = "div.col-xs-4.col-image img.image-thumb"
+    override val selectDesc = "div.detail-content div.shortened"
+    override val selectState = "li.status p.col-xs-8"
+	override val selectAut = "li.author p.col-xs-8"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
@@ -36,15 +45,14 @@ internal class NetTruyen(context: MangaLoaderContext) :
 				}
 			},
 			tags = mangaTags,
-			rating = doc.selectFirst("div.star input")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
+			rating = doc.selectFirst("div.star input[name=score]")?.attr("value")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
 			chapters = chaptersDeferred.await(),
 		)
 	}
 
 	private suspend fun fetchChapters(mangaUrl: String): List<MangaChapter> {
-		val slug = mangaUrl.substringAfterLast('/').substringBeforeLast('-')
-		val id = mangaUrl.substringAfterLast('-')
-		val chaptersUrl = "/Comic/Services/ComicService.asmx/ChapterList?slug=$slug&comicId=$id".toAbsoluteUrl(domain)
+		val slug = mangaUrl.substringAfterLast('/')
+		val chaptersUrl = "/Comic/Services/ComicService.asmx/ChapterList?slug=$slug".toAbsoluteUrl(domain)
 		val df = SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
 
 		val data = webClient.httpGet(chaptersUrl).parseJson().getJSONArray("data")
