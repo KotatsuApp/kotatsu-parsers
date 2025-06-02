@@ -15,13 +15,13 @@ import java.text.SimpleDateFormat
 internal class NetTruyenX(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.NETTRUYENX, "nettruyenx.net", 36) {
 
-    	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
 		.add("referer", "https://$domain/")
 		.build()
 
-    	override val selectDesc = "div.detail-content div.shortened"
-    	override val selectState = "li.status p.col-xs-8"
-    	override val selectAut = "li.author p.col-xs-8"
+    override val selectDesc = "div.detail-content div.shortened"
+    override val selectState = "li.status p.col-xs-8"
+    override val selectAut = "li.author p.col-xs-8"
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
