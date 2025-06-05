@@ -35,14 +35,14 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-                SortOrder.UPDATED,
-                SortOrder.ALPHABETICAL,
-                SortOrder.POPULARITY,
-                SortOrder.POPULARITY_TODAY,
-                SortOrder.POPULARITY_WEEK,
-                SortOrder.POPULARITY_MONTH,
-                SortOrder.RATING,
-        )
+        SortOrder.UPDATED,
+        SortOrder.ALPHABETICAL,
+        SortOrder.POPULARITY,
+        SortOrder.POPULARITY_TODAY,
+        SortOrder.POPULARITY_WEEK,
+        SortOrder.POPULARITY_MONTH,
+        SortOrder.RATING,
+    )
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
