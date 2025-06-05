@@ -249,7 +249,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	           url.contains("3q282.jpg") ||
 	           url.contains("3qui5_banner.jpg") ||
 			   url.contains("dt3qui8.jpg") ||
-                     url.contains("3qui10.jpg")
+               url.contains("3qui10.jpg")
 	}
 
 	private fun availableTags(): Set<MangaTag> = setOf(
