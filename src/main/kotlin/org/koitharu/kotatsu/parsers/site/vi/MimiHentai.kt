@@ -59,64 +59,64 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(availableTags = fetchTags())
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-            val url = buildString {
-            	append("https://")
-                  append(domain + "/" + apiSuffix)
+    	val url = buildString {
+            append("https://")
+            append(domain + "/" + apiSuffix)
                 
-                  if (!filter.query.isNullOrEmpty() || !filter.author.isNullOrEmpty() || filter.tags.isNotEmpty()) {
-                        append("/advance-search?page=")
-                        append(page)
-                        append("&max=18") // page size, avoid rate limit
+            if (!filter.query.isNullOrEmpty() || !filter.author.isNullOrEmpty() || filter.tags.isNotEmpty()) {
+                append("/advance-search?page=")
+                append(page)
+                append("&max=18") // page size, avoid rate limit
                                 
-                        when {
-                              !filter.query.isNullOrEmpty() -> {
-                                    append("&name=")
-                                    append(filter.query.urlEncoded())
-                              }
+                when {
+                	!filter.query.isNullOrEmpty() -> {
+                    	append("&name=")
+                        append(filter.query.urlEncoded())
+                    }
 
-                              !filter.author.isNullOrEmpty() -> {
-                                    append("&author=")
-                                    append(filter.author.urlEncoded())
-                              }
+                    !filter.author.isNullOrEmpty() -> {
+                        append("&author=")
+                        append(filter.author.urlEncoded())
+                    }
 
-                              filter.tags.isNotEmpty() -> {
-                                    append("&genre=")
-                                    append(filter.tags.joinToString(",") { it.key })
-                              }
-                        }
+                    filter.tags.isNotEmpty() -> {
+                        append("&genre=")
+                        append(filter.tags.joinToString(",") { it.key })
+                    }
+                }
                                 
-                        append("&sort=")
-                        append(
-                              when (order) {
-                                    SortOrder.UPDATED -> "updated_at"
-                                    SortOrder.ALPHABETICAL -> "title"
-                                    SortOrder.POPULARITY, 
-                                    SortOrder.POPULARITY_TODAY, 
-                                    SortOrder.POPULARITY_WEEK, 
-                                    SortOrder.POPULARITY_MONTH -> "views"
-                                    SortOrder.RATING -> "likes"
-                                    else -> ""
-                              }
-				) 
-                  }
-                        
-                  else {
-                        append(
-                              when (order) {
-                                    SortOrder.UPDATED -> "/tatcatruyen?page=$page&sort=updated_at"
-                                    SortOrder.ALPHABETICAL -> "/tatcatruyen?page=$page&sort=title"
-                                    SortOrder.POPULARITY -> "/tatcatruyen?page=$page&sort=views"
-                                    SortOrder.POPULARITY_TODAY -> "/top-manga?page=$page&timeType=1&limit=18"
-                                    SortOrder.POPULARITY_WEEK -> "/top-manga?page=$page&timeType=2&limit=18"
-                                    SortOrder.POPULARITY_MONTH -> "/top-manga?page=$page&timeType=3&limit=18"
-                                    SortOrder.RATING -> "/tatcatruyen?page=$page&sort=likes"
-                                    else -> "/tatcatruyen?page=$page&sort=updated_at" // default
-                              }
-                        )
-            	}
+                append("&sort=")
+                append(
+                    when (order) {
+                        SortOrder.UPDATED -> "updated_at"
+                        SortOrder.ALPHABETICAL -> "title"
+                        SortOrder.POPULARITY, 
+                        SortOrder.POPULARITY_TODAY, 
+                        SortOrder.POPULARITY_WEEK, 
+                        SortOrder.POPULARITY_MONTH -> "views"
+                        SortOrder.RATING -> "likes"
+                        else -> ""
+                    }
+				)
             }
+                        
+            else {
+                append(
+                    when (order) {
+                        SortOrder.UPDATED -> "/tatcatruyen?page=$page&sort=updated_at"
+                        SortOrder.ALPHABETICAL -> "/tatcatruyen?page=$page&sort=title"
+                        SortOrder.POPULARITY -> "/tatcatruyen?page=$page&sort=views"
+                        SortOrder.POPULARITY_TODAY -> "/top-manga?page=$page&timeType=1&limit=18"
+                        SortOrder.POPULARITY_WEEK -> "/top-manga?page=$page&timeType=2&limit=18"
+                        SortOrder.POPULARITY_MONTH -> "/top-manga?page=$page&timeType=3&limit=18"
+                        SortOrder.RATING -> "/tatcatruyen?page=$page&sort=likes"
+                        else -> "/tatcatruyen?page=$page&sort=updated_at" // default
+                    }
+                )
+            }
+        }
 
-	      val json = webClient.httpGet(url).parseJson()
+	    val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("data")
 		return parseMangaList(data)
 	}
@@ -127,25 +127,25 @@ internal class MimiHentai(context: MangaLoaderContext) :
 			val title = jo.getString("title").takeIf { it.isNotEmpty() } ?: "Web chưa đặt tên"
 			val description = jo.getStringOrNull("description")
 
-                  val differentNames = mutableSetOf<String>().apply {
-                        jo.optJSONArray("differentNames")?.let { namesArray ->
-                        	for (i in 0 until namesArray.length()) {
-                                    namesArray.optString(i)?.takeIf { it.isNotEmpty() }?.let { name ->
-                                          add(name)
-                                    }
-                              }
+            val differentNames = mutableSetOf<String>().apply {
+                jo.optJSONArray("differentNames")?.let { namesArray ->
+                    for (i in 0 until namesArray.length()) {
+                        namesArray.optString(i)?.takeIf { it.isNotEmpty() }?.let { name ->
+                            add(name)
                         }
-            	}
+                    }
+                }
+            }
 
-                  val state = when (description) {
+            val state = when (description) {
 				"Đang Tiến Hành" -> MangaState.ONGOING
 				"Hoàn Thành" -> MangaState.FINISHED
 				else -> null
 			}
 
-                  val authors = jo.getJSONArray("authors").mapJSON { 
-                  	it.getString("name")
-                  }.toSet()
+            val authors = jo.getJSONArray("authors").mapJSON { 
+            	it.getString("name")
+            }.toSet()
 			
 			val tags = jo.getJSONArray("genres").mapJSON { genre ->
 				MangaTag(
@@ -175,7 +175,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	override suspend fun getDetails(manga: Manga): Manga {
 		val url = manga.url.toAbsoluteUrl(domain)
 		val json = webClient.httpGet(url).parseJson()
-            val id = json.getLong("id")
+        val id = json.getLong("id")
 		val description = json.getStringOrNull("description")
 		val uploaderName = json.getJSONObject("uploader").getString("displayName")
 
