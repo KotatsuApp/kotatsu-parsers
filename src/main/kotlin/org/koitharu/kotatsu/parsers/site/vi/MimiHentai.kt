@@ -116,11 +116,12 @@ internal class MimiHentai(context: MangaLoaderContext) :
             }
         }
 
-	    val json = webClient.httpGet(url).parseJson()
-		val data = json.getJSONArray("data")
+	    val raw = webClient.httpGet(url)
 		return if (url.contains("/top-manga")) {
+			val data = raw.parseJsonArray()
 			parseTopMangaList(data)
 		} else {
+			val data = raw.parseJson().getJSONArray("data")
 			parseMangaList(data)
 		}
 	}
