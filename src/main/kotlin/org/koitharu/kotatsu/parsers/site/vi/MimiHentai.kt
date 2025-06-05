@@ -141,12 +141,6 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				}
 			}
 
-			val state = when (description) {
-				"Đang Tiến Hành" -> MangaState.ONGOING
-				"Hoàn Thành" -> MangaState.FINISHED
-				else -> null
-			}
-
 			val authors = jo.optJSONArray("authors")?.mapJSON { 
 				it.getString("name")
 			}?.toSet() ?: emptySet()
@@ -168,8 +162,9 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
 				coverUrl = jo.getString("coverUrl"),
+				state = null,
+				description = description,
 				tags = tags,
-				state = state,
 				authors = authors,
 				source = source,
 			)
@@ -192,12 +187,6 @@ internal class MimiHentai(context: MangaLoaderContext) :
                 }
             }
 
-            val state = when (description) {
-				"Đang Tiến Hành" -> MangaState.ONGOING
-				"Hoàn Thành" -> MangaState.FINISHED
-				else -> null
-			}
-
             val authors = jo.getJSONArray("authors").mapJSON { 
             	it.getString("name")
             }.toSet()
@@ -219,8 +208,9 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
 				coverUrl = jo.getString("coverUrl"),
+				state = null,
 				tags = tags,
-				state = state,
+				description = description,
 				authors = authors,
 				source = source,
 			)
