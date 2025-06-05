@@ -118,7 +118,62 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 	    val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("data")
-		return parseMangaList(data)
+		return if (url.contains("/top-manga")) {
+			parseTopMangaList(data)
+		} else {
+			parseMangaList(data)
+		}
+	}
+
+	private fun parseTopMangaList(data: JSONArray): List<Manga> {
+		return data.mapJSON { jo ->
+			val id = jo.getLong("id")
+			val title = jo.getString("title").takeIf { it.isNotEmpty() } ?: "Web chưa đặt tên"
+			val description = jo.getStringOrNull("description")
+
+			val differentNames = mutableSetOf<String>().apply {
+				jo.optJSONArray("differentNames")?.let { namesArray ->
+					for (i in 0 until namesArray.length()) {
+						namesArray.optString(i)?.takeIf { it.isNotEmpty() }?.let { name ->
+							add(name)
+						}
+					}
+				}
+			}
+
+			val state = when (description) {
+				"Đang Tiến Hành" -> MangaState.ONGOING
+				"Hoàn Thành" -> MangaState.FINISHED
+				else -> null
+			}
+
+			val authors = jo.optJSONArray("authors")?.mapJSON { 
+				it.getString("name")
+			}?.toSet() ?: emptySet()
+
+			val tags = jo.optJSONArray("genres")?.mapJSON { genre ->
+				MangaTag(
+					key = genre.getLong("id").toString(),
+					title = genre.getString("name"),
+					source = source
+				)
+			}?.toSet() ?: emptySet()
+
+			Manga(
+				id = generateUid(id),
+				title = title,
+				altTitles = differentNames,
+				url = "/$apiSuffix/info/$id",
+				publicUrl = "https://$domain/g/$id",
+				rating = RATING_UNKNOWN,
+				contentRating = ContentRating.ADULT,
+				coverUrl = jo.getString("coverUrl"),
+				tags = tags,
+				state = state,
+				authors = authors,
+				source = source,
+			)
+		}
 	}
 
 	private fun parseMangaList(data: JSONArray): List<Manga> {
