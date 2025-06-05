@@ -18,7 +18,7 @@ import java.util.*
 internal class NhentaiWorld(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.NHENTAIWORLD, 24) {
 
-	override val configKeyDomain = ConfigKey.Domain("nhentaiworld-h1.info")
+	override val configKeyDomain = ConfigKey.Domain("nhentaiworld-h1.art")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

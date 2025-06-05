@@ -11,7 +11,7 @@ import java.util.*
 @MangaSourceParser("KURONEKO", "Việt Hentai - Kuro Neko", "vi", type = ContentType.HENTAI)
 internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("vi-hentai.net")
+	override val configKeyDomain = ConfigKey.Domain("vi-hentai.moe", "vi-hentai.net")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

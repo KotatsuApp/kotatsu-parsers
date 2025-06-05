@@ -16,7 +16,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.MIMIHENTAI, 18) {
 
 	private val apiSuffix = "api/v1/manga"
-	override val configKeyDomain = ConfigKey.Domain("mimihentai.com")
+	override val configKeyDomain = ConfigKey.Domain("mimihentai.com", "hentaihvn.com")
 
 	private val preferredServerKey = ConfigKey.PreferredImageServer(
 		presetValues = mapOf(
