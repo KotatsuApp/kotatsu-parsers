@@ -5,7 +5,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.insertCookies
 
 @MangaSourceParser("ETHERALRADIANCE", "EtheralRadiance", "fr")
