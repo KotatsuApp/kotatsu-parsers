@@ -49,6 +49,8 @@ internal class ExHentaiParser(
 		get() = "https://${domain}/bounce_login.php"
 
 	private val ratingPattern = Regex("-?[0-9]+px")
+	private val titleCleanupPattern = Regex("(\\[.*?]|\\([C0-9]*\\))")
+	private val spacesCleanupPattern = Regex("(^\\s+|\\s+\$|\\s+(?=\\s))")
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
 	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
@@ -350,6 +352,15 @@ internal class ExHentaiParser(
 		keys.add(suspiciousContentKey)
 	}
 
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val query = seed.title
+		return getListPage(
+			page = 0,
+			order = defaultSortOrder,
+			filter = MangaListFilter(query = query),
+		)
+	}
+
 	private fun isAuthorized(domain: String): Boolean {
 		val cookies = context.cookieJar.getCookies(domain).mapToSet { x -> x.name }
 		return authCookies.all { it in cookies }
@@ -369,20 +380,8 @@ internal class ExHentaiParser(
 	}
 
 	private fun String.cleanupTitle(): String {
-		val result = StringBuilder(length)
-		var skip = false
-		for (c in this) {
-			when {
-				c == '[' -> skip = true
-				c == ']' -> skip = false
-				c.isWhitespace() && result.isEmpty() -> continue
-				!skip -> result.append(c)
-			}
-		}
-		while (result.lastOrNull()?.isWhitespace() == true) {
-			result.deleteCharAt(result.lastIndex)
-		}
-		return result.toString()
+		return replace(titleCleanupPattern, "")
+			.replace(spacesCleanupPattern, "")
 	}
 
 	private fun Element.parseTags(): Set<MangaTag> {

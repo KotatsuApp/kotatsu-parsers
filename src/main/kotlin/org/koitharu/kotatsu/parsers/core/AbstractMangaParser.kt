@@ -59,6 +59,10 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	@JvmField
 	protected val webClient: WebClient = OkHttpWebClient(context.httpClient, source)
 
+	@Deprecated("Please check searchQueryCapabilities")
+	final override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities
+
 	/**
 	 * Fetch direct link to the page image.
 	 */
