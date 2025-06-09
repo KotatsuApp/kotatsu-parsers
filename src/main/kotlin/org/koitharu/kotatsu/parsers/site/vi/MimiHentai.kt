@@ -84,10 +84,10 @@ internal class MimiHentai(context: MangaLoaderContext) :
                         append(filter.tags.joinToString(",") { it.key })
                     }
 
-			  		        filter.tagsExclude.isNotEmpty() -> {
-						            append("&ex=")
-						            append(filter.tagsExclude.joinToString(",") { it.key })
-			  		        }
+			  		filter.tagsExclude.isNotEmpty() -> {
+						append("&ex=")
+						append(filter.tagsExclude.joinToString(",") { it.key })
+			  		}
                 }
                                 
                 append("&sort=")
