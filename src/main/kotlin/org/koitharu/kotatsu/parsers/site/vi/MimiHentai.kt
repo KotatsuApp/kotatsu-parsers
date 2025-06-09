@@ -35,13 +35,13 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-        SortOrder.UPDATED,
-        SortOrder.ALPHABETICAL,
-        SortOrder.POPULARITY,
-        SortOrder.POPULARITY_TODAY,
-        SortOrder.POPULARITY_WEEK,
-        SortOrder.POPULARITY_MONTH,
-        SortOrder.RATING,
+        	SortOrder.UPDATED,
+        	SortOrder.ALPHABETICAL,
+        	SortOrder.POPULARITY,
+        	SortOrder.POPULARITY_TODAY,
+       	SortOrder.POPULARITY_WEEK,
+        	SortOrder.POPULARITY_MONTH,
+        	SortOrder.RATING,
     )
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -50,6 +50,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 			isSearchWithFiltersSupported = true,
 			isMultipleTagsSupported = true,
 			isAuthorSearchSupported = true,
+			isTagsExclusionSupported = true,
 		)
 
 	init {
@@ -83,6 +84,11 @@ internal class MimiHentai(context: MangaLoaderContext) :
                         append("&genre=")
                         append(filter.tags.joinToString(",") { it.key })
                     }
+
+			  filter.tagsExclude.isNotEmpty() -> {
+				append("&ex=")
+				append(filter.tagsExclude.joinToString(",") { it.key })
+			  }
                 }
                                 
                 append("&sort=")
