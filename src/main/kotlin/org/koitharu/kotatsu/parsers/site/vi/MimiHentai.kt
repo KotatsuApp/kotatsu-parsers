@@ -39,7 +39,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
         	SortOrder.ALPHABETICAL,
         	SortOrder.POPULARITY,
         	SortOrder.POPULARITY_TODAY,
-       	SortOrder.POPULARITY_WEEK,
+       		SortOrder.POPULARITY_WEEK,
         	SortOrder.POPULARITY_MONTH,
         	SortOrder.RATING,
     )
@@ -85,10 +85,10 @@ internal class MimiHentai(context: MangaLoaderContext) :
                         append(filter.tags.joinToString(",") { it.key })
                     }
 
-			  filter.tagsExclude.isNotEmpty() -> {
-				append("&ex=")
-				append(filter.tagsExclude.joinToString(",") { it.key })
-			  }
+			  		filter.tagsExclude.isNotEmpty() -> {
+						append("&ex=")
+						append(filter.tagsExclude.joinToString(",") { it.key })
+			  		}
                 }
                                 
                 append("&sort=")
