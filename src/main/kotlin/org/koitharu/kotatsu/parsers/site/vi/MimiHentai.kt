@@ -39,6 +39,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
         	SortOrder.ALPHABETICAL,
         	SortOrder.POPULARITY,
         	SortOrder.POPULARITY_TODAY,
+			SortOrder.POPULARITY_WEEK,
         	SortOrder.POPULARITY_MONTH,
         	SortOrder.RATING,
     )
