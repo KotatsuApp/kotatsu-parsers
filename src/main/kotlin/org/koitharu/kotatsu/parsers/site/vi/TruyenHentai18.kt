@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
+import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -229,16 +230,49 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 	}
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div#viewer p img").mapNotNull { img -> // Need debug
-			val url = img.attr("src") ?: return@mapNotNull null
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
+        val doc = webClient.httpGet(chapter.url).parseHtml()
+        val scriptContent = doc.select("script")
+            .firstOrNull { it.data().startsWith("self.__next_f.push([1,\"\\u003cp\\u003e\\u003c") }
+            ?.data()
+
+        if (scriptContent != null) {
+            val regex = Regex("""self\.__next_f\.push\(\[1,\"(.*)\"\]\)""")
+            val htmlEncoded = regex.find(scriptContent)?.groupValues?.getOrNull(1)
+            if (!htmlEncoded.isNullOrEmpty()) {
+                val html = try {
+                    JSONArray("[\"$htmlEncoded\"]").getString(0)
+                } catch (e: Exception) {
+                    htmlEncoded
+                        .replace("\\u003c", "<")
+                        .replace("\\u003e", ">")
+                        .replace("\\\"", "\"")
+                        .replace("\\/", "/")
+                }
+
+                val imageUrls = Jsoup.parse(html).select("img").mapNotNull { it.attr("src") }
+                if (imageUrls.isNotEmpty()) {
+                    return imageUrls.map { url ->
+                        MangaPage(
+                            id = generateUid(url),
+                            url = url,
+                            preview = null,
+                            source = source,
+                        )
+                    }
+                }
+            }
+        }
+
+        // Fallback: cách cũ
+        return doc.select("div#viewer p img").mapNotNull { img ->
+            val url = img.attr("src") ?: return@mapNotNull null
+            MangaPage(
+                id = generateUid(url),
+                url = url,
+                preview = null,
+                source = source,
+            )
+        }
 	}
 
 	private fun parseChapterDate(date: String?): Long {
