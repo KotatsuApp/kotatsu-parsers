@@ -30,8 +30,8 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
-        SortOrder.NEWEST,
-        SortOrder.NEWEST_ASC,
+        	SortOrder.NEWEST,
+        	SortOrder.NEWEST_ASC,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -229,41 +229,41 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 			)
 	}
 
-    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-        val scriptContent = doc.select("script")
-            .firstOrNull { it.data().startsWith("self.__next_f.push([1,\"\\u003cp\\u003e\\u003c") }
-            ?.data()
-
-        if (scriptContent != null) {
-            val regex = Regex("""self\.__next_f\.push\(\[1,\"(.*)\"\]\)""")
-            val htmlEncoded = regex.find(scriptContent)?.groupValues?.getOrNull(1)
-            if (!htmlEncoded.isNullOrEmpty()) {
-                val html = try {
-                    JSONArray("[\"$htmlEncoded\"]").getString(0)
-                } catch (e: Exception) {
-                    htmlEncoded
-                        .replace("\\u003c", "<")
-                        .replace("\\u003e", ">")
-                        .replace("\\\"", "\"")
-                        .replace("\\/", "/")
-                }
-
-                val imageUrls = Jsoup.parse(html).select("img").mapNotNull { it.attr("src") }
-                if (imageUrls.isNotEmpty()) {
-                    return imageUrls.map { url ->
-                        MangaPage(
-                            id = generateUid(url),
-                            url = url,
-                            preview = null,
-                            source = source,
-                        )
-                    }
-                } else return emptyList()
-            }
-			return emptyList()
-        }
-	}
+    	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+	        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+	        val scriptContent = doc.select("script")
+	            .firstOrNull { it.data().startsWith("self.__next_f.push([1,\"\\u003cp\\u003e\\u003c") }
+	            ?.data()
+	
+	        if (scriptContent != null) {
+	            val regex = Regex("""self\.__next_f\.push\(\[1,\"(.*)\"\]\)""")
+	            val htmlEncoded = regex.find(scriptContent)?.groupValues?.getOrNull(1)
+	            if (!htmlEncoded.isNullOrEmpty()) {
+	                val html = try {
+	                    JSONArray("[\"$htmlEncoded\"]").getString(0)
+	                } catch (e: Exception) {
+	                    htmlEncoded
+	                        .replace("\\u003c", "<")
+	                        .replace("\\u003e", ">")
+	                        .replace("\\\"", "\"")
+	                        .replace("\\/", "/")
+	                }
+	
+	                val imageUrls = Jsoup.parse(html).select("img").mapNotNull { it.attr("src") }
+	                if (imageUrls.isNotEmpty()) {
+	                    return imageUrls.map { url ->
+	                        MangaPage(
+	                            id = generateUid(url),
+	                            url = url,
+	                            preview = null,
+	                            source = source,
+	                        )
+	                    }
+	                } else return emptyList()
+	            }
+	        }
+	        return emptyList()
+	    }
 
 	private fun parseChapterDate(date: String?): Long {
 		if (date == null) return 0
