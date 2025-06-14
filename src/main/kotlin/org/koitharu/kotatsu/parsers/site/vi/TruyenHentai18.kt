@@ -118,7 +118,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 					authorItem.optString("name")
 				}?.filterNotNull()?.toSet() ?: emptySet(),
 				source = source,
-				description = mangaItem.optString("content", ""),
+				description = mangaItem.optString("content").orEmpty(),
 			)
 		}
 	}
@@ -199,56 +199,32 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 				},
 				authors = authors,
 				source = source,
-				description = item.optString("content", "")
+				description = item.optString("content").orEmpty()
 			)
 		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val rating = doc.selectFirst("div.kksr-stars")?.attr("data-rating")?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN
-        val description = doc.selectFirst("div.mt-3.desc-text")?.text()
-		
-		val author = doc.select("div.attr-item").firstOrNull { 
-			it.selectFirst("b")?.text() == "Tác giả:" 
-		}?.selectFirst("a")?.text()
-
-		val tags = doc.select("ul.post-categories li a").mapNotNull { element ->
-			val name = element.text()
-			val key = element.attr("href").substringAfter("/category/")
-			MangaTag(
-				key = key,
-				title = name,
-				source = source,
-			)
-		}.toSet()
-
-		val chapters = doc.select("div.p-2.d-flex.flex-column.flex-md-row.item").reversed()
-			.mapChapters(reversed = false) { i, e ->
-				val name = e.selectFirst("b")?.text() ?: ""
-				val href = e.selectFirst("a")?.attrAsRelativeUrl("href") ?: ""
-				val dateText = e.selectFirst("i.ps-3")?.text()
-				MangaChapter(
-					id = generateUid(href),
-					title = name,
-					url = href,
-					number = i + 1f,
-					volume = 0,
-					uploadDate = parseChapterDate(dateText),
-					scanlator = null,
-					branch = null,
-					source = source,
-				)
-			}
-
 		return manga.copy(
-			rating = rating,
-			authors = setOfNotNull(author),
-			description = description,
-			chapters = chapters,
-			tags = tags,
-			contentRating = ContentRating.ADULT,
-		)
+			chapters = doc.select("div.grid.grid-cols-1.md\\:grid-cols-2.gap-4 a.block").reversed()
+				.mapChapters(reversed = false) { i, e ->
+					val name = e.selectFirst("span.truncate")?.text() ?: e.attr("title") ?: ""
+					val href = e.selectFirst("a")?.attrAsRelativeUrl("href") ?: ""
+					val dateText = e.selectFirst("div.text-xs.text-gray-500")?.text()
+					MangaChapter(
+						id = generateUid(href),
+						title = name,
+						url = href,
+						number = i + 1f,
+						volume = 0,
+						uploadDate = parseChapterDate(dateText),
+						scanlator = null,
+						branch = null,
+						source = source,
+					)
+				}
+			)
 	}
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
@@ -264,43 +240,29 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 		}
 	}
 
-	private fun parseChapterDate(dateText: String?): Long {
-		if (dateText == null) return 0
-
-		val relativeTimePattern = Regex("(\\d+)\\s*(ngày|tuần|tháng|năm) trước")
-		val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
-
+	private fun parseChapterDate(date: String?): Long {
+		if (date == null) return 0
 		return when {
-			dateText.contains("ngày trước") -> {
-				val match = relativeTimePattern.find(dateText)
-				val days = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
-				System.currentTimeMillis() - days * 86400 * 1000
-			}
+			date.contains("giây trước") -> System.currentTimeMillis() - date.removeSuffix(" giây trước").toLong() * 1000
+			date.contains("phút trước") -> System.currentTimeMillis() - date.removeSuffix(" phút trước")
+				.toLong() * 60 * 1000
 
-			dateText.contains("tuần trước") -> {
-				val match = relativeTimePattern.find(dateText)
-				val weeks = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
-				System.currentTimeMillis() - weeks * 7 * 86400 * 1000
-			}
+			date.contains("giờ trước") -> System.currentTimeMillis() - date.removeSuffix(" giờ trước")
+				.toLong() * 60 * 60 * 1000
 
-			dateText.contains("tháng trước") -> {
-				val match = relativeTimePattern.find(dateText)
-				val months = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
-				System.currentTimeMillis() - months * 30 * 86400 * 1000
-			}
+			date.contains("ngày trước") -> System.currentTimeMillis() - date.removeSuffix(" ngày trước")
+				.toLong() * 24 * 60 * 60 * 1000
 
-			dateText.contains("năm trước") -> {
-				val match = relativeTimePattern.find(dateText)
-				val years = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
-				System.currentTimeMillis() - years * 365 * 86400 * 1000
-			}
+			date.contains("tuần trước") -> System.currentTimeMillis() - date.removeSuffix(" tuần trước")
+				.toLong() * 7 * 24 * 60 * 60 * 1000
 
-			absoluteTimePattern.matches(dateText) -> {
-				val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-				formatter.tryParse(dateText)
-			}
+			date.contains("tháng trước") -> System.currentTimeMillis() - date.removeSuffix(" tháng trước")
+				.toLong() * 30 * 24 * 60 * 60 * 1000
 
-			else -> 0L
+			date.contains("năm trước") -> System.currentTimeMillis() - date.removeSuffix(" năm trước")
+				.toLong() * 365 * 24 * 60 * 60 * 1000
+
+			else -> SimpleDateFormat("dd/MM/yyyy", Locale.US).parse(date)?.time ?: 0L
 		}
 	}
 }
