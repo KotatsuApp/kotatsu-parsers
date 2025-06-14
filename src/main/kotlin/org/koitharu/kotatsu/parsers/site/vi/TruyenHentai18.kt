@@ -30,8 +30,8 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
-            SortOrder.NEWEST,
-            SortOrder.NEWEST_ASC,
+        SortOrder.NEWEST,
+        SortOrder.NEWEST_ASC,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -124,7 +124,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 		}
 	}
 
-	private fun parseNextList(doc: Document): List<Manga> { // need to clean code
+	private fun parseNextList(doc: Document): List<Manga> { // need to clean code, very slow response
 		val script = doc.select("script").firstOrNull { it.data().contains("response") }
 			?: throw Exception("Không tìm thấy script chứa dữ liệu manga")
 		
@@ -206,7 +206,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-            val fullUrl = "https://$domain/vi/" + manga.url + ".html"
+        val fullUrl = "https://$domain/vi/" + manga.url + ".html"
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return manga.copy(
 			chapters = doc.select("div.grid.grid-cols-1.md\\:grid-cols-2.gap-4 a.block")
@@ -259,19 +259,9 @@ internal class TruyenHentai18(context: MangaLoaderContext):
                             source = source,
                         )
                     }
-                }
+                } else return emptyList()
             }
-        }
-
-        // Fallback: cách cũ
-        return doc.select("div#viewer p img").mapNotNull { img ->
-            val url = img.attr("src") ?: return@mapNotNull null
-            MangaPage(
-                id = generateUid(url),
-                url = url,
-                preview = null,
-                source = source,
-            )
+			return emptyList()
         }
 	}
 
