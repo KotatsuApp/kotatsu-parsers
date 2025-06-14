@@ -1,5 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import org.json.JSONArray
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -7,15 +9,18 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken("Need to remake parser")
 @MangaSourceParser("TRUYENHENTAI18", "TruyenHentai18", "vi", ContentType.HENTAI)
-internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
+internal class TruyenHentai18(context: MangaLoaderContext):
+      LegacyPagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.app")
+
+      private val apiSuffix = "api.th18.app"
+      private val cdnSuffix = "vi-api.th18.app"
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -24,14 +29,13 @@ internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaPar
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
-        SortOrder.POPULARITY,
-        SortOrder.RATING,
+            SortOrder.NEWEST,
+            SortOrder.NEWEST_ASC,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
-            isSearchWithFiltersSupported = false,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -40,98 +44,162 @@ internal class TruyenHentai18(context: MangaLoaderContext) : LegacyPagedMangaPar
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = when {
-			!filter.query.isNullOrEmpty() -> {
+			filter.tags.isNotEmpty() -> {
 				buildString {
 					append(domain)
+					append("/vi/the-loai/")
+					append(filter.tags.first().key)
 					append("/page/")
 					append(page)
-					append("?s=")
-					append(filter.query.urlEncoded())
 				}
 			}
-			!filter.author.isNullOrEmpty() -> {
-				buildString {
-					append(domain)
-					append("/artist/")
-					append(filter.author.urlEncoded())
-				}
-			}
+
 			else -> {
 				buildString {
-					append(domain)
-					if (filter.tags.isNotEmpty()) {
-						append("/category/")
-						append(filter.tags.first().key)
-					} else {
-						append(
-							when (order) {
-								SortOrder.UPDATED -> "/moi-cap-nhat"
-								SortOrder.POPULARITY -> "/xem-nhieu-nhat"
-                                SortOrder.RATING -> "/truyen-de-xuat"
-								else -> "/moi-cap-nhat"
-							}
-						)
-					}
-					if (page > 1) {
-						append("/page/")
-						append(page)
+					append(apiSuffix + "/posts")
+					append("?language=vi")
+					
+					append("&order=")
+					append(
+						when (order) {
+							SortOrder.UPDATED -> "latest"
+							SortOrder.NEWEST -> "newest"
+							SortOrder.NEWEST_ASC -> "oldest"
+							else -> "latest" // default
+						}
+					)
+
+					append("&limit=24")
+					append("&page=")
+					append(page)
+
+					if (!filter.query.isNullOrEmpty()) {
+						append("&query=${filter.query}")
 					}
 				}
 			}
 		}
 
-		val doc = webClient.httpGet("https://$url").parseHtml()
+		val fullUrl = "https://" + url
 		return when {
-			!filter.query.isNullOrEmpty() -> parseSearchList(doc)
-			!filter.author.isNullOrEmpty() -> parseSearchList(doc)
-			else -> parseMangaList(doc)
+			filter.tags.isNotEmpty() -> parseNextList(webClient.httpGet(fullUrl).parseHtml())
+			else -> {
+				val doc = webClient.httpGet(fullUrl).parseJson()
+				parseJSONList(doc)
+			}
 		}
 	}
 
-	private fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("a.item-cover.ms-3.me-3").mapNotNull { element ->
-			val href = element.attrAsRelativeUrl("href") ?: return@mapNotNull null
-			val img = element.selectFirst("img") ?: return@mapNotNull null
-			val coverUrl = img.attr("data-src").orEmpty()
-			val title = img.attr("alt").orEmpty()
-			
+	private fun parseJSONList(json: JSONObject): List<Manga> {
+		return json.getJSONArray("data").mapJSON { mangaItem ->
 			Manga(
-				id = generateUid(href),
-				title = title,
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
+				id = mangaItem.getLong("id"),
+				title = mangaItem.getString("title"),
+				altTitles = setOfNotNull(
+					mangaItem.optString("official_name").takeIf { !it.isNullOrBlank() }
+				),
+				url = mangaItem.getString("slug"),
+				publicUrl = mangaItem.getString("slug").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
-				coverUrl = coverUrl,
-				tags = emptySet(),
-				state = null,
-				authors = emptySet(),
+				coverUrl = "https://$cdnSuffix/uploads/${mangaItem.getString("thumbnail")}",
+				tags = mangaItem.optJSONArray("genres")?.mapJSON { genreItem ->
+					MangaTag(
+						key = genreItem.getString("slug"),
+						title = genreItem.getString("name"),
+						source = source
+					)
+				}?.toSet() ?: emptySet(),
+				state = when (mangaItem.optString("post_status")) {
+					"completed" -> MangaState.FINISHED
+					else -> MangaState.ONGOING
+				},
+				authors = mangaItem.optJSONArray("authors")?.mapJSON { authorItem ->
+					authorItem.optString("name")
+				}?.filterNotNull()?.toSet() ?: emptySet(),
 				source = source,
+				description = mangaItem.optString("content", ""),
 			)
 		}
 	}
 
-	private fun parseSearchList(doc: Document): List<Manga> {
-		return doc.select("div.card.mb-3.small-item").mapNotNull { element ->
-			val href = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapNotNull null
-			val img = element.selectFirst("img") ?: return@mapNotNull null
-			val coverUrl = img.attr("data-src").orEmpty()
-			val title = img.attr("alt").orEmpty()
+	private fun parseNextList(doc: Document): List<Manga> { // need to clean code
+		val script = doc.select("script").firstOrNull { it.data().contains("response") }
+			?: throw Exception("Không tìm thấy script chứa dữ liệu manga")
+		
+		val scriptContent = script.data()
+		val cleanedScript = scriptContent
+			.replace("self.__next_f.push([1,", "")
+			.replace("\"5:", "")
+			.replace("[[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":\"$1a\"}}],", "")
+			.replace("[[\"$\",\"script\",null,{\"type\":\"application/ld+json\",\"dangerouslySetInnerHTML\":{\"__html\":", "")
+			.replace("\\\\\",", ",")
+			.replace("\\\"", "\"")
+			.replace("\\\\", "\\")
+			.replace("\\n", "")
+			.replace("\\t", "")
+			.replace("\\r", "")
 			
+		val responseStart = cleanedScript.indexOf("{\"response\":")
+		if (responseStart == -1) throw Exception("Không tìm thấy object 'response' trong script")
+		
+		var bracketCount = 0
+		var i = responseStart
+		var jsonStr = ""
+		
+		while (i < cleanedScript.length) {
+			val c = cleanedScript[i]
+			when (c) {
+				'{' -> bracketCount++
+				'}' -> bracketCount--
+			}
+			jsonStr += c
+			if (bracketCount == 0 && jsonStr.isNotEmpty()) break
+			i++
+		}
+
+		val responseObj = org.json.JSONObject(jsonStr)
+		val dataArray = responseObj.getJSONObject("response").optJSONArray("data")
+			?: throw Exception("Không tìm thấy trường 'data' trong object 'response'")
+
+		return (0 until dataArray.length()).map { idx ->
+			val item = dataArray.getJSONObject(idx)
+			val genres = item.optJSONArray("genres")?.let { genresArray ->
+				(0 until genresArray.length()).mapNotNull { gIdx ->
+					val genreItem = genresArray.optJSONObject(gIdx) ?: return@mapNotNull null
+					MangaTag(
+						key = genreItem.optString("slug"),
+						title = genreItem.optString("name"),
+						source = source
+					)
+				}.toSet()
+			} ?: emptySet()
+
+			val authors = item.optJSONArray("authors")?.let { authorsArray ->
+				(0 until authorsArray.length()).mapNotNull { aIdx ->
+					authorsArray.optJSONObject(aIdx)?.optString("name")
+				}.toSet()
+			} ?: emptySet()
+
 			Manga(
-				id = generateUid(href),
-				title = title,
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
+				id = item.getLong("id"),
+				title = item.getString("title"),
+				altTitles = setOfNotNull(
+					item.optString("official_name").takeIf { it.isNotBlank() }
+				),
+				url = item.getString("slug"),
+				publicUrl = item.getString("slug").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = ContentRating.ADULT,
-				coverUrl = coverUrl,
-				tags = emptySet(),
-				state = null,
-				authors = emptySet(),
+				coverUrl = "https://$cdnSuffix/uploads/${item.getString("thumbnail")}",
+				tags = genres,
+				state = when (item.optString("post_status")) {
+					"completed" -> MangaState.FINISHED
+					else -> MangaState.ONGOING
+				},
+				authors = authors,
 				source = source,
+				description = item.optString("content", "")
 			)
 		}
 	}
