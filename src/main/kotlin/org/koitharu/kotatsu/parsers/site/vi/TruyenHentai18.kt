@@ -230,7 +230,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 	}
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val doc = webClient.httpGet(chapter.url).parseHtml()
+        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
         val scriptContent = doc.select("script")
             .firstOrNull { it.data().startsWith("self.__next_f.push([1,\"\\u003cp\\u003e\\u003c") }
             ?.data()
