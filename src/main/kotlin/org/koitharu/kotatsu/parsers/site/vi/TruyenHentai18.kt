@@ -205,7 +205,8 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+            val fullUrl = "https://$domain/vi/" + manga.url + ".html"
+		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return manga.copy(
 			chapters = doc.select("div.grid.grid-cols-1.md\\:grid-cols-2.gap-4 a.block").reversed()
 				.mapChapters(reversed = false) { i, e ->
