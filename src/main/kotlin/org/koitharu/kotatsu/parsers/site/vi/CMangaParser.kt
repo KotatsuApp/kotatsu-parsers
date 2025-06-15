@@ -197,10 +197,10 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		return pageResponse.getJSONArray("image")
 			.asTypedList<String>()
 			.filterNot(::containsAdsUrl)
-			.map { url ->
+			.map {
 				MangaPage(
-					id = generateUid(url),
-					url = url,
+					id = generateUid(it),
+					url = it,
 					source = source,
 					preview = null,
 				)
@@ -229,12 +229,13 @@ internal class CMangaParser(context: MangaLoaderContext) :
 
 	private fun JSONObject.isLocked() = opt("lock") != null
 
-	private fun containsAdsUrl(url: String): Boolean = ADS_URLS.contains(url)
-
-	private val ADS_URLS = setOf(
-		"https://img.cmangapi.com/data-image/index.php?v=12&data=%7B%22ciphertext%22%3A%22jdAg8o0FDYxbm5ChST9QSeSwFrIcQi4MqqGDo2iqspxY3bbLVAQJMzjrr5WccVjTC1pNRdK0HCYNb%2B7OGXwtRFRoW5VxliHMxjgpKcLDkzl80WhSGFIxOfA2HWuGrvbx7HaB40a3o3EnKcS72lP4zpKLxu%5C%2FQIVwId%5C%2F%5C%2Fy86WeN8w%3D%22%2C%22iv%22%3A%2273f233c0af1690266e4a98daf3b57c01%22%2C%22salt%22%3A%222be54780f76bcbbd50902a3218c9a71630040238417a0192dfddedf097f329e8ccc9daf3f80604bb43326d633f56d936f98f60c0fcbbd31902e40879610299fc54b185098f729a0b1fd3a05a0122f487fe194b8e5c84315c138696db358d74829e543b2c562a5c2e74d2601f068bb5a8a7e87bfa238254466536b42abfb9c2dedb8548b075b7552b9e9e43cc5b15630ebf5e700caf7d13666f35eac6556ca05022fd27b5670429a4214fa23df9fc5d8f68833d605c34167515ae370afa6672b0471625163eea1877e569adca1e4e59757a5a395a799fd8c6f8a8569672f7878e2fffbe3c2e9a34c924c13475846ebd0a6d565181f76d24ab2b98fcc2b65f757f%22%7D",
-		"https://img.cmangapi.com/data-image/index.php?v=12&data=%7B%22ciphertext%22%3A%221jRy6ZnEF6b4YNvnLg3d1outlBW%2BTfguDcREa4CSLMyfLpDBW%5C%2FBo34NAtOgyONwxm1IOMiGx1IqwXVAjiU%2BOSNnIyaH7fUxEVQFQZP97k5CDORFe7ITWyUxb149n4R9ygoelYh3FWSVn1Xy1zjsW91DH6DtY41uJXAfyapELtRQ%3D%22%2C%22iv%22%3A%22806d8fc4d9933ef3d47dcc9d6fdb5d20%22%2C%22salt%22%3A%22836ee7b216b86a3591367f17c33c086359574b034c74c810f4d46c37fece2183415009cedfe2f889a0e9710eaf4bf92d0087f9e75cc8bcabba06f1afd48408983ecf9d49b5473721a106e80834c76d2851e901c1728ccd0b13f15de6af8df1583ec24c758827c9c7f03df14b1734bb77b2924639f075c29935e96eb2b91245eb1fe93de290f7eff1a63096d716ad24e7c3d1b920c31a8fd1393f1337dd804308832152565caa496ed6e9e4c01d06182d316a2ccb08af2458e433d225d74325b4d7d3c5ec0fcd73d4e796cc5c76bfb0e88f517c4fad4451c24df65caf531d75253f580af9d4877bc0b70250177133f8454397ee8f8d41fbeb0e6ea290ed5787e5%22%7D",
-        "https:\\/\\/img.cmangapi.com\\/data-image\\/index.php?v=12&data=%7B%22ciphertext%22%3A%22jdAg8o0FDYxbm5ChST9QSeSwFrIcQi4MqqGDo2iqspxY3bbLVAQJMzjrr5WccVjTC1pNRdK0HCYNb%2B7OGXwtRFRoW5VxliHMxjgpKcLDkzl80WhSGFIxOfA2HWuGrvbx7HaB40a3o3EnKcS72lP4zpKLxu%5C%2FQIVwId%5C%2F%5C%2Fy86WeN8w%3D%22%2C%22iv%22%3A%2273f233c0af1690266e4a98daf3b57c01%22%2C%22salt%22%3A%222be54780f76bcbbd50902a3218c9a71630040238417a0192dfddedf097f329e8ccc9daf3f80604bb43326d633f56d936f98f60c0fcbbd31902e40879610299fc54b185098f729a0b1fd3a05a0122f487fe194b8e5c84315c138696db358d74829e543b2c562a5c2e74d2601f068bb5a8a7e87bfa238254466536b42abfb9c2dedb8548b075b7552b9e9e43cc5b15630ebf5e700caf7d13666f35eac6556ca05022fd27b5670429a4214fa23df9fc5d8f68833d605c34167515ae370afa6672b0471625163eea1877e569adca1e4e59757a5a395a799fd8c6f8a8569672f7878e2fffbe3c2e9a34c924c13475846ebd0a6d565181f76d24ab2b98fcc2b65f757f%22%7D",
-        "https:\\/\\/img.cmangapi.com\\/data-image\\/index.php?v=12&data=%7B%22ciphertext%22%3A%221jRy6ZnEF6b4YNvnLg3d1outlBW%2BTfguDcREa4CSLMyfLpDBW%5C%2FBo34NAtOgyONwxm1IOMiGx1IqwXVAjiU%2BOSNnIyaH7fUxEVQFQZP97k5CDORFe7ITWyUxb149n4R9ygoelYh3FWSVn1Xy1zjsW91DH6DtY41uJXAfyapELtRQ%3D%22%2C%22iv%22%3A%22806d8fc4d9933ef3d47dcc9d6fdb5d20%22%2C%22salt%22%3A%22836ee7b216b86a3591367f17c33c086359574b034c74c810f4d46c37fece2183415009cedfe2f889a0e9710eaf4bf92d0087f9e75cc8bcabba06f1afd48408983ecf9d49b5473721a106e80834c76d2851e901c1728ccd0b13f15de6af8df1583ec24c758827c9c7f03df14b1734bb77b2924639f075c29935e96eb2b91245eb1fe93de290f7eff1a63096d716ad24e7c3d1b920c31a8fd1393f1337dd804308832152565caa496ed6e9e4c01d06182d316a2ccb08af2458e433d225d74325b4d7d3c5ec0fcd73d4e796cc5c76bfb0e88f517c4fad4451c24df65caf531d75253f580af9d4877bc0b70250177133f8454397ee8f8d41fbeb0e6ea290ed5787e5%22%7D"
-	)
+	private fun containsAdsUrl(url: String): Boolean {
+            val ADS_URL = "https://img.cmangapi.com/data-image/index.php"
+            val cleanUrl = url.replace("\\", "")
+            return when {
+                  cleanUrl.startsWith(ADS_URL) -> true
+                  cleanUrl.contains("?v=12&data=") -> true
+                  else -> false
+            }
+      }
 }
