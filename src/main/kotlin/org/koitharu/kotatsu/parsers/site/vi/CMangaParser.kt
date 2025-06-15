@@ -82,10 +82,15 @@ internal class CMangaParser(context: MangaLoaderContext) :
 				.mapChapters(reversed = true) { _, jo ->
 					val chapterId = jo.getLong("id_chapter")
 					val info = jo.parseJson("info")
-					val chapterNumber = info.getFloatOrDefault("num", -1f) + 1f
+					val chapterNumber = info.getFloatOrDefault("num", -1f)
+					val chapTitle = if (chapterNumber == chapterNumber.toInt().toFloat()) {
+						chapterNumber.toInt().toString()
+					} else {
+						chapterNumber.toString()
+					}
 					MangaChapter(
 						id = generateUid(chapterId),
-						title = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
+						title = if (info.isLocked()) "Chương $chapTitle - Đã khoá" else "Chương $chapTitle",
 						number = chapterNumber,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",
