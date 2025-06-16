@@ -7,4 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("STKISSMANGABLOG", "1StKissManga.net", "en")
 internal class StkissMangaBlog(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.STKISSMANGABLOG, "1st-kissmanga.net", 20)
+	MadaraParser(context, MangaParserSource.STKISSMANGABLOG, "1stkissmanga.org", 20) {
+            override val postReq = true
+      }
