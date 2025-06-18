@@ -52,6 +52,20 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		)
 	}
 
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		return doc.select("div.page-chapter").map { url ->
+			val img = url.selectFirst("img")?.attr("src") ?: url.attr("data-src")
+			MangaPage(
+				id = generateUid(img),
+				url = img,
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
 	private suspend fun getChapterList(storyID: String): List<MangaChapter> {
 		val url = "/Story/ListChapterByStoryID?storyID=$storyID"
 		val fullUrl = url.toAbsoluteUrl(domain)
