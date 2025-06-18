@@ -119,6 +119,11 @@ internal class MimiHentai(context: MangaLoaderContext) :
                         else -> "/tatcatruyen?page=$page&sort=updated_at" // default
                     }
                 )
+
+				if (filter.tagsExclude.isNotEmpty()) {
+					append("&ex=")
+					append(filter.tagsExclude.joinToString(",") { it.key })
+				}
             }
         }
 
