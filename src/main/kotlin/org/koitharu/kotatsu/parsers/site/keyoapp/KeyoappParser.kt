@@ -119,15 +119,18 @@ internal abstract class KeyoappParser(
 		return manga
 	}
 
+	protected open val cover: (Element) -> String? = { div ->
+		div.selectFirst("a div.bg-cover")?.styleValueOrNull("background-image")?.cssUrl()
+	}
 
 	private fun addManga(div: Element): Manga {
 		val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-		val cover = div.selectFirst("a div.bg-cover")
+		val coverUrl = cover(div)
 		return Manga(
 			id = generateUid(href),
 			url = href,
 			publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-			coverUrl = cover?.styleValueOrNull("background-image")?.cssUrl(),
+			coverUrl = coverUrl,
 			title = (div.selectFirst("h3")?.text() ?: div.selectFirst("a")?.attr("title")).orEmpty(),
 			altTitles = emptySet(),
 			rating = RATING_UNKNOWN,
