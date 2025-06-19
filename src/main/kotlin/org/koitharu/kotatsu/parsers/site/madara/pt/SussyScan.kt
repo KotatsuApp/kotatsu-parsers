@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @Broken
-@MangaSourceParser("SUSSYSCAN", "SussyScan", "pt")
-internal class SussyScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.SUSSYSCAN, "www.sussytoons.wtf")
+@MangaSourceParser("SUSSYSTOONS", "Sussytoons", "pt")
+internal class SussyToons(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.SUSSYTOONS, "www.sussytoons.wtf")
