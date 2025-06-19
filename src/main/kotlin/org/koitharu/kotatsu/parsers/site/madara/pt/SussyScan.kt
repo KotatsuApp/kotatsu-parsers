@@ -9,4 +9,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @Broken
 @MangaSourceParser("SUSSYSCAN", "SussyScan", "pt")
 internal class SussyScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.SUSSYSCAN, "oldi.sussytoons.site")
+	MadaraParser(context, MangaParserSource.SUSSYSCAN, "www.sussytoons.wtf")
