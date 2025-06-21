@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
-import androidx.collection.SparseArrayCompat
-import androidx.collection.set
+import androidx.collection.MutableIntLongMap
+import androidx.collection.MutableIntObjectMap
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -52,8 +52,8 @@ internal class ExHentaiParser(
 	private val titleCleanupPattern = Regex("(\\[.*?]|\\([C0-9]*\\))")
 	private val spacesCleanupPattern = Regex("(^\\s+|\\s+\$|\\s+(?=\\s))")
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
-	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
+	private val nextPages = MutableIntObjectMap<MutableIntLongMap>()
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -113,7 +113,9 @@ internal class ExHentaiParser(
 		filter: MangaListFilter,
 		updateDm: Boolean,
 	): List<Manga> {
-		val next = nextPages.get(page, 0L)
+		val next = synchronized(nextPages) {
+			nextPages[filter.hashCode()]?.getOrDefault(page, 0L) ?: 0L
+		}
 
 		if (page > 0 && next == 0L) {
 			assert(false) { "Page timestamp not found" }
@@ -149,7 +151,12 @@ internal class ExHentaiParser(
 				return getListPage(page, order, filter, updateDm = true)
 			}
 		}
-		nextPages[page + 1] = getNextTimestamp(body)
+		val nextTimestamp = getNextTimestamp(body)
+		synchronized(nextPages) {
+			nextPages.getOrPut(filter.hashCode()) {
+				MutableIntLongMap()
+			}.put(page + 1, nextTimestamp)
+		}
 
 		return root.children().mapNotNull { tr ->
 			if (tr.childrenSize() != 2) return@mapNotNull null
