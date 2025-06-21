@@ -38,7 +38,7 @@ internal class RemangaParser(
 
 	override fun getRequestHeaders() = getApiHeaders()
 
-	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг")
+	override val configKeyDomain = ConfigKey.Domain("remanga.me", "remanga.org", "реманга.орг")
 
 	override val authUrl: String
 		get() = "https://${domain}"
