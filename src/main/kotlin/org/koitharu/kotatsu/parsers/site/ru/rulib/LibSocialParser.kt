@@ -175,7 +175,7 @@ internal abstract class LibSocialParser(
 		val genres = json.getJSONArray("genres").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "g" + jo.getInt("id"), source = source)
 		}
-		val tags = json.getJSONArray("genres").mapJSON { jo ->
+		val tags = json.getJSONArray("tags").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "t" + jo.getInt("id"), source = source)
 		}
 		val author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name")
