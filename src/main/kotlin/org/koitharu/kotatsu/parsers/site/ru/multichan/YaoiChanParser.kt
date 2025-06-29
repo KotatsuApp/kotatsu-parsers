@@ -13,6 +13,8 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class YaoiChanParser(context: MangaLoaderContext) : ChanParser(context, MangaParserSource.YAOICHAN) {
 
 	override val configKeyDomain = ConfigKey.Domain(
+		"v9.yaoi-chan.me",
+		"v10.yaoi-chan.me",
 		"v3.yaoi-chan.me",
 		"v2.yaoi-chan.me",
 		"v1.yaoi-chan.me",

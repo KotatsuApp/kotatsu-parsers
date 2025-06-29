@@ -71,7 +71,7 @@ internal abstract class GroupleParser(
 	override val authUrl: String
 		get() {
 			val targetUri = "https://${domain}/".urlEncoded()
-			return "https://grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
+			return "https://3.grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
 		}
 
 	override suspend fun isAuthorized(): Boolean = hasAuthCookie()

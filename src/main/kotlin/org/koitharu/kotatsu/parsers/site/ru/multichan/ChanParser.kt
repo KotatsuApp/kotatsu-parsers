@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.internal.StringUtil
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
@@ -54,7 +56,7 @@ internal abstract class ChanParser(
 				"/mangaka",
 			).firstOrNull()?.text()
 			Manga(
-				id = generateUid(href),
+				id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
@@ -87,10 +89,10 @@ internal abstract class ChanParser(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			chapters = root.select("table.table_cha tr:gt(1)").mapChapters(reversed = true) { i, tr ->
-				val href = tr.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-					?: return@mapChapters null
+				val a = tr.selectFirst("a")
+				val href = a?.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 				MangaChapter(
-					id = generateUid(href),
+					id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
 					title = tr.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
@@ -170,7 +172,7 @@ internal abstract class ChanParser(
 				"/mangaka",
 			).firstOrNull()?.text()
 			Manga(
-				id = generateUid(href),
+				id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
@@ -255,5 +257,17 @@ internal abstract class ChanParser(
 			}
 		}
 		return this to null
+	}
+
+	private fun Element.attrAsRelativeUrlAnyHost(attributeKey: String): String {
+		val attr = attr(attributeKey)
+		if (attr.isEmpty() || attr.startsWith("data:")) {
+			throw IllegalArgumentException("Wrong url $attr")
+		}
+		if (attr.startsWith('/')) {
+			return attr
+		}
+		val host = attr.toHttpUrl().host
+		return attr.substringAfter(host)
 	}
 }
