@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken
+@Broken("Original site closed")
 @MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {

@@ -175,7 +175,7 @@ internal abstract class LibSocialParser(
 		val genres = json.getJSONArray("genres").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "g" + jo.getInt("id"), source = source)
 		}
-		val tags = json.getJSONArray("genres").mapJSON { jo ->
+		val tags = json.getJSONArray("tags").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "t" + jo.getInt("id"), source = source)
 		}
 		val author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name")
@@ -237,7 +237,6 @@ internal abstract class LibSocialParser(
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
-		keys.remove(configKeyDomain)
 		keys.add(splitTranslationsKey)
 		keys.add(preferredServerKey)
 	}
@@ -291,21 +290,29 @@ internal abstract class LibSocialParser(
 			val volume = jo.getIntOrDefault("volume", 0)
 			val number = jo.getFloatOrDefault("number", 0f)
 			val numberString = number.formatSimple()
-			val name = jo.getStringOrNull("name") ?: buildString {
-				if (volume > 0) append("Том ").append(volume).append(' ')
-				append("Глава ").append(numberString)
-			}
+			val name = jo.getStringOrNull("name")
 			val branches = jo.getJSONArray("branches")
 			for (j in 0 until branches.length()) {
 				val bjo = branches.getJSONObject(j)
 				val id = bjo.getLong("id")
+				val branchId = bjo.getLongOrDefault("branch_id", 0L)
 				val team = bjo.getJSONArray("teams").optJSONObject(0)?.getStringOrNull("name")
 				builder += MangaChapter(
 					id = generateUid(id),
 					title = name,
 					number = number,
 					volume = volume,
-					url = "${manga.url}/chapter?number=$numberString&volume=$volume",
+					url = buildString {
+						append(manga.url)
+						append("/chapter?number=")
+						append(numberString)
+						append("&volume=")
+						append(volume)
+						if (branchId != 0L) {
+							append("&branch_id=")
+							append(branchId)
+						}
+					},
 					scanlator = team,
 					uploadDate = dateFormat.tryParse(bjo.getStringOrNull("created_at")),
 					branch = if (useBranching) team else null,

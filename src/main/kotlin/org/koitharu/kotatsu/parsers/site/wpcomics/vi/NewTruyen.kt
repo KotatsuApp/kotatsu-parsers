@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("NEWTRUYEN", "NewTruyen", "vi")
 internal class NewTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyen11.com", 36) {
+	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyentranh1.com", 36) {
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getAvailableTags(),
@@ -50,6 +50,20 @@ internal class NewTruyen(context: MangaLoaderContext) :
 			tags = mangaTags,
 			chapters = chaptersDeferred.await(),
 		)
+	}
+
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		return doc.select("div.page-chapter").map { url ->
+			val img = url.selectFirst("img")?.attr("src") ?: url.attr("data-src")
+			MangaPage(
+				id = generateUid(img),
+				url = img,
+				preview = null,
+				source = source,
+			)
+		}
 	}
 
 	private suspend fun getChapterList(storyID: String): List<MangaChapter> {

@@ -534,6 +534,14 @@ internal abstract class MadaraParser(
 	protected open val selectAlt =
 		".post-content_item:contains(Alt) .summary-content, .post-content_item:contains(Nomes alternativos: ) .summary-content"
 
+	protected open fun createMangaTag(a: Element): MangaTag? {
+		return MangaTag(
+			key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+			title = a.text().toTitleCase(),
+			source = source,
+		)
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -566,13 +574,7 @@ internal abstract class MadaraParser(
 			title = doc.selectFirst("h1")?.textOrNull() ?: manga.title,
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
-			tags = doc.body().select(selectGenre).mapToSet { a ->
-				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-					title = a.text().toTitleCase(),
-					source = source,
-				)
-			},
+			tags = doc.body().select(selectGenre).mapToSet { a -> createMangaTag(a) }.filterNotNull().toSet(),
 			description = desc,
 			altTitles = setOfNotNull(alt),
 			state = state,

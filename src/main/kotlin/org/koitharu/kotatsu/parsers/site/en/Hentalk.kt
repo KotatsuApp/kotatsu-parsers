@@ -24,7 +24,7 @@ private const val SERVER_DATA = ""
 internal class Hentalk(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.HENTALK, 24) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentalk.pw")
+	override val configKeyDomain = ConfigKey.Domain("hentalk.pw", "fakku.cc")
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	private val preferredServerKey = ConfigKey.PreferredImageServer(

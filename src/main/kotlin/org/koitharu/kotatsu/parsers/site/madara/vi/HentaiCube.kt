@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.vi
 
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
@@ -18,15 +19,23 @@ import java.util.*
 internal class HentaiCube(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicube.xyz") {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz", "hentaicb.pics")
+	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz", "hentaicb.sbs")
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
 	override val postDataReq = "action=manga_views&manga="
-
+	
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchTags(),
 	)
+
+	override fun createMangaTag(a: Element): MangaTag? {
+		return MangaTag(
+			title = a.text().replace(Regex("\\(\\d+\\)"), ""),
+			key = a.attr("href").substringAfter("/theloai/").removeSuffix("/"),
+			source = source,
+		)
+	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
