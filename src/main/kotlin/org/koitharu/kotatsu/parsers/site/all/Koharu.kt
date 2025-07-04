@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
@@ -20,16 +21,14 @@ import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("KOHARU", "Schale Network", type = ContentType.HENTAI)
+@MangaSourceParser("KOHARU", "Schale.network", type = ContentType.HENTAI)
 internal class Koharu(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.KOHARU, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("niyaniya.moe")
 	private val apiSuffix = "api.schale.network"
 
-	// Tried many but only this user agent work, not sure why?
-	// this user agent is found at https://www.whatismybrowser.com/guides/the-latest-user-agent/chrome
-	override val userAgentKey = ConfigKey.UserAgent("Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36")
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOHARU)
 
 	private val authorsIds = suspendLazy { fetchAuthorsIds() }
 
@@ -334,6 +333,7 @@ internal class Koharu(context: MangaLoaderContext) :
 		} catch (e: HttpStatusException) {
 			if (e.statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
 				// Token may be invalid or expired
+				// WebView should be closed after receiving Token
 				context.requestBrowserAction(this, chapter.publicUrl())
 			}
 			throw e
