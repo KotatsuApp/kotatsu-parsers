@@ -14,4 +14,7 @@ public object UserAgents {
 	public const val FIREFOX_DESKTOP: String = "Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/116.0"
 
 	public const val KOTATSU: String = "Kotatsu/6.8 (Android 13;;; en)"
+
+	// for Schale.network source
+	public const val KOHARU: String = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36"
 }
