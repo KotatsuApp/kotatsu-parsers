@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("SAYHENTAI", "SayHentai", "vi", ContentType.HENTAI)
 internal class SayHentai(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.SAYHENTAI, 20) {
-	override val configKeyDomain = ConfigKey.Domain("sayhentaii.me")
+	override val configKeyDomain = ConfigKey.Domain("sayhentaii.art")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

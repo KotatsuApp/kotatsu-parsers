@@ -10,7 +10,9 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("HENTAIZ", "HentaiZ", "vi", ContentType.HENTAI)
 internal class HentaiZ(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAIZ, "hentaiz.news", 24) {
