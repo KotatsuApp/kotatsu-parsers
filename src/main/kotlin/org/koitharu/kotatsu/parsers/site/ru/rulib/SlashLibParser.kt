@@ -9,5 +9,5 @@ internal class SlashLibParser(context: MangaLoaderContext) : LibSocialParser(
 	context = context,
 	source = MangaParserSource.YAOILIB,
 	siteId = 2,
-	siteDomain = "v2.slashlib.me",
+	siteDomains = arrayOf("v2.slashlib.me"),
 )
