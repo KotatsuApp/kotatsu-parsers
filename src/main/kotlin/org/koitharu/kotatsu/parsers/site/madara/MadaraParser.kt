@@ -34,6 +34,8 @@ internal abstract class MadaraParser(
 
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
+      protected open val authorSearchSupported = false
+      protected open val reversedAuthorSearch = false
 
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
@@ -71,6 +73,7 @@ internal abstract class MadaraParser(
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
+			isAuthorSearchSupported = authorSearchSupported
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -217,6 +220,7 @@ internal abstract class MadaraParser(
 
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"
+      protected open val authorQuery = "&author="
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (withoutAjax) {
@@ -272,12 +276,43 @@ internal abstract class MadaraParser(
 					append("&release=")
 					append(filter.year.toString())
 				}
+                        
+                        if (!filter.author.isNullOrEmpty() && reversedAuthorSearch) {
+                              // clear current buildString
+                              clear()
+                              append("https://")
+                              append(domain)
 
-				// Support author
-				//filter.author?.let {
-				//	append("&author=")
-				//	append(filter.author)
-				//}
+                              // should be like "minamida-usuke"
+                              append(authorQuery)
+                              append(filter.author.toTitleCase().replace(" ", "-"))
+                            
+                              if (page > 0) {
+                                    append("/page/")
+                                    append(page + 1)
+                              }
+                            
+                              append("/")
+                              append("&m_orderby=")
+                              when (order) {
+                                    SortOrder.POPULARITY -> append("views")
+                                    SortOrder.UPDATED -> append("latest")
+                                    SortOrder.NEWEST -> append("new-manga")
+                                    SortOrder.ALPHABETICAL -> {}
+                                    SortOrder.RATING -> append("trending")
+                                    SortOrder.RELEVANCE -> {}
+                                    else -> {}
+                              }
+                              return@buildString // end buildString
+                        } else {
+                              if (!filter.author.isNullOrEmpty()) {
+                                    filter.author.let {
+                                          append(authorQuery)
+                                          // should be like "minamida-usuke"
+                                          append(it.toTitleCase().replace(" ", "-"))
+                                    }
+                              }
+                        }
 
 				// Support artist
 				//filter.artist?.let {
@@ -534,7 +569,7 @@ internal abstract class MadaraParser(
 	protected open val selectAlt =
 		".post-content_item:contains(Alt) .summary-content, .post-content_item:contains(Nomes alternativos: ) .summary-content"
 
-	protected open fun createMangaTag(a: Element): MangaTag? {
+	protected open suspend fun createMangaTag(a: Element): MangaTag? {
 		return MangaTag(
 			key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 			title = a.text().toTitleCase(),

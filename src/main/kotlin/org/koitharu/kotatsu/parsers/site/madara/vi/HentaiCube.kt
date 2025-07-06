@@ -13,28 +13,33 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
+import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.util.*
 
+// Do not use "hentaicb.sbs" domain, may cause duplicate tags!
 @MangaSourceParser("HENTAICUBE", "CBHentai", "vi", ContentType.HENTAI)
 internal class HentaiCube(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAICUBE, "hentaicube.xyz") {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaicube.xyz", "hentaicb.sbs")
-
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
+      override val authorSearchSupported = true
+      override val reversedAuthorSearch = true
+      override val authorQuery = "/tacgia/"
 	override val postDataReq = "action=manga_views&manga="
+
+      private val availableTags = suspendLazy(initializer = ::fetchTags)
 	
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchTags(),
+		availableTags = availableTags.get(),
 	)
 
-	override fun createMangaTag(a: Element): MangaTag? {
-		return MangaTag(
-			title = a.text().replace(Regex("\\(\\d+\\)"), ""),
-			key = a.attr("href").substringAfter("/theloai/").removeSuffix("/"),
-			source = source,
-		)
+	override suspend fun createMangaTag(a: Element): MangaTag? {
+            val allTags = availableTags.getOrNull().orEmpty()
+            val title = a.text().replace(Regex("\\(\\d+\\)"), "").toTitleCase()
+            // compare to avoid duplicate tags with the same title
+            return allTags.find { it.title.equals(title, ignoreCase = true) }
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
