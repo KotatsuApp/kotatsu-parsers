@@ -458,9 +458,16 @@ internal abstract class MadaraParser(
 	}
 
 	protected open fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.row.c-tabs-item__content").ifEmpty {
+		val elements = doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
-		}.map { div ->
+		}
+
+        // Avoid "Content not found or removed" errors
+		if (elements.isEmpty()) {
+			return emptyList()
+		}
+		
+        return elements.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
