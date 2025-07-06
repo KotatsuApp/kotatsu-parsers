@@ -37,10 +37,12 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
 	override suspend fun createMangaTag(a: Element): MangaTag? {
         val allTags = availableTags.getOrNull().orEmpty()
-        val title = a.text().replace(Regex("\\(\\d+\\)"), "").toTitleCase()
+        val title = a.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim to remove space
         // compare to avoid duplicate tags with the same title
-        return allTags.find { it.title.equals(title, ignoreCase = true) }
-	}
+        return allTags.find { 
+            it.title.trim().equals(title, ignoreCase = true) // try to search with trim
+        }
+    }
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -59,17 +61,17 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/the-loai-genres").parseHtml()
-		val elements = doc.select("ul.list-unstyled li a")
-		return elements.mapToSet { element ->
-			val href = element.attr("href")
-			val key = href.substringAfter("/theloai/").removeSuffix("/")
-			val title = element.text().replace(Regex("\\(\\d+\\)"), "")
-			MangaTag(
-				key = key,
-				title = title,
-				source = source,
-			)
-		}.toSet()
-	}
+        val doc = webClient.httpGet("https://$domain/the-loai-genres").parseHtml()
+        val elements = doc.select("ul.list-unstyled li a")
+        return elements.mapToSet { element ->
+            val href = element.attr("href")
+            val key = href.substringAfter("/theloai/").removeSuffix("/")
+            val title = element.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim
+            MangaTag(
+                key = key,
+                title = title,
+                source = source,
+            )
+        }.toSet()
+    }
 }
