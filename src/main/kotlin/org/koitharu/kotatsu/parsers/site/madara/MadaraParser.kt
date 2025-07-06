@@ -281,7 +281,7 @@ internal abstract class MadaraParser(
                     filter.author.let {
                         append(authorQuery)
                         // should be like "minamida-usuke"
-                        append(it.toTitleCase().replace(" ", "-"))
+                        append(it.lowercase().replace(" ", "-"))
                     }
                 }
 
