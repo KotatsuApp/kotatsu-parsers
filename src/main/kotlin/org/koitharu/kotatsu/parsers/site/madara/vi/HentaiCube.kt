@@ -24,22 +24,22 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
-      override val authorSearchSupported = true
-      override val reversedAuthorSearch = true
-      override val authorQuery = "/tacgia/"
+    override val authorSearchSupported = true
+    override val reversedAuthorSearch = true
+    override val authorQuery = "/tacgia/"
 	override val postDataReq = "action=manga_views&manga="
 
-      private val availableTags = suspendLazy(initializer = ::fetchTags)
+    private val availableTags = suspendLazy(initializer = ::fetchTags)
 	
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = availableTags.get(),
 	)
 
 	override suspend fun createMangaTag(a: Element): MangaTag? {
-            val allTags = availableTags.getOrNull().orEmpty()
-            val title = a.text().replace(Regex("\\(\\d+\\)"), "").toTitleCase()
-            // compare to avoid duplicate tags with the same title
-            return allTags.find { it.title.equals(title, ignoreCase = true) }
+        val allTags = availableTags.getOrNull().orEmpty()
+        val title = a.text().replace(Regex("\\(\\d+\\)"), "").toTitleCase()
+        // compare to avoid duplicate tags with the same title
+        return allTags.find { it.title.equals(title, ignoreCase = true) }
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
