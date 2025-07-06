@@ -276,42 +276,12 @@ internal abstract class MadaraParser(
 					append("&release=")
 					append(filter.year.toString())
 				}
-                        
-                if (!filter.author.isNullOrEmpty() && reversedAuthorSearch) {
-                    // clear current buildString
-                    clear()
-                    append("https://")
-                    append(domain)
 
-                    // should be like "minamida-usuke"
-                    append(authorQuery)
-                    append(filter.author.toTitleCase().replace(" ", "-"))
-                            
-                    if (page > 0) {
-                        append("/page/")
-                        append(page + 1)
-                    }
-                            
-                    append("/")
-                    append("&m_orderby=")
-                    when (order) {
-                        SortOrder.POPULARITY -> append("views")
-                        SortOrder.UPDATED -> append("latest")
-                        SortOrder.NEWEST -> append("new-manga")
-                        SortOrder.ALPHABETICAL -> {}
-                        SortOrder.RATING -> append("trending")
-                        SortOrder.RELEVANCE -> {}
-                        else -> {}
-                    }
-                    
-                    return@buildString // end buildString
-                } else {
-                    if (!filter.author.isNullOrEmpty()) {
-                        filter.author.let {
-                            append(authorQuery)
-                            // should be like "minamida-usuke"
-                            append(it.toTitleCase().replace(" ", "-"))
-                        }
+                if (!filter.author.isNullOrEmpty()) {
+                    filter.author.let {
+                        append(authorQuery)
+                        // should be like "minamida-usuke"
+                        append(it.toTitleCase().replace(" ", "-"))
                     }
                 }
 
@@ -332,6 +302,36 @@ internal abstract class MadaraParser(
 					SortOrder.RELEVANCE -> {}
 					else -> {}
 				}
+
+                if (!filter.author.isNullOrEmpty() && reversedAuthorSearch) {
+                    // clear current buildString
+                    clear()
+                    append("https://")
+                    append(domain)
+
+                    // should be like "minamida-usuke"
+                    append(authorQuery)
+                    append(filter.author.lowercase().replace(" ", "-"))
+                            
+                    if (page > 1) {
+                        append("/page/")
+                        append(page)
+                    }
+                            
+                    append("/")
+                    append("&m_orderby=")
+                    when (order) {
+                        SortOrder.POPULARITY -> append("views")
+                        SortOrder.UPDATED -> append("latest")
+                        SortOrder.NEWEST -> append("new-manga")
+                        SortOrder.ALPHABETICAL -> {}
+                        SortOrder.RATING -> append("trending")
+                        SortOrder.RELEVANCE -> {}
+                        else -> append("latest") // default
+                    }
+                    
+                    return@buildString // end buildString
+                }
 			}
 			return parseMangaList(webClient.httpGet(url).parseHtml())
 		} else {
