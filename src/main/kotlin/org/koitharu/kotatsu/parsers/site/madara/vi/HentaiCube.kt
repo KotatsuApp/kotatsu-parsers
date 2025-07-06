@@ -8,8 +8,13 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
 import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.util.*
@@ -25,8 +30,6 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
     override val authorSearchSupported = true
-    override val reversedAuthorSearch = true
-    override val authorQuery = "/tacgia/"
 	override val postDataReq = "action=manga_views&manga="
 
     private val availableTags = suspendLazy(initializer = ::fetchTags)
@@ -34,6 +37,96 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = availableTags.get(),
 	)
+
+    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		val url = buildString {
+            if (!filter.author.isNullOrEmpty()) {
+                append("https://")
+                append(domain)
+                append("/tacgia/")
+                append(filter.author.lowercase().replace(" ", "-"))
+                
+                if (page > 1) {
+                    append("/page/")
+                    append(page)
+                }
+                
+                append("/?m_orderby=")
+                when (order) {
+                    SortOrder.POPULARITY -> append("views")
+                    SortOrder.UPDATED -> append("latest")
+                    SortOrder.NEWEST -> append("new-manga")
+                    SortOrder.ALPHABETICAL -> {}
+                    SortOrder.RATING -> append("trending")
+                    SortOrder.RELEVANCE -> {}
+                    else -> append("latest") // default
+                }
+                return@buildString
+            }
+
+            append("https://")
+            append(domain)
+
+            if (page > 1) {
+                append("/page/")
+                append(page.toString())
+            }
+            
+            append("/?s=")
+
+            filter.query?.let {
+                append(filter.query.urlEncoded())
+            }
+
+            append("&post_type=wp-manga")
+
+            if (filter.tags.isNotEmpty()) {
+                filter.tags.forEach {
+                    append("&genre[]=")
+                    append(it.key)
+                }
+            }
+
+            filter.states.forEach {
+                append("&status[]=")
+                when (it) {
+                    MangaState.ONGOING -> append("on-going")
+                    MangaState.FINISHED -> append("end")
+                    MangaState.ABANDONED -> append("canceled")
+                    MangaState.PAUSED -> append("on-hold")
+                    MangaState.UPCOMING -> append("upcoming")
+                }
+            }
+
+            filter.contentRating.oneOrThrowIfMany()?.let {
+                append("&adult=")
+                append(
+                    when (it) {
+                        ContentRating.SAFE -> "0"
+                        ContentRating.ADULT -> "1"
+                        else -> ""
+                    },
+                )
+            }
+
+            if (filter.year != 0) {
+                append("&release=")
+                append(filter.year.toString())
+            }
+
+            append("&m_orderby=")
+            when (order) {
+                SortOrder.POPULARITY -> append("views")
+                SortOrder.UPDATED -> append("latest")
+                SortOrder.NEWEST -> append("new-manga")
+                SortOrder.ALPHABETICAL -> append("alphabet")
+                SortOrder.RATING -> append("rating")
+                SortOrder.RELEVANCE -> {}
+                else -> {}
+            }
+        }
+        return parseMangaList(webClient.httpGet(url).parseHtml())
+    }
 
 	override suspend fun createMangaTag(a: Element): MangaTag? {
         val allTags = availableTags.getOrNull().orEmpty()

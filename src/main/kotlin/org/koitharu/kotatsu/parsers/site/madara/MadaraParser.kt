@@ -35,7 +35,6 @@ internal abstract class MadaraParser(
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
     protected open val authorSearchSupported = false
-    protected open val reversedAuthorSearch = false
 
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
@@ -220,7 +219,6 @@ internal abstract class MadaraParser(
 
 	// can be changed to retrieve tags see getTags
 	protected open val listUrl = "manga/"
-    protected open val authorQuery = "&author="
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		if (withoutAjax) {
@@ -279,7 +277,7 @@ internal abstract class MadaraParser(
 
                 if (!filter.author.isNullOrEmpty()) {
                     filter.author.let {
-                        append(authorQuery)
+                        append("&author=")
                         // should be like "minamida-usuke"
                         append(it.lowercase().replace(" ", "-"))
                     }
@@ -302,36 +300,6 @@ internal abstract class MadaraParser(
 					SortOrder.RELEVANCE -> {}
 					else -> {}
 				}
-
-                if (!filter.author.isNullOrEmpty() && reversedAuthorSearch) {
-                    // clear current buildString
-                    clear()
-                    append("https://")
-                    append(domain)
-
-                    // should be like "minamida-usuke"
-                    append(authorQuery)
-                    append(filter.author.lowercase().replace(" ", "-"))
-                            
-                    if (page > 1) {
-                        append("/page/")
-                        append(page)
-                    }
-                            
-                    append("/")
-                    append("?m_orderby=")
-                    when (order) {
-                        SortOrder.POPULARITY -> append("views")
-                        SortOrder.UPDATED -> append("latest")
-                        SortOrder.NEWEST -> append("new-manga")
-                        SortOrder.ALPHABETICAL -> {}
-                        SortOrder.RATING -> append("trending")
-                        SortOrder.RELEVANCE -> {}
-                        else -> append("latest") // default
-                    }
-                    
-                    return@buildString // end buildString
-                }
 			}
 			return parseMangaList(webClient.httpGet(url).parseHtml())
 		} else {
