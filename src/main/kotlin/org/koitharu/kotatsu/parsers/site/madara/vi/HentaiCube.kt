@@ -39,16 +39,18 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	)
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
+		val pages = page + 1
+
+        val url = buildString {
             if (!filter.author.isNullOrEmpty()) {
                 append("https://")
                 append(domain)
                 append("/tacgia/")
                 append(filter.author.lowercase().replace(" ", "-"))
                 
-                if (page > 1) {
+                if (pages > 1) {
                     append("/page/")
-                    append(page)
+                    append(pages.toString())
                 }
                 
                 append("/?m_orderby=")
@@ -67,9 +69,9 @@ internal class HentaiCube(context: MangaLoaderContext) :
             append("https://")
             append(domain)
 
-            if (page > 1) {
+            if (pages > 1) {
                 append("/page/")
-                append(page.toString())
+                append(pages.toString())
             }
             
             append("/?s=")
