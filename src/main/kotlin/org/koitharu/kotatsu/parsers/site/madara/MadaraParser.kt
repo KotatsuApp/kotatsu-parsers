@@ -319,7 +319,7 @@ internal abstract class MadaraParser(
                     }
                             
                     append("/")
-                    append("&m_orderby=")
+                    append("?m_orderby=")
                     when (order) {
                         SortOrder.POPULARITY -> append("views")
                         SortOrder.UPDATED -> append("latest")
