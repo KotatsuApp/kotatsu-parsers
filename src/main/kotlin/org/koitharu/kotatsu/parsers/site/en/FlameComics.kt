@@ -20,6 +20,7 @@ internal class FlameComics(context: MangaLoaderContext) :
 	LegacySinglePageMangaParser(context, MangaParserSource.FLAMECOMICS) {
 
 	private val commonPrefix = suspendLazy(initializer = ::fetchCommonPrefix)
+	private val removeSpecialCharsRegex = Regex("[^A-Za-z0-9 ]")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,
@@ -41,13 +42,36 @@ internal class FlameComics(context: MangaLoaderContext) :
 			.addPathSegment("data")
 			.addPathSegment(commonPrefix.get())
 			.addPathSegment("browse.json")
-		if (!filter.query.isNullOrEmpty()) {
-			url.addQueryParameter("search", filter.query)
-		}
-		val json = webClient.httpGet(url.build()).parseJson().getJSONObject("pageProps").getJSONArray("series")
-		return json.mapJSONNotNull { jo ->
+			.build()
+
+		val json = webClient.httpGet(url).parseJson().getJSONObject("pageProps").getJSONArray("series")
+
+		val allManga = json.mapJSONNotNull { jo ->
 			parseManga(jo).takeIf { it.tags.matches(filter) }
 		}
+
+		// Filter by search if provided
+		val filteredManga = if (!filter.query.isNullOrEmpty()) {
+			val normalizedQuery = removeSpecialCharsRegex.replace(filter.query.lowercase(), "")
+			allManga.filter { manga ->
+				val titles = mutableListOf(manga.title)
+				titles.addAll(manga.altTitles)
+
+				titles.any { title ->
+					normalizedQuery in removeSpecialCharsRegex.replace(title.lowercase(), "")
+				}
+			}
+		} else {
+			allManga
+		}
+
+		return filteredManga
+			.let { list ->
+				when (order) {
+					SortOrder.ALPHABETICAL -> list.sortedBy { it.title }
+					else -> list
+				}
+			}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = getDetailsImpl(manga.url.toLong())
@@ -208,5 +232,9 @@ internal class FlameComics(context: MangaLoaderContext) :
 		return true
 	}
 
-	private fun String.toMangaTag() = MangaTag(this.toTitleCase(sourceLocale), this, source)
+	private fun String.toMangaTag() = MangaTag(
+		title = this.toTitleCase(sourceLocale),
+		key = this.lowercase().trim(),
+		source = source
+	)
 }
