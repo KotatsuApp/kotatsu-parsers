@@ -43,6 +43,7 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
         val url = buildString {
             if (!filter.author.isNullOrEmpty()) {
+                clear()
                 append("https://")
                 append(domain)
                 append("/tacgia/")
