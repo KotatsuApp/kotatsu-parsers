@@ -2,14 +2,13 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
-import org.koitharu.kotatsu.parsers.Broken
+import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getIntOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getLongOrDefault
@@ -17,17 +16,22 @@ import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSONNotNullToSet
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrDefault
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
-@Broken("Need fix getPages")
-@MangaSourceParser("KOHARU", "Schale Network", type = ContentType.HENTAI)
+@Broken("Need to fix getPages, most manga don't have chapter images due to faulty fetch logic")
+@MangaSourceParser("KOHARU", "Schale.network", type = ContentType.HENTAI)
 internal class Koharu(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.KOHARU, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("niyaniya.moe")
 	private val apiSuffix = "api.schale.network"
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
+
+	override val userAgentKey = ConfigKey.UserAgent(
+		"Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.7204.46 Mobile Safari/537.36",
+	)
 
 	private val authorsIds = suspendLazy { fetchAuthorsIds() }
 
@@ -320,19 +324,22 @@ internal class Koharu(context: MangaLoaderContext) :
 		val id = parts[0]
 		val key = parts[1]
 
-		val clearance = getClearance(chapter.url)
+		val clearance = getClearance(chapter.publicUrl())
 
 		val dataUrl = "https://$apiSuffix/books/detail/$id/$key?crt=$clearance"
-		val dataResponse = webClient.httpPost(
-			url = dataUrl.toHttpUrl(),
-			form = emptyMap(),
-			extraHeaders = getRequestHeaders(),
-		).parseJson()
-
 		val data = try {
-			dataResponse.getJSONObject("data").getJSONObject("data")
-		} catch (e: Exception) {
-			throw ParseException("Cant parse image data. Token may be invalid or expired: ${e.message}", dataUrl, e)
+			webClient.httpPost(
+				url = dataUrl.toHttpUrl(),
+				form = emptyMap(),
+				extraHeaders = getRequestHeaders(),
+			).parseJson().getJSONObject("data")
+		} catch (e: HttpStatusException) {
+			if (e.statusCode == HttpURLConnection.HTTP_FORBIDDEN) {
+				// Token may be invalid or expired
+				// WebView should be closed after receiving Token
+				context.requestBrowserAction(this, chapter.publicUrl())
+			}
+			throw e
 		}
 
 		val preferredRes = config[preferredImageResolutionKey] ?: "1280"
@@ -406,7 +413,9 @@ internal class Koharu(context: MangaLoaderContext) :
 	private suspend fun fetchAuthorsIds(): Map<String, String> = fetchTags(namespace = 1)
 		.associate { it.title.lowercase() to it.key }
 
-	private suspend fun getClearance(mangaId: String): String = WebViewHelper(context)
+	private suspend fun getClearance(chapterUrl: String): String = WebViewHelper(context)
 		.getLocalStorageValue(domain, "clearance")?.removeSurrounding('"')?.nullIfEmpty()
-		?: context.requestBrowserAction(this, "https://$domain/g/$mangaId/read/1")
+		?: context.requestBrowserAction(this, chapterUrl)
+
+	private fun MangaChapter.publicUrl() = "https://$domain/g/$url/read/1"
 }

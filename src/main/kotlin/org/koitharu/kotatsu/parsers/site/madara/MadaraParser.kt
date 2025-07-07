@@ -34,6 +34,7 @@ internal abstract class MadaraParser(
 
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
+    protected open val authorSearchSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
@@ -71,6 +72,7 @@ internal abstract class MadaraParser(
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
+			isAuthorSearchSupported = authorSearchSupported
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -273,11 +275,13 @@ internal abstract class MadaraParser(
 					append(filter.year.toString())
 				}
 
-				// Support author
-				//filter.author?.let {
-				//	append("&author=")
-				//	append(filter.author)
-				//}
+                if (!filter.author.isNullOrEmpty()) {
+                    filter.author.let {
+                        append("&author=")
+                        // should be like "minamida-usuke"
+                        append(it.lowercase().replace(" ", "-"))
+                    }
+                }
 
 				// Support artist
 				//filter.artist?.let {
@@ -454,9 +458,16 @@ internal abstract class MadaraParser(
 	}
 
 	protected open fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.row.c-tabs-item__content").ifEmpty {
+		val elements = doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
-		}.map { div ->
+		}
+
+        // Avoid "Content not found or removed" errors
+		if (elements.isEmpty()) {
+			return emptyList()
+		}
+		
+        return elements.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
@@ -534,7 +545,7 @@ internal abstract class MadaraParser(
 	protected open val selectAlt =
 		".post-content_item:contains(Alt) .summary-content, .post-content_item:contains(Nomes alternativos: ) .summary-content"
 
-	protected open fun createMangaTag(a: Element): MangaTag? {
+	protected open suspend fun createMangaTag(a: Element): MangaTag? {
 		return MangaTag(
 			key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
 			title = a.text().toTitleCase(),

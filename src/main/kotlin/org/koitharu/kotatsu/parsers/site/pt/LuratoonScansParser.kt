@@ -23,7 +23,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
     LegacySinglePageMangaParser(context, MangaParserSource.RANDOMSCANS),
     Interceptor {
 
-    override val configKeyDomain = ConfigKey.Domain("luratoons.com")
+    override val configKeyDomain = ConfigKey.Domain("luratoons.net")
 
     override fun getRequestHeaders(): Headers = Headers.Builder().add("User-Agent", config[userAgentKey]).build()
 

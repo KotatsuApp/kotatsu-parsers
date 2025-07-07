@@ -32,6 +32,7 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 			isMultipleTagsSupported = true,
 			isTagsExclusionSupported = true,
 			isSearchWithFiltersSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -41,6 +42,43 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
+			if (!filter.author.isNullOrEmpty()) {
+				clear()
+				append("https://")
+				append(domain)
+
+				append("/tac-gia/")
+				append(filter.author.lowercase().replace(" ", "-"))
+
+				append("?sort=")
+				append(
+					when (order) {
+						SortOrder.POPULARITY -> "-views"
+						SortOrder.UPDATED -> "-updated_at"
+						SortOrder.NEWEST -> "-created_at"
+						SortOrder.ALPHABETICAL -> "name"
+						SortOrder.ALPHABETICAL_DESC -> "-name"
+						else -> "-updated_at"
+					},
+				)
+
+				append("&page=")
+				append(page)
+
+				append("&filter[status]=")
+				filter.states.forEach {
+					append(
+						when (it) {
+							MangaState.ONGOING -> "2,"
+							MangaState.FINISHED -> "1,"
+							else -> "2,1"
+						},
+					)
+				}
+
+				return@buildString // end of buildString
+			}
+
 			append("https://")
 			append(domain)
 

@@ -15,7 +15,7 @@ internal class MangaLibParser(
 	context = context,
 	source = MangaParserSource.MANGALIB,
 	siteId = 1,
-	siteDomain = "mangalib.me",
+	siteDomains = arrayOf("mangalib.me"),
 ) {
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> = try {

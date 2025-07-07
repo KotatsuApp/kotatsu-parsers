@@ -25,8 +25,8 @@ import java.util.*
 internal abstract class LibSocialParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-	siteDomain: String,
 	protected val siteId: Int,
+	siteDomains: Array<String>,
 ) : LegacyPagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
 
 	protected val apiHost = "api.cdnlibs.org"
@@ -55,7 +55,7 @@ internal abstract class LibSocialParser(
 		SortOrder.ALPHABETICAL_DESC,
 	)
 
-	final override val configKeyDomain = ConfigKey.Domain(siteDomain)
+	final override val configKeyDomain = ConfigKey.Domain(*siteDomains)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
