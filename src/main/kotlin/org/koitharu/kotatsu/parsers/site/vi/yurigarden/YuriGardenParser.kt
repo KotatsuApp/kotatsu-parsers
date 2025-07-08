@@ -88,20 +88,18 @@ internal abstract class YuriGardenParser(
 				append(filter.query.urlEncoded())
 			}
 
-			if (filter.states.isNotEmpty()) {
-				filter.states.oneOrThrowIfMany()?.let {
-					append("&status=")
-					append(when (it) {
-						MangaState.ONGOING -> "ongoing"
-						MangaState.FINISHED -> "completed"
-						MangaState.PAUSED -> "hiatus"
-						MangaState.ABANDONED -> "cancelled"
-						else -> "all"
-					})
-				}
+			filter.states.oneOrThrowIfMany()?.let { state ->
+				append("&status=")
+				append(when (state) {
+					MangaState.ONGOING -> "ongoing"
+					MangaState.FINISHED -> "completed"
+					MangaState.PAUSED -> "hiatus"
+					MangaState.ABANDONED -> "cancelled"
+					else -> "all"
+				})
 			}
 
-            append("&full=true")
+            		append("&full=true")
                   
 			if (filter.tags.isNotEmpty()) {
 				append("&genre=")
