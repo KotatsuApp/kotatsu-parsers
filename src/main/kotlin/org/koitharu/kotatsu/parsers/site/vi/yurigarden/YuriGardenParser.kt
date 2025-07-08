@@ -101,7 +101,7 @@ internal abstract class YuriGardenParser(
 				}
 			}
 
-                  append("&full=true")
+            append("&full=true")
                   
 			if (filter.tags.isNotEmpty()) {
 				append("&genre=")
