@@ -41,11 +41,8 @@ internal abstract class YuriGardenParser(
 		.build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.RELEVANCE,
 		SortOrder.NEWEST,
 		SortOrder.NEWEST_ASC,
-		SortOrder.POPULARITY,
-		SortOrder.RATING,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -81,12 +78,9 @@ internal abstract class YuriGardenParser(
 
 			append("&sort=")
 			append(when (order) {
-				SortOrder.RELEVANCE -> "relevance"
 				SortOrder.NEWEST -> "newest"
 				SortOrder.NEWEST_ASC -> "oldest"
-				SortOrder.RATING -> "rating"
-				SortOrder.POPULARITY -> "popularity"
-				else -> "relevance"
+				else -> "newest" // default
 			})
 
 			if (!filter.query.isNullOrEmpty()) {
@@ -102,11 +96,13 @@ internal abstract class YuriGardenParser(
 						MangaState.FINISHED -> "completed"
 						MangaState.PAUSED -> "hiatus"
 						MangaState.ABANDONED -> "cancelled"
-						else -> ""
+						else -> "all"
 					})
 				}
 			}
 
+                  append("&full=true")
+                  
 			if (filter.tags.isNotEmpty()) {
 				append("&genre=")
 				append(filter.tags.joinToString(separator = ",") { it.key })
@@ -139,7 +135,7 @@ internal abstract class YuriGardenParser(
 				description = jo.getString("description"),
 				contentRating = if (jo.getBooleanOrDefault("r18", false)) ContentRating.ADULT else ContentRating.SUGGESTIVE,
 				source = source,
-				rating = jo.getFloatOrDefault("rating", -5f) / 5f,
+				rating = RATING_UNKNOWN,
 			)
 		}
 	}
@@ -184,7 +180,6 @@ internal abstract class YuriGardenParser(
 				"cancelled" -> MangaState.ABANDONED
 				else -> null
 			},
-			rating = json.getFloatOrDefault("rating", -5f) / 5f,
 			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
 				val chapterId = jo.getLong("id")
 				val pageUrls = jo.getJSONArray("pages").mapJSON { page ->
