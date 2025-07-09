@@ -94,7 +94,7 @@ internal abstract class YuriGardenParser(
 				})
 			}
 
-            		append("&full=true")
+			append("&full=true")
                   
 			if (filter.tags.isNotEmpty()) {
 				append("&genre=")
@@ -107,12 +107,13 @@ internal abstract class YuriGardenParser(
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
-                  val allTags = fetchTags().orEmpty()
-                  val tags = allTags.let { allTags ->
-                        jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
-                              allTags.find { x -> x.key == g }
-                        }
-                  }.orEmpty()
+			val allTags = fetchTags().orEmpty()
+			val tags = allTags.let { allTags ->
+				jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
+					allTags.find { x -> x.key == g }
+				}
+			}.orEmpty()
+			
 			Manga(
 				id = generateUid(id),
 				url = "/comics/$id",
@@ -141,7 +142,7 @@ internal abstract class YuriGardenParser(
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val url = "https://" + apiSuffix + manga.url
 		val json = webClient.httpGet(url).parseJson()
-            val id = json.getLong("id")
+		val id = json.getLong("id")
 
 		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
 			jo.getString("name")
@@ -156,10 +157,10 @@ internal abstract class YuriGardenParser(
 			}
 		}.orEmpty()
 
-            val chaptersDeferred = async {
-                val chapUrl = "https://" + apiSuffix + "/chapters/comic" + id
-                webClient.httpGet(chapUrl).parseJsonArray()
-            }
+		val chaptersDeferred = async {
+			val chapUrl = "https://" + apiSuffix + "/chapters/comic" + id
+			webClient.httpGet(chapUrl).parseJsonArray()
+		}
 
 		manga.copy(
 			title = json.getString("title"),
