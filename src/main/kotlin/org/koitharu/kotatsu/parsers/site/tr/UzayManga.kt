@@ -103,6 +103,7 @@ internal class UzayManga(context: MangaLoaderContext):
                     SortOrder.ALPHABETICAL_DESC -> "2"
                     SortOrder.NEWEST -> "3"
                     SortOrder.POPULARITY -> "4"
+					SortOrder.UPDATED, -> "5"
                     else -> "1"
                 }
             )
