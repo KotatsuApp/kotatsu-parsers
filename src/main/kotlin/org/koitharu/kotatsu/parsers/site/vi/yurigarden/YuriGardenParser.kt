@@ -29,12 +29,7 @@ internal abstract class YuriGardenParser(
 	override val configKeyDomain = ConfigKey.Domain(domain)
 	private val apiSuffix = "api.$domain"
 
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_MOBILE)
-
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("x-app-origin", "https://$domain")
@@ -107,22 +102,27 @@ internal abstract class YuriGardenParser(
 			}
 		}
 
-		val raw = webClient.httpGet(url).parseRaw()
-		val json = JSONObject(decryptIfNeeded(raw))
+		val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("comics")
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
+                  val allTags = fetchTags().orEmpty()
+                  val tags = allTags.let { allTags ->
+                        jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
+                              allTags.find { x -> x.key == g }
+                        }
+                  }.orEmpty()
 			Manga(
 				id = generateUid(id),
 				url = "/comics/$id",
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
-				altTitles = emptySet(),
+				altTitles = setOf(json.getString("anotherName")),
 				coverUrl = jo.getString("thumbnail"),
 				largeCoverUrl = jo.getString("thumbnail"),
 				authors = emptySet(),
-				tags = emptySet(),
+				tags = tags,
 				state = when(jo.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
@@ -140,12 +140,8 @@ internal abstract class YuriGardenParser(
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val url = "https://" + apiSuffix + manga.url
-		val chaptersDeferred = async {
-			val raw = webClient.httpGet("$url/chapters").parseRaw()
-			JSONArray(decryptIfNeeded(raw))
-		}
-		val raw = webClient.httpGet(url).parseRaw()
-		val json = JSONObject(decryptIfNeeded(raw))
+		val json = webClient.httpGet(url).parseJson()
+            val id = json.getLong("id")
 
 		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
 			jo.getString("name")
@@ -159,6 +155,11 @@ internal abstract class YuriGardenParser(
 				allTags.find { x -> x.key == g }
 			}
 		}.orEmpty()
+
+            val chaptersDeferred = async {
+                val chapUrl = "https://" + apiSuffix + "/chapters/comic" + id
+                webClient.httpGet(chapUrl).parseJsonArray()
+            }
 
 		manga.copy(
 			title = json.getString("title"),
@@ -179,16 +180,13 @@ internal abstract class YuriGardenParser(
 				else -> null
 			},
 			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
-				val chapterId = jo.getLong("id")
-				val pageUrls = jo.getJSONArray("pages").mapJSON { page ->
-					page.getString("url")
-				}
+                        val chapId = jo.getLong("id")
 				MangaChapter(
-					id = generateUid(chapterId),
+					id = generateUid(chapId),
 					title = jo.getString("name"),
-					number = jo.getString("order").toFloat(),
+					number = jo.getFloatOrDefault("order", 0f),
 					volume = 0,
-					url = pageUrls.joinToString("\n"),
+					url = "$chapId",
 					scanlator = team,
 					uploadDate = jo.getLong("lastUpdated"),
 					branch = null,
@@ -199,15 +197,20 @@ internal abstract class YuriGardenParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		return chapter.url.split("\n").mapIndexed { index, url ->
-			MangaPage(
-				id = generateUid(index.toLong()),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
-	}
+            val chapUrl = "https://" + apiSuffix + "/chapters" + chapter.url
+            val json = webClient.httpGet(chapUrl).parseJson()
+            val pages = json.getJSONArray("pages").asTypedList<JSONObject>()
+
+            return pages.mapIndexed { index, page ->
+                val pageUrl = page.getString("url")
+                MangaPage(
+                    id = generateUid(index.toLong()),
+                    url = pageUrl,
+                    preview = null,
+                    source = source,
+                )
+            }
+        }
 
 	private suspend fun fetchTags(): Set<MangaTag> {
 		val json = webClient.httpGet("https://$apiSuffix/resources/systems_vi.json").parseJson()
@@ -220,16 +223,5 @@ internal abstract class YuriGardenParser(
 				source = source,
 			)
 		}
-	}
-
-	private fun decryptIfNeeded(raw: String): String {
-		val json = raw.toJSONObjectOrNull() ?: return raw
-		if (json.optBoolean("encrypted", false)) {
-			val data = json.optString("data")
-			if (data.isNullOrEmpty()) return raw
-			val decrypted = CryptoAES(context).decrypt(data, "d7p3FBmASBpaWP")
-			return decrypted
-		}
-		return raw
 	}
 }
