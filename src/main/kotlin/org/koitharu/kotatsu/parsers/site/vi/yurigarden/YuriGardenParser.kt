@@ -139,8 +139,7 @@ internal abstract class YuriGardenParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-		val url = "https://" + apiSuffix + manga.url
-		val json = webClient.httpGet(url).parseJson()
+		val json = webClient.httpGet("https://$apiSuffix/${manga.url}").parseJson()
 		val id = json.getLong("id")
 
 		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
@@ -157,8 +156,7 @@ internal abstract class YuriGardenParser(
 		}.orEmpty()
 
 		val chaptersDeferred = async {
-			val chapUrl = "https://" + apiSuffix + "/chapters/comic" + id
-			webClient.httpGet(chapUrl).parseJsonArray()
+			webClient.httpGet("https://$apiSuffix/chapters/comic/$id").parseJsonArray()
 		}
 
 		manga.copy(
@@ -197,8 +195,7 @@ internal abstract class YuriGardenParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-            val chapUrl = "https://" + apiSuffix + "/chapters" + chapter.url
-            val json = webClient.httpGet(chapUrl).parseJson()
+            val json = webClient.httpGet("https://$apiSuffix/chapters/${chapter.url}").parseJson()
             val pages = json.getJSONArray("pages").asTypedList<JSONObject>()
 
             return pages.mapIndexed { index, page ->
