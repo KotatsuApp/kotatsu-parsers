@@ -118,7 +118,7 @@ internal abstract class YuriGardenParser(
 				url = "/comics/$id",
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
-				altTitles = setOf(json.getString("anotherName")),
+				altTitles = setOf(jo.getString("anotherName")),
 				coverUrl = jo.getString("thumbnail"),
 				largeCoverUrl = jo.getString("thumbnail"),
 				authors = emptySet(),
