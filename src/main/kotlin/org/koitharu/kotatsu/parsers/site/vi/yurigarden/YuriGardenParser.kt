@@ -29,10 +29,9 @@ internal abstract class YuriGardenParser(
 	override val configKeyDomain = ConfigKey.Domain(domain)
 	private val apiSuffix = "api.$domain"
 
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
-
 	override fun getRequestHeaders(): Headers = Headers.Builder()
 		.add("x-app-origin", "https://$domain")
+		.add("User-Agent", UserAgents.KOTATSU)
 		.build()
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
