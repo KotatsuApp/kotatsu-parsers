@@ -5,11 +5,11 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@MangaSourceParser("TEMPESTFANSUBNET", "TempestFansub.net", "tr")
+@MangaSourceParser("TEMPESTFANSUBNET", "tempestmangas.com", "tr")
 internal class TempestFansubNet(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
-		MangaParserSource.TEMPESTFANSUBNET,
+		MangaParserSource.TEMPESTFANSUB,
 		"tempestfansub.net",
 		pageSize = 30,
 		searchPageSize = 10,
