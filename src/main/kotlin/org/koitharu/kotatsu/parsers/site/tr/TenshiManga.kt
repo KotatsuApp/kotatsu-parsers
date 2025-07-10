@@ -11,24 +11,24 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("UZAYMANGA", "Uzay Manga", "tr")
-internal class UzayManga(context: MangaLoaderContext):
-    LegacyPagedMangaParser(context, MangaParserSource.UZAYMANGA, 25) {
+@MangaSourceParser("TENSHIMANGA", "Tenshi Manga", "tr")
+internal class TenshiManga(context: MangaLoaderContext):
+    LegacyPagedMangaParser(context, MangaParserSource.TENSHIMANGA, 25) {
 
-    override val configKeyDomain = ConfigKey.Domain("uzaymanga.com")
+    override val configKeyDomain = ConfigKey.Domain("tenshimanga.com")
     private val cdnSuffix = "cdn1.$domain"
 
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
+        super.onCreateConfig(keys)
+        keys.add(userAgentKey)
+    }
 
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(
         SortOrder.ALPHABETICAL,
         SortOrder.ALPHABETICAL_DESC,
         SortOrder.NEWEST,
         SortOrder.POPULARITY,
-		SortOrder.UPDATED,
+        SortOrder.UPDATED,
     )
 
     override val filterCapabilities: MangaListFilterCapabilities
@@ -52,10 +52,10 @@ internal class UzayManga(context: MangaLoaderContext):
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
         val url = buildString {
             append("https://")
-			append(domain)
+            append(domain)
             append("/search")
             append("?page=")
-			append(page.toString())
+            append(page.toString())
 
             if (!filter.query.isNullOrEmpty()) {
                 append("&search=")
@@ -64,38 +64,38 @@ internal class UzayManga(context: MangaLoaderContext):
 
             if (filter.tags.isNotEmpty()) {
                 append("&categories=")
-				filter.tags.joinTo(this, ",") { it.key }
-			}
+                filter.tags.joinTo(this, ",") { it.key }
+            }
 
             if (filter.states.isNotEmpty()) {
                 append("&publicStatus=")
-				filter.states.oneOrThrowIfMany()?.let {
-					append(
-						when (it) {
-							MangaState.ONGOING -> "1"
-							MangaState.FINISHED -> "2"
+                filter.states.oneOrThrowIfMany()?.let {
+                    append(
+                        when (it) {
+                            MangaState.ONGOING -> "1"
+                            MangaState.FINISHED -> "2"
                             MangaState.ABANDONED -> "3"
                             MangaState.PAUSED -> "4"
-							else -> ""
-						},
-					)
-				}
-			}
+                            else -> ""
+                        },
+                    )
+                }
+            }
 
             if (filter.types.isNotEmpty()) {
                 append("&country=")
-				filter.types.oneOrThrowIfMany()?.let {
-					append(
-						when (it) {
-							ContentType.MANHUA -> "1"
-							ContentType.MANHWA -> "2"
-							ContentType.MANGA -> "3"
-							ContentType.COMICS -> "4"
-							else -> ""
-						},
-					)
-				}
-			}
+                filter.types.oneOrThrowIfMany()?.let {
+                    append(
+                        when (it) {
+                            ContentType.MANHUA -> "1"
+                            ContentType.MANHWA -> "2"
+                            ContentType.MANGA -> "3"
+                            ContentType.COMICS -> "4"
+                            else -> ""
+                        },
+                    )
+                }
+            }
 
             append("&order=")
             append(
@@ -104,7 +104,7 @@ internal class UzayManga(context: MangaLoaderContext):
                     SortOrder.ALPHABETICAL_DESC -> "2"
                     SortOrder.NEWEST -> "3"
                     SortOrder.POPULARITY -> "4"
-					SortOrder.UPDATED -> "5"
+                    SortOrder.UPDATED, -> "5"
                     else -> "1"
                 }
             )

@@ -28,6 +28,7 @@ internal class ElderManga(context: MangaLoaderContext):
         SortOrder.ALPHABETICAL_DESC,
         SortOrder.NEWEST,
         SortOrder.POPULARITY,
+		SortOrder.UPDATED,
     )
 
     override val filterCapabilities: MangaListFilterCapabilities
@@ -103,6 +104,7 @@ internal class ElderManga(context: MangaLoaderContext):
                     SortOrder.ALPHABETICAL_DESC -> "2"
                     SortOrder.NEWEST -> "3"
                     SortOrder.POPULARITY -> "4"
+					SortOrder.UPDATED -> "5"
                     else -> "1"
                 }
             )
