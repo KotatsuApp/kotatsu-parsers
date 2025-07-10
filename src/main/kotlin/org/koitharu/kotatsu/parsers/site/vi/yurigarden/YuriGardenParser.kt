@@ -143,24 +143,26 @@ internal abstract class YuriGardenParser(
 		val id = json.getLong("id")
 		val team = json.optJSONArray("teams")?.getJSONObject(0)?.getString("name")
 		val chaptersDeferred = async {
-			webClient.httpGet("https://$apiSuffix/chapters/comic/$id").parseJsonArray()
+			webClient.httpGet("https://$apiSuffix/chapters/comic/${id}").parseJsonArray()
 		}
 
+        val chapters = chaptersDeferred.await().mapChapters() { _, jo ->
+            val chapId = jo.getLong("id")
+            MangaChapter(
+                id = generateUid(chapId),
+                title = jo.getString("name"),
+                number = jo.getFloatOrDefault("order", 0f),
+                volume = 0,
+                url = "${chapId}",
+                scanlator = team,
+                uploadDate = jo.getLong("lastUpdated"),
+                branch = null,
+                source = source
+            )
+        }
+
 		manga.copy(
-			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
-                        val chapId = jo.getLong("id")
-				MangaChapter(
-					id = generateUid(chapId),
-					title = jo.getString("name"),
-					number = jo.getFloatOrDefault("order", 0f),
-					volume = 0,
-					url = "$chapId",
-					scanlator = team,
-					uploadDate = jo.getLong("lastUpdated"),
-					branch = null,
-					source = source,
-				)
-			},
+			chapters = chapters
 		)
 	}
 
