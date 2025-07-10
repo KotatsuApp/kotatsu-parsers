@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 internal class TempestFansubNet(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
-		MangaParserSource.TEMPESTFANSUB,
+		MangaParserSource.TEMPESTFANSUBNET,
 		"tempestfansub.net",
 		pageSize = 30,
 		searchPageSize = 10,
