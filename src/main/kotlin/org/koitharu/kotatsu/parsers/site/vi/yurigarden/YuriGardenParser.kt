@@ -54,6 +54,7 @@ internal abstract class YuriGardenParser(
 				MangaState.FINISHED,
 				MangaState.ABANDONED,
 				MangaState.PAUSED,
+				MangaState.UPCOMING,
 			),
 		)
 	}
@@ -89,6 +90,7 @@ internal abstract class YuriGardenParser(
 					MangaState.FINISHED -> "completed"
 					MangaState.PAUSED -> "hiatus"
 					MangaState.ABANDONED -> "cancelled"
+					MangaState.UPCOMING -> "oncoming"
 					else -> "all"
 				})
 			}
@@ -128,6 +130,7 @@ internal abstract class YuriGardenParser(
 					"completed" -> MangaState.FINISHED
 					"hiatus" -> MangaState.PAUSED
 					"cancelled" -> MangaState.ABANDONED
+					"oncoming" -> MangaState.UPCOMING
 					else -> null
 				},
 				description = jo.getString("description"),
@@ -140,11 +143,18 @@ internal abstract class YuriGardenParser(
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val id = manga.url.substringAfter("/comics/")
+		val json = webClient.httpGet("https://$apiSuffix/comics/${id}").parseJson()
+
+		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
+			jo.getString("name")
+		}.orEmpty()
+
 		val chaptersDeferred = async {
 			webClient.httpGet("https://$apiSuffix/chapters/comic/${id}").parseJsonArray()
 		}
 
 		manga.copy(
+			authors = authors,
 			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
 				val chapId = jo.getLong("id")
 				MangaChapter(
