@@ -12,9 +12,7 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import org.koitharu.kotatsu.parsers.util.CryptoAES
 import org.json.JSONObject
-import org.json.JSONArray
 import java.util.*
 
 internal abstract class YuriGardenParser(
@@ -166,7 +164,7 @@ internal abstract class YuriGardenParser(
 					scanlator = null,
 					uploadDate = jo.getLong("lastUpdated"),
 					branch = null,
-					source = source
+					source = source,
 				)
 			}
 		)
