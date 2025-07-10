@@ -147,6 +147,8 @@ internal abstract class YuriGardenParser(
 			jo.getString("name")
 		}.orEmpty()
 
+		val team = json.optJSONArray("teams")?.getJSONObject(0)?.getString("name")
+
 		val chaptersDeferred = async {
 			webClient.httpGet("https://$apiSuffix/chapters/comic/${id}").parseJsonArray()
 		}
@@ -161,7 +163,7 @@ internal abstract class YuriGardenParser(
 					number = jo.getFloatOrDefault("order", 0f),
 					volume = 0,
 					url = "$chapId",
-					scanlator = null,
+					scanlator = team,
 					uploadDate = jo.getLong("lastUpdated"),
 					branch = null,
 					source = source,
