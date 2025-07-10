@@ -52,9 +52,9 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
-			append("https://api.")
+			append("https://")
 			append(domain)
-			append("/front/manga")
+			append("/api/front/manga")
 
 			when {
 				!filter.query.isNullOrEmpty() -> {
