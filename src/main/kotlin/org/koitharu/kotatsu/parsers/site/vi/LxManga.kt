@@ -148,9 +148,9 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-                val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
-                        timeZone = TimeZone.getTimeZone("GMT+7")
-                }
+        val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+        	timeZone = TimeZone.getTimeZone("GMT+7")
+        }
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
@@ -160,7 +160,7 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 				"Đã hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = root.selectFirst("div.mt-2:containsOwn(Thể loại) span")?.select("a.bg-gray-500")?.mapToSet { a ->
+			tags = root.selectFirst("div.mt-2:contains(Thể loại)")?.select("a.bg-gray-500")?.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),
