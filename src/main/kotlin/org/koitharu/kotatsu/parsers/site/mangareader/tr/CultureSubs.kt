@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
+@Broken
 @MangaSourceParser("CULTURESUBS", "CultureSubs", "tr")
 internal class CultureSubs(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.CULTURESUBS, "culturesubs.com", pageSize = 20, searchPageSize = 10) {
