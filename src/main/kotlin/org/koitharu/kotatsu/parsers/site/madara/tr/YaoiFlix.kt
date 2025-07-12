@@ -8,4 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("YAOIFLIX", "YaoiFlix", "tr", ContentType.HENTAI)
 internal class YaoiFlix(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.YAOIFLIX, "yaoiflix.kim", 16)
+	MadaraParser(context, MangaParserSource.YAOIFLIX, "yaoiflix.me", 16)
