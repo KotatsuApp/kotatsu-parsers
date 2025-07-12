@@ -6,7 +6,6 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken
 @MangaSourceParser("ATIKROST", "Atikrost", "tr")
 internal class Atikrost(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.ATIKROST, "www.mangaoku.org", 10) {
