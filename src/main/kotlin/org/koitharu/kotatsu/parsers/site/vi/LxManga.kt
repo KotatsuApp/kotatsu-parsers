@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
@@ -147,6 +148,9 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+        val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+			timeZone = TimeZone.getTimeZone("GMT+7")
+		}
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
@@ -156,13 +160,13 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 				"Đã hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = root.select("div.mt-2:contains(Thể loại) a.bg-gray-500").mapToSet { a ->
+			tags = root.selectFirst("div.mt-2:containsOwn(Thể loại) span")?.select("a.bg-gray-500")?.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)
-			},
+			} ?: emptySet(),
 			authors = setOfNotNull(author),
 			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
@@ -179,7 +183,7 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 						volume = 0,
 						url = href,
 						scanlator = scanlator,
-						uploadDate = parseDateTime(dateText),
+						uploadDate = chapterDateFormat.tryParse(dateText),
 						branch = null,
 						source = source,
 					)
@@ -221,21 +225,4 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 			)
 		}.toSet()
 	}
-
-	private fun parseDateTime(dateStr: String): Long = runCatching {
-		val parts = dateStr.split(' ')
-		val dateParts = parts[0].split('-')
-		val timeParts = parts[1].split(':')
-
-		val calendar = Calendar.getInstance()
-		calendar.set(
-			dateParts[0].toInt(),
-			dateParts[1].toInt() - 1,
-			dateParts[2].toInt(),
-			timeParts[0].toInt(),
-			timeParts[1].toInt(),
-			timeParts[2].toInt(),
-		)
-		calendar.timeInMillis
-	}.getOrDefault(0L)
 }
