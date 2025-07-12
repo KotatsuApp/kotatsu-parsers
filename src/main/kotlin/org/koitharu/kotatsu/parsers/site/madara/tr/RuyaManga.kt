@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
+@Broken
 @MangaSourceParser("RUYAMANGA", "RuyaManga", "tr")
 internal class RuyaManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.RUYAMANGA, "ruyamanga.net", 18) {
