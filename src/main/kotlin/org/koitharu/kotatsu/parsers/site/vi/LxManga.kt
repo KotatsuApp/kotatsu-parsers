@@ -148,9 +148,9 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-            val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
-		      timeZone = TimeZone.getTimeZone("GMT+7")
-            }
+                val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+                        timeZone = TimeZone.getTimeZone("GMT+7")
+                }
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
