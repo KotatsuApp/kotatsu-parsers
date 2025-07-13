@@ -112,7 +112,7 @@ internal class XxxRevolutionScantrad(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst(".chapternum")?.text() ?: "Chapter ${index + 1}",
+				title = element.selectFirst(".chapternum")?.textOrNull(),
 				url = "$urlStart/$url",
 				number = index + 1f,
 				volume = 0,

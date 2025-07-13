@@ -134,7 +134,7 @@ internal abstract class CupFoxParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(selectMangaDescription)?.html(),
 			chapters = doc.select(selectMangaChapters)
 				.mapChapters { i, li ->
@@ -142,7 +142,7 @@ internal abstract class CupFoxParser(
 					val href = a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = a.text(),
+						title = a.text(),
 						number = i + 1f,
 						volume = 0,
 						url = href,

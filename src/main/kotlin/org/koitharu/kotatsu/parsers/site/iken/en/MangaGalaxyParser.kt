@@ -9,6 +9,4 @@ import org.koitharu.kotatsu.parsers.site.iken.IkenParser
 @Broken // Redirect to @VORTEXSCANS
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
 internal class MangaGalaxyParser(context: MangaLoaderContext) :
-	IkenParser(context, MangaParserSource.MANGAGALAXY, "vortexscans.org") {
-	override val selectPages = "main section img"
-}
+	IkenParser(context, MangaParserSource.MANGAGALAXY, "vortexscans.org", 18)

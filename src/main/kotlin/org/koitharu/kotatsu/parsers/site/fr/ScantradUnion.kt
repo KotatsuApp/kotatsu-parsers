@@ -138,7 +138,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("p.sContent")?.html(),
 			chapters = root.select("div.chapter-list li")
 				.mapChapters(reversed = true) { i, li ->
@@ -155,7 +155,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 					val date = li.select(".name-chapter").first()?.children()?.elementAt(2)?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

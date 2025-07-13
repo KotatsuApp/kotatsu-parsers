@@ -6,12 +6,13 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("LXMANGA", "LXManga", "vi", type = ContentType.HENTAI)
 internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("lxmanga.cloud")
+	override val configKeyDomain = ConfigKey.Domain("lxmanga.blog")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -147,23 +148,29 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+        val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+        	timeZone = TimeZone.getTimeZone("GMT+7")
+        }
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
+		val altTitles = root.selectFirst("div.grow div:contains(Tên khác)")
+			?.select("span a")?.mapToSet { it.text() }
+			?: emptySet()
 
 		return manga.copy(
-			altTitles = setOfNotNull(root.selectLast("div.grow div:contains(Tên khác) span")?.textOrNull()),
+			altTitles = altTitles,
 			state = when (root.selectFirst("div.mt-2:contains(Tình trạng) span.text-blue-500")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Đã hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			tags = root.select("div.mt-2:contains(Thể loại) a.bg-gray-500").mapToSet { a ->
+			tags = root.selectFirst("div.mt-2:contains(Thể loại)")?.select("a.bg-gray-500")?.mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
 					title = a.text(),
 					source = source,
 				)
-			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			} ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
 				.mapChapters(reversed = true) { i, a ->
@@ -174,12 +181,12 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
-						number = i.toFloat(),
+						title = name,
+						number = (i + 1).toFloat(),
 						volume = 0,
 						url = href,
 						scanlator = scanlator,
-						uploadDate = parseDateTime(dateText),
+						uploadDate = chapterDateFormat.tryParse(dateText),
 						branch = null,
 						source = source,
 					)
@@ -221,21 +228,4 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 			)
 		}.toSet()
 	}
-
-	private fun parseDateTime(dateStr: String): Long = runCatching {
-		val parts = dateStr.split(' ')
-		val dateParts = parts[0].split('-')
-		val timeParts = parts[1].split(':')
-
-		val calendar = Calendar.getInstance()
-		calendar.set(
-			dateParts[0].toInt(),
-			dateParts[1].toInt() - 1,
-			dateParts[2].toInt(),
-			timeParts[0].toInt(),
-			timeParts[1].toInt(),
-			timeParts[2].toInt(),
-		)
-		calendar.timeInMillis
-	}.getOrDefault(0L)
 }

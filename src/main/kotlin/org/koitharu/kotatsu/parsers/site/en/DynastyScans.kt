@@ -179,7 +179,7 @@ internal class DynastyScans(context: MangaLoaderContext) :
 			val dateText = li.select("small").last()?.text()?.replace("released ", "")?.replace("'", "")
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

@@ -175,7 +175,7 @@ internal abstract class OtakuSanctuaryParser(
 			},
 			description = desc,
 			altTitles = setOfNotNull(alt),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = doc.body().requireElementById("chapter").select("tr.chapter")
 				.mapChapters(reversed = true) { i, tr ->
@@ -185,7 +185,7 @@ internal abstract class OtakuSanctuaryParser(
 					val name = a.text()
 					MangaChapter(
 						id = generateUid(url),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = url,

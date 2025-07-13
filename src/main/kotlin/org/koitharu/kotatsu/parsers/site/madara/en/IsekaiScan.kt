@@ -93,7 +93,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 						source = source,
 					)
 				}.orEmpty(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
 					?.lowercase()) {
 					"ongoing" -> MangaState.ONGOING
@@ -122,7 +122,7 @@ internal class IsekaiScan(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = a.ownText(),
+				title = a.ownText(),
 				number = i + 1f,
 				volume = 0,
 				branch = null,

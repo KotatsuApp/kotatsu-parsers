@@ -191,7 +191,7 @@ internal class FlixScans(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(url),
 				url = url,
-				name = j.getString("slug").replace('-', ' '),
+				title = j.getString("slug").replace('-', ' '),
 				number = i + 1f,
 				volume = 0,
 				branch = null,

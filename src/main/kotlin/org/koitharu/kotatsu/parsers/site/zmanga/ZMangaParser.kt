@@ -234,7 +234,7 @@ internal abstract class ZMangaParser(
 			},
 			description = desc,
 			altTitles = setOfNotNull(alt),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 			contentRating = if (doc.getElementById("adt-warning") != null) {
@@ -257,7 +257,7 @@ internal abstract class ZMangaParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow(".flexch-infoz span:not(.date)").text(),
+				title = li.selectFirstOrThrow(".flexch-infoz span:not(.date)").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

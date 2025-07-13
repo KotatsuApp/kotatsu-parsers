@@ -31,7 +31,7 @@ internal class ToonFr(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				url = href,
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				branch = null,

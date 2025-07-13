@@ -66,7 +66,7 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 					val href = a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(href),
-						name = a.selectFirst("span")?.text() ?: "Capítulo ${i + 1f}",
+						title = a.selectFirst("span")?.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = href,

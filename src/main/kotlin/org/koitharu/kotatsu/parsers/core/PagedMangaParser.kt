@@ -43,6 +43,11 @@ public abstract class PagedMangaParser(
 
 	public abstract suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga>
 
+	protected fun setFirstPage(firstPage: Int, firstPageForSearch: Int = firstPage) {
+		paginator.firstPage = firstPage
+		searchPaginator.firstPage = firstPageForSearch
+	}
+
 	private suspend fun searchManga(
 		paginator: Paginator,
 		query: MangaSearchQuery,

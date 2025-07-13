@@ -72,7 +72,7 @@ internal class SadScans(context: MangaLoaderContext) :
 				else -> null
 			},
 			tags = emptySet(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirstOrThrow(".summary").html(),
 			chapters = doc.select(".chap-section .chap")
 				.mapChapters(reversed = true) { i, div ->
@@ -80,7 +80,7 @@ internal class SadScans(context: MangaLoaderContext) :
 					val url = "/" + a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
-						name = a.text(),
+						title = a.text(),
 						number = i + 1f,
 						volume = 0,
 						url = url,

@@ -182,15 +182,13 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 		val alt = comic.getJSONArray("md_titles").asTypedList<JSONObject>().mapNotNullToSet {
 			it.getStringOrNull("title")
 		}
-		val author = jo.getJSONArray("artists").optJSONObject(0)?.getStringOrNull("name")
+		val authors = jo.getJSONArray("artists").mapJSONNotNullToSet { it.getStringOrNull("name") }
 		return manga.copy(
 			altTitles = alt,
-			contentRating = if (jo.getBooleanOrDefault("matureContent", false)
-				|| comic.getBooleanOrDefault("hentai", false)
-			) {
-				ContentRating.ADULT
-			} else {
-				ContentRating.SAFE
+			contentRating = when {
+				comic.getBooleanOrDefault("hentai", false) -> ContentRating.ADULT
+				jo.getBooleanOrDefault("matureContent", false) -> ContentRating.SUGGESTIVE
+				else -> ContentRating.SAFE
 			},
 			description = comic.getStringOrNull("parsed") ?: comic.getStringOrNull("desc"),
 			tags = manga.tags + comic.getJSONArray("md_comic_md_genres").mapJSONToSet {
@@ -201,7 +199,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = authors,
 			chapters = getChapters(comic.getString("hid")),
 		)
 	}
@@ -226,13 +224,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			}
 			MangaChapter(
 				id = generateUid(jo.getLong("id")),
-				name = buildString {
-					if (vol > 0) {
-						append("Vol ").append(vol).append(' ')
-					}
-					append("Chap ").append(chap.formatSimple())
-					jo.getStringOrNull("title")?.let { append(": ").append(it) }
-				},
+				title = jo.getStringOrNull("title"),
 				number = chap,
 				volume = vol,
 				url = jo.getString("hid"),

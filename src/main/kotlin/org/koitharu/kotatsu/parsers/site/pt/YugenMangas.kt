@@ -108,7 +108,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 			description = detailManga.getString("synopsis"),
 			coverUrl = detailManga.getString("cover"),
 			altTitles = setOfNotNull(detailManga.getStringOrNull("alternative_names")),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = detailManga.getStringOrNull("status")?.let {
 				when (it) {
 					"ongoing" -> MangaState.ONGOING
@@ -121,7 +121,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 				val url = "https://api.$domain/api/serie/${manga.url}/chapter/${j.getString("slug")}/images/imgs/get/"
 				MangaChapter(
 					id = generateUid(url),
-					name = j.getString("name"),
+					title = j.getString("name"),
 					number = j.getString("name").removePrefix("Capítulo ").toFloat(),
 					volume = 0,
 					url = url,
@@ -133,7 +133,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 					branch = null,
 					source = source,
 				)
-			}.sortedBy { it.name },
+			}.sortedBy { it.title },
 		)
 	}
 

@@ -105,7 +105,7 @@ internal class FuryoSociety(context: MangaLoaderContext) :
 			val dateText = div.selectFirst("div.meta_r")?.text()?.replace("Hier", "1 jour")
 			MangaChapter(
 				id = generateUid(href),
-				name = div.selectFirst("div.title")?.text() + " : " + div.selectFirst("div.name")?.text(),
+				title = div.selectFirst("div.title")?.text() + " : " + div.selectFirst("div.name")?.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

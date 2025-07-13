@@ -12,7 +12,7 @@ internal class MonzeeKomik(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.MONZEEKOMIK,
-		"www.monzeekomik.my.id",
+		"monzee01.my.id",
 		pageSize = 30,
 		searchPageSize = 10,
 	) {

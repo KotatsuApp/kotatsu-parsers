@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("KOMIKCAST", "KomikCast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast.bz", pageSize = 60, searchPageSize = 28) {
+	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast02.com", pageSize = 60, searchPageSize = 28) {
 
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
@@ -88,7 +88,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 			val url = element.selectFirst("a.chapter-link-item")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst("a.chapter-link-item")?.ownText().orEmpty(),
+				title = element.selectFirst("a.chapter-link-item")?.ownTextOrNull(),
 				url = url,
 				number = index + 1f,
 				volume = 0,
@@ -123,7 +123,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 		return manga.copy(
 			description = docs.selectFirst("div.komik_info-description-sinopsis")?.text(),
 			state = mangaState,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

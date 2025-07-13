@@ -26,6 +26,10 @@ internal abstract class WpComicsParser(
 	pageSize: Int = 48,
 ) : LegacyPagedMangaParser(context, source, pageSize) {
 
+	companion object {
+		const val netDomain = "nettruyen1975.com"
+	}
+
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -141,6 +145,8 @@ internal abstract class WpComicsParser(
 		return parseMangaList(response.parseHtml(), tagMap)
 	}
 
+	protected open val coverDiv = "div.image a img"
+
 	protected open fun parseMangaList(doc: Document, tagMap: ArrayMap<String, MangaTag>): List<Manga> {
 		return doc.select("div.items div.item").mapNotNull { item ->
 			val tooltipElement = item.selectFirst("div.box_tootip")
@@ -164,11 +170,11 @@ internal abstract class WpComicsParser(
 				publicUrl = absUrl,
 				rating = RATING_UNKNOWN,
 				contentRating = null,
-				coverUrl = item.selectFirst("div.image a img")?.findImageUrl().orEmpty(),
+				coverUrl = item.selectFirst(coverDiv)?.findImageUrl().orEmpty(),
 				largeCoverUrl = null,
 				tags = mangaTags,
 				state = mangaState,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				description = tooltipElement?.selectFirst("div.box_text")?.text(),
 				chapters = null,
 				source = source,
@@ -220,7 +226,7 @@ internal abstract class WpComicsParser(
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
@@ -250,7 +256,7 @@ internal abstract class WpComicsParser(
 			}
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

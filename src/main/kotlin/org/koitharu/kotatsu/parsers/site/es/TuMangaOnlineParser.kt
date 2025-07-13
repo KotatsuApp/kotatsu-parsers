@@ -187,7 +187,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 			},
 			largeCoverUrl = contents.selectFirst(".book-thumbnail")?.attrAsAbsoluteUrlOrNull("src"),
 			state = parseStatus(contents.select("span.book-status").text().orEmpty()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = if (doc.select("div.chapters").isEmpty()) {
 				doc.select(oneShotChapterListSelector).mapChapters(reversed = true) { _, item ->
 					oneShotChapterFromElement(item)
@@ -210,7 +210,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
-			name = "One Shot",
+			title = "One Shot",
 			number = 1f,
 			volume = 0,
 			url = href,
@@ -227,7 +227,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : LegacyPagedMan
 		val href = element.selectFirstOrThrow("div.row > .text-right > a").attrAsRelativeUrl("href")
 		return MangaChapter(
 			id = generateUid(href),
-			name = chName,
+			title = chName,
 			number = number + 1f,
 			volume = 0,
 			url = href,

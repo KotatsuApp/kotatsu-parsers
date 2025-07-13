@@ -84,3 +84,9 @@ src/test/resources/cookies.txt
 local.properties
 .kotlin/
 !/.idea/kotlin-statistics.xml
+
+.idea/**/discord.xml
+.idea/**/migrations.xml
+.idea/**/runConfigurations.xml
+.idea/**/AndroidProjectSystem.xml
+.idea/caches/deviceStreaming.xml

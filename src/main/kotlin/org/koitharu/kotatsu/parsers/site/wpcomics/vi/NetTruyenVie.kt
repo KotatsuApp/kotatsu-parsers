@@ -7,11 +7,12 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("NETTRUYENVIE", "NetTruyenVie", "vi")
 internal class NetTruyenVie(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYENVIE, "nettruyenvie.com", 36) {
+	WpComicsParser(context, MangaParserSource.NETTRUYENVIE, "nettruyenvio.com", 36) {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
@@ -25,7 +26,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst("div.detail-content > div")?.html(),
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
@@ -52,7 +53,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 
 			MangaChapter(
 				id = generateUid(chapterUrl),
-				name = jo.getString("chapter_name"),
+				title = jo.getStringOrNull("chapter_name"),
 				number = i + 1f,
 				volume = 0,
 				url = chapterUrl,

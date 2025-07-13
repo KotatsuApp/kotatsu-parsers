@@ -121,7 +121,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 				altTitles = emptySet(),
 				rating = li.selectFirst("p.score")?.selectFirst("b")
 					?.ownText()?.toFloatOrNull()?.div(5f) ?: RATING_UNKNOWN,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (status) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
@@ -176,7 +176,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 						dateFormat,
 						li.selectFirst("span.time")?.text(),
 					),
-					name = name.ifEmpty { "${manga.title} - ${i + 1}" },
+					title = name.nullIfEmpty(),
 					scanlator = null,
 					branch = null,
 				)
@@ -273,7 +273,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 					dateFormat,
 					li.selectFirst("span.time")?.text(),
 				),
-				name = name.ifEmpty { "${manga.title} - ${i + 1}" },
+				title = name.nullIfEmpty(),
 				scanlator = null,
 				branch = null,
 			)

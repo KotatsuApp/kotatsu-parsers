@@ -102,7 +102,7 @@ internal abstract class LineWebtoonsParser(
 		return episodes.mapChapters { i, jo ->
 			MangaChapter(
 				id = generateUid("$titleNo-$i"),
-				name = jo.getString("episodeTitle"),
+				title = jo.getStringOrNull("episodeTitle"),
 				number = jo.getInt("episodeSeq").toFloat(),
 				volume = 0,
 				url = "$titleNo-${jo.get("episodeNo")}",
@@ -134,7 +134,7 @@ internal abstract class LineWebtoonsParser(
 					coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 					largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
 					tags = setOf(parseTag(jo.getJSONObject("genreInfo"))),
-					authors = author?.let { setOf(it) } ?: emptySet(),
+					authors = setOfNotNull(author),
 					description = jo.getString("synopsis"),
 					// I don't think the API provides this info
 					state = null,
@@ -165,7 +165,7 @@ internal abstract class LineWebtoonsParser(
 							coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 							largeCoverUrl = null,
 							tags = emptySet(),
-							authors = author?.let { setOf(it) } ?: emptySet(),
+							authors = setOfNotNull(author),
 							description = null,
 							state = null,
 							source = source,
@@ -211,7 +211,7 @@ internal abstract class LineWebtoonsParser(
 							coverUrl = jo.getString("thumbnail").toAbsoluteUrl(staticDomain),
 							largeCoverUrl = jo.getStringOrNull("thumbnailVertical")?.toAbsoluteUrl(staticDomain),
 							tags = setOfNotNull(genres[jo.getString("representGenre")]),
-							authors = author?.let { setOf(it) } ?: emptySet(),
+							authors = setOfNotNull(author),
 							description = jo.getString("synopsis"),
 							// I don't think the API provides this info
 							state = null,

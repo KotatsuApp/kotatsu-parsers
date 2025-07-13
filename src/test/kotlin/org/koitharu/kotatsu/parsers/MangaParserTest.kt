@@ -154,7 +154,7 @@ internal class MangaParserTest {
 		val parser = context.newParserInstance(source)
 		val list = parser.getList(MangaSearchQuery.EMPTY)
 
-		val manga = list[0]
+		val manga = list.random()
 		parser.getDetails(manga).apply {
 			assert(!chapters.isNullOrEmpty()) { "Chapters are null or empty" }
 			assert(publicUrl.isUrlAbsolute()) { "Manga public url is not absolute: '$publicUrl'" }

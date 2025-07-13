@@ -181,7 +181,7 @@ internal abstract class MangaReaderParser(
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst(".chapternum")?.text() ?: "Chapter ${index + 1}",
+				title = element.selectFirst(".chapternum")?.textOrNull(),
 				url = url,
 				number = index + 1f,
 				volume = 0,
@@ -275,7 +275,7 @@ internal abstract class MangaReaderParser(
 		return manga.copy(
 			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

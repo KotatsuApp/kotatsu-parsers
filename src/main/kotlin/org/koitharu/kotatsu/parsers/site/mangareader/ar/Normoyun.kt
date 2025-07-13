@@ -81,7 +81,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst("a")?.text() ?: "Chapter ${index + 1}",
+				title = element.selectFirst("a")?.textOrNull(),
 				url = url,
 				number = index + 1f,
 				volume = 0,
@@ -110,7 +110,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 		return manga.copy(
 			description = docs.selectFirst("span.desc")?.html(),
 			state = mangaState,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = if (manga.isNsfw || nsfw) {
 				ContentRating.ADULT
 			} else {

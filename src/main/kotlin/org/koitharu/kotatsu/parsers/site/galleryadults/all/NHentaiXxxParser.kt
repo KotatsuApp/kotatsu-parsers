@@ -14,6 +14,9 @@ import java.util.*
 @MangaSourceParser("NHENTAI_XXX", "NHentai.xxx", type = ContentType.HENTAI)
 internal class NHentaiXxxParser(context: MangaLoaderContext) :
 	GalleryAdultsParser(context, MangaParserSource.NHENTAI_XXX, "nhentai.xxx", 25) {
+
+	val supportedImageFormats = setOf("jpg", "webp", "jpeg", "png", "bmp")
+
 	override val selectGallery = "div.galleries_box .gallery_item, #related-container .gallery_item"
 	override val selectGalleryLink = "a"
 	override val selectGalleryTitle = ".caption"
@@ -110,10 +113,51 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 		}
 	}
 
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val totalPages = doc.selectFirstOrThrow(selectTotalPage).text().toInt()
+		val firstPageUrl = doc.requireElementById(idImg).requireSrc()
+		return (1..totalPages).map {
+			val url = replacePageNumber(firstPageUrl, it)
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
 	override suspend fun getPageUrl(page: MangaPage): String {
-		val doc = webClient.httpGet(page.url.toAbsoluteUrl(domain)).parseHtml()
-		val root = doc.body()
-		return root.requireElementById(idImg).requireSrc()
+		return if (hasError(page.url)) {
+			findAlternativeUrl(page.url) ?: page.url
+		} else {
+			page.url
+		}
+	}
+
+	private suspend fun hasError(url: String): Boolean {
+		return try {
+			webClient.httpHead(url)
+			false
+		} catch (e: Exception) {
+			true
+		}
+	}
+
+	private suspend fun findAlternativeUrl(originalUrl: String): String? {
+		val lastSegment = originalUrl.substringAfterLast("/")
+		val oldFormat = lastSegment.substringAfterLast(".", "")
+
+		return supportedImageFormats.firstNotNullOfOrNull { format ->
+			val newUrl = originalUrl.replace(".$oldFormat", ".$format")
+			try {
+				webClient.httpHead(newUrl)
+				newUrl
+			} catch (e: Exception) {
+				null // Skip errors and continue checking other formats
+			}
+		}
 	}
 
 	override fun Element.parseTags() = select("a").mapToSet {
@@ -124,5 +168,16 @@ internal class NHentaiXxxParser(context: MangaLoaderContext) :
 			title = name.toTitleCase(sourceLocale),
 			source = source,
 		)
+	}
+
+	private fun replacePageNumber(url: String, newPageNumber: Int): String {
+		val lastSegment = url.substringAfterLast("/")
+		val extension = lastSegment.substringAfterLast(".", "")
+
+		return if (extension.isNotEmpty()) {
+			url.substringBeforeLast("/") + "/$newPageNumber.$extension"
+		} else {
+			url.substringBeforeLast("/") + "/$newPageNumber"
+		}
 	}
 }

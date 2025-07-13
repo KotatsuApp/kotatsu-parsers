@@ -270,7 +270,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			altTitles = setOf(name),
 			coverUrl = cover.first,
 			largeCoverUrl = cover.second,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			contentRating = ContentRating.ADULT,
 			tags = tags?.mapToSet {
 				MangaTag(
@@ -284,7 +284,7 @@ internal class NineNineNineHentaiParser(context: MangaLoaderContext) :
 			chapters = listOf(
 				MangaChapter(
 					id = generateUid(id),
-					name = name,
+					title = name,
 					number = 1f,
 					volume = 0,
 					url = id,

@@ -106,7 +106,7 @@ internal class LireScan(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 						source = source,
 					)
 				},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("div.pmovie__text")?.html(),
 			chapters = root.select("ul li div.chapter")
 				.mapChapters(reversed = true) { i, div ->
@@ -116,7 +116,7 @@ internal class LireScan(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 					val dateText = div.select("p").last()?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,

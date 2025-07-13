@@ -30,8 +30,8 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 	override val authUrl: String
 		get() = "https://$domain"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "access_token" }
+	override suspend fun isAuthorized(): Boolean =
+		context.cookieJar.getCookies(domain).any { it.name == "access_token" }
 
 	override suspend fun getUsername(): String {
 		return webClient.httpGet("https://$domain/users/me/profiles")
@@ -180,11 +180,15 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 				.toHttpUrl()
 				.pathSegments[1]
 			val author = document.select("div:contains(author) a").eachText().joinToString().nullIfEmpty()
+			val title =
+				element.selectFirst("div.text-ellipsis.truncate.text-white.text-center.text-lg.z-20.w-\\[90\\%\\]")
+					?.text()
+					?: "No name"
 			Manga(
 				id = generateUid(mangaId),
 				url = mangaId,
 				publicUrl = "https://$domain/series/$mangaId",
-				title = element.selectFirstOrThrow("abbr[title] > a").text(),
+				title = title,
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				contentRating = if (element.selectFirst("svg:has(style:containsData(ff0000))") == null) {
@@ -211,7 +215,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 					"Hiatus" -> PAUSED
 					else -> null
 				},
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				largeCoverUrl = null,
 				chapters = null,
 				source = source,
@@ -303,7 +307,7 @@ internal class WeebCentral(context: MangaLoaderContext) : LegacyMangaParser(cont
 			MangaChapter(
 				id = generateUid(chapterId),
 				url = chapterId,
-				name = name,
+				title = name,
 				number = Regex("""(?<!S)\b(\d+(\.\d+)?)\b""").find(name)
 					?.groupValues?.get(1)?.toFloatOrNull()
 					?: i.toFloat(),

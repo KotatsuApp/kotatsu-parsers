@@ -1,8 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.all
 
 import androidx.collection.ArraySet
-import androidx.collection.SparseArrayCompat
-import androidx.collection.set
+import androidx.collection.MutableIntLongMap
+import androidx.collection.MutableIntObjectMap
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -13,6 +13,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
@@ -36,18 +37,23 @@ internal class ExHentaiParser(
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain(
-			if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED,
-			if (isAuthorized) DOMAIN_UNAUTHORIZED else DOMAIN_AUTHORIZED,
-		)
+		get() {
+			val isAuthorized = checkAuth()
+			return ConfigKey.Domain(
+				if (isAuthorized) DOMAIN_AUTHORIZED else DOMAIN_UNAUTHORIZED,
+				if (isAuthorized) DOMAIN_UNAUTHORIZED else DOMAIN_AUTHORIZED,
+			)
+		}
 
 	override val authUrl: String
 		get() = "https://${domain}/bounce_login.php"
 
 	private val ratingPattern = Regex("-?[0-9]+px")
+	private val titleCleanupPattern = Regex("(\\[.*?]|\\([C0-9]*\\))")
+	private val spacesCleanupPattern = Regex("(^\\s+|\\s+\$|\\s+(?=\\s))")
 	private val authCookies = arrayOf("ipb_member_id", "ipb_pass_hash")
-	private val nextPages = SparseArrayCompat<Long>()
 	private val suspiciousContentKey = ConfigKey.ShowSuspiciousContent(false)
+	private val nextPages = MutableIntObjectMap<MutableIntLongMap>()
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -58,22 +64,7 @@ internal class ExHentaiParser(
 			isAuthorSearchSupported = true,
 		)
 
-	override val isAuthorized: Boolean
-		get() {
-			val authorized = isAuthorized(DOMAIN_UNAUTHORIZED)
-			if (authorized) {
-				if (!isAuthorized(DOMAIN_AUTHORIZED)) {
-					context.cookieJar.copyCookies(
-						DOMAIN_UNAUTHORIZED,
-						DOMAIN_AUTHORIZED,
-						authCookies,
-					)
-					context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
-				}
-				return true
-			}
-			return false
-		}
+	override suspend fun isAuthorized(): Boolean = checkAuth()
 
 	init {
 		context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "nw=1", "sl=dm_2")
@@ -122,7 +113,9 @@ internal class ExHentaiParser(
 		filter: MangaListFilter,
 		updateDm: Boolean,
 	): List<Manga> {
-		val next = nextPages.get(page, 0L)
+		val next = synchronized(nextPages) {
+			nextPages[filter.hashCode()]?.getOrDefault(page, 0L) ?: 0L
+		}
 
 		if (page > 0 && next == 0L) {
 			assert(false) { "Page timestamp not found" }
@@ -158,7 +151,12 @@ internal class ExHentaiParser(
 				return getListPage(page, order, filter, updateDm = true)
 			}
 		}
-		nextPages[page + 1] = getNextTimestamp(body)
+		val nextTimestamp = getNextTimestamp(body)
+		synchronized(nextPages) {
+			nextPages.getOrPut(filter.hashCode()) {
+				MutableIntLongMap()
+			}.put(page + 1, nextTimestamp)
+		}
 
 		return root.children().mapNotNull { tr ->
 			if (tr.childrenSize() != 2) return@mapNotNull null
@@ -184,7 +182,7 @@ internal class ExHentaiParser(
 					rawTitle.contains("(ongoing)", ignoreCase = true) -> MangaState.ONGOING
 					else -> null
 				},
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				source = source,
 			)
 		}
@@ -235,7 +233,7 @@ internal class ExHentaiParser(
 					val url = "${manga.url}?p=${i - 1}"
 					chapters += MangaChapter(
 						id = generateUid(url),
-						name = "${manga.title} #$i",
+						title = null,
 						number = i.toFloat(),
 						volume = 0,
 						url = url,
@@ -258,7 +256,7 @@ internal class ExHentaiParser(
 			MangaPage(
 				id = generateUid(url),
 				url = url,
-				preview = null,
+				preview = a.children().firstOrNull()?.extractPreview(),
 				source = source,
 			)
 		}
@@ -304,7 +302,7 @@ internal class ExHentaiParser(
 	override fun intercept(chain: Interceptor.Chain): Response {
 		val response = chain.proceed(chain.request())
 		if (response.headersContentLength() <= 256) {
-			val text = response.peekBody(256).string()
+			val text = response.peekBody(256).use { it.string() }
 			if (text.contains("IP address has been temporarily banned", ignoreCase = true)) {
 				val hours = Regex("([0-9]+) hours?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
 				val minutes = Regex("([0-9]+) minutes?").find(text)?.groupValues?.getOrNull(1)?.toLongOrNull() ?: 0
@@ -316,6 +314,22 @@ internal class ExHentaiParser(
 						+ TimeUnit.MINUTES.toMillis(minutes)
 						+ TimeUnit.SECONDS.toMillis(seconds),
 				)
+			}
+		}
+		val imageRect = response.request.url.fragment?.split(',')
+		if (imageRect != null && imageRect.size == 4) {
+			// rect: top,left,right,bottom
+			return context.redrawImageResponse(response) { bitmap ->
+				val srcRect = Rect(
+					left = imageRect[0].toInt(),
+					top = imageRect[1].toInt(),
+					right = imageRect[2].toInt(),
+					bottom = imageRect[3].toInt(),
+				)
+				val dstRect = Rect(0, 0, srcRect.width, srcRect.height)
+				val result = context.createBitmap(dstRect.width, dstRect.height)
+				result.drawBitmap(bitmap, srcRect, dstRect)
+				result
 			}
 		}
 		return response
@@ -345,6 +359,15 @@ internal class ExHentaiParser(
 		keys.add(suspiciousContentKey)
 	}
 
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		val query = seed.title
+		return getListPage(
+			page = 0,
+			order = defaultSortOrder,
+			filter = MangaListFilter(query = query),
+		)
+	}
+
 	private fun isAuthorized(domain: String): Boolean {
 		val cookies = context.cookieJar.getCookies(domain).mapToSet { x -> x.name }
 		return authCookies.all { it in cookies }
@@ -364,20 +387,8 @@ internal class ExHentaiParser(
 	}
 
 	private fun String.cleanupTitle(): String {
-		val result = StringBuilder(length)
-		var skip = false
-		for (c in this) {
-			when {
-				c == '[' -> skip = true
-				c == ']' -> skip = false
-				c.isWhitespace() && result.isEmpty() -> continue
-				!skip -> result.append(c)
-			}
-		}
-		while (result.lastOrNull()?.isWhitespace() == true) {
-			result.deleteCharAt(result.lastIndex)
-		}
-		return result.toString()
+		return replace(titleCleanupPattern, "")
+			.replace(spacesCleanupPattern, "")
 	}
 
 	private fun Element.parseTags(): Set<MangaTag> {
@@ -392,6 +403,22 @@ internal class ExHentaiParser(
 			getElementsByAttributeValueStarting("title", prefix).mapNotNullTo(result, Element::parseTag)
 		}
 		return result
+	}
+
+	private fun Element.extractPreview(): String? {
+		val bg = backgroundOrNull() ?: return null
+		return buildString {
+			append(bg.url)
+			append('#')
+			// rect: left,top,right,bottom
+			append(bg.left)
+			append(',')
+			append(bg.top)
+			append(',')
+			append(bg.right)
+			append(',')
+			append(bg.bottom)
+		}
 	}
 
 	private fun getNextTimestamp(root: Element): Long {
@@ -450,5 +477,21 @@ internal class ExHentaiParser(
 			else -> 449 // 1 or 64 or 128 or 256
 		}
 		acc or cat
+	}
+
+	private fun checkAuth(): Boolean {
+		val authorized = isAuthorized(DOMAIN_UNAUTHORIZED)
+		if (authorized) {
+			if (!isAuthorized(DOMAIN_AUTHORIZED)) {
+				context.cookieJar.copyCookies(
+					DOMAIN_UNAUTHORIZED,
+					DOMAIN_AUTHORIZED,
+					authCookies,
+				)
+				context.cookieJar.insertCookies(DOMAIN_AUTHORIZED, "yay=louder")
+			}
+			return true
+		}
+		return false
 	}
 }

@@ -62,7 +62,7 @@ internal class WaMangaParser(
 				"закончен" -> MangaState.FINISHED
 				else -> MangaState.UPCOMING
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			source = source,
 			contentRating = if (doc.getIntOrDefault("adult", 0) == 0) {
 				ContentRating.SAFE
@@ -84,7 +84,7 @@ internal class WaMangaParser(
 			title = doc.getString("title"),
 			largeCoverUrl = doc.getString("thumbnail"),
 			description = doc.getStringOrNull("description") ?: manga.description,
-			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters { _, it ->
+			chapters = doc.getJSONArray("chapters").asTypedList<JSONObject>().mapChapters(reversed = true) { _, it ->
 				val chapterUrl = it.getString("url")
 				MangaChapter(
 					id = generateUid(chapterUrl),
@@ -92,7 +92,7 @@ internal class WaMangaParser(
 					source = source,
 					number = it.getFloatOrDefault("chapter", 0f),
 					volume = it.getIntOrDefault("volume", 0),
-					name = it.getStringOrNull("full_title") ?: manga.title,
+					title = it.getStringOrNull("full_title"),
 					scanlator = it.getJSONArray("teams").getJSONObject(0)?.getStringOrNull("name"),
 					uploadDate = dateFormat.tryParse(it.getStringOrNull("published_on")),
 					branch = null,

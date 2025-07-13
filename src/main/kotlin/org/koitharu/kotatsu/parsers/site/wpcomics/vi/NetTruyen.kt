@@ -8,16 +8,12 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.text.SimpleDateFormat
 
 @MangaSourceParser("NETTRUYEN", "NetTruyen", "vi")
 internal class NetTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenvng.com", 36) {
-
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"nettruyenrr.com",
-		"nettruyenx.com",
-	)
+	WpComicsParser(context, MangaParserSource.NETTRUYEN, "nettruyenrr.com", 36) {
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
@@ -31,7 +27,7 @@ internal class NetTruyen(context: MangaLoaderContext) :
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
@@ -55,11 +51,12 @@ internal class NetTruyen(context: MangaLoaderContext) :
 		return List(data.length()) { i ->
 			val jo = data.getJSONObject(data.length() - 1 - i)
 			val chapterSlug = jo.getString("chapter_slug")
-			val chapterUrl = "/truyen-tranh/$slug/$chapterSlug"
+			val chapterId = jo.getString("chapter_id")
+			val chapterUrl = "/truyen-tranh/$slug/$chapterSlug/$chapterId"
 
 			MangaChapter(
 				id = generateUid(chapterUrl),
-				name = jo.getString("chapter_name"),
+				title = jo.getStringOrNull("chapter_name"),
 				number = i + 1f,
 				volume = 0,
 				url = chapterUrl,

@@ -65,7 +65,7 @@ internal class CloneMangaParser(context: MangaLoaderContext) :
 		for (i in 0..numChapters) {
 			val chapter = MangaChapter(
 				id = generateUid("$series&page=$i"),
-				name = "Chapter ${i + 1}",
+				title = null,
 				number = i + 1f,
 				volume = 0,
 				url = "$series&page=$i",

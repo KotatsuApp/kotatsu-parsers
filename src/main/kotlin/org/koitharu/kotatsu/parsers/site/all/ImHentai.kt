@@ -171,11 +171,11 @@ internal class ImHentai(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			chapters = listOf(
 				MangaChapter(
 					id = manga.id,
-					name = manga.title,
+					title = null,
 					number = 1f,
 					volume = 0,
 					url = manga.url,

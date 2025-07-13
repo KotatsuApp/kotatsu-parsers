@@ -45,10 +45,9 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = "https://${getDomain("account")}/login?site=seiga"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(getDomain("seiga")).any {
-			it.name == "user_session"
-		}
+	override suspend fun isAuthorized(): Boolean = context.cookieJar.getCookies(getDomain("seiga")).any {
+		it.name == "user_session"
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${getDomain("app")}/my/apps").parseHtml().body()
@@ -90,7 +89,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 				title = item.selectFirst(".mg_body > .title > a")?.text() ?: return@mapNotNull null,
 				coverUrl = item.selectFirst(".comic_icon > div > a > img")?.attrAsAbsoluteUrl("src"),
 				altTitles = emptySet(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				rating = RATING_UNKNOWN,
 				url = href,
 				contentRating = null,
@@ -137,7 +136,7 @@ internal class NicovideoSeigaParser(context: MangaLoaderContext) :
 					?.attrAsRelativeUrl("href") ?: li.parseFailed()
 				MangaChapter(
 					id = generateUid(href),
-					name = li.select("div > div.description > div.title > a").text(),
+					title = li.select("div > div.description > div.title > a").text(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

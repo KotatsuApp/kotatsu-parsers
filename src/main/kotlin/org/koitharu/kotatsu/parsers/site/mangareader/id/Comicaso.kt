@@ -8,16 +8,14 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
-import org.koitharu.kotatsu.parsers.util.domain
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import java.util.ArrayList
-import java.util.Base64
+import java.util.*
 
 @MangaSourceParser("COMICASO", "Comicaso", "id")
 internal class Comicaso(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.COMICASO, "comicaso.id", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.COMICASO, "comicaso.xyz", pageSize = 20, searchPageSize = 10) {
 	override val encodedSrc = true
 
 	override val filterCapabilities: MangaListFilterCapabilities

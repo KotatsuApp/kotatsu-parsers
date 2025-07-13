@@ -116,10 +116,10 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 				id = generateUid(relativeUrl),
 				title = a.text(),
 				altTitles = emptySet(),
-				description = mangaInfo.select("div.al-j.fs-12").text(),
+				description = mangaInfo.select("div.al-j.fs-12").textOrNull(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.src().orEmpty(),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.src(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -181,7 +181,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 
 		return manga.copy(
 			tags = tags ?: emptySet(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
 			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src(),
@@ -205,7 +205,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			val uploadDate = dateFormat.tryParse(element.select("span.publishedDate").text())
 			MangaChapter(
 				id = generateUid(id),
-				name = name,
+				title = name,
 				number = index + 1f,
 				volume = 0,
 				url = relativeUrl,

@@ -179,7 +179,7 @@ internal class TrWebtoon(context: MangaLoaderContext) :
 				val url = tr.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = tr.selectFirst("a")?.text() ?: "Chapter : ${i + 1f}",
+					title = tr.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

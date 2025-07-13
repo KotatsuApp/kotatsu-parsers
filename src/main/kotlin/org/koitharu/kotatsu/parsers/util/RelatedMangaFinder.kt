@@ -27,7 +27,7 @@ public class RelatedMangaFinder(
 	private suspend fun findRelatedImpl(scope: CoroutineScope, parser: MangaParser, seed: Manga): List<Manga> {
 		val words = HashSet<String>()
 		words += seed.title.splitByWhitespace()
-		seed.altTitle?.let {
+		seed.altTitles.forEach {
 			words += it.splitByWhitespace()
 		}
 		if (words.isEmpty()) {

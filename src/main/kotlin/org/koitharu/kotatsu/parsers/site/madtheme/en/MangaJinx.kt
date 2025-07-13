@@ -25,7 +25,7 @@ internal class MangaJinx(context: MangaLoaderContext) :
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow(".chapter-title").text(),
+				title = li.selectFirstOrThrow(".chapter-title").text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

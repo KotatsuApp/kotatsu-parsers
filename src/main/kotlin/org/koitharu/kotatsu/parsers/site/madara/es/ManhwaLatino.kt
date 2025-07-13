@@ -74,7 +74,7 @@ internal class ManhwaLatino(context: MangaLoaderContext) :
 			val name = li.selectFirst("a:contains(Capitulo)")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,

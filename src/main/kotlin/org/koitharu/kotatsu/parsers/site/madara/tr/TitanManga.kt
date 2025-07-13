@@ -23,7 +23,7 @@ internal class TitanManga(context: MangaLoaderContext) :
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				branch = null,

@@ -115,7 +115,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			altTitles = infoEl.selectFirst("span.info:contains(Tên Khác:)")?.parent()?.select("span:not(.info) > a")
 				?.mapNotNullToSet { it.textOrNull() }
 				.orEmpty(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = infoEl.select("p:contains(Nội dung:) + p").html(),
 			tags = tags,
 			state = stateDoc.select("p:contains(Tình Trạng:) a").firstOrNull()?.text()?.let {
@@ -246,7 +246,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : LegacyMangaParser(c
 			val dateStr = element.selectLast("td")?.text()
 			MangaChapter(
 				id = generateUid(titleEl.attrAsRelativeUrl("href")),
-				name = titleEl.text(),
+				title = titleEl.text(),
 				number = index + 1f,
 				volume = 0,
 				url = titleEl.attrAsRelativeUrl("href"),

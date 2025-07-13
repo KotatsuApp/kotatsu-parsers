@@ -28,6 +28,16 @@ public interface MangaParser : Interceptor {
 
 	public val config: MangaSourceConfig
 
+	public val authorizationProvider: MangaParserAuthProvider?
+		get() = this as? MangaParserAuthProvider
+
+	/**
+	 * Provide default domain and available alternatives, if any.
+	 *
+	 * Never hardcode domain in requests, use [domain] instead.
+	 */
+	public val configKeyDomain: ConfigKey.Domain
+
 	public val domain: String
 
 	public suspend fun getList(query: MangaSearchQuery): List<Manga>

@@ -142,7 +142,7 @@ internal class ScansMangasMe(context: MangaLoaderContext) :
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirstOrThrow("span.mobile chapter").text(),
+				title = li.selectFirstOrThrow("span.mobile chapter").text(),
 				number = li.selectFirstOrThrow("span.mobile chapter").text().substringAfterLast(" ").toFloat(),
 				volume = 0,
 				url = href,

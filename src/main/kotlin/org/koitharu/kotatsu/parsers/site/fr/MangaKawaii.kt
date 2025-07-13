@@ -135,7 +135,7 @@ internal class MangaKawaii(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

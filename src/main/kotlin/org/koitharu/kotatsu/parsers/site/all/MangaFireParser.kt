@@ -49,12 +49,11 @@ internal abstract class MangaFireParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.value.contains("user")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.value.contains("user")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/user/profile").parseHtml().body()
@@ -213,7 +212,7 @@ internal abstract class MangaFireParser(
 					else -> null
 				}
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = document.selectFirstOrThrow("#synopsis div.modal-content").html(),
 			chapters = getChapters(manga.url, document),
 		)
@@ -280,7 +279,7 @@ internal abstract class MangaFireParser(
 		return chapterElements.mapChapters(reversed = true) { _, it ->
 			MangaChapter(
 				id = generateUid(it.attr("href")),
-				name = it.attr("title").ifBlank {
+				title = it.attr("title").ifBlank {
 					"${branch.type.toTitleCase()} ${it.attr("data-number")}"
 				},
 				number = it.attr("data-number").toFloat(),
@@ -456,7 +455,7 @@ internal abstract class MangaFireParser(
 				}
 			}
 
-			return@redrawImageResponse result
+			result
 		}
 	}
 

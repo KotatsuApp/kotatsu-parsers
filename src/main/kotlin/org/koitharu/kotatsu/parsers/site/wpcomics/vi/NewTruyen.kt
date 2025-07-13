@@ -3,19 +3,18 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 import androidx.collection.ArraySet
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
+import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("NEWTRUYEN", "NewTruyen", "vi")
 internal class NewTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyen2.com", 36) {  
+	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyentranh1.com", 36) {
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getAvailableTags(),
@@ -26,21 +25,21 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val storyID = doc.selectFirst("input#storyID")?.attr("value")
-    		?: throw ParseException("Story ID not found", fullUrl)
+			?: throw ParseException("Story ID not found", fullUrl)
 		val chaptersDeferred = async { getChapterList(storyID) }
 		val tagsElement = doc.select("p.col-xs-12 a.tr-theloai")
 		val mangaTags = tagsElement.map {
 			MangaTag(
 				title = it.text(),
 				key = it.attr("href").substringAfterLast('/'),
-				source = source
+				source = source,
 			)
 		}.toSet()
 		val author = doc.body().select(selectAut).textOrNull()
 
 		manga.copy(
 			description = doc.selectFirst(selectDesc)?.html(),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = doc.selectFirst(selectState)?.let {
 				when (it.text()) {
 					in ongoing -> MangaState.ONGOING
@@ -53,21 +52,38 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		)
 	}
 
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val fullUrl = chapter.url.toAbsoluteUrl(domain)
+		val doc = webClient.httpGet(fullUrl).parseHtml()
+		return doc.select("div.page-chapter").map { url ->
+			val img = url.selectFirst("img")?.attr("src") ?: url.attr("data-src")
+			MangaPage(
+				id = generateUid(img),
+				url = img,
+				preview = null,
+				source = source,
+			)
+		}
+	}
+
 	private suspend fun getChapterList(storyID: String): List<MangaChapter> {
-		val url = "/Story/ListChapterByStoryID?storyID=" + storyID
+		val url = "/Story/ListChapterByStoryID?storyID=$storyID"
 		val fullUrl = url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.col-xs-5.chapter").mapChapters(reversed = true) { i, li ->
-			val a = li.selectFirstOrThrow("a")
+		return doc.select("li.row ").mapChapters(reversed = true) { i, li ->
+			val chapter = li.select("div.col-xs-5.chapter")
+			val a = chapter.select("a").firstOrNull() ?: return@mapChapters null
 			val href = a.attrAsRelativeUrl("href")
-			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text() // Broken, will fix it later
+			val dateText = li.selectFirst("div.col-xs-4.text-center.small")?.text()
+				?.replace("th&#225;ng", "tháng")?.replace("ng&#224;y", "ngày")
+
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,
-				uploadDate = parseChapterDate(dateText), // Broken, will fix it later
+				uploadDate = parseChapterDate(dateText),
 				source = source,
 				scanlator = null,
 				branch = null,
@@ -75,10 +91,10 @@ internal class NewTruyen(context: MangaLoaderContext) :
 		}
 	}
 
-	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ng&#224;y|th&#225;ng) trước")
+	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tháng) trước")
 	private val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
 
-	private fun parseChapterDate(dateText: String?): Long { // Broken, will fix it later
+	private fun parseChapterDate(dateText: String?): Long {
 		if (dateText == null) return 0
 
 		return when {
@@ -94,13 +110,13 @@ internal class NewTruyen(context: MangaLoaderContext) :
 				System.currentTimeMillis() - hours * 3600 * 1000
 			}
 
-			dateText.contains("ng&#224;y trước") -> {
+			dateText.contains("ngày trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val days = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - days * 86400 * 1000
 			}
 
-			dateText.contains("th&#225;ng trước") -> {
+			dateText.contains("tháng trước") -> {
 				val match = relativeTimePattern.find(dateText)
 				val months = match?.groups?.get(1)?.value?.toIntOrNull() ?: 0
 				System.currentTimeMillis() - months * 30 * 86400 * 1000

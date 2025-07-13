@@ -104,7 +104,7 @@ internal class MuitoHentai(context: MangaLoaderContext) :
 				val href = a.attrAsAbsoluteUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

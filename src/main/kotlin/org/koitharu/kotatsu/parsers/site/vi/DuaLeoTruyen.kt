@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import okhttp3.internal.closeQuietly
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -15,7 +16,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("dualeotruyenxxy.com")
+		get() = ConfigKey.Domain("dualeotruyenp.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
@@ -105,7 +106,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				"Full" -> MangaState.FINISHED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select(".list-chapters .chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow(".chap_name a")
@@ -113,7 +114,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 				val dateText = div.selectFirst(".chap_update")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					url = href,
 					scanlator = null,
@@ -140,7 +141,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 					"truyen" to comicsId,
 					"chap" to chapterId,
 				),
-			)
+			).closeQuietly()
 		}
 
 		return doc.select(".content_view_chap img").mapIndexed { i, img ->

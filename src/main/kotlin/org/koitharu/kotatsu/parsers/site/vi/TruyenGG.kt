@@ -9,10 +9,10 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("TRUYENGG", "TruyenGG", "vi")
+@MangaSourceParser("TRUYENGG", "FoxTruyen", "vi")
 internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENGG, 42) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyengg.com")
+	override val configKeyDomain = ConfigKey.Domain("foxtruyen.com")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -127,7 +127,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				publicUrl = href.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-				coverUrl = div.selectFirst(".image-cover img")?.attr("data-src").orEmpty(),
+				coverUrl = div.selectFirst(".image-cover img")?.attrAsAbsoluteUrlOrNull("data-src"),
 				tags = emptySet(),
 				state = null,
 				authors = emptySet(),
@@ -143,11 +143,11 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 
 		return manga.copy(
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = doc.select("a.clblue").mapToSet {
 				MangaTag(
 					key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
-					title = it.text(),
+					title = it.text().toTitleCase(sourceLocale),
 					source = source,
 				)
 			},
@@ -164,7 +164,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				val dateText = div.select("span.cl99").text()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = href,
@@ -196,7 +196,7 @@ internal class TruyenGG(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 		return doc.select(".advsearch-form div.genre-item").mapToSet {
 			MangaTag(
 				key = it.selectFirstOrThrow("span").attr("data-id"),
-				title = it.text(),
+				title = it.text().toTitleCase(sourceLocale),
 				source = source,
 			)
 		}

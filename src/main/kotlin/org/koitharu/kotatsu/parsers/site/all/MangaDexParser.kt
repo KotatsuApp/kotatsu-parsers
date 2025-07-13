@@ -73,62 +73,52 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 			SearchCapability(
 				field = TAG,
 				criteriaTypes = setOf(Include::class, Exclude::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = TITLE_NAME,
 				criteriaTypes = setOf(Match::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiple = false,
 			),
 			SearchCapability(
 				field = STATE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = AUTHOR,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = CONTENT_TYPE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = CONTENT_RATING,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = DEMOGRAPHIC,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = ORIGINAL_LANGUAGE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = LANGUAGE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = PUBLICATION_YEAR,
 				criteriaTypes = setOf(Match::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiple = false,
 			),
 		)
 
@@ -494,10 +484,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : AbstractMangaParser
 			}
 			val chapter = MangaChapter(
 				id = generateUid(id),
-				name = attrs.getStringOrNull("title") ?: buildString {
-					if (volume > 0) append("Vol. ").append(volume).append(' ')
-					append("Chapter ").append(number.formatSimple())
-				},
+				title = attrs.getStringOrNull("title"),
 				number = number,
 				volume = volume,
 				url = id,

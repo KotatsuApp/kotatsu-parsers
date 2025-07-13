@@ -48,12 +48,16 @@ public inline fun <T> JSONArray.mapJSON(block: (JSONObject) -> T): List<T> {
 	return mapJSONTo(ArrayList(length()), block)
 }
 
-public inline fun <T> JSONArray.mapJSONNotNull(block: (JSONObject) -> T?): List<T> {
+public inline fun <T : Any> JSONArray.mapJSONNotNull(block: (JSONObject) -> T?): List<T> {
 	return mapJSONNotNullTo(ArrayList(length()), block)
 }
 
 public inline fun <T> JSONArray.mapJSONToSet(mapper: (JSONObject) -> T): Set<T> {
 	return mapJSONTo(ArraySet<T>(length()), mapper)
+}
+
+public inline fun <T : Any> JSONArray.mapJSONNotNullToSet(mapper: (JSONObject) -> T?): Set<T> {
+	return mapJSONNotNullTo(ArraySet<T>(length()), mapper)
 }
 
 public fun <T> JSONArray.mapJSONIndexed(block: (Int, JSONObject) -> T): List<T> {

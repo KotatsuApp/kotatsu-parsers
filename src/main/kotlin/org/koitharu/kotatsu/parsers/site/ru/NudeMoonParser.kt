@@ -25,12 +25,11 @@ internal class NudeMoonParser(
 	override val authUrl: String
 		get() = "https://${domain}/index.php"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name == "fusion_user"
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name == "fusion_user"
 		}
+	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,
@@ -61,7 +60,7 @@ internal class NudeMoonParser(
 
 		val url = when {
 			!filter.query.isNullOrEmpty() -> {
-				if (!isAuthorized) {
+				if (!isAuthorized()) {
 					throw AuthRequiredException(source)
 				}
 				"https://$domain/search?stext=${filter.query.urlEncoded()}&rowstart=$offset"
@@ -99,7 +98,7 @@ internal class NudeMoonParser(
 				url = href,
 				title = title.substringAfter(" / "),
 				altTitles = setOfNotNull(title.substringBefore(" / ", "").takeUnless { it.isBlank() }),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = row.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = row.selectFirst(".tag-links")?.select("a")?.mapToSet {
 					MangaTag(
@@ -141,7 +140,7 @@ internal class NudeMoonParser(
 					source = source,
 					number = 0f,
 					volume = 0,
-					name = manga.title,
+					title = manga.title,
 					scanlator = root.getElementsByAttributeValueContaining("href", "/perevod/").firstOrNull()
 						?.textOrNull(),
 					uploadDate = dateFormat.tryParse(

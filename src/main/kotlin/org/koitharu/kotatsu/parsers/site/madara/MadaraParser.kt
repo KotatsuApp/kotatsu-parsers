@@ -34,6 +34,7 @@ internal abstract class MadaraParser(
 
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
+    protected open val authorSearchSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
@@ -71,6 +72,7 @@ internal abstract class MadaraParser(
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
+			isAuthorSearchSupported = authorSearchSupported
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -82,12 +84,11 @@ internal abstract class MadaraParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("wordpress_logged_in")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("wordpress_logged_in")
 		}
+	}
 
 	override suspend fun getUsername(): String {
 		val body = webClient.httpGet("https://${domain}/").parseHtml().body()
@@ -274,11 +275,13 @@ internal abstract class MadaraParser(
 					append(filter.year.toString())
 				}
 
-				// Support author
-				//filter.author?.let {
-				//	append("&author=")
-				//	append(filter.author)
-				//}
+                if (!filter.author.isNullOrEmpty()) {
+                    filter.author.let {
+                        append("&author=")
+                        // should be like "minamida-usuke"
+                        append(it.lowercase().replace(" ", "-"))
+                    }
+                }
 
 				// Support artist
 				//filter.artist?.let {
@@ -455,9 +458,16 @@ internal abstract class MadaraParser(
 	}
 
 	protected open fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.row.c-tabs-item__content").ifEmpty {
+		val elements = doc.select("div.row.c-tabs-item__content").ifEmpty {
 			doc.select("div.page-item-detail")
-		}.map { div ->
+		}
+
+        // Avoid "Content not found or removed" errors
+		if (elements.isEmpty()) {
+			return emptyList()
+		}
+		
+        return elements.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
@@ -477,7 +487,7 @@ internal abstract class MadaraParser(
 						source = source,
 					)
 				}.orEmpty(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (
 					summary?.selectFirst(".mg_status")
 						?.selectFirst(".summary-content")
@@ -535,6 +545,14 @@ internal abstract class MadaraParser(
 	protected open val selectAlt =
 		".post-content_item:contains(Alt) .summary-content, .post-content_item:contains(Nomes alternativos: ) .summary-content"
 
+	protected open suspend fun createMangaTag(a: Element): MangaTag? {
+		return MangaTag(
+			key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
+			title = a.text().toTitleCase(),
+			source = source,
+		)
+	}
+
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val fullUrl = manga.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
@@ -567,18 +585,12 @@ internal abstract class MadaraParser(
 			title = doc.selectFirst("h1")?.textOrNull() ?: manga.title,
 			url = href,
 			publicUrl = href.toAbsoluteUrl(domain),
-			tags = doc.body().select(selectGenre).mapToSet { a ->
-				MangaTag(
-					key = a.attr("href").removeSuffix("/").substringAfterLast('/'),
-					title = a.text().toTitleCase(),
-					source = source,
-				)
-			},
+			tags = doc.body().select(selectGenre).mapToSet { a -> createMangaTag(a) }.filterNotNull().toSet(),
 			description = desc,
 			altTitles = setOfNotNull(alt),
 			state = state,
 			chapters = chaptersDeferred.await(),
-			contentRating = if (doc.selectFirst(".adult-confirm") != null) {
+			contentRating = if (doc.selectFirst(".adult-confirm") != null || isNsfwSource) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
@@ -600,7 +612,7 @@ internal abstract class MadaraParser(
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,
@@ -615,11 +627,13 @@ internal abstract class MadaraParser(
 		}
 	}
 
+	protected open val postDataReq = "action=manga_get_chapters&manga="
+
 	protected open suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
 		val doc = if (postReq) {
 			val mangaId = document.select("div#manga-chapters-holder").attr("data-id")
 			val url = "https://$domain/wp-admin/admin-ajax.php"
-			val postData = "action=manga_get_chapters&manga=$mangaId"
+			val postData = postDataReq + mangaId
 			webClient.httpPost(url, postData).parseHtml()
 		} else {
 			val url = mangaUrl.toAbsoluteUrl(domain).removeSuffix('/') + "/ajax/chapters/"
@@ -635,7 +649,7 @@ internal abstract class MadaraParser(
 			MangaChapter(
 				id = generateUid(href),
 				url = link,
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				branch = null,

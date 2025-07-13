@@ -121,7 +121,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = null,
 				source = source,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
@@ -193,7 +193,7 @@ internal class Baozimh(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 				MangaChapter(
 					id = generateUid(url),
-					name = a.selectFirst("span")?.text() ?: "Chapter ${i + 1f}",
+					title = a.selectFirst("span")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

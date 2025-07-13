@@ -8,96 +8,96 @@ import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MANHWAZ", "ManhwaZ", "en")
 internal class Manhwaz(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MANHWAZ, "manhwaz.com", 40) {
+    MadaraParser(context, MangaParserSource.MANHWAZ, "manhwaz.com", 40) {
 
-	override val listUrl = "genre/manhwa"
-	override val tagPrefix = "genre/"
-	override val withoutAjax = true
-	override val selectTestAsync = "div.list-chapter"
+    override val listUrl = "genre/manhwa"
+    override val tagPrefix = "genre/"
+    override val withoutAjax = true
+    override val selectTestAsync = "div.list-chapter"
 
-	init {
-		paginator.firstPage = 1
-		searchPaginator.firstPage = 1
-	}
+    init {
+        paginator.firstPage = 1
+        searchPaginator.firstPage = 1
+    }
 
-	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
-		availableStates = emptySet(),
-		availableContentRating = emptySet(),
-	)
+    override suspend fun getFilterOptions() = super.getFilterOptions().copy(
+        availableStates = emptySet(),
+        availableContentRating = emptySet(),
+    )
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("/search?s=")
-					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page.toString())
-				}
+    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+        val url = buildString {
+            append("https://")
+            append(domain)
+            when {
+                !filter.query.isNullOrEmpty() -> {
+                    append("/search?s=")
+                    append(filter.query.urlEncoded())
+                    append("&page=")
+                    append(page.toString())
+                }
 
-				else -> {
+                else -> {
 
-					val tag = filter.tags.oneOrThrowIfMany()
-					if (filter.tags.isNotEmpty()) {
-						append("/$tagPrefix")
-						append(tag?.key.orEmpty())
-						append("?page=")
-						append(page.toString())
-						append("&")
-					} else {
-						append("/$listUrl")
-						append("?page=")
-						append(page.toString())
-						append("&")
-					}
+                    val tag = filter.tags.oneOrThrowIfMany()
+                    if (filter.tags.isNotEmpty()) {
+                        append("/$tagPrefix")
+                        append(tag?.key.orEmpty())
+                        append("?page=")
+                        append(page.toString())
+                        append("&")
+                    } else {
+                        append("/$listUrl")
+                        append("?page=")
+                        append(page.toString())
+                        append("&")
+                    }
 
-					append("m_orderby=")
-					when (order) {
-						SortOrder.POPULARITY -> append("views")
-						SortOrder.UPDATED -> append("latest")
-						SortOrder.NEWEST -> append("new")
-						SortOrder.RATING -> append("rating")
-						else -> append("latest")
-					}
-				}
-			}
-		}
-		val doc = webClient.httpGet(url).parseHtml()
+                    append("m_orderby=")
+                    when (order) {
+                        SortOrder.POPULARITY -> append("views")
+                        SortOrder.UPDATED -> append("latest")
+                        SortOrder.NEWEST -> append("new")
+                        SortOrder.RATING -> append("rating")
+                        else -> append("latest")
+                    }
+                }
+            }
+        }
+        val doc = webClient.httpGet(url).parseHtml()
 
-		return doc.select("div.row.c-tabs-item__content").ifEmpty {
-			doc.select("div.page-item-detail")
-		}.map { div ->
-			val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
-			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
-			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
-			Manga(
-				id = generateUid(href),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.src(),
-				title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
-				altTitles = emptySet(),
-				rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
-				tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
-					MangaTag(
-						key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-						title = a.text().ifEmpty { return@mapNotNullToSet null }.toTitleCase(),
-						source = source,
-					)
-				}.orEmpty(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
-				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
-					?.lowercase().orEmpty()) {
-					in ongoing -> MangaState.ONGOING
-					in finished -> MangaState.FINISHED
-					else -> null
-				},
-				source = source,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-			)
-		}
-	}
+        return doc.select("div.row.c-tabs-item__content").ifEmpty {
+            doc.select("div.page-item-detail")
+        }.map { div ->
+            val href = div.selectFirst("a")?.attrAsRelativeUrlOrNull("href") ?: div.parseFailed("Link not found")
+            val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
+            val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()
+            Manga(
+                id = generateUid(href),
+                url = href,
+                publicUrl = href.toAbsoluteUrl(div.host ?: domain),
+                coverUrl = div.selectFirst("img")?.src(),
+                title = (summary?.selectFirst("h3") ?: summary?.selectFirst("h4"))?.text().orEmpty(),
+                altTitles = emptySet(),
+                rating = div.selectFirst("span.total_votes")?.ownText()?.toFloatOrNull()?.div(5f) ?: -1f,
+                tags = summary?.selectFirst(".mg_genres")?.select("a")?.mapNotNullToSet { a ->
+                    MangaTag(
+                        key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
+                        title = a.text().ifEmpty { return@mapNotNullToSet null }.toTitleCase(),
+                        source = source,
+                    )
+                }.orEmpty(),
+                authors = setOfNotNull(author),
+                state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
+                    ?.lowercase().orEmpty()) {
+                    in ongoing -> MangaState.ONGOING
+                    in finished -> MangaState.FINISHED
+                    else -> null
+                },
+                source = source,
+                contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+            )
+        }
+    }
 }
 

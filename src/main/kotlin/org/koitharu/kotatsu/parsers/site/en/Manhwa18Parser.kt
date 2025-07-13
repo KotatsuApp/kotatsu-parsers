@@ -168,7 +168,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 				cardInfoElement?.selectFirst("b:contains(Other names)")?.parent()?.ownTextOrNull()
 					?.removePrefix(": "),
 			),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = docs.selectFirst(".series-summary .summary-content")?.html(),
 			tags = tags.orEmpty(),
 			state = state,
@@ -178,7 +178,7 @@ internal class Manhwa18Parser(context: MangaLoaderContext) :
 				val uploadDate = parseUploadDate(element.selectFirst(".chapter-time")?.text())
 				MangaChapter(
 					id = generateUid(chapterUrl),
-					name = element.selectFirst(".chapter-name")?.text().orEmpty(),
+					title = element.selectFirst(".chapter-name")?.textOrNull(),
 					number = index + 1f,
 					volume = 0,
 					url = chapterUrl,

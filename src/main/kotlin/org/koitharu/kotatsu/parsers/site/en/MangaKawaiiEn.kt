@@ -105,7 +105,7 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 			altTitles = doc.select("span[itemprop*=alternativeHeadline]").mapNotNullToSet {
 				it.textOrNull()
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirst("span.badge.bg-success.text-uppercase")?.text()) {
 				"Ongoing" -> MangaState.ONGOING
 				"" -> MangaState.FINISHED
@@ -134,7 +134,7 @@ internal class MangaKawaiiEn(context: MangaLoaderContext) :
 				val url = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(url),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					volume = 0,
 					url = url,

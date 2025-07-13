@@ -159,7 +159,7 @@ internal abstract class LikeMangaParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.requireElementById("summary_shortened").html(),
 			chapters = run {
 				if (maxPageChapter == 1) {
@@ -200,7 +200,7 @@ internal abstract class LikeMangaParser(
 			}
 			MangaChapter(
 				id = generateUid(url),
-				name = name,
+				title = name,
 				number = chapNum.toFloatOrNull() ?: 0f,
 				volume = 0,
 				url = url,
@@ -229,7 +229,7 @@ internal abstract class LikeMangaParser(
 
 				MangaChapter(
 					id = generateUid(url),
-					name = li.selectFirstOrThrow("a").text(),
+					title = li.selectFirstOrThrow("a").text(),
 					number = chapNum.toFloat(),
 					volume = 0,
 					url = url,

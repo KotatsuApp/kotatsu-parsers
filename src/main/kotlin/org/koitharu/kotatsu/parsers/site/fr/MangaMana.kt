@@ -2,9 +2,8 @@ package org.koitharu.kotatsu.parsers.site.fr
 
 import kotlinx.coroutines.*
 import okhttp3.Headers
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.RequestBody.Companion.toRequestBody
+import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONArray
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
@@ -166,11 +165,11 @@ internal class MangaMana(context: MangaLoaderContext) :
 			}
 		}
 
-		val url = "https://$domain/liste-mangas"
+		val url = "https://$domain/liste-mangas".toHttpUrl()
 		val token = webClient.httpGet(url).parseHtml().selectFirstOrThrow("meta[name=csrf-token]").attr("content")
 		val headers = Headers.Builder().add("X-CSRF-TOKEN", token).add("X-Requested-With", "XMLHttpRequest")
 			.add("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8").build()
-		val doc = makeRequest(url, postData.toRequestBody(), headers)
+		val doc = makeRequest(url, postData, headers)
 
 		return doc.select("div.p-2 div.col").map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
@@ -206,13 +205,12 @@ internal class MangaMana(context: MangaLoaderContext) :
 	}
 
 
-	private suspend fun makeRequest(url: String, payload: RequestBody, headers: Headers): Document {
+	private suspend fun makeRequest(url: HttpUrl, payload: String, headers: Headers): Document {
 		var retryCount = 0
 		val backoffDelay = 2000L // Initial delay (milliseconds)
-		val request = Request.Builder().url(url).post(payload).headers(headers).build()
 		while (true) {
 			try {
-				return Jsoup.parse(context.httpClient.newCall(request).execute().parseJson().getString("html"))
+				return Jsoup.parse(webClient.httpPost(url, payload, headers).parseJson().getString("html"))
 
 			} catch (e: Exception) {
 				// Log or handle the exception as needed
@@ -295,7 +293,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 				val chapterN = href.substringAfterLast('/').replace("-", ".").replace("[^0-9.]".toRegex(), "").toFloat()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = chapterN,
 					volume = 0,
 					url = href,

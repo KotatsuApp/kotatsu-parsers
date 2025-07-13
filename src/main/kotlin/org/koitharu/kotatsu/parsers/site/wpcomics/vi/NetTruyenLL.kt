@@ -16,7 +16,7 @@ import java.util.EnumSet
 
 @MangaSourceParser("NETTRUYENLL", "NetTruyenLL", "vi")
 internal class NetTruyenLL(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NETTRUYENLL, "nettruyenedu.com", 20) {
+	WpComicsParser(context, MangaParserSource.NETTRUYENLL, WpComicsParser.netDomain, 20) {
 
 	override val listUrl = "/tim-kiem-nang-cao"
 
@@ -138,8 +138,9 @@ internal class NetTruyenLL(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val parentDiv = doc.select("div.page-chapter#page_2").firstOrNull()?.parent() ?: return emptyList()
 		return coroutineScope {
-			doc.select(selectPage).map { img ->
+			parentDiv.select("div.page-chapter img").map { img ->
 				async { fetchPage(img) }
 			}.awaitAll().filterNotNull()
 		}

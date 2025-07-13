@@ -28,7 +28,7 @@ internal class ScanIta(context: MangaLoaderContext) :
 			rating = doc.selectFirst(".card-series-detail .rate-value span")?.ownText()?.toFloatOrNull()?.div(5f)
 				?: RATING_UNKNOWN,
 			tags = tags,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			altTitles = setOfNotNull(doc.selectFirst(".card div.col-12.mb-4 h2")?.textOrNull()),
 			description = doc.selectFirst(".card div.col-12.mb-4 p")?.html(),
 			chapters = chaptersDeferred.await(),
@@ -45,7 +45,7 @@ internal class ScanIta(context: MangaLoaderContext) :
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
-				name = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
+				title = div.selectFirstOrThrow("h5").html().substringBefore("<div").substringAfter("</span>"),
 				number = i + 1f,
 				volume = 0,
 				url = href,

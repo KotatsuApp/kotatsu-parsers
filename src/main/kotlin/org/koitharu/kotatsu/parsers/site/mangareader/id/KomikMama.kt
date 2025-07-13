@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
 @MangaSourceParser("KOMIKMAMA", "KomikMama", "id")
 internal class KomikMama(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOMIKMAMA, "komikmama.org", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.KOMIKMAMA, "komikmama.lat", pageSize = 30, searchPageSize = 10) {
 	override val listUrl = "/komik"
 }

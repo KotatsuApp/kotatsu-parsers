@@ -24,7 +24,7 @@ import java.util.*
 
 @MangaSourceParser("CUUTRUYEN", "Cứu Truyện", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20), Interceptor {
+	LegacyPagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20) {
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
@@ -45,6 +45,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
 		SortOrder.NEWEST,
+		SortOrder.POPULARITY_WEEK,
+		SortOrder.POPULARITY_MONTH,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -76,17 +78,37 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					if (tag != null) {
 						append("/api/v2/tags/")
 						append(tag.key)
+					} else if (filter.states.isNotEmpty()) {
+						filter.states.oneOrThrowIfMany()?.let {
+							append(
+								when (it) {
+									MangaState.ONGOING -> "/api/v2/tags/dang-tien-hanh"
+									MangaState.FINISHED -> "/api/v2/tags/da-hoan-thanh"
+									else -> "/api/v2/mangas/recently_updated" // if not (default page)
+								}
+							)
+						}
 					} else {
 						append("/api/v2/mangas")
 						when (order) {
 							SortOrder.UPDATED -> append("/recently_updated")
-							SortOrder.POPULARITY -> append("/top")
+							SortOrder.POPULARITY -> append("/top?duration=all")
+							SortOrder.POPULARITY_WEEK -> append("/top?duration=week")
+							SortOrder.POPULARITY_MONTH -> append("/top?duration=month")
 							SortOrder.NEWEST -> append("/recently_updated")
 							else -> append("/recently_updated")
 						}
 					}
-					append("?page=")
-					append(page.toString())
+					when (order) {
+						SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_MONTH -> {
+							append("&page=")
+							append(page.toString())
+						}
+						else -> {
+							append("?page=")
+							append(page.toString())
+						}
+					}
 				}
 			}
 
@@ -115,7 +137,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				altTitles = emptySet(),
 				coverUrl = jo.getString("cover_mobile_url"),
 				largeCoverUrl = jo.getString("cover_url"),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				tags = emptySet(),
 				state = null,
 				description = null,
@@ -143,43 +165,43 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			)
 		}.orEmpty()
 
-		// Testing: Add custom manga status using available tags
 		val state = when {
 			tags.any { it.key == "da-hoan-thanh" } -> MangaState.FINISHED
-			tags.any { it.key == "dang-tien-hanh" } -> MangaState.ONGOING
-			else -> null
+			else -> MangaState.ONGOING // Mostly ONGOING but not marked by site owner
 		}
 
-		// Remove old manga status from "tags"
 		val newTags = tags.filter { it.key != "da-hoan-thanh" && it.key != "dang-tien-hanh" }.toSet()
 		val author = json.optJSONObject("author")?.getStringOrNull("name")?.substringBefore(',')?.nullIfEmpty()
+		val title = json.getStringOrNull("name") ?: manga.title
+		val team = json.optJSONObject("team")?.getStringOrNull("name")
 
 		manga.copy(
-			title = json.getStringOrNull("name") ?: manga.title,
+			title = title,
+			altTitles = json.optJSONArray("titles")?.mapJSONToSet { it.getString("name") }?.minus(title).orEmpty(),
 			contentRating = if (json.getBooleanOrDefault("is_nsfw", manga.isNsfw)) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = json.getStringOrNull("full_description"),
 			tags = newTags,
 			state = state,
-			chapters = chapters.await().mapJSON { jo ->
+			chapters = chapters.await().mapChapters(reversed = true) { _, jo ->
 				val chapterId = jo.getLong("id")
 				val number = jo.getFloatOrDefault("number", 0f)
 				MangaChapter(
 					id = generateUid(chapterId),
-					name = jo.getStringOrNull("name") ?: number.formatSimple(),
+					title = jo.getStringOrNull("name"),
 					number = number,
 					volume = 0,
 					url = "/api/v2/chapters/$chapterId",
-					scanlator = jo.optString("group_name"),
+					scanlator = team,
 					uploadDate = chapterDateFormat.tryParse(jo.getStringOrNull("created_at")),
 					branch = null,
 					source = source,
 				)
-			}.reversed(),
+			},
 		)
 	}
 
@@ -248,9 +270,17 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		}.toByteArray()
 	}
 
-	private fun availableTags() = arraySetOf(
+	private fun availableTags() = arraySetOf( // big thanks to beer-psi
+		MangaTag("School life", "school-life", source),
+		MangaTag("Nsfw", "nsfw", source),
+		MangaTag("Monster girls", "monster-girls", source),
+		MangaTag("Magic", "magic", source),
+		MangaTag("tình yêu không được đáp lại", "tinh-yeu-khong-duoc-dap-lai", source),
+        MangaTag("tình yêu thuần khiết", "tinh-yeu-thuan-khiet", source),
+		MangaTag("Khỏa thân", "khoa-than", source),
+		MangaTag("Gyaru", "gyaru", source),
+		MangaTag("4-Koma", "4-koma", source),
 		MangaTag("Manga", "manga", source),
-		MangaTag("Đang tiến hành", "dang-tien-hanh", source),
 		MangaTag("Thể thao", "the-thao", source),
 		MangaTag("Hài hước", "hai-huoc", source),
 		MangaTag("Shounen", "shounen", source),
@@ -269,7 +299,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Phiêu lưu", "phieu-luu", source),
 		MangaTag("Hậu tận thế", "hau-tan-the", source),
 		MangaTag("Hành động", "hanh-dong", source),
-		MangaTag("Đã hoàn thành", "da-hoan-thanh", source),
 		MangaTag("Sinh tồn", "sinh-ton", source),
 		MangaTag("Du hành thời gian", "du-hanh-thoi-gian", source),
 		MangaTag("Khoa học", "khoa-hoc", source),
@@ -350,6 +379,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Vô CP", "vo-cp", source),
 		MangaTag("Xuyên không", "xuyen-khong", source),
 		MangaTag("Việt Nam", "viet-nam", source),
+		MangaTag("Việt nam", "viet-nam", source),
 		MangaTag("Toán học", "toan-hoc", source),
 		MangaTag("Thiếu niên", "thieu-nien", source),
 		MangaTag("Tình yêu", "tinh-yeu", source),

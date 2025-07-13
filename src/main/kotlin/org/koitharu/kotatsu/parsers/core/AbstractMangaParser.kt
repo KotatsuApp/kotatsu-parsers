@@ -22,7 +22,7 @@ import java.util.*
 @InternalParsersApi
 public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	@property:InternalParsersApi public val context: MangaLoaderContext,
-	public override val source: MangaParserSource,
+	public final override val source: MangaParserSource,
 ) : MangaParser {
 
 	public override val config: MangaSourceConfig by lazy { context.getConfig(source) }
@@ -30,15 +30,17 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 	public open val sourceLocale: Locale
 		get() = if (source.locale.isEmpty()) Locale.ROOT else Locale(source.locale)
 
-	/**
-	 * Provide default domain and available alternatives, if any.
-	 *
-	 * Never hardcode domain in requests, use [domain] instead.
-	 */
-	@InternalParsersApi
-	public abstract val configKeyDomain: ConfigKey.Domain
-
 	protected open val userAgentKey: ConfigKey.UserAgent = ConfigKey.UserAgent(context.getDefaultUserAgent())
+
+	protected val sourceContentRating: ContentRating?
+		get() = if (source.contentType == ContentType.HENTAI) {
+			ContentRating.ADULT
+		} else {
+			null
+		}
+
+	final override val domain: String
+		get() = config[configKeyDomain]
 
 	@Deprecated("Override intercept() instead")
 	override fun getRequestHeaders(): Headers = Headers.Builder()
@@ -54,11 +56,12 @@ public abstract class AbstractMangaParser @InternalParsersApi constructor(
 			return SortOrder.entries.first { it in supported }
 		}
 
-	override val domain: String
-		get() = config[configKeyDomain]
-
 	@JvmField
 	protected val webClient: WebClient = OkHttpWebClient(context.httpClient, source)
+
+	@Deprecated("Please check searchQueryCapabilities")
+	final override val filterCapabilities: MangaListFilterCapabilities
+		get() = super.filterCapabilities
 
 	/**
 	 * Fetch direct link to the page image.

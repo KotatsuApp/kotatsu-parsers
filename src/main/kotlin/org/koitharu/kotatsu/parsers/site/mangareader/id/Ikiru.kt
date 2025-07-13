@@ -8,6 +8,6 @@ import java.util.Locale
 
 @MangaSourceParser("IKIRU", "Ikiru", "id")
 internal class Ikiru(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.IKIRU, "ikiru.one", pageSize = 20, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.IKIRU, "id.ikiru.wtf", pageSize = 20, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 }

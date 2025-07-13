@@ -23,7 +23,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.VCOMYCS, 36) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("vivicomi.org")
+		get() = ConfigKey.Domain("vivicomi5.info")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
@@ -134,7 +134,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 				info.selectFirst(".comic-intro-text > strong:contains(Tên khác:)")?.nextElementSibling()
 					?.textOrNull(),
 			),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (info.selectFirst(".comic-stt")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Trọn bộ" -> MangaState.FINISHED
@@ -155,7 +155,7 @@ internal class VcomycsParser(context: MangaLoaderContext) :
 					val url = element.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
-						name = element.selectFirst("span")?.text().orEmpty().trim(),
+						title = element.selectFirst("span")?.textOrNull(),
 						number = index + 1f,
 						volume = 0,
 						url = url,

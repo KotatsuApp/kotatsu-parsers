@@ -41,26 +41,23 @@ internal abstract class MangaboxParser(
 			SearchCapability(
 				field = TAG,
 				criteriaTypes = setOf(Include::class, Exclude::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = TITLE_NAME,
 				criteriaTypes = setOf(Match::class),
-				multiValue = false,
-				otherCriteria = true,
+				isMultiple = false,
 			),
 			SearchCapability(
 				field = STATE,
 				criteriaTypes = setOf(Include::class),
-				multiValue = true,
-				otherCriteria = true,
+				isMultiple = true,
 			),
 			SearchCapability(
 				field = AUTHOR,
 				criteriaTypes = setOf(Include::class),
-				multiValue = false,
-				otherCriteria = false,
+				isMultiple = false,
+				isExclusive = true,
 			),
 		)
 
@@ -180,7 +177,7 @@ internal abstract class MangaboxParser(
 				authors = emptySet(),
 				state = null,
 				source = source,
-				contentRating = if (source.contentType == ContentType.HENTAI) ContentRating.ADULT else ContentRating.SAFE,
+				contentRating = sourceContentRating,
 			)
 		}
 	}
@@ -251,7 +248,7 @@ internal abstract class MangaboxParser(
 
 			MangaChapter(
 				id = generateUid(href),
-				name = a.text(),
+				title = a.text(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

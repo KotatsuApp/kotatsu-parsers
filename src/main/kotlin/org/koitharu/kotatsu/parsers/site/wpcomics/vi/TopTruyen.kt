@@ -12,14 +12,7 @@ import java.util.*
 
 @MangaSourceParser("TOPTRUYEN", "TopTruyen", "vi")
 internal class TopTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyen369.net", 36) {
-
-	override val configKeyDomain = ConfigKey.Domain(
-		"www.toptruyen369.net", // Main domain
-		"www.toptruyen28.net",
-		"www.toptruyento.pro",
-		"www.toptruyenpro1.com",
-	)
+	WpComicsParser(context, MangaParserSource.TOPTRUYEN, "www.toptruyentv8.pro", 36) {
 
 	override val datePattern = "dd/MM/yyyy"
 
@@ -149,7 +142,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		}
 
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = description,
 			state = state,
 			tags = tags,
@@ -168,7 +161,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 			val timeText = timeElement?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = number,
 				url = href,
 				uploadDate = parseChapterDate(timeText),
@@ -224,7 +217,21 @@ internal class TopTruyen(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return doc.select("div.page-chapter img").mapNotNull { img ->
-			val url = img.src()?.toRelativeUrl(domain) ?: return@mapNotNull null
+			val url = img.attrAsRelativeUrlOrNull("src")
+				?: img.attrAsRelativeUrlOrNull("data-original")
+				?: return@mapNotNull null
+			
+			if (url.contains("toptruyentv.jpg") || 
+				url.contains("follow.png") || 
+				url.contains("image_default.png") ||
+				url.contains("toptruyentv5.jpg") ||
+				url.contains("toptruyentv6.jpg") ||
+				url.contains("toptruyentv7.jpg") ||
+                        url.contains("toptruyentv8.jpg") ||
+				url.contains("img_001_1743221470.png")) { // Remove ads images
+				return@mapNotNull null
+			}
+			
 			MangaPage(
 				id = generateUid(url),
 				url = url,

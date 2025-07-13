@@ -7,6 +7,7 @@ import org.jsoup.nodes.Element
 import org.jsoup.select.Elements
 import org.jsoup.select.QueryParser
 import org.jsoup.select.Selector
+import org.koitharu.kotatsu.core.parser.CSSBackground
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import kotlin.contracts.contract
@@ -188,6 +189,8 @@ public fun Element.src(
 public fun Element.requireSrc(): String = parseNotNull(src()) {
 	"Image src not found"
 }
+
+public fun Element.backgroundOrNull(): CSSBackground? = CSSBackground.parse(this)
 
 public fun Element.metaValue(itemprop: String): String? = getElementsByAttributeValue("itemprop", itemprop)
 	.firstNotNullOfOrNull { element ->

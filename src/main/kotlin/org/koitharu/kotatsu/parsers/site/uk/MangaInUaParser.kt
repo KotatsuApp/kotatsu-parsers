@@ -130,7 +130,7 @@ internal class MangaInUaParser(context: MangaLoaderContext) : LegacyPagedMangaPa
 				if (!isAlternative) i++
 				MangaChapter(
 					id = generateUid(href),
-					name = if (isAlternative) {
+					title = if (isAlternative) {
 						prevChapterName ?: return@mapChapters null
 					} else {
 						prevChapterName = name

@@ -184,7 +184,7 @@ internal abstract class MangaPlusParser(
 			MangaChapter(
 				id = generateUid(chapterId),
 				url = chapterId,
-				name = subtitle,
+				title = subtitle,
 				number = chapter.getString("name")
 					.substringAfter("#")
 					.toFloatOrNull() ?: -1f,

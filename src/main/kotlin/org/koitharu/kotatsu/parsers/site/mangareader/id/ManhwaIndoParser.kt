@@ -29,7 +29,7 @@ internal class ManhwaIndoParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchPage(img: Element): MangaPage? = runCatchingCancellable {
-		val url = img.requireSrc().toAbsoluteUrl(domain) ?: return@runCatchingCancellable null
+		val url = img.requireSrc().toAbsoluteUrl(domain)
 		webClient.httpHead(url).use { response ->
 			if (response.mimeType?.startsWith("image/") == true) {
 				MangaPage(

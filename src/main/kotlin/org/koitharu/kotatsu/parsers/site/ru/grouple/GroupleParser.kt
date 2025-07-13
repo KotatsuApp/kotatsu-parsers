@@ -47,7 +47,6 @@ internal abstract class GroupleParser(
 
 	@Volatile
 	private var cachedPagesServer: String? = null
-	protected open val defaultIsNsfw = false
 
 	override val userAgentKey = ConfigKey.UserAgent(
 		"Mozilla/5.0 (X11; U; UNICOS lcLinux; en-US) Gecko/20140730 (KHTML, like Gecko, Safari/419.3) Arora/0.8.0",
@@ -72,11 +71,10 @@ internal abstract class GroupleParser(
 	override val authUrl: String
 		get() {
 			val targetUri = "https://${domain}/".urlEncoded()
-			return "https://grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
+			return "https://3.grouple.co/internal/auth/sso?siteId=$siteId&=targetUri=$targetUri"
 		}
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
+	override suspend fun isAuthorized(): Boolean = hasAuthCookie()
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -137,7 +135,7 @@ internal abstract class GroupleParser(
 		}
 		val hashRegex = Regex("window.user_hash\\s*=\\s*\'([^\']+)\'")
 		val userHash = doc.select("script").firstNotNullOfOrNull { it.html().findGroupValue(hashRegex) }
-		val author = root.selectFirst("a.person-link")?.textOrNull()
+		val hasNsfwAlert = root.select(".alert-warning").any { it.ownText().contains(NSFW_ALERT) }
 		return manga.copy(
 			source = newSource,
 			title = doc.metaValue("name") ?: manga.title,
@@ -147,7 +145,8 @@ internal abstract class GroupleParser(
 			publicUrl = response.request.url.toString(),
 			description = root.selectFirst("div.manga-description")?.html(),
 			largeCoverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-full"),
-			coverUrl = coverImg?.attrAsAbsoluteUrlOrNull("data-thumb") ?: manga.coverUrl,
+			coverUrl = manga.coverUrl
+				?: coverImg?.attrAsAbsoluteUrlOrNull("data-thumb")?.replace("_p.", "."),
 			tags = root.selectFirstOrThrow("div.subject-meta")
 				.getElementsByAttributeValueContaining("href", "/list/genre/").mapTo(manga.tags.toMutableSet()) { a ->
 					MangaTag(
@@ -156,14 +155,11 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
-			authors = author?.let { setOf(it) } ?: manga.authors,
-			contentRating = if (manga.isNsfw || root.select(".alert-warning")
-					.any { it.ownText().contains(NSFW_ALERT) }
-			) {
-				ContentRating.ADULT
-			} else {
-				manga.contentRating
-			},
+			authors = root.select(".elem_author,.elem_illustrator,.elem_screenwriter")
+				.select("a.person-link")
+				.mapNotNullToSet { it.textOrNull() } + manga.authors,
+			contentRating = (if (hasNsfwAlert) ContentRating.SUGGESTIVE else ContentRating.SAFE)
+				.coerceAtLeast(manga.contentRating ?: ContentRating.SAFE),
 			chapters = chaptersList?.select("a.chapter-link")
 				?.flatMapChapters(reversed = true) { a ->
 					val tr = a.selectFirstParent("tr") ?: return@flatMapChapters emptyList()
@@ -179,7 +175,7 @@ internal abstract class GroupleParser(
 						listOf(
 							MangaChapter(
 								id = generateUid(href),
-								name = a.text().removePrefix(manga.title).trim(),
+								title = a.text().removePrefix(manga.title).trim().nullIfEmpty(),
 								number = number,
 								volume = volume,
 								url = href.withQueryParam("d", userHash),
@@ -196,7 +192,7 @@ internal abstract class GroupleParser(
 							val link = href.withQueryParam("tran", personId.toString())
 							MangaChapter(
 								id = generateUid(link),
-								name = a.text().removePrefix(manga.title).trim(),
+								title = a.text().removePrefix(manga.title).trim(),
 								number = number,
 								volume = volume,
 								url = link.withQueryParam("d", userHash),
@@ -423,12 +419,12 @@ internal abstract class GroupleParser(
 			publicUrl = href,
 			title = title,
 			altTitles = setOfNotNull(descDiv.selectFirst("h5")?.textOrNull()),
-			coverUrl = imgDiv.selectFirst("img.lazy")?.attr("data-original")?.replace("_p.", ".").orEmpty(),
+			coverUrl = imgDiv.selectFirst("img.lazy")?.attrAsAbsoluteUrlOrNull("data-original")?.replace("_p.", "."),
 			rating = runCatching {
 				node.selectFirst(".compact-rate")?.attr("title")?.toFloatOrNull()?.div(5f)
 			}.getOrNull() ?: RATING_UNKNOWN,
-			authors = author?.let { setOf(it) } ?: emptySet(),
-			contentRating = if (defaultIsNsfw) ContentRating.ADULT else null,
+			authors = setOfNotNull(author),
+			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			tags = runCatching {
 				tileInfo?.select("a.element-link")?.mapToSet {
 					MangaTag(
@@ -460,9 +456,15 @@ internal abstract class GroupleParser(
 			val page = pages.getJSONArray(i)
 			val primaryServer = page.getString(0)
 			val url = page.getString(2)
+			val fullSrc = if ("$primaryServer|$serversStr|$url".contains("one-way.work")) {
+				// domain that does not need a token
+				"$primaryServer|$serversStr|${url}".substringBefore("?")
+			} else {
+				"$primaryServer|$serversStr|$url"
+			}
 			MangaPage(
 				id = generateUid(url),
-				url = "$primaryServer|$serversStr|$url",
+				url = fullSrc,
 				preview = null,
 				source = source,
 			)
@@ -482,9 +484,15 @@ internal abstract class GroupleParser(
 			val page = pages.getJSONArray(i)
 			val primaryServer = page.getString(0)
 			val url = page.getString(2)
+			val fullSrc = if ("$primaryServer|$serversStr|$url".contains("one-way.work")) {
+				// domain that does not need a token
+				"$primaryServer|$serversStr|${url}".substringBefore("?")
+			} else {
+				"$primaryServer|$serversStr|$url"
+			}
 			MangaPage(
 				id = generateUid(url),
-				url = "$primaryServer|$serversStr|$url",
+				url = fullSrc,
 				preview = null,
 				source = source,
 			)
@@ -497,9 +505,15 @@ internal abstract class GroupleParser(
 			val ja = json.getJSONArray(i)
 			val server = ja.getString(0).ifEmpty { "https://$domain" }
 			val url = ja.getString(2)
+			val fullUrl = concatUrl(server, url)
 			MangaPage(
 				id = generateUid(url),
-				url = concatUrl(server, url),
+				url = if (fullUrl.contains("one-way.work")) {
+					// domain that does not need a token
+					fullUrl.substringBefore("?")
+				} else {
+					fullUrl
+				},
 				preview = null,
 				source = source,
 			)
@@ -541,7 +555,7 @@ internal abstract class GroupleParser(
 			throw AuthRequiredException(source)
 		}
 		if (code == HttpURLConnection.HTTP_NOT_FOUND) {
-			if (!isAuthorized) {
+			if (!hasAuthCookie()) {
 				closeQuietly()
 				throw AuthRequiredException(source)
 			} else {
@@ -550,4 +564,6 @@ internal abstract class GroupleParser(
 		}
 		return this
 	}
+
+	private fun hasAuthCookie() = context.cookieJar.getCookies(domain).any { it.name == "gwt" }
 }

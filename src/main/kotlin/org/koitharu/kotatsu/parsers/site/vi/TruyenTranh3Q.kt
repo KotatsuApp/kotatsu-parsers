@@ -147,7 +147,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 
 		return manga.copy(
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = tags,
 			description = doc.selectFirst("div.story-detail-info")?.html(),
 			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {
@@ -162,7 +162,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 				val dateText = div.selectFirst(".time-chap")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = href,

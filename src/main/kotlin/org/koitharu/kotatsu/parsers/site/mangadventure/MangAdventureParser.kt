@@ -135,7 +135,7 @@ internal abstract class MangAdventureParser(
 			chapters = chapters?.optJSONArray("results")?.asTypedList<JSONObject>()?.mapChapters { _, it ->
 				MangaChapter(
 					id = generateUid(it.getLong("id")),
-					name = it.getString("full_title"),
+					title = it.getStringOrNull("full_title"),
 					number = it.getFloatOrDefault("number", 0f),
 					volume = it.getIntOrDefault("volume", 0),
 					url = it.getString("url"),
@@ -209,6 +209,5 @@ internal abstract class MangAdventureParser(
 	private val Manga.slug: String
 		get() = url.substring(8, url.length - 1)
 
-	protected suspend fun HttpUrl.Builder.get() =
-		webClient.httpGet(build()).body?.string()?.let(::JSONObject)
+	protected suspend fun HttpUrl.Builder.get() = webClient.httpGet(build()).parseJson()
 }

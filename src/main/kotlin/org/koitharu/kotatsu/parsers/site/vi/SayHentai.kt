@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("SAYHENTAI", "SayHentai", "vi", ContentType.HENTAI)
 internal class SayHentai(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.SAYHENTAI, 20) {
-	override val configKeyDomain = ConfigKey.Domain("sayhentai.ink")
+	override val configKeyDomain = ConfigKey.Domain("sayhentaii.art")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -90,7 +90,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 		val author = doc.selectFirst("div.summary-heading:contains(Tác giả) + div.summary-content")?.textOrNull()
 		return manga.copy(
 			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = doc.select("div.genres-content a[rel=tag]").mapToSet { a ->
 				MangaTag(
 					key = a.attr("href").substringAfterLast('/'),
@@ -109,7 +109,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 				val a = element.selectFirst("a") ?: return@mapChapters null
 				MangaChapter(
 					id = generateUid(a.attrAsRelativeUrl("href")),
-					name = a.text(),
+					title = a.text(),
 					number = i + 1f,
 					url = a.attrAsRelativeUrl("href"),
 					uploadDate = parseChapterDate(element.selectFirst("span.chapter-release-date")?.text()),
@@ -178,7 +178,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 		.mapToSet { a ->
 			val title = a.ownText().toTitleCase(sourceLocale)
 			MangaTag(
-				key = a.attr("href").substringAfterLast("/"),
+				key = a.attr("href").substringAfterLast('/'),
 				title = title,
 				source = source,
 			)

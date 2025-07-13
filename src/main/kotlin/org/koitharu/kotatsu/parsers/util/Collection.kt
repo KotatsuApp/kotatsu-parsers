@@ -87,3 +87,15 @@ public inline fun <T, reified R> Collection<T>.mapToArray(transform: (T) -> R): 
 	forEachIndexed { index, t -> result[index] = transform(t) }
 	return result as Array<R>
 }
+
+public fun <T> Array<T>.toArraySet(): Set<T> = when (size) {
+	0 -> emptySet()
+	1 -> setOf(first())
+	else -> ArraySet(this)
+}
+
+public fun <T> Collection<T>.toArraySet(): Set<T> = when (size) {
+	0 -> emptySet()
+	1 -> setOf(first())
+	else -> ArraySet(this)
+}

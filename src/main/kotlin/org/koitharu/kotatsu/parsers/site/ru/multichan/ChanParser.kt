@@ -1,7 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.ru.multichan
 
 import okhttp3.HttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.internal.StringUtil
+import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
@@ -26,8 +28,7 @@ internal abstract class ChanParser(
 	override val authUrl: String
 		get() = "https://${domain}"
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
+	override suspend fun isAuthorized(): Boolean = context.cookieJar.getCookies(domain).any { it.name == "dle_user_id" }
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
@@ -55,12 +56,12 @@ internal abstract class ChanParser(
 				"/mangaka",
 			).firstOrNull()?.text()
 			Manga(
-				id = generateUid(href),
+				id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
 				title = title.first,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = row.selectFirst("div.manga_images")?.selectFirst("img")
 					?.absUrl("src").orEmpty(),
 				tags = runCatching {
@@ -88,11 +89,11 @@ internal abstract class ChanParser(
 			description = root.getElementById("description")?.html()?.substringBeforeLast("<div"),
 			largeCoverUrl = root.getElementById("cover")?.absUrl("src"),
 			chapters = root.select("table.table_cha tr:gt(1)").mapChapters(reversed = true) { i, tr ->
-				val href = tr.selectFirst("a")?.attrAsRelativeUrlOrNull("href")
-					?: return@mapChapters null
+				val a = tr.selectFirst("a")
+				val href = a?.attrAsRelativeUrlOrNull("href") ?: return@mapChapters null
 				MangaChapter(
-					id = generateUid(href),
-					name = tr.selectFirst("a")?.text().orEmpty(),
+					id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
+					title = tr.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = href,
@@ -171,12 +172,12 @@ internal abstract class ChanParser(
 				"/mangaka",
 			).firstOrNull()?.text()
 			Manga(
-				id = generateUid(href),
+				id = generateUid(a.attrAsRelativeUrlAnyHost("href")),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(a.host ?: domain),
 				altTitles = setOfNotNull(title.second),
 				title = title.first,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				coverUrl = div.selectFirst("img")?.absUrl("src").orEmpty(),
 				tags = emptySet(),
 				rating = RATING_UNKNOWN,
@@ -256,5 +257,17 @@ internal abstract class ChanParser(
 			}
 		}
 		return this to null
+	}
+
+	private fun Element.attrAsRelativeUrlAnyHost(attributeKey: String): String {
+		val attr = attr(attributeKey)
+		if (attr.isEmpty() || attr.startsWith("data:")) {
+			throw IllegalArgumentException("Wrong url $attr")
+		}
+		if (attr.startsWith('/')) {
+			return attr
+		}
+		val host = attr.toHttpUrl().host
+		return attr.substringAfter(host)
 	}
 }

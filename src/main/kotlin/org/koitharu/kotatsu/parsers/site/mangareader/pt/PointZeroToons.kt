@@ -7,7 +7,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 
 @MangaSourceParser("POINTZEROTOONS", "PointZero Toons", "pt")
 internal class PointZeroToons(context: MangaLoaderContext) :
@@ -26,7 +25,7 @@ internal class PointZeroToons(context: MangaLoaderContext) :
 			val numChap = findNumChap(name)
 			MangaChapter(
 				id = generateUid(url),
-				name = name,
+				title = name,
 				url = url,
 				number = numChap,
 				volume = 0,

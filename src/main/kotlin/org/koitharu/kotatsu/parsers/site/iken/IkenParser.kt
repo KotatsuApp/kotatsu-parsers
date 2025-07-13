@@ -1,15 +1,16 @@
 package org.koitharu.kotatsu.parsers.site.iken
 
+import org.jsoup.Jsoup
+import org.jsoup.nodes.Document
 import org.json.JSONObject
+import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.util.json.asTypedList
-import org.koitharu.kotatsu.parsers.util.json.getBooleanOrDefault
-import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
-import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -18,9 +19,13 @@ internal abstract class IkenParser(
 	source: MangaParserSource,
 	domain: String,
 	pageSize: Int = 18,
+	protected val useAPI: Boolean = false
 ) : LegacyPagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
+
+	protected val defaultDomain: String
+		get() = if (useAPI) "api.$domain" else domain
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -55,7 +60,7 @@ internal abstract class IkenParser(
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
-			append(domain)
+			append(defaultDomain)
 			append("/api/query?page=")
 			append(page)
 			append("&perPage=18&searchTerm=")
@@ -113,7 +118,7 @@ internal abstract class IkenParser(
 				description = it.getString("postContent"),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (it.getString("seriesStatus")) {
 					"ONGOING" -> MangaState.ONGOING
 					"COMPLETED" -> MangaState.FINISHED
@@ -132,7 +137,7 @@ internal abstract class IkenParser(
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val seriesId = manga.id
-		val url = "https://$domain/api/chapters?postId=$seriesId&skip=0&take=1000&order=desc&userid="
+		val url = "https://$defaultDomain/api/chapters?postId=$seriesId&skip=0&take=900&order=desc&userid="
 		val json = webClient.httpGet(url).parseJson().getJSONObject("post")
 		val slug = json.getStringOrNull("slug")
 		val data = json.getJSONArray("chapters").asTypedList<JSONObject>()
@@ -147,8 +152,8 @@ internal abstract class IkenParser(
 				val chapterUrl = "/series/$slugName/${it.getString("slug")}"
 				MangaChapter(
 					id = it.getLong("id"),
-					name = "Chapter : ${it.getInt("number")}",
-					number = it.getInt("number").toFloat(),
+					title = null,
+					number = it.getFloatOrDefault("number", 0f),
 					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
@@ -160,16 +165,23 @@ internal abstract class IkenParser(
 		)
 	}
 
-	protected open val selectPages = "main section > img"
+	protected open val selectPages = "main section img"
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select(selectPages).map { img ->
-			val url = img.requireSrc()
+
+		if (doc.selectFirst("svg.lucide-lock") != null) {
+            throw Exception("Need to unlock chapter!")
+        }
+
+		val imagesJson = doc.getNextJson("images")
+		val images = parseImagesJson(imagesJson)
+
+		return images.map { p ->
 			MangaPage(
-				id = generateUid(url),
-				url = url,
+				id = generateUid(p),
+				url = p,
 				preview = null,
 				source = source,
 			)
@@ -185,6 +197,54 @@ internal abstract class IkenParser(
 				title = (it.text() ?: key).toTitleCase(sourceLocale),
 				source = source,
 			)
+		}
+	}
+
+	protected fun Document.getNextJson(key: String): String {
+		val scripts = select("script")
+		val scriptData = scripts.find { script ->
+			script.data()?.contains(key) == true
+		}?.data() ?: throw Exception("Unable to retrieve NEXT data")
+
+		val keyIndex = scriptData.indexOf(key)
+		if (keyIndex == -1) throw Exception("Key $key not found in script data")
+
+		val start = scriptData.indexOf('[', keyIndex)
+		if (start == -1) {
+			val objStart = scriptData.indexOf('{', keyIndex)
+			if (objStart == -1) throw Exception("No JSON data found after key")
+
+			var depth = 1
+			var i = objStart + 1
+			while (i < scriptData.length && depth > 0) {
+				when (scriptData[i]) {
+					'{' -> depth++
+					'}' -> depth--
+				}
+				i++
+			}
+			return scriptData.substring(objStart, i)
+		}
+
+		var depth = 1
+		var i = start + 1
+		while (i < scriptData.length && depth > 0) {
+			when (scriptData[i]) {
+				'[' -> depth++
+				']' -> depth--
+			}
+			i++
+		}
+
+		val jsonStr = scriptData.substring(start, i)
+		return jsonStr.replace("\\/", "/").replace("\\\"", "\"")
+	}
+
+	private fun parseImagesJson(json: String): List<String> {
+		val jsonArray = JSONArray(json)
+		return List(jsonArray.length()) { index ->
+			val item = jsonArray.getJSONObject(index)
+			item.getString("url")
 		}
 	}
 }

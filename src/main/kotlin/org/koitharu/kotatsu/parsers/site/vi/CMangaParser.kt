@@ -22,8 +22,7 @@ private const val PAGE_SIZE = 20
 internal class CMangaParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
-	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("cmangax.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax2.com")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
@@ -47,7 +46,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
 		return MangaListFilterOptions(
-			availableTags = tags.get().values.toSet(),
+			availableTags = tags.get().values.toArraySet(),
 			availableStates = arraySetOf(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 		)
 	}
@@ -55,8 +54,8 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = domain
 
-	override val isAuthorized: Boolean
-		get() = context.cookieJar.getCookies(domain).any { it.name == "login_password" }
+	override suspend fun isAuthorized(): Boolean =
+		context.cookieJar.getCookies(domain).any { it.name == "login_password" }
 
 	override suspend fun getUsername(): String {
 		val userId = webClient.httpGet("https://$domain").parseRaw()
@@ -80,14 +79,19 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			chapters = webClient
 				.httpGet("/api/chapter_list?album=$mangaId&page=1&limit=${Int.MAX_VALUE}&v=0v21".toAbsoluteUrl(domain))
 				.parseJsonArray()
-				.mapJSON { jo ->
+				.mapChapters(reversed = true) { _, jo ->
 					val chapterId = jo.getLong("id_chapter")
 					val info = jo.parseJson("info")
-					val chapterNumber = info.getString("num")
+					val chapterNumber = info.getFloatOrDefault("num", -1f)
+					val chapTitle = if (chapterNumber == chapterNumber.toInt().toFloat()) {
+						chapterNumber.toInt().toString()
+					} else {
+						chapterNumber.toString()
+					}
 					MangaChapter(
 						id = generateUid(chapterId),
-						name = if (info.isLocked()) "Chapter $chapterNumber - locked" else "Chapter $chapterNumber",
-						number = chapterNumber.toFloatOrNull()?.plus(1) ?: 0f,
+						title = if (info.isLocked()) "Chương $chapTitle - Đã khoá" else "Chương $chapTitle",
+						number = chapterNumber,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",
 						uploadDate = df.tryParse(info.getString("last_update")),
@@ -95,7 +99,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 						scanlator = null,
 						source = source,
 					)
-				}.reversed(),
+				},
 		)
 	}
 
@@ -148,13 +152,18 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		return mangaList.mapJSONNotNull { jo ->
 			val info = jo.parseJson("info")
 			val slug = info.getStringOrNull("url") ?: return@mapJSONNotNull null
-			val id = info.optLong("id").takeIf { it != 0L } ?: return@mapJSONNotNull null
+			val id = info.getLongOrDefault("id", 0L)
+			if (id == 0L) {
+				return@mapJSONNotNull null
+			}
 			val relativeUrl = "/album/$slug-$id"
+			val title = info.getString("name").replace("\\", "")
+			val altTitle = info.optJSONArray("name_other")?.asTypedList<String>()?.map { it.replace("\\", "") }
 
 			Manga(
 				id = generateUid(id),
-				title = info.optString("name").toTitleCase(),
-				altTitles = info.optJSONArray("name_other")?.toStringSet().orEmpty(),
+				title = title.toTitleCase(),
+				altTitles = altTitle?.toSet().orEmpty(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -187,6 +196,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 
 		return pageResponse.getJSONArray("image")
 			.asTypedList<String>()
+			.filterNot(::containsAdsUrl)
 			.map {
 				MangaPage(
 					id = generateUid(it),
@@ -200,7 +210,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	private suspend fun getTags(): Map<String, MangaTag> {
 		val tagList = webClient.httpGet("assets/json/album_tags_image.json".toAbsoluteUrl(domain)).parseJson()
 			.getJSONObject("list")
-		val tags = ArrayMap<String, MangaTag>()
+		val tags = ArrayMap<String, MangaTag>(tagList.length())
 		for (key in tagList.keys()) {
 			val jo = tagList.getJSONObject(key)
 			val name = jo.getString("name")
@@ -218,4 +228,14 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	}
 
 	private fun JSONObject.isLocked() = opt("lock") != null
+
+	private fun containsAdsUrl(url: String): Boolean {
+            val ADS_URL = "https://img.cmangapi.com/data-image/index.php"
+            val cleanUrl = url.replace("\\", "")
+            return when {
+                  cleanUrl.startsWith(ADS_URL) -> true
+                  cleanUrl.contains("?v=12&data=") -> true
+                  else -> false
+            }
+      }
 }

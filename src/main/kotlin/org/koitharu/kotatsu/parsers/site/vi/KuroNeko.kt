@@ -8,10 +8,10 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("KURONEKO", "Việt Hentai", "vi", type = ContentType.HENTAI)
+@MangaSourceParser("KURONEKO", "Việt Hentai - Kuro Neko", "vi", type = ContentType.HENTAI)
 internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("vi-hentai.com")
+	override val configKeyDomain = ConfigKey.Domain("vi-hentai.moe")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -29,6 +29,10 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
+			isSearchWithFiltersSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -38,84 +42,88 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
-			append("https://")
-			append(domain)
+			if (!filter.author.isNullOrEmpty()) {
+				clear()
+				append("https://")
+				append(domain)
 
-			when {
+				append("/tac-gia/")
+				append(filter.author.lowercase().replace(" ", "-"))
 
-				!filter.query.isNullOrEmpty() -> {
-					append("/tim-kiem")
-					append("?filter[name]=")
-					append(filter.query.urlEncoded())
+				append("?sort=")
+				append(
+					when (order) {
+						SortOrder.POPULARITY -> "-views"
+						SortOrder.UPDATED -> "-updated_at"
+						SortOrder.NEWEST -> "-created_at"
+						SortOrder.ALPHABETICAL -> "name"
+						SortOrder.ALPHABETICAL_DESC -> "-name"
+						else -> "-updated_at"
+					},
+				)
 
-					if (page > 1) {
-						append("&page=")
-						append(page)
-					}
+				append("&page=")
+				append(page)
 
-					append("&sort=")
-					append(
-						when (order) {
-							SortOrder.POPULARITY -> "-views"
-							SortOrder.UPDATED -> "-updated_at"
-							SortOrder.NEWEST -> "-created_at"
-							SortOrder.ALPHABETICAL -> "name"
-							SortOrder.ALPHABETICAL_DESC -> "-name"
-							else -> "-updated_at"
-						},
-					)
-				}
-
-				filter.tags.isNotEmpty() -> {
-					val tag = filter.tags.first()
-					append("/the-loai/")
-					append(tag.key)
-
-					append("?page=")
-					append(page)
-				}
-
-				else -> {
-					append("/danh-sach")
-					append("?sort=")
-					append(
-						when (order) {
-							SortOrder.POPULARITY -> "-views"
-							SortOrder.UPDATED -> "-updated_at"
-							SortOrder.NEWEST -> "-created_at"
-							SortOrder.ALPHABETICAL -> "name"
-							SortOrder.ALPHABETICAL_DESC -> "-name"
-							else -> "-updated_at"
-						},
-					)
-					append("&page=")
-					append(page)
-				}
-			}
-
-			if (filter.query.isNullOrEmpty()) {
-				append("&sort=")
-				when (order) {
-					SortOrder.POPULARITY -> append("-views")
-					SortOrder.UPDATED -> append("-updated_at")
-					SortOrder.NEWEST -> append("-created_at")
-					SortOrder.ALPHABETICAL -> append("name")
-					SortOrder.ALPHABETICAL_DESC -> append("-name")
-					else -> append("-updated_at")
-				}
-			}
-
-			if (filter.states.isNotEmpty()) {
 				append("&filter[status]=")
 				filter.states.forEach {
 					append(
 						when (it) {
 							MangaState.ONGOING -> "2,"
 							MangaState.FINISHED -> "1,"
-							else -> "1,2"
+							else -> "2,1"
 						},
 					)
 				}
+
+				return@buildString // end of buildString
+			}
+
+			append("https://")
+			append(domain)
+
+			append("/tim-kiem")
+			append("?sort=")
+			append(
+				when (order) {
+					SortOrder.POPULARITY -> "-views"
+					SortOrder.UPDATED -> "-updated_at"
+					SortOrder.NEWEST -> "-created_at"
+					SortOrder.ALPHABETICAL -> "name"
+					SortOrder.ALPHABETICAL_DESC -> "-name"
+					else -> "-updated_at"
+				},
+			)
+
+			if (!filter.query.isNullOrEmpty()) {
+				append("&keyword=")
+				append(filter.query.urlEncoded())
+			}
+
+			if (page > 1) {
+				append("&page=")
+				append(page)
+			}
+
+			append("&filter[status]=")
+			filter.states.forEach {
+				append(
+					when (it) {
+						MangaState.ONGOING -> "2,"
+						MangaState.FINISHED -> "1,"
+						else -> "2,1"
+					},
+				)
+			}
+
+			if (filter.tags.isNotEmpty()) {
+				append("&filter[accept_genres]=")
+				filter.tags.joinTo(this, separator = ",") { it.key }
+			}
+
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&filter[reject_genres]=")
+				filter.tagsExclude.joinTo(this, separator = ",") { it.key }
 			}
 		}
 
@@ -162,7 +170,7 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
 			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
 				.mapChapters(reversed = true) { i, a ->
@@ -173,7 +181,7 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i.toFloat(),
 						volume = 0,
 						url = href,
@@ -200,6 +208,17 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 		}
 	}
 
+	private suspend fun availableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain").parseHtml()
+		return doc.select("ul.grid.grid-cols-2 a").mapIndexed { index, a ->
+			MangaTag(
+				key = (index + 1).toString(),
+				title = a.text(),
+				source = source,
+			)
+		}.toSet()
+	}
+
 	private fun parseDateTime(dateStr: String): Long = runCatching {
 		val parts = dateStr.split(' ')
 		val dateParts = parts[0].split('-')
@@ -216,15 +235,4 @@ internal class KuroNeko(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 		)
 		calendar.timeInMillis
 	}.getOrDefault(0L)
-
-	private suspend fun availableTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain").parseHtml()
-		return doc.select("ul.grid.grid-cols-2 a").mapToSet { a ->
-			MangaTag(
-				key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-				title = a.text(),
-				source = source,
-			)
-		}
-	}
 }

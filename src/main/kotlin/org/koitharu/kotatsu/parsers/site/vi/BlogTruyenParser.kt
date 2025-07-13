@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken
+@Broken("Original site closed")
 @MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
@@ -83,7 +83,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 				description = mangaInfo.select("div.al-j.fs-12").text(),
 				url = relativeUrl,
 				publicUrl = relativeUrl.toAbsoluteUrl(domain),
-				coverUrl = mangaInfo.selectFirst("div > img.img")?.src().orEmpty(),
+				coverUrl = mangaInfo.selectFirst("div > img.img")?.src(),
 				contentRating = null,
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
@@ -129,7 +129,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 		return manga.copy(
 			tags = tags,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".detail .content")?.html(),
 			chapters = parseChapterList(doc),
 			largeCoverUrl = doc.selectLast("div.thumbnail > img")?.src(),
@@ -153,7 +153,7 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 			val uploadDate = dateFormat.tryParse(element.select("span.publishedDate").text())
 			MangaChapter(
 				id = generateUid(id),
-				name = name,
+				title = name,
 				number = index + 1f,
 				volume = 0,
 				url = relativeUrl,

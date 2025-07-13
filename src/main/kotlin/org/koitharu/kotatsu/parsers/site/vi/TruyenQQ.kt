@@ -12,7 +12,7 @@ import java.util.*
 @MangaSourceParser("TRUYENQQ", "TruyenQQ", "vi")
 internal class TruyenQQ(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyenqqto.com")
+	override val configKeyDomain = ConfigKey.Domain("truyenqqgo.com")
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
@@ -166,7 +166,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				"Hoàn Thành" -> MangaState.FINISHED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.selectFirst(".story-detail-info")?.html(),
 			chapters = doc.select("div.list_chapter div.works-chapter-item").mapChapters(reversed = true) { i, div ->
 				val a = div.selectFirstOrThrow("a")
@@ -175,7 +175,7 @@ internal class TruyenQQ(context: MangaLoaderContext) : LegacyPagedMangaParser(co
 				val dateText = div.selectFirst(".time-chap")?.text()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = i + 1f,
 					volume = 0,
 					url = href,

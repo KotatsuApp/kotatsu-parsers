@@ -8,6 +8,7 @@ import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import java.util.*
 
 @MangaSourceParser("GOCTRUYENTRANH", "Góc Truyện Tranh", "vi")
@@ -150,11 +151,11 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 				url = "/$slug",
 				publicUrl = mangaUrl,
 				title = item.getString("name"),
-				altTitles = setOfNotNull(item.optString("origin_name")?.takeUnless { it == "null" || it.isEmpty() }),
-				description = item.optString("content"),
+				altTitles = setOfNotNull(item.getStringOrNull("origin_name")?.takeUnless { it == "null" }),
+				description = item.getStringOrNull("content"),
 				rating = RATING_UNKNOWN,
 				contentRating = if (checkNsfw || isNsfwSource) ContentRating.ADULT else null,
-				coverUrl = item.optString("thumbnail"),
+				coverUrl = item.getStringOrNull("thumbnail"),
 				tags = tags,
 				state = when (item.optString("status")) {
 					"0" -> MangaState.ONGOING
@@ -180,7 +181,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 					val dateText = li.selectFirst("div.w-\\[50\\%\\].truncate.text-center")?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,
@@ -196,7 +197,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("img.lozad[data-src]").map { img ->
+		return doc.select("img.lozad.mx-auto.transition-all.max-w-full.relative").map { img ->
 			val url = img.attr("data-src")
 			MangaPage(
 				id = generateUid(url),

@@ -99,7 +99,7 @@ internal abstract class KeyoappParser(
 			doc.select("div.grid > div.group")
 		}.map { div ->
 
-			val title = div.selectFirstOrThrow("h3").text().orEmpty()
+			val title = div.selectFirst("h3")?.text().orEmpty()
 			if (query.isNotEmpty() && title.contains(query, ignoreCase = true)) {
 				manga.add(addManga(div))
 			}
@@ -119,16 +119,19 @@ internal abstract class KeyoappParser(
 		return manga
 	}
 
+	protected open val cover: (Element) -> String? = { div ->
+		div.selectFirst("a div.bg-cover")?.styleValueOrNull("background-image")?.cssUrl()
+	}
 
 	private fun addManga(div: Element): Manga {
 		val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-		val cover = div.selectFirst("div.h-full") ?: div.selectFirst("a")
+		val coverUrl = cover(div)
 		return Manga(
 			id = generateUid(href),
 			url = href,
 			publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-			coverUrl = cover?.styleValueOrNull("background-image")?.cssUrl(),
-			title = div.selectFirstOrThrow("h3").text().orEmpty(),
+			coverUrl = coverUrl,
+			title = (div.selectFirst("h3")?.text() ?: div.selectFirst("a")?.attr("title")).orEmpty(),
 			altTitles = emptySet(),
 			rating = RATING_UNKNOWN,
 			tags = div.select("div.gap-1 a").mapToSet { a ->
@@ -193,7 +196,7 @@ internal abstract class KeyoappParser(
 					val dateText = a.selectLast("div.text-xs.w-fit")?.text() ?: "0"
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

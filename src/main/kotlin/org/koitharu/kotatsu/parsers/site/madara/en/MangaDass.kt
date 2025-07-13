@@ -91,7 +91,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 						source = source,
 					)
 				}.orEmpty(),
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state = when (summary?.selectFirst(".mg_status")?.selectFirst(".summary-content")?.ownText()
 					?.lowercase().orEmpty()) {
 					in ongoing -> MangaState.ONGOING
@@ -155,7 +155,7 @@ internal class MangaDass(context: MangaLoaderContext) :
 			val name = a.selectFirst("p")?.text() ?: a.ownText()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = i + 1f,
 				volume = 0,
 				url = link,

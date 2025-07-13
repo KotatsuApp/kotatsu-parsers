@@ -154,7 +154,7 @@ internal abstract class MangaWorldParser(
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = tags,
-				authors = author?.let { setOf(it) } ?: emptySet(),
+				authors = setOfNotNull(author),
 				state =
 					when (div.selectFirst(".status a")?.text()?.lowercase()) {
 						"in corso" -> MangaState.ONGOING
@@ -198,7 +198,7 @@ internal abstract class MangaWorldParser(
 					val url = a.attrAsRelativeUrl("href").toAbsoluteUrl(domain)
 					MangaChapter(
 						id = generateUid(url),
-						name = a.selectFirst("span.d-inline-block")?.text() ?: "Chapter : ${i + 1f}",
+						title = a.selectFirst("span.d-inline-block")?.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = "$url?style=list",

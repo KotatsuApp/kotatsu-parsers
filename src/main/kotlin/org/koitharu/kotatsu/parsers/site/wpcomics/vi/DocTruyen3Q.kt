@@ -12,12 +12,7 @@ import java.util.*
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "truyen3qvip.com", 36) {
-
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"truyen3qvip.com",
-		"doctruyen3qui.pro", // Main domain
-	)
+	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qui10.pro", 36) {
 
 	override val datePattern = "dd/MM/yyyy"
 
@@ -147,7 +142,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 		}
 
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = description,
 			state = state,
 			tags = tags,
@@ -166,7 +161,7 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			val timeText = timeElement?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = name,
+				title = name,
 				number = number,
 				url = href,
 				uploadDate = parseChapterDate(timeText),
@@ -219,17 +214,42 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.page-chapter img").mapNotNull { img ->
-			val url = img.attr("src")?.toAbsoluteUrl(domain) ?: return@mapNotNull null
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
+	    val fullUrl = chapter.url.toAbsoluteUrl(domain)
+	    val doc = webClient.httpGet(fullUrl).parseHtml()
+	
+	    var urls = doc.select("div.page-chapter img")
+	        .mapNotNull { it.attrAsRelativeUrlOrNull("data-original") }
+	        .filterNot { filterAdsUrls(it) }
+	
+	    if (urls.isEmpty()) {
+	        urls = doc.select("div.page-chapter img")
+	            .mapNotNull { it.attrAsRelativeUrlOrNull("src") }
+	            .filterNot { filterAdsUrls(it) }
+	    }
+	
+	    return urls.map { url ->
+	        MangaPage(
+	            id = generateUid(url),
+	            url = url,
+	            preview = null,
+	            source = source,
+	        )
+	    }
+	}
+
+	private fun filterAdsUrls(url: String): Boolean {
+	    return url.contains("sp1.jpg") ||
+	           url.contains("3q_fake") ||
+	           url.contains("sp2.jpg") ||
+		     url.contains("3qui5.jpg") ||
+	           url.contains("3qui6.jpg") ||
+		     url.contains("3qui8.jpg") ||
+		     url.contains("3qui9.jpg") ||
+	           url.contains("3q_top") ||
+	           url.contains("3q282.jpg") ||
+	           url.contains("3qui5_banner.jpg") ||
+		     url.contains("dt3qui8.jpg") ||
+                 url.contains("3qui10.jpg")
 	}
 
 	private fun availableTags(): Set<MangaTag> = setOf(

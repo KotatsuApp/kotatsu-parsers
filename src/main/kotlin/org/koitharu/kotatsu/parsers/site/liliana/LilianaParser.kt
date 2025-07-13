@@ -161,7 +161,7 @@ internal abstract class LilianaParser(
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirst("div.y6x11p i.fas.fa-rss + span.dt")?.text()?.lowercase().orEmpty()) {
 				in ongoing -> MangaState.ONGOING
 				in finished -> MangaState.FINISHED
@@ -173,7 +173,7 @@ internal abstract class LilianaParser(
 				val href = element.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					name = element.selectFirst("a")?.text() ?: "Chapter : ${i + 1f}",
+					title = element.selectFirst("a")?.textOrNull(),
 					number = i + 1f,
 					volume = 0,
 					url = href,

@@ -213,7 +213,7 @@ internal abstract class MadthemeParser(
 			val dateText = li.selectFirst(selectDate)?.text()
 			MangaChapter(
 				id = generateUid(href),
-				name = li.selectFirst(".chapter-title")?.text() ?: "Chapters : ${i + 1f}",
+				title = li.selectFirst(".chapter-title")?.textOrNull(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

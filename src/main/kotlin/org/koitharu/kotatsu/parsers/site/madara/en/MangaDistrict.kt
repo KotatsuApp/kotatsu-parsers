@@ -21,7 +21,7 @@ internal class MangaDistrict(context: MangaLoaderContext) :
 	override suspend fun getChapters(manga: Manga, doc: Document): List<MangaChapter> {
 		val slug = manga.url.removeSuffix('/').substringAfterLast('/')
 		val doc2 = webClient.httpPost(
-			"https://$domain/read-scan/$slug/ajax/chapters/",
+			"https://$domain/title/$slug/ajax/chapters/",
 			mapOf(),
 		).parseHtml()
 		val ul = doc2.body().selectFirstOrThrow("ul")
@@ -31,7 +31,7 @@ internal class MangaDistrict(context: MangaLoaderContext) :
 			val href = a?.attrAsRelativeUrlOrNull("href") ?: li.parseFailed("Link is missing")
 			MangaChapter(
 				id = generateUid(href),
-				name = a.ownText(),
+				title = a.ownText(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

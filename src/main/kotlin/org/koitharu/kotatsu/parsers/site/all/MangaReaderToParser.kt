@@ -36,12 +36,11 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = "https://${domain}/home"
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name.contains("connect.sid")
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name.contains("connect.sid")
 		}
+	}
 
 	// It will be easier to connect to a manga page, as the source redirects to a lot of advertising.
 	override suspend fun getUsername(): String {
@@ -203,7 +202,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 						else -> null
 					}
 				},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = document.select("div.description").html(),
 			chapters = parseChapters(document),
 			source = source,
@@ -222,7 +221,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				chapters.add(
 					MangaChapter(
 						id = generateUid(a.attrAsRelativeUrl("href")),
-						name = a.attr("title"),
+						title = a.attrOrNull("title"),
 						number = li.attr("data-number").toFloat(),
 						volume = 0,
 						url = a.attrAsRelativeUrl("href"),
@@ -242,7 +241,7 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 				chapters.add(
 					MangaChapter(
 						id = generateUid(url),
-						name = name,
+						title = name,
 						number = numRegex.find(name)?.groupValues?.getOrNull(1)?.toFloatOrNull() ?: 0f,
 						volume = 0,
 						url = url,

@@ -138,7 +138,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 				)
 			},
 			description = desc,
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = state,
 			chapters = chaptersDeferred.await(),
 		)
@@ -160,7 +160,7 @@ internal class XoxoComics(context: MangaLoaderContext) :
 					val dateText = li.selectFirst("div.col-xs-3")?.text()
 					MangaChapter(
 						id = generateUid(href),
-						name = a.text(),
+						title = a.text(),
 						number = 0f,
 						volume = 0,
 						url = href,

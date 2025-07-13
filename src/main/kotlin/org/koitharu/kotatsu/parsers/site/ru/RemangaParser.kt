@@ -38,7 +38,7 @@ internal class RemangaParser(
 
 	override fun getRequestHeaders() = getApiHeaders()
 
-	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг")
+	override val configKeyDomain = ConfigKey.Domain("remanga.me", "remanga.org", "реманга.орг")
 
 	override val authUrl: String
 		get() = "https://${domain}"
@@ -50,12 +50,11 @@ internal class RemangaParser(
 		SortOrder.NEWEST,
 	)
 
-	override val isAuthorized: Boolean
-		get() {
-			return context.cookieJar.getCookies(domain).any {
-				it.name == "user"
-			}
+	override suspend fun isAuthorized(): Boolean {
+		return context.cookieJar.getCookies(domain).any {
+			it.name == "user"
 		}
+	}
 
 	private val regexLastUrlPath = Regex("/[^/]+/?$")
 
@@ -113,8 +112,8 @@ internal class RemangaParser(
 				title = jo.getString("rus_name"),
 				altTitles = setOfNotNull(jo.getStringOrNull("en_name")),
 				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
-				coverUrl = "https://api.$domain${img.getString("mid")}",
-				largeCoverUrl = "https://api.$domain${img.getString("high")}",
+				coverUrl = img.getStringOrNull("mid")?.toAbsoluteUrl("api.$domain"),
+				largeCoverUrl = img.getStringOrNull("high")?.toAbsoluteUrl("api.$domain"),
 				authors = emptySet(),
 				contentRating = null,
 				state = null,
@@ -141,7 +140,7 @@ internal class RemangaParser(
 		val content = try {
 			data.getJSONObject("content")
 		} catch (e: JSONException) {
-			throw ParseException(data.optString("msg"), manga.publicUrl, e)
+			throw ParseException(data.getStringOrNull("msg"), manga.publicUrl, e)
 		}
 		val branchId = content.getJSONArray("branches").optJSONObject(0)
 			?.getLong("id") ?: throw ParseException("No branches found", manga.publicUrl)
@@ -176,17 +175,7 @@ internal class RemangaParser(
 					url = "/api/titles/chapters/$id/",
 					number = jo.getIntOrDefault("index", chapters.size - i).toFloat(),
 					volume = 0,
-					name = buildString {
-						append("Том ")
-						append(jo.optString("tome", "0"))
-						append(". ")
-						append("Глава ")
-						append(jo.optString("chapter", "0"))
-						if (name.isNotEmpty()) {
-							append(" - ")
-							append(name)
-						}
-					},
+					title = name.nullIfEmpty(),
 					uploadDate = dateFormat.tryParse(jo.getString("upload_date")),
 					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
 					source = MangaParserSource.REMANGA,

@@ -26,7 +26,7 @@ class IntentFilterGenerator {
 				if (source == MangaParserSource.DUMMY) {
 					continue
 				}
-				val parser = source.newParser(MangaLoaderContextMock) as LegacyMangaParser
+				val parser = source.newParser(MangaLoaderContextMock)
 				parser.configKeyDomain.presetValues.forEach { domain ->
 					writer.appendTab().append("<data android:host=\"").append(domain).appendLine("\" />")
 				}

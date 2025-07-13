@@ -14,7 +14,7 @@ import java.util.*
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaivn.buzz")
+	override val configKeyDomain = ConfigKey.Domain("hentaivn.email")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -52,7 +52,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 				}
 			}
 
-			!filter.tags.isNullOrEmpty() -> {
+			filter.tags.isNotEmpty() -> {
 				val tag = filter.tags.first()
 				buildString {
 					append("/the-loai/")
@@ -110,7 +110,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		return when {
 			!filter.query.isNullOrEmpty() -> parseSearchManga(doc)
-			!filter.tags.isNullOrEmpty() -> parseSearchManga(doc)
+			filter.tags.isNotEmpty() -> parseSearchManga(doc)
 			else -> parseListManga(doc)
 		}
 	}
@@ -118,7 +118,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	private fun parseSearchManga(doc: Document): List<Manga> {
 		return doc.select(".story-item-list.d-flex.align-items-center.position-relative.mb-1").map { div ->
 			val href = div.selectFirstOrThrow("a.story-item-list__image").attrAsRelativeUrl("href")
-			val coverUrl = div.selectFirst("img")?.attr("data-src").orEmpty()
+			val coverUrl = div.selectFirst("img")?.attr("data-src")
 			val title = div.selectFirst("img")?.attr("alt").orEmpty()
 			Manga(
 				id = generateUid(href),
@@ -163,11 +163,11 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty()
 		return manga.copy(
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			tags = doc.select("div.mb-1 span a").mapToSet { element ->
 				MangaTag(
 					key = element.attr("href").substringAfter("/the-loai/"),
-					title = element.text().substringBefore(",").trim(), // force trim before , symbol and space
+					title = element.text().substringBefore(',').trim(), // force trim before , symbol and space
 					source = source,
 				)
 			},
@@ -183,7 +183,7 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 					val name = element.text().removePrefix("- ")
 					MangaChapter(
 						id = generateUid(href),
-						name = name,
+						title = name,
 						number = i + 1f,
 						volume = 0,
 						url = href,

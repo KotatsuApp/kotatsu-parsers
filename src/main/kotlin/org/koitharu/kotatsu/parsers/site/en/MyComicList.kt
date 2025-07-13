@@ -97,7 +97,7 @@ internal class MyComicList(context: MangaLoaderContext) :
 					source = source,
 				)
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			state = when (doc.selectFirst("td:contains(Status:) + td a")?.text()?.lowercase()) {
 				"ongoing" -> MangaState.ONGOING
 				"completed" -> MangaState.FINISHED
@@ -111,7 +111,7 @@ internal class MyComicList(context: MangaLoaderContext) :
 
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = name.substringAfter('#').toFloatOrNull() ?: (i + 1f),
 					url = href,
 					scanlator = null,

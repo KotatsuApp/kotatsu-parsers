@@ -13,7 +13,9 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.text.SimpleDateFormat
 import java.util.*
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Original site closed")
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
 internal class YurinekoParser(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
@@ -101,13 +103,12 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 		val df = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.US)
 		return manga.copy(
 			chapters = response.getJSONArray("chapters")
-				.asTypedList<JSONObject>()
 				.mapChapters(true) { i, jo ->
 					val mangaId = jo.getInt("mangaID")
 					val chapterId = jo.getInt("id")
 					MangaChapter(
 						id = generateUid(chapterId.toLong()),
-						name = jo.getString("name"),
+						title = jo.getStringOrNull("name"),
 						number = i + 1f,
 						volume = 0,
 						scanlator = null,

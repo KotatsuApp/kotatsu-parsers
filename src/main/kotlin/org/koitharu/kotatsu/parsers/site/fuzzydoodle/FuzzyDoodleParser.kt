@@ -192,7 +192,7 @@ internal abstract class FuzzyDoodleParser(
 				in paused -> MangaState.PAUSED
 				else -> null
 			},
-			authors = author?.let { setOf(it) } ?: emptySet(),
+			authors = setOfNotNull(author),
 			description = doc.select(selectDescription).html(),
 			tags = doc.select(selectTagManga).mapToSet {
 				val key = it.attr("href").substringAfterLast('=')
@@ -240,7 +240,7 @@ internal abstract class FuzzyDoodleParser(
 				val chapterN = href.substringAfterLast('/').replace("-", ".").replace("[^0-9.]".toRegex(), "").toFloat()
 				MangaChapter(
 					id = generateUid(href),
-					name = name,
+					title = name,
 					number = chapterN,
 					volume = 0,
 					url = href,

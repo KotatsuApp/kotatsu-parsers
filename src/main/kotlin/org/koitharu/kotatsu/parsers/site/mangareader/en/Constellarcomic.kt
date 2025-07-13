@@ -28,7 +28,7 @@ internal class Constellarcomic(context: MangaLoaderContext) :
 			val url = element.selectFirst("a")?.attrAsRelativeUrl("href") ?: return@mapChapters null
 			MangaChapter(
 				id = generateUid(url),
-				name = element.selectFirst(".chapternum")?.textOrNull() ?: "Chapter ${index + 1}",
+				title = element.selectFirst(".chapternum")?.textOrNull(),
 				url = url,
 				number = index + 1f,
 				volume = 0,
