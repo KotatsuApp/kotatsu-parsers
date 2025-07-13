@@ -152,9 +152,9 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
         	timeZone = TimeZone.getTimeZone("GMT+7")
         }
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
-		val altTitles = root.select("div.grow div:contains(Tên khác) span a")
-			.mapNotNull { it.textOrNull() }
-			.toSet()
+		val altTitles = root.selectFirst("div.grow div:contains(Tên khác)")
+			?.select("span a")?.mapToSet { it.text() }
+			?: emptySet()
 
 		return manga.copy(
 			altTitles = altTitles,
