@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("ROMANTIKMANGA", "RomantikManga", "tr")
 internal class RomantikManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.ROMANTIKMANGA, "romantikmanga.com", 20)
+	MadaraParser(context, MangaParserSource.ROMANTIKMANGA, "webtoonhatti.club", 20)

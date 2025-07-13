@@ -18,7 +18,7 @@ import java.text.SimpleDateFormat
 
 @MangaSourceParser("LAVINIAFANSUB", "LaviniaFansub", "tr", ContentType.HENTAI)
 internal class LaviniaFansub(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.LAVINIAFANSUB, "laviniafansub.com", 18) {
+	MadaraParser(context, MangaParserSource.LAVINIAFANSUB, "laviniafansub.site", 18) {
 	override val datePattern = "dd/MM/yyyy"
 
 	override suspend fun loadChapters(mangaUrl: String, document: Document): List<MangaChapter> {
