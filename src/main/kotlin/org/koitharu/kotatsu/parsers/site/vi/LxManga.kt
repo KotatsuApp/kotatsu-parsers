@@ -154,9 +154,9 @@ internal class LxManga(context: MangaLoaderContext) : LegacyPagedMangaParser(con
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
-			altTitles = root.selectFirst("div.grow div:contains(Tên khác) span")?.select("a")
-				?.mapNotNull { it.text().takeIf { a -> a.isNotEmpty() } }
-				?.toSet().orEmpty(),
+			altTitles = root.selectFirst("div.grow div:contains(Tên khác) span")?.select("a.bg-gray-500")
+				?.mapToSet { it.text() }
+				.orEmpty(),
 			state = when (root.selectFirst("div.mt-2:contains(Tình trạng) span.text-blue-500")?.text()) {
 				"Đang tiến hành" -> MangaState.ONGOING
 				"Đã hoàn thành" -> MangaState.FINISHED
