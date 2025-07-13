@@ -6,6 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
+@Broken("Content not found or removed")
 @MangaSourceParser("MILASUB", "MilaSub", "tr")
 internal class MilaSub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MILASUB, "www.milasub.biz", 20) {
