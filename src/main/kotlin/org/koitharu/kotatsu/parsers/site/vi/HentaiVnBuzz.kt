@@ -12,7 +12,7 @@ import java.util.*
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
 
-	override val configKeyDomain = ConfigKey.Domain("truyentranh3q.com")
+	override val configKeyDomain = ConfigKey.Domain("hentaivn.beer")
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
@@ -32,12 +32,6 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
-		availableContentTypes = EnumSet.of(
-			ContentType.MANGA,
-			ContentType.MANHWA,
-			ContentType.MANHUA,
-			ContentType.OTHER,
-		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -46,21 +40,15 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 			append(domain)
 			append("/tim-kiem-nang-cao")
 
-			append("?")
-
-			if (page > 1) {
-				append("page=")
-				append(page)
-				append("&")
-			}
+			append("?page=")
+			append(page)
 
 			if (!filter.query.isNullOrEmpty()) {
-				append("keyword=")
+				append("&keyword=")
 				append(filter.query.urlEncoded())
-				append("&")
 			}
 
-			append("sort=")
+			append("&sort=")
 			append(
 				when (order) {
 					SortOrder.UPDATED -> "0"
@@ -80,20 +68,14 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 				},
 			)
 
-			append("&country=")
-			append(
-				when (filter.types.oneOrThrowIfMany()) {
-					ContentType.MANGA -> "manga"
-					ContentType.MANHWA -> "manhwa"
-					ContentType.MANHUA -> "manhua"
-					ContentType.OTHER -> "other"
-					else -> "all"
-				},
-			)
-
 			if (filter.tags.isNotEmpty()) {
-				append("&categories=")
+				append("&category=")
 				append(filter.tags.joinToString(",") { it.key })
+			}
+
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&notcategory=")
+				append(filter.tagsExclude.joinToString(",") { it.key })
 			}
 		}
 
