@@ -131,7 +131,7 @@ internal abstract class YuriGardenParser(
 				url = "/comics/$id",
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
-				altTitles = setOf(jo.getString("anotherName")),
+				altTitles = setOf(jo.getString("anotherName")).orEmpty(),
 				coverUrl = jo.getString("thumbnail"),
 				largeCoverUrl = jo.getString("thumbnail"),
 				authors = emptySet(),
@@ -144,7 +144,7 @@ internal abstract class YuriGardenParser(
 					"oncoming" -> MangaState.UPCOMING
 					else -> null
 				},
-				description = jo.getString("description"),
+				description = jo.getString("description").orEmpty(),
 				contentRating = if (jo.getBooleanOrDefault("r18", false)) ContentRating.ADULT else ContentRating.SUGGESTIVE,
 				source = source,
 				rating = RATING_UNKNOWN,
@@ -160,6 +160,8 @@ internal abstract class YuriGardenParser(
 			jo.getString("name") + " (${jo.getLong("id")})"
 		}.orEmpty()
 
+		val altTitles = setOf(json.getString("anotherName"))
+		val description = json.getString("description")
 		val team = json.optJSONArray("teams")?.getJSONObject(0)?.getString("name")
 
 		val chaptersDeferred = async {
@@ -167,6 +169,7 @@ internal abstract class YuriGardenParser(
 		}
 
 		manga.copy(
+			altTitles = altTitles,
 			authors = authors,
 			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
 				val chapId = jo.getLong("id")
@@ -181,7 +184,8 @@ internal abstract class YuriGardenParser(
 					branch = null,
 					source = source,
 				)
-			}
+			},
+			description = description,
 		)
 	}
 
