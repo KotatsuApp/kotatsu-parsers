@@ -42,6 +42,7 @@ internal abstract class YuriGardenParser(
 			isSearchSupported = true,
 			isMultipleTagsSupported = true,
 			isSearchWithFiltersSupported = true,
+			isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
@@ -99,6 +100,19 @@ internal abstract class YuriGardenParser(
 				append("&genre=")
 				append(filter.tags.joinToString(separator = ",") { it.key })
 			}
+
+			if (!filter.author.isNullOrEmpty()) {
+				clear()
+
+				append("https://")
+				append(apiSuffix)
+				append("/creators/authors/")
+				append(
+					filter.author.substringAfter("(").substringBefore(")")
+				)
+
+				return@buildString // end of buildString
+			}
 		}
 
 		val json = webClient.httpGet(url).parseJson()
@@ -106,8 +120,7 @@ internal abstract class YuriGardenParser(
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
-			val allTags = fetchTags().orEmpty()
-			val tags = allTags.let { allTags ->
+			val tags = fetchTags().let { allTags ->
 				jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
 					allTags.find { x -> x.key == g }
 				}
@@ -144,7 +157,7 @@ internal abstract class YuriGardenParser(
 		val json = webClient.httpGet("https://$apiSuffix/comics/${id}").parseJson()
 
 		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
-			jo.getString("name")
+			jo.getString("name") + " (${jo.getLong("id")})"
 		}.orEmpty()
 
 		val team = json.optJSONArray("teams")?.getJSONObject(0)?.getString("name")
