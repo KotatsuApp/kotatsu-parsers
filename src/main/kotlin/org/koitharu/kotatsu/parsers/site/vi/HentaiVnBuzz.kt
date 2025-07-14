@@ -10,7 +10,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi", type = ContentType.HENTAI)
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
+	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentaivn.beer")
 
@@ -43,11 +43,6 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 			append("?page=")
 			append(page)
 
-			if (!filter.query.isNullOrEmpty()) {
-				append("&keyword=")
-				append(filter.query.urlEncoded())
-			}
-
 			append("&sort=")
 			append(
 				when (order) {
@@ -76,6 +71,17 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 			if (filter.tagsExclude.isNotEmpty()) {
 				append("&notcategory=")
 				append(filter.tagsExclude.joinToString(",") { it.key })
+			}
+
+			if (!filter.query.isNullOrEmpty()) {
+				clear()
+
+				append("https://")
+				append(domain)
+				append("/tim-kiem?q=")
+				append(filter.query.urlEncoded())
+
+				return@buildString // end of buildString
 			}
 		}
 
