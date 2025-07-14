@@ -120,6 +120,9 @@ internal abstract class YuriGardenParser(
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
+			val altTitles = setOf(jo.optString("anotherName", null))
+				.filterNotNull()
+				.toSet()
 			val tags = fetchTags().let { allTags ->
 				jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
 					allTags.find { x -> x.key == g }
@@ -131,7 +134,7 @@ internal abstract class YuriGardenParser(
 				url = "/comics/$id",
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
-				altTitles = setOf(jo.getString("anotherName")).orEmpty(),
+				altTitles = altTitles,
 				coverUrl = jo.getString("thumbnail"),
 				largeCoverUrl = jo.getString("thumbnail"),
 				authors = emptySet(),
@@ -144,7 +147,7 @@ internal abstract class YuriGardenParser(
 					"oncoming" -> MangaState.UPCOMING
 					else -> null
 				},
-				description = jo.getString("description").orEmpty(),
+				description = jo.optString("description").orEmpty(),
 				contentRating = if (jo.getBooleanOrDefault("r18", false)) ContentRating.ADULT else ContentRating.SUGGESTIVE,
 				source = source,
 				rating = RATING_UNKNOWN,
