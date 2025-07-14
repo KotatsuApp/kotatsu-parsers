@@ -1,157 +1,113 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi", type = ContentType.HENTAI)
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 24) {
+	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 60) {
 
-	override val configKeyDomain = ConfigKey.Domain("hentaivn.email")
+	override val configKeyDomain = ConfigKey.Domain("hentaivn.beer")
 
-	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
-		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
-	}
-
-	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
-	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
-		SortOrder.NEWEST,
-		SortOrder.POPULARITY,
-		SortOrder.UPDATED,
-	)
+	override val availableSortOrders: Set<SortOrder> =
+		EnumSet.of(
+			SortOrder.UPDATED,
+			SortOrder.NEWEST,
+			SortOrder.POPULARITY,
+			SortOrder.RATING,
+		)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
+			isMultipleTagsSupported = true,
+			isTagsExclusionSupported = true,
 			isSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = fetchTags(),
+		availableTags = fetchAvailableTags(),
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = when {
-			!filter.query.isNullOrEmpty() -> {
-				buildString {
-					append("/tim-kiem?key_word=")
-					append(filter.query.urlEncoded())
-					if (page > 1) {
-						append("&page=")
-						append(page)
-					}
-				}
-			}
+		val url = buildString {
+			append("https://")
+			append(domain)
+			append("/tim-kiem-nang-cao")
 
-			filter.tags.isNotEmpty() -> {
-				val tag = filter.tags.first()
-				buildString {
-					append("/the-loai/")
-					append(tag.key)
-					append("?")
-					when (order) {
-						SortOrder.NEWEST -> append("sort=0")
-						SortOrder.UPDATED -> append("sort=1")
-						SortOrder.POPULARITY -> append("sort=2")
-						else -> append("sort=0")
-					}
-					if (filter.states.isNotEmpty()) {
-						filter.states.forEach {
-							when (it) {
-								MangaState.ONGOING -> append("&is_full=0")
-								MangaState.FINISHED -> append("&is_full=1")
-								else -> append("")
-							}
-						}
-					}
-					if (page > 1) {
-						append("&page=")
-						append(page)
-					}
-				}
-			}
+			append("?page=")
+			append(page)
 
-			else -> {
-				buildString {
-					append("/danh-sach/truyen-moi?")
-					when (order) {
-						SortOrder.NEWEST -> append("sort=0")
-						SortOrder.UPDATED -> append("sort=1")
-						SortOrder.POPULARITY -> append("sort=2")
-						else -> append("sort=0")
-					}
-					if (filter.states.isNotEmpty()) {
-						filter.states.forEach {
-							when (it) {
-								MangaState.ONGOING -> append("&is_full=0")
-								MangaState.FINISHED -> append("&is_full=1")
-								else -> append("")
-							}
-						}
-					}
-					if (page > 1) {
-						append("&page=")
-						append(page)
-					}
-				}
-			}
-		}
-
-		val fullUrl = url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return when {
-			!filter.query.isNullOrEmpty() -> parseSearchManga(doc)
-			filter.tags.isNotEmpty() -> parseSearchManga(doc)
-			else -> parseListManga(doc)
-		}
-	}
-
-	private fun parseSearchManga(doc: Document): List<Manga> {
-		return doc.select(".story-item-list.d-flex.align-items-center.position-relative.mb-1").map { div ->
-			val href = div.selectFirstOrThrow("a.story-item-list__image").attrAsRelativeUrl("href")
-			val coverUrl = div.selectFirst("img")?.attr("data-src")
-			val title = div.selectFirst("img")?.attr("alt").orEmpty()
-			Manga(
-				id = generateUid(href),
-				title = title,
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				rating = RATING_UNKNOWN,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-				coverUrl = coverUrl,
-				tags = emptySet(),
-				state = null,
-				authors = emptySet(),
-				source = source,
+			append("&sort=")
+			append(
+				when (order) {
+					SortOrder.UPDATED -> "0"
+					SortOrder.NEWEST -> "1"
+					SortOrder.POPULARITY -> "2"
+					SortOrder.RATING -> "6"
+					else -> "0"
+				},
 			)
-		}
-	}
 
-	private fun parseListManga(doc: Document): List<Manga> {
-		return doc.select(".story-item-list.d-flex.align-items-center.position-relative.mb-1").map { div ->
-			val href = div.selectFirstOrThrow("a.story-item-list__image").attrAsRelativeUrl("href")
-			val coverUrl = div.selectFirst("img")?.attr("data-src").orEmpty()
-			val title = div.selectFirst("img")?.attr("alt").orEmpty()
+			append("&status=")
+			append(
+				when (filter.states.oneOrThrowIfMany()) {
+					MangaState.ONGOING -> "1"
+					MangaState.FINISHED -> "2"
+					else -> "0"
+				},
+			)
+
+			if (filter.tags.isNotEmpty()) {
+				append("&category=")
+				append(filter.tags.joinToString(",") { it.key })
+			}
+
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&notcategory=")
+				append(filter.tagsExclude.joinToString(",") { it.key })
+			}
+
+			if (!filter.query.isNullOrEmpty()) {
+				clear()
+
+				append("https://")
+				append(domain)
+				append("/tim-kiem?q=")
+				append(filter.query.urlEncoded())
+
+				return@buildString // end of buildString
+			}
+		}
+
+		val doc = webClient.httpGet(url).parseHtml()
+		return doc.select("ul.list_grid.grid > li").map { element ->
+			val aTag = element.selectFirstOrThrow("h3 a")
+			val tags = element.select(".genre-item").mapToSet {
+				MangaTag(
+					key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
+					title = it.text().toTitleCase(sourceLocale),
+					source = source,
+				)
+			}
+
+			val href = aTag.attrAsRelativeUrl("href")
+
 			Manga(
 				id = generateUid(href),
-				title = title,
+				title = aTag.text(),
 				altTitles = emptySet(),
 				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
+				publicUrl = aTag.attrAsAbsoluteUrl("href"),
 				rating = RATING_UNKNOWN,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-				coverUrl = coverUrl,
-				tags = emptySet(),
+				contentRating = ContentRating.ADULT,
+				coverUrl = element.selectFirst(".book_avatar a img")?.src(),
+				tags = tags,
 				state = null,
 				authors = emptySet(),
 				source = source,
@@ -161,47 +117,49 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val author = doc.select("p:contains(Tác giả:) a").text().nullIfEmpty()
+		val tags = doc.select("ul.list01 li").mapToSet {
+			MangaTag(
+				key = it.attr("href").substringAfterLast('-').substringBeforeLast('.'),
+				title = it.text().toTitleCase(sourceLocale),
+				source = source,
+			)
+		}
+		val author = doc.selectFirst("li.author a")?.textOrNull()
+
 		return manga.copy(
+			altTitles = setOfNotNull(doc.selectFirst("h2.other-name")?.textOrNull()),
 			authors = setOfNotNull(author),
-			tags = doc.select("div.mb-1 span a").mapToSet { element ->
-				MangaTag(
-					key = element.attr("href").substringAfter("/the-loai/"),
-					title = element.text().substringBefore(',').trim(), // force trim before , symbol and space
-					source = source,
-				)
-			},
-			description = null,
-			state = when (doc.select("p:contains(Trạng thái:) span").text()) {
-				"Đang ra" -> MangaState.ONGOING
+			tags = tags,
+			description = doc.selectFirst("div.story-detail-info")?.html(),
+			state = when (doc.selectFirst(".status p.col-xs-9")?.text()) {
+				"Đang tiến hành" -> MangaState.ONGOING
 				"Hoàn thành" -> MangaState.FINISHED
 				else -> null
 			},
-			chapters = doc.select("div.story-detail__list-chapter--list ul.list-unstyled li a")
-				.mapIndexed { i, element ->
-					val href = element.attrAsRelativeUrl("href")
-					val name = element.text().removePrefix("- ")
-					MangaChapter(
-						id = generateUid(href),
-						title = name,
-						number = i + 1f,
-						volume = 0,
-						url = href,
-						scanlator = null,
-						uploadDate = 0,
-						branch = null,
-						source = source,
-					)
-				},
+			chapters = doc.select("div.list_chapter div.works-chapter-item").mapChapters(reversed = true) { i, div ->
+				val a = div.selectFirstOrThrow("a")
+				val href = a.attrAsRelativeUrl("href")
+				val name = a.text()
+				MangaChapter(
+					id = generateUid(href),
+					title = name,
+					number = i + 1f,
+					volume = 0,
+					url = href,
+					scanlator = null,
+					uploadDate = 0L,
+					branch = null,
+					source = source,
+				)
+			},
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		val imageUrls = doc.select("meta[property='og:image']").map { it.attr("content") }
-		val finalUrls = imageUrls.drop(1)
-		return finalUrls.map { url ->
+		return doc.select(".chapter_content img").map { img ->
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -211,18 +169,15 @@ internal class HentaiVnBuzz(context: MangaLoaderContext) :
 		}
 	}
 
-	private suspend fun fetchTags(): Set<MangaTag> {
-		val doc = webClient.httpGet("https://$domain/").parseHtml()
-		val list = doc.select("ul.dropdown-menu.dropdown-menu-custom li a")
-		return list.mapToSet { tags ->
-			val href = tags.attr("href")
-			val key = href.substringAfter("/the-loai/").substringBefore("/")
-			val title = tags.text()
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/tim-kiem-nang-cao").parseHtml()
+		val elements = doc.select(".genre-item")
+		return elements.mapIndexed { i, element ->
 			MangaTag(
-				key = key,
-				title = title,
+				key = (i + 1).toString(),
+				title = element.text().toTitleCase(sourceLocale),
 				source = source,
 			)
-		}
+		}.toSet()
 	}
 }
