@@ -139,7 +139,7 @@ internal abstract class YuriGardenParser(
 				largeCoverUrl = jo.getString("thumbnail"),
 				authors = emptySet(),
 				tags = tags,
-				state = when(jo.getString("status")) {
+				state = when(jo.optString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"completed" -> MangaState.FINISHED
 					"hiatus" -> MangaState.PAUSED
