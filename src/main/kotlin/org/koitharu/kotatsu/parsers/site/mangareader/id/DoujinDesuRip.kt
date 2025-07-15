@@ -12,7 +12,7 @@ internal class DoujinDesuRip(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.DOUJINDESURIP,
-		"doujindesuu.cfd",
+		"doujindesu.asia",
 		pageSize = 20,
 		searchPageSize = 10,
 	) {
