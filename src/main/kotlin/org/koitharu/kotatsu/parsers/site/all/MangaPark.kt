@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("MANGAPARK", "MangaPark")
 internal class MangaPark(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
+	PagedMangaParser(context, MangaParserSource.MANGAPARK, pageSize = 36) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"mangapark.net",

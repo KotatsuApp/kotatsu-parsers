@@ -3,14 +3,14 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("READONEPIECE", "ReadOnePiece", "en")
 internal class ReadOnePiece(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.READONEPIECE) {
+	SinglePageMangaParser(context, MangaParserSource.READONEPIECE) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("ww11.readonepiece.com")
@@ -26,7 +26,7 @@ internal class ReadOnePiece(context: MangaLoaderContext) :
 		val doc = webClient.httpGet("https://$domain").parseHtml()
 		val root = doc.body().selectFirstOrThrow("nav ul")
 		val manga = root.select("li")
-		
+
 		return manga.mapNotNull { li ->
 			val a = li.selectFirst("a") ?: return@mapNotNull null
 			val href = a.attrAsRelativeUrlOrNull("href").takeIf { ref -> ref != "/" }

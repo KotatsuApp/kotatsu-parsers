@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.all
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.*
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -15,7 +15,7 @@ import java.util.Locale
 
 @MangaSourceParser("HOLOEARTH", "HoloEarth")
 internal class HoloEarthParser(context: MangaLoaderContext) :
-    LegacyPagedMangaParser(context, MangaParserSource.HOLOEARTH, 3) {
+    PagedMangaParser(context, MangaParserSource.HOLOEARTH, 3) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("holoearth.com")

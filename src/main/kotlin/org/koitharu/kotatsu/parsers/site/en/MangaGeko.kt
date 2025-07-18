@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("MANGAGEKO", "MangaGeko", "en")
 internal class MangaGeko(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MANGAGEKO, 30) {
+	PagedMangaParser(context, MangaParserSource.MANGAGEKO, 30) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.POPULARITY, SortOrder.UPDATED, SortOrder.NEWEST)

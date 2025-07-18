@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.model
 
 import java.util.*
 
-@Deprecated("Please check new searchManga method and MangaSearchQuery class")
 public data class MangaListFilter(
 	@JvmField val query: String? = null,
 	@JvmField val tags: Set<MangaTag> = emptySet(),

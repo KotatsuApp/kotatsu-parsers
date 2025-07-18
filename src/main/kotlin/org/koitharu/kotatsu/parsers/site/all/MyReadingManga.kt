@@ -6,7 +6,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.Broken
 
 @Broken // TODO: Fix tags, genres
 @MangaSourceParser("MYREADINGMANGA", "MyReadingManga")
-internal class MyReadingManga(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 20) {
+internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 20) {
 
     override val configKeyDomain = ConfigKey.Domain("myreadingmanga.info")
 

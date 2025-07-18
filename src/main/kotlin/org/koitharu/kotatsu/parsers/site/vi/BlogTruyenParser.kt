@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,7 +17,7 @@ import java.util.*
 @Broken("Original site closed")
 @MangaSourceParser("BLOGTRUYEN", "Blog Truyện", "vi")
 internal class BlogTruyenParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.BLOGTRUYEN, pageSize = 20) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("blogtruyenmoi.com")

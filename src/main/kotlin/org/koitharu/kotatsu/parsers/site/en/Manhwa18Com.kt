@@ -4,7 +4,7 @@ import androidx.collection.ArrayMap
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWA18COM", "Manhwa18.com", "en", type = ContentType.HENTAI)
 internal class Manhwa18Com(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MANHWA18COM, pageSize = 18, searchPageSize = 18) {
+	PagedMangaParser(context, MangaParserSource.MANHWA18COM, pageSize = 18, searchPageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwa18.com")
 

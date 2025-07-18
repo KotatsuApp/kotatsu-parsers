@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -19,7 +19,7 @@ import java.util.*
 @Broken
 @MangaSourceParser("BENTOMANGA", "BentoManga", "fr")
 internal class BentomangaParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.BENTOMANGA, 10) {
+	PagedMangaParser(context, MangaParserSource.BENTOMANGA, 10) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,

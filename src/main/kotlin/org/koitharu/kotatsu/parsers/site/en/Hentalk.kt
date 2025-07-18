@@ -8,7 +8,7 @@ import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -22,7 +22,7 @@ private const val SERVER_DATA = ""
 
 @MangaSourceParser("HENTALK", "Hentalk", "en", type = ContentType.HENTAI)
 internal class Hentalk(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HENTALK, 24) {
+	PagedMangaParser(context, MangaParserSource.HENTALK, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentalk.pw", "fakku.cc")
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)

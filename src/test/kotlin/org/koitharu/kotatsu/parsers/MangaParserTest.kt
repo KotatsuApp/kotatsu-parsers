@@ -5,8 +5,8 @@ import okhttp3.HttpUrl
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Disabled
 import org.junit.jupiter.params.ParameterizedTest
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
@@ -36,13 +36,13 @@ internal class MangaParserTest {
 	@MangaSources
 	fun pagination(source: MangaParserSource) = runTest(timeout = timeout) {
 		val parser = context.newParserInstance(source)
-		if (parser is LegacySinglePageMangaParser) {
+		if (parser is SinglePageMangaParser) {
 			return@runTest
 		}
 		val page1 = parser.getList(MangaSearchQuery.EMPTY)
 		val page2 =
 			parser.getList(MangaSearchQuery.Builder().offset(page1.size).build())
-		if (parser is LegacyPagedMangaParser) {
+		if (parser is PagedMangaParser) {
 			assert(parser.pageSize >= page1.size) {
 				"Page size is ${page1.size} but ${parser.pageSize} expected"
 			}

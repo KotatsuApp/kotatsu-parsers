@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -16,7 +16,7 @@ import java.util.*
 @Broken
 @MangaSourceParser("SCANS_MANGAS_ME", "ScansMangas.me", "fr")
 internal class ScansMangasMe(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.SCANS_MANGAS_ME) {
+	SinglePageMangaParser(context, MangaParserSource.SCANS_MANGAS_ME) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.ALPHABETICAL,

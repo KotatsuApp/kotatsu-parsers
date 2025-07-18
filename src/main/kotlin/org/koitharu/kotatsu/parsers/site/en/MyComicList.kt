@@ -3,14 +3,14 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MYCOMICLIST", "MyComicList", "en", ContentType.COMICS)
 internal class MyComicList(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MYCOMICLIST, 24) {
+	PagedMangaParser(context, MangaParserSource.MYCOMICLIST, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("mycomiclist.org")
 

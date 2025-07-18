@@ -6,7 +6,7 @@ import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -24,7 +24,7 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken("Need to fix getPages, most manga don't have chapter images due to faulty fetch logic")
 @MangaSourceParser("KOHARU", "Schale.network", type = ContentType.HENTAI)
 internal class Koharu(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.KOHARU, 24) {
+	PagedMangaParser(context, MangaParserSource.KOHARU, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("niyaniya.moe")
 	private val apiSuffix = "api.schale.network"

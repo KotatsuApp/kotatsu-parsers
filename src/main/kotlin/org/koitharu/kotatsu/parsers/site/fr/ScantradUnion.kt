@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("SCANTRADUNION", "ScantradUnion", "fr")
 internal class ScantradUnion(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.SCANTRADUNION, 10) {
+	PagedMangaParser(context, MangaParserSource.SCANTRADUNION, 10) {
 
 	override val configKeyDomain = ConfigKey.Domain("scantrad-union.com")
 

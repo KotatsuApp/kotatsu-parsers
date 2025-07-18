@@ -9,6 +9,7 @@ import java.util.*
  *
  * @property type The Java class representing the expected type of values for this field.
  */
+@Deprecated("Too complex")
 public enum class SearchableField(public val type: Class<*>) {
 	TITLE_NAME(String::class.java),
 	TAG(MangaTag::class.java),

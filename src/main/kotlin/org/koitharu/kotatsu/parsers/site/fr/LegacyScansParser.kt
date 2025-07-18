@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
@@ -16,7 +16,7 @@ import java.util.*
 @Broken("images canvas need to refactor")
 @MangaSourceParser("LEGACY_SCANS", "LegacyScans", "fr")
 internal class LegacyScansParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
+	PagedMangaParser(context, MangaParserSource.LEGACY_SCANS, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("legacy-scans.com")
 

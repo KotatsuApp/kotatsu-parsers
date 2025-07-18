@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.uk
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -12,7 +12,7 @@ import java.util.*
 private const val DEF_BRANCH_NAME = "Основний переклад"
 
 @MangaSourceParser("MANGAINUA", "MANGA/in/UA", "uk")
-internal class MangaInUaParser(context: MangaLoaderContext) : LegacyPagedMangaParser(
+internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 	context = context,
 	source = MangaParserSource.MANGAINUA,
 	pageSize = 24,

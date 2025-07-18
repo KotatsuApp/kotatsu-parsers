@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -16,7 +16,7 @@ import java.util.*
 
 @MangaSourceParser("BAOZIMH", "Baozimh", "zh")
 internal class Baozimh(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.BAOZIMH, pageSize = 36) {
+	PagedMangaParser(context, MangaParserSource.BAOZIMH, pageSize = 36) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.baozimh.com")
 

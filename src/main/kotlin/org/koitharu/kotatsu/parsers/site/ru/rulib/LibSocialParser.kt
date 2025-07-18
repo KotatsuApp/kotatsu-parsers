@@ -12,7 +12,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -27,7 +27,7 @@ internal abstract class LibSocialParser(
 	source: MangaParserSource,
 	protected val siteId: Int,
 	siteDomains: Array<String>,
-) : LegacyPagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
+) : PagedMangaParser(context, source, pageSize = 60), MangaParserAuthProvider {
 
 	protected val apiHost = "api.cdnlibs.org"
 

@@ -7,6 +7,7 @@ package org.koitharu.kotatsu.parsers.model.search
  * @param T The type of value associated with the search criterion.
  * @property field The field to which this search criterion applies.
  */
+@Deprecated("Too complex")
 public sealed interface QueryCriteria<T> {
 
 	public val field: SearchableField

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -18,7 +18,7 @@ import java.util.*
 @MangaSourceParser("MANGA_WTF", "MangaWtf", "ru")
 internal class MangaWtfParser(
 	context: MangaLoaderContext,
-) : LegacyPagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
+) : PagedMangaParser(context, MangaParserSource.MANGA_WTF, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

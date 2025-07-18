@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.getDomain
@@ -21,7 +21,7 @@ import java.util.*
 
 @Broken
 @MangaSourceParser("ANIBEL", "Anibel", "be")
-internal class AnibelParser(context: MangaLoaderContext) : LegacyMangaParser(context, MangaParserSource.ANIBEL) {
+internal class AnibelParser(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.ANIBEL) {
 
 	override val configKeyDomain = ConfigKey.Domain("anibel.net")
 

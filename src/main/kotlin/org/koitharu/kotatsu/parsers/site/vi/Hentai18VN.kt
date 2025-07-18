@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("HENTAI18VN", "Hentai18VN", "vi", type = ContentType.HENTAI)
 internal class Hentai18VN(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HENTAI18VN, 30) {
+	PagedMangaParser(context, MangaParserSource.HENTAI18VN, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentai18vn.top")
 

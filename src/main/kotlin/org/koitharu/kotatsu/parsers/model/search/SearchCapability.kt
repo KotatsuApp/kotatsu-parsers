@@ -21,6 +21,7 @@ import kotlin.reflect.KClass
  *      - `true` if this field can be used with other search criteria.
  *      - `false` if using this field requires it to be the only criterion in query.
  */
+@Deprecated("Too complex")
 public data class SearchCapability(
 	/** The searchable field that this capability applies to. */
 	@JvmField public val field: SearchableField,

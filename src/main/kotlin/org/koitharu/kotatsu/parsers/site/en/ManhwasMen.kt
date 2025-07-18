@@ -3,7 +3,7 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("MANHWASMEN", "ManhwasMen", "en", type = ContentType.HENTAI)
 internal class ManhwasMen(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MANHWASMEN, pageSize = 30, searchPageSize = 30) {
+	PagedMangaParser(context, MangaParserSource.MANHWASMEN, pageSize = 30, searchPageSize = 30) {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("manhwas.men")
 

@@ -3,13 +3,13 @@ package org.koitharu.kotatsu.parsers.site.es
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
-internal class DragonTranslationParser(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {
+internal class DragonTranslationParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("dragontranslation.net")
 

@@ -6,7 +6,7 @@ import okhttp3.HttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 
@@ -111,7 +111,7 @@ public class LinkResolver internal constructor(
 		if (SortOrder.RELEVANCE in supported) {
 			return SortOrder.RELEVANCE
 		}
-		if (this is LegacyMangaParser) {
+		if (this is AbstractMangaParser) {
 			return defaultSortOrder
 		}
 		return SortOrder.entries.first { it in supported }

@@ -8,7 +8,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.NotFoundException
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
@@ -21,7 +21,7 @@ import javax.crypto.spec.SecretKeySpec
 internal abstract class LineWebtoonsParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : LegacyMangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(

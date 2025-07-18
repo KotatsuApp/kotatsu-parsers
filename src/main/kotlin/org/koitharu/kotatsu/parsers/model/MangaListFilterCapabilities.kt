@@ -2,7 +2,6 @@ package org.koitharu.kotatsu.parsers.model
 
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 
-@Deprecated("Please check new MangaSearchQueryCapabilities class")
 public data class MangaListFilterCapabilities @InternalParsersApi constructor(
 
 	/**

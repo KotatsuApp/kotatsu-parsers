@@ -4,7 +4,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.asTypedList
@@ -18,7 +18,7 @@ import org.koitharu.kotatsu.parsers.Broken
 @Broken("Original site closed")
 @MangaSourceParser("YURINEKO", "YuriNeko", "vi", ContentType.HENTAI)
 internal class YurinekoParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
+	PagedMangaParser(context, MangaParserSource.YURINEKO, 20) {
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.site")
 

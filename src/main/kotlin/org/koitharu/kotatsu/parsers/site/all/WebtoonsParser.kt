@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -17,7 +17,7 @@ import java.util.EnumSet
 internal abstract class WebtoonsParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : LegacyMangaParser(context, source) {
+) : AbstractMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain("webtoons.com")
 
@@ -35,10 +35,11 @@ internal abstract class WebtoonsParser(
 			isSearchSupported = true,
 		)
 
-	override val userAgentKey = ConfigKey.UserAgent("Mozilla/5.0 (Linux; Android 12; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36")
+	override val userAgentKey =
+		ConfigKey.UserAgent("Mozilla/5.0 (Linux; Android 12; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.120 Mobile Safari/537.36")
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
-		availableTags = availableTags()
+		availableTags = availableTags(),
 	)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -57,7 +58,7 @@ internal abstract class WebtoonsParser(
 			else -> tag
 		}
 
-	private suspend fun fetchEpisodes(titleNo: Long) : List<MangaChapter> {
+	private suspend fun fetchEpisodes(titleNo: Long): List<MangaChapter> {
 		val url = "https://$mobileApiDomain/api/v1/webtoon/$titleNo/episodes?pageSize=99999"
 		val json = webClient.httpGet(url).parseJson()
 
@@ -98,7 +99,7 @@ internal abstract class WebtoonsParser(
 		val description = listOf(
 			doc.select("meta[property='og:description']").attr("content"),
 			doc.select("#_asideDetail p.summary").text(),
-			doc.select(".detail_header .summary").text()
+			doc.select(".detail_header .summary").text(),
 		).firstOrNull { it.isNotBlank() }.orEmpty()
 
 		val coverUrl = doc.select("meta[property=\"og:image\"]").attr("content").let { url ->
@@ -108,7 +109,7 @@ internal abstract class WebtoonsParser(
 		val author = listOf(
 			doc.select("meta[property='com-linewebtoon:webtoon:author']").attr("content"),
 			doc.select(".detail_header .info .author").firstOrNull()?.text(),
-			doc.select(".author_area").text()
+			doc.select(".author_area").text(),
 		).firstOrNull { !it.isNullOrBlank() && it != "null" }
 
 		val genreElements = doc.select(".detail_header .info .genre").ifEmpty {
@@ -185,6 +186,7 @@ internal abstract class WebtoonsParser(
 				val searchUrl = "https://$domain/$languageCode/search?keyword=${filter.query.urlEncoded()}"
 				webClient.httpGet(searchUrl).parseHtml()
 			}
+
 			filter.tags.isNotEmpty() -> {
 				val selectedGenre = filter.tags.first()
 				val genreUrlPath = genreUrlMap[selectedGenre.key] ?: selectedGenre.key
@@ -192,6 +194,7 @@ internal abstract class WebtoonsParser(
 				val genreUrl = "https://$domain/$languageCode/genres/$genreUrlPath?sortOrder=$sortParam"
 				webClient.httpGet(genreUrl).parseHtml()
 			}
+
 			else -> {
 				val rankingType = when (order) {
 					SortOrder.POPULARITY -> "popular"
@@ -212,7 +215,11 @@ internal abstract class WebtoonsParser(
 			.take(20)
 	}
 
-	private fun createMangaFromElement(element: Element, source: MangaParserSource, selectedGenre: MangaTag? = null): Manga {
+	private fun createMangaFromElement(
+		element: Element,
+		source: MangaParserSource,
+		selectedGenre: MangaTag? = null,
+	): Manga {
 		val href = element.absUrl("href")
 		val titleNo = extractTitleNoFromUrl(href)
 		val title = element.select(".title, .card_title").text()
@@ -258,7 +265,7 @@ internal abstract class WebtoonsParser(
 					id = generateUid("${chapter.id}-$i"),
 					url = url,
 					preview = null,
-					source = source
+					source = source,
 				)
 			}
 		}

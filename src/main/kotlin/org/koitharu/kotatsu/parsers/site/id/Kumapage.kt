@@ -6,7 +6,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -16,7 +16,7 @@ import java.util.*
 
 @MangaSourceParser("KUMAPAGE", "Kumapage", "id")
 internal class Kumapage(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.KUMAPAGE, 14) {
+	PagedMangaParser(context, MangaParserSource.KUMAPAGE, 14) {
 
 	override val configKeyDomain: ConfigKey.Domain
         get() = ConfigKey.Domain("www.kumapage.com")

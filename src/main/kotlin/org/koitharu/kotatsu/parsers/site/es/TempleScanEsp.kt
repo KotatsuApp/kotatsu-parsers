@@ -4,7 +4,7 @@ import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
@@ -16,7 +16,7 @@ import java.util.*
 
 @MangaSourceParser("TEMPLESCANESP", "TempleScanEsp", "es", ContentType.HENTAI)
 internal class TempleScanEsp(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.TEMPLESCANESP) {
+	SinglePageMangaParser(context, MangaParserSource.TEMPLESCANESP) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST_ASC)
 

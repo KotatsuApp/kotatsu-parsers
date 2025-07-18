@@ -4,6 +4,7 @@ import androidx.collection.ArraySet
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.util.mapToSet
 
+@Deprecated("Too complex. Use MangaListFilterCapabilities instead")
 @ExposedCopyVisibility
 public data class MangaSearchQueryCapabilities internal constructor(
 	public val capabilities: Set<SearchCapability>,

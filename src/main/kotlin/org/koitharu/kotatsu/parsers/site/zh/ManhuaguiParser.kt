@@ -8,7 +8,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.model.Demographic
@@ -44,7 +44,7 @@ import java.util.Locale
 
 @MangaSourceParser("MANHUAGUI", "Manhuagui", "zh")
 internal class ManhuaguiParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.MANHUAGUI, pageSize = 42) {
+	PagedMangaParser(context, MangaParserSource.MANHUAGUI, pageSize = 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("www.manhuagui.com")
     	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)

@@ -1,13 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.iken
 
-import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.json.JSONObject
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -20,7 +19,7 @@ internal abstract class IkenParser(
 	domain: String,
 	pageSize: Int = 18,
 	protected val useAPI: Boolean = false
-) : LegacyPagedMangaParser(context, source, pageSize) {
+) : PagedMangaParser(context, source, pageSize) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

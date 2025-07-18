@@ -6,7 +6,7 @@ import org.jsoup.internal.StringUtil
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -16,7 +16,7 @@ import java.util.*
 internal abstract class ChanParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
-) : LegacyMangaParser(context, source), MangaParserAuthProvider {
+) : AbstractMangaParser(context, source), MangaParserAuthProvider {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.NEWEST,

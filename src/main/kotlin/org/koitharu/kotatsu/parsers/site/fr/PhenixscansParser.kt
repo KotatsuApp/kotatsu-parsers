@@ -5,7 +5,7 @@ import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
@@ -18,7 +18,7 @@ import java.util.*
 
 @MangaSourceParser("PHENIXSCANS", "PhenixScans", "fr")
 internal class PhenixscansParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.PHENIXSCANS, 18) {
+	PagedMangaParser(context, MangaParserSource.PHENIXSCANS, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("phenix-scans.com")
 

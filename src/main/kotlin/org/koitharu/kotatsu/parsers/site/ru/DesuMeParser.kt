@@ -6,7 +6,7 @@ import okhttp3.HttpUrl
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -18,7 +18,7 @@ import java.util.*
 
 @MangaSourceParser("DESUME", "Desu", "ru")
 internal class DesuMeParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.DESUME, 20) {
+	PagedMangaParser(context, MangaParserSource.DESUME, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("desu.city", "desu.work", "desu.store", "desu.me", "desu.win")
 

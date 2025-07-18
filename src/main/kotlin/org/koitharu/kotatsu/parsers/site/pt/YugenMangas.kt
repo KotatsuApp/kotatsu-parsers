@@ -4,7 +4,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
@@ -15,7 +15,7 @@ import java.util.*
 
 @MangaSourceParser("YUGENMANGAS", "YugenApp", "pt")
 internal class YugenMangas(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
+	SinglePageMangaParser(context, MangaParserSource.YUGENMANGAS) {
 
 	override val configKeyDomain = ConfigKey.Domain("yugenmangasbr.voblog.xyz")
 

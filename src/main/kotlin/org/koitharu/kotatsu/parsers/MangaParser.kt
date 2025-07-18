@@ -24,7 +24,10 @@ public interface MangaParser : Interceptor {
 	 */
 	public val availableSortOrders: Set<SortOrder>
 
+	@Deprecated("Too complex. Use filterCapabilities instead")
 	public val searchQueryCapabilities: MangaSearchQueryCapabilities
+
+	public val filterCapabilities: MangaListFilterCapabilities
 
 	public val config: MangaSourceConfig
 
@@ -40,7 +43,10 @@ public interface MangaParser : Interceptor {
 
 	public val domain: String
 
+	@Deprecated("Too complex. Use getList with filter instead")
 	public suspend fun getList(query: MangaSearchQuery): List<Manga>
+
+	public suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga>
 
 	/**
 	 * Parse details for [Manga]: chapters list, description, large cover, etc.
@@ -79,13 +85,4 @@ public interface MangaParser : Interceptor {
 	 */
 	@InternalParsersApi
 	public suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga?
-
-	@Deprecated("Use getList(query: MangaSearchQuery) instead")
-	public suspend fun getList(offset: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return getList(convertToMangaSearchQuery(offset, order, filter))
-	}
-
-	@Deprecated("Please check searchQueryCapabilities")
-	public val filterCapabilities: MangaListFilterCapabilities
-		get() = searchQueryCapabilities.toMangaListFilterCapabilities()
 }

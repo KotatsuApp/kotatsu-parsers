@@ -2,7 +2,7 @@ package org.koitharu.kotatsu.parsers.site.onemanga
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
@@ -11,7 +11,7 @@ internal abstract class OneMangaParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-) : LegacySinglePageMangaParser(context, source) {
+) : SinglePageMangaParser(context, source) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 

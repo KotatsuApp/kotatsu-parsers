@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.util
 
 import org.junit.jupiter.api.Test
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
 import org.koitharu.kotatsu.parsers.MangaLoaderContextMock
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.newParser

@@ -4,7 +4,7 @@ import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -12,7 +12,7 @@ import java.util.*
 
 @MangaSourceParser("DOUJINDESU", "DoujinDesu.tv", "id")
 internal class DoujinDesuParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.DOUJINDESU, pageSize = 18) {
+	PagedMangaParser(context, MangaParserSource.DOUJINDESU, pageSize = 18) {
 
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("doujindesu.tv")

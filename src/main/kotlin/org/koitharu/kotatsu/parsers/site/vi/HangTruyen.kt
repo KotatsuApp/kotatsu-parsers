@@ -4,7 +4,7 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -12,7 +12,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("HANGTRUYEN", "Hang Truyện", "vi")
-internal class HangTruyen(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.HANGTRUYEN, 10) {
+internal class HangTruyen(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.HANGTRUYEN, 10) {
 
 	override val configKeyDomain = ConfigKey.Domain("hangtruyen.org")
 

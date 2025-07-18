@@ -3,14 +3,14 @@ package org.koitharu.kotatsu.parsers.site.vi
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("HENTAIVNBUZZ", "HentaiVn.buzz", "vi", type = ContentType.HENTAI)
 internal class HentaiVnBuzz(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 60) {
+	PagedMangaParser(context, MangaParserSource.HENTAIVNBUZZ, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("hentaivn.beer")
 

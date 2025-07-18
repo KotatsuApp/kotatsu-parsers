@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -19,7 +19,7 @@ import java.util.*
 
 @MangaSourceParser("COMX", "Com-X", "ru", ContentType.COMICS)
 internal class ComXParser(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.COMX, 20) {
+	PagedMangaParser(context, MangaParserSource.COMX, 20) {
 
 	override val configKeyDomain = ConfigKey.Domain("comx.life")
 

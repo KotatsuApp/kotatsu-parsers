@@ -18,11 +18,20 @@ internal class MangaParserWrapper(
 	override val authorizationProvider: MangaParserAuthProvider?
 		get() = delegate as? MangaParserAuthProvider
 
+	@Deprecated("Too complex. Use getList with filter instead")
 	override suspend fun getList(query: MangaSearchQuery): List<Manga> = withContext(Dispatchers.Default) {
 		if (!query.skipValidation) {
 			searchQueryCapabilities.validate(query)
 		}
 		delegate.getList(query)
+	}
+
+	override suspend fun getList(
+		offset: Int,
+		order: SortOrder,
+		filter: MangaListFilter,
+	): List<Manga> = withContext(Dispatchers.Default) {
+		delegate.getList(offset, order, filter)
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = withContext(Dispatchers.Default) {

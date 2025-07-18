@@ -3,14 +3,14 @@ package org.koitharu.kotatsu.parsers.site.en
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("CLONEMANGA", "CloneManga", "en")
 internal class CloneMangaParser(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.CLONEMANGA) {
+	SinglePageMangaParser(context, MangaParserSource.CLONEMANGA) {
 
 	override val availableSortOrders: Set<SortOrder> = Collections.singleton(
 		SortOrder.POPULARITY,

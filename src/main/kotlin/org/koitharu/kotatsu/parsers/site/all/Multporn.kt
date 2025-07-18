@@ -4,14 +4,14 @@ import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MULTPORN", "Multporn")
 internal class Multporn(context: MangaLoaderContext) :
-    LegacyPagedMangaParser(context, MangaParserSource.MULTPORN, 42) {
+    PagedMangaParser(context, MangaParserSource.MULTPORN, 42) {
 
     override val configKeyDomain = ConfigKey.Domain("multporn.net")
 

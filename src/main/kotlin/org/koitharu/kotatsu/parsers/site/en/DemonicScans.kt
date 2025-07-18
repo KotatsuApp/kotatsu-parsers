@@ -4,7 +4,7 @@ import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.jsoup.nodes.Element
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("DEMONICSCANS", "DemonicScans", "en")
 internal class DemonicScans(context: MangaLoaderContext) :
-    LegacyPagedMangaParser(context, MangaParserSource.DEMONICSCANS, 25) {
+    PagedMangaParser(context, MangaParserSource.DEMONICSCANS, 25) {
 
     override val configKeyDomain = ConfigKey.Domain("demonicscans.org")
 

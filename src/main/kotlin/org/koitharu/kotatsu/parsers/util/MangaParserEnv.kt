@@ -5,7 +5,7 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import org.koitharu.kotatsu.parsers.MangaParser
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.model.*
 
@@ -83,7 +83,7 @@ private fun <T> Set<T>?.oneOrThrowIfMany(msg: String): T? = when {
 }
 
 @InternalParsersApi
-public fun LegacyMangaParser.getDomain(subdomain: String): String {
+public fun AbstractMangaParser.getDomain(subdomain: String): String {
 	val domain = domain
 	return subdomain + "." + domain.removePrefix("www.")
 }

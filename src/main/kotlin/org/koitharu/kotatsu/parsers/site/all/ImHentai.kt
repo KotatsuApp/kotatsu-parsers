@@ -8,14 +8,14 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("IMHENTAI", "ImHentai", type = ContentType.HENTAI)
 internal class ImHentai(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.IMHENTAI, pageSize = 20) {
+	PagedMangaParser(context, MangaParserSource.IMHENTAI, pageSize = 20) {
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.RATING)

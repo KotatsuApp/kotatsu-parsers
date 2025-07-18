@@ -4,7 +4,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacySinglePageMangaParser
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -13,7 +13,7 @@ import java.util.*
 @Broken
 @MangaSourceParser("PO2SCANS", "Po2Scans", "en")
 internal class Po2Scans(context: MangaLoaderContext) :
-	LegacySinglePageMangaParser(context, MangaParserSource.PO2SCANS) {
+	SinglePageMangaParser(context, MangaParserSource.PO2SCANS) {
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 	override val configKeyDomain = ConfigKey.Domain("po2scans.com")

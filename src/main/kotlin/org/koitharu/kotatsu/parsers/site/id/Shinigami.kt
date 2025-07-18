@@ -4,7 +4,7 @@ import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("SHINIGAMI", "Shinigami", "id")
 internal class Shinigami(context: MangaLoaderContext) :
-	LegacyPagedMangaParser(context, MangaParserSource.SHINIGAMI, 24) {
+	PagedMangaParser(context, MangaParserSource.SHINIGAMI, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain("id.shinigami.asia")
 	private val apiSuffix = "api.shngm.io/v1"

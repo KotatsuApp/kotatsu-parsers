@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.parsers.model.SortOrder
  * @property offset The offset number for paginated search results (optional).
  */
 
+@Deprecated("Too complex. Use MangaListFilter instead")
 @ConsistentCopyVisibility
 public data class MangaSearchQuery private constructor(
 	@JvmField public val criteria: Set<QueryCriteria<*>>,

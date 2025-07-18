@@ -3,13 +3,13 @@ package org.koitharu.kotatsu.parsers.site.all
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("MANHWA210", "Manhwa210", type = ContentType.MANHWA)
-internal class Manhwa210(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MANHWA210, 60) {
+internal class Manhwa210(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANHWA210, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("manhwa210.com")
 

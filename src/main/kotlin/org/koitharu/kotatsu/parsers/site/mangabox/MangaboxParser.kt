@@ -5,7 +5,7 @@ import kotlinx.coroutines.coroutineScope
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.core.FlexiblePagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
@@ -22,7 +22,7 @@ internal abstract class MangaboxParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	pageSize: Int = 24,
-) : PagedMangaParser(context, source, pageSize) {
+) : FlexiblePagedMangaParser(context, source, pageSize) {
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

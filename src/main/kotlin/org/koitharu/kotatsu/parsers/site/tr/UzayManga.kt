@@ -4,7 +4,7 @@ import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -13,7 +13,7 @@ import java.util.*
 
 @MangaSourceParser("UZAYMANGA", "Uzay Manga", "tr")
 internal class UzayManga(context: MangaLoaderContext):
-    LegacyPagedMangaParser(context, MangaParserSource.UZAYMANGA, 25) {
+    PagedMangaParser(context, MangaParserSource.UZAYMANGA, 25) {
 
     override val configKeyDomain = ConfigKey.Domain("uzaymanga.com")
     private val cdnSuffix = "cdn1.$domain"

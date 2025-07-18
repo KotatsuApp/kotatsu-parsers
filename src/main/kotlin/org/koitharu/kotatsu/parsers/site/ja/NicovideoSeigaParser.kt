@@ -4,7 +4,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyMangaParser
+import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
 import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
@@ -16,7 +16,7 @@ private const val STATUS_FINISHED = "完結"
 
 @MangaSourceParser("NICOVIDEO_SEIGA", "NicoVideo Seiga", "ja")
 internal class NicovideoSeigaParser(context: MangaLoaderContext) :
-	LegacyMangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
+	AbstractMangaParser(context, MangaParserSource.NICOVIDEO_SEIGA),
 	MangaParserAuthProvider {
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("nicovideo.jp")

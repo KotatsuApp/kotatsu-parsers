@@ -7,14 +7,14 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.LegacyPagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("MANGAAY", "MangaAy", "tr")
-internal class MangaAy(context: MangaLoaderContext) : LegacyPagedMangaParser(context, MangaParserSource.MANGAAY, 45) {
+internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAAY, 45) {
 
 	override val configKeyDomain = ConfigKey.Domain("manga-ay.com")
 
