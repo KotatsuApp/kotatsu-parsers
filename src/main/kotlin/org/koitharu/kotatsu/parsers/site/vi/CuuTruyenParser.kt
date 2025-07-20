@@ -132,7 +132,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			Manga(
 				id = generateUid(jo.getLong("id")),
 				url = "/api/v2/mangas/${jo.getLong("id")}",
-				publicUrl = "https://$domain/manga/${jo.getLong("id")}",
+				publicUrl = "https://$domain/mangas/${jo.getLong("id")}",
 				title = jo.getString("name"),
 				altTitles = emptySet(),
 				coverUrl = jo.getString("cover_mobile_url"),
