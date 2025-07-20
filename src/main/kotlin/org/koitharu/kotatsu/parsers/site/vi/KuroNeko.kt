@@ -210,10 +210,13 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	private suspend fun availableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem").parseHtml()
-		return doc.select("ul.hidden.absolute.w-full a li").mapIndexed { index, li ->
+		val regex = Regex("toggleGenre\\('([0-9]+)'\\)")
+		return doc.select("div.grid.grid-cols-3 label").mapNotNullToSet { label ->
+			val attr = label.attr("@click")
+			val number = attr.findGroupValue(regex) ?: return@mapNotNullToSet null
 			MangaTag(
-				key = (index + 1).toString(),
-				title = li.text(),
+				key = number,
+				title = label.text(),
 				source = source,
 			)
 		}.toSet()
