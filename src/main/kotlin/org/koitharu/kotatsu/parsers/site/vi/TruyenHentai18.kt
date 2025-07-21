@@ -1,9 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.nodes.Document
-import org.jsoup.Jsoup
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -13,17 +11,15 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
 @MangaSourceParser("TRUYENHENTAI18", "TruyenHentai18", "vi", ContentType.HENTAI)
 internal class TruyenHentai18(context: MangaLoaderContext):
-      PagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
+	PagedMangaParser(context, MangaParserSource.TRUYENHENTAI18, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("truyenhentai18.app")
 
-      private val apiSuffix = "api.th18.app"
-      private val cdnSuffix = "vi-api.th18.app"
+	private val apiSuffix = "api.th18.app"
+	private val cdnSuffix = "vi-api.th18.app"
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -32,8 +28,8 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
-        	SortOrder.NEWEST,
-        	SortOrder.NEWEST_ASC,
+		SortOrder.NEWEST,
+		SortOrder.NEWEST_ASC,
 	)
 
 	override val filterCapabilities: MangaListFilterCapabilities
@@ -83,11 +79,10 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 			}
 		}
 
-		val fullUrl = "https://" + url
 		return when {
-			filter.tags.isNotEmpty() -> parseNextList(webClient.httpGet(fullUrl).parseHtml())
+			filter.tags.isNotEmpty() -> parseNextList(webClient.httpGet("https://$url").parseHtml())
 			else -> {
-				val doc = webClient.httpGet(fullUrl).parseJson()
+				val doc = webClient.httpGet("https://$url").parseJson()
 				parseJSONList(doc)
 			}
 		}
@@ -231,41 +226,31 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 			)
 	}
 
-    	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-	        val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-	        val scriptContent = doc.select("script")
-	            .firstOrNull { it.data().startsWith("self.__next_f.push([1,\"\\u003cp\\u003e\\u003c") }
-	            ?.data()
-	
-	        if (scriptContent != null) {
-	            val regex = Regex("""self\.__next_f\.push\(\[1,\"(.*)\"\]\)""")
-	            val htmlEncoded = regex.find(scriptContent)?.groupValues?.getOrNull(1)
-	            if (!htmlEncoded.isNullOrEmpty()) {
-	                val html = try {
-	                    JSONArray("[\"$htmlEncoded\"]").getString(0)
-	                } catch (e: Exception) {
-	                    htmlEncoded
-	                        .replace("\\u003c", "<")
-	                        .replace("\\u003e", ">")
-	                        .replace("\\\"", "\"")
-	                        .replace("\\/", "/")
-	                }
-	
-	                val imageUrls = Jsoup.parse(html).select("img").mapNotNull { it.attr("src") }
-	                if (imageUrls.isNotEmpty()) {
-	                    return imageUrls.map { url ->
-	                        MangaPage(
-	                            id = generateUid(url),
-	                            url = url,
-	                            preview = null,
-	                            source = source,
-	                        )
-	                    }
-	                } else return emptyList()
-	            }
-	        }
-	        return emptyList()
-	    }
+	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val scriptContent = doc.select("script")
+			.firstOrNull { it.data().contains("img src") }
+			?.data()
+			?: return emptyList()
+
+		val decoded = scriptContent
+			.replace("\\u003c", "<")
+			.replace("\\u003e", ">")
+			.replace("\\\"", "\"")
+			.replace("\\/", "/")
+
+		val regex = Regex("""img\s+src=["'](https?://[^"']+)["']""")
+		val imageUrls = regex.findAll(decoded).map { it.groupValues[1] }.toList()
+
+		return imageUrls.map { url ->
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		}
+	}
 
 	private fun parseChapterDate(date: String?): Long {
 		if (date == null) return 0
