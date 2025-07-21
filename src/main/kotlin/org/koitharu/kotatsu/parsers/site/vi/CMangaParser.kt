@@ -22,7 +22,7 @@ private const val PAGE_SIZE = 20
 internal class CMangaParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CMANGA, PAGE_SIZE), MangaParserAuthProvider {
 
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax2.com")
+	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("cmangax3.com")
 
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(
