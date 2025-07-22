@@ -121,10 +121,10 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 		}
 	}
 
-	private fun parseNextList(doc: Document): List<Manga> { // need to clean code, very slow response
+	private fun parseNextList(doc: Document): List<Manga> {
 		val script = doc.select("script").firstOrNull { it.data().contains("response") }
 			?: throw Exception("Không tìm thấy script chứa dữ liệu manga")
-		
+
 		val scriptContent = script.data()
 		val cleanedScript = scriptContent
 			.replace("self.__next_f.push([1,", "")
@@ -134,57 +134,25 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 			.replace("\\\\\",", ",")
 			.replace("\\\"", "\"")
 			.replace("\\\\", "\\")
-			.replace("\\n", "")
-			.replace("\\t", "")
-			.replace("\\r", "")
-			
+			.replace("[\\n\\r\\t]", "")
+
 		val responseStart = cleanedScript.indexOf("{\"response\":")
 		if (responseStart == -1) throw Exception("Không tìm thấy object 'response' trong script")
-		
-		var bracketCount = 0
-		var i = responseStart
-		var jsonStr = ""
-		
-		while (i < cleanedScript.length) {
-			val c = cleanedScript[i]
-			when (c) {
-				'{' -> bracketCount++
-				'}' -> bracketCount--
-			}
-			jsonStr += c
-			if (bracketCount == 0 && jsonStr.isNotEmpty()) break
-			i++
-		}
 
+		val jsonStr = extractJsonString(cleanedScript, responseStart)
 		val responseObj = org.json.JSONObject(jsonStr)
 		val dataArray = responseObj.getJSONObject("response").optJSONArray("data")
 			?: throw Exception("Không tìm thấy trường 'data' trong object 'response'")
 
 		return (0 until dataArray.length()).map { idx ->
 			val item = dataArray.getJSONObject(idx)
-			val genres = item.optJSONArray("genres")?.let { genresArray ->
-				(0 until genresArray.length()).mapNotNull { gIdx ->
-					val genreItem = genresArray.optJSONObject(gIdx) ?: return@mapNotNull null
-					MangaTag(
-						key = genreItem.optString("slug"),
-						title = genreItem.optString("name"),
-						source = source
-					)
-				}.toSet()
-			} ?: emptySet()
-
-			val authors = item.optJSONArray("authors")?.let { authorsArray ->
-				(0 until authorsArray.length()).mapNotNull { aIdx ->
-					authorsArray.optJSONObject(aIdx)?.optString("name")
-				}.toSet()
-			} ?: emptySet()
+			val genres = extractGenres(item)
+			val authors = extractAuthors(item)
 
 			Manga(
 				id = item.getLong("id"),
 				title = item.getString("title"),
-				altTitles = setOfNotNull(
-					item.optString("official_name").takeIf { it.isNotBlank() }
-				),
+				altTitles = setOfNotNull(item.optString("official_name").takeIf { it.isNotBlank() }),
 				url = item.getString("slug"),
 				publicUrl = item.getString("slug").toAbsoluteUrl(domain),
 				rating = RATING_UNKNOWN,
@@ -276,5 +244,43 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 
 			else -> SimpleDateFormat("dd/MM/yyyy", Locale.US).parse(date)?.time ?: 0L
 		}
+	}
+
+	private fun extractJsonString(script: String, responseStart: Int): String {
+		val stringBuilder = StringBuilder()
+		var bracketCount = 0
+		var i = responseStart
+
+		while (i < script.length) {
+			val c = script[i]
+			stringBuilder.append(c)
+			if (c == '{') bracketCount++
+			if (c == '}') bracketCount--
+			if (bracketCount == 0) break
+			i++
+		}
+		return stringBuilder.toString()
+	}
+
+	private fun extractGenres(item: JSONObject): Set<MangaTag> {
+		return item.optJSONArray("genres")?.let { genresArray ->
+			(0 until genresArray.length()).mapNotNull { gIdx ->
+				genresArray.optJSONObject(gIdx)?.let { genreItem ->
+					MangaTag(
+						key = genreItem.optString("slug"),
+						title = genreItem.optString("name"),
+						source = source
+					)
+				}
+			}.toSet()
+		} ?: emptySet()
+	}
+
+	private fun extractAuthors(item: JSONObject): Set<String> {
+		return item.optJSONArray("authors")?.let { authorsArray ->
+			(0 until authorsArray.length()).mapNotNull { aIdx ->
+				authorsArray.optJSONObject(aIdx)?.optString("name")
+			}.toSet()
+		} ?: emptySet()
 	}
 }
