@@ -178,7 +178,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		manga.copy(
 			title = title,
 			altTitles = json.optJSONArray("titles")?.mapJSONToSet { it.getString("name") }?.minus(title).orEmpty(),
-			contentRating = if (json.getBooleanOrDefault("is_nsfw", manga.isNsfw)) {
+			contentRating = if (json.getBooleanOrDefault("is_nsfw", false)) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
