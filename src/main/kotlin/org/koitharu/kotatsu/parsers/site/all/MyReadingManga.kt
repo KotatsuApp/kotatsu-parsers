@@ -216,7 +216,10 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
 				.takeIf { it.isNotBlank() }
 				?.let { json ->
 					try {
-						JSONObject(json).getString("item_value")
+						val js = JSONObject(json)
+						val id = js.getString("id")
+						if (id != "genre_str") return@mapNotNull null
+							else js.getString("item_value")
 					} catch (e: Exception) {
 						null
 					}
