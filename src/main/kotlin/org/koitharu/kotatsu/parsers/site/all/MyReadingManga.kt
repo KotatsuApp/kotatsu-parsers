@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -11,9 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // TODO: Fix tags, genres
 @MangaSourceParser("MYREADINGMANGA", "MyReadingManga")
 internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 20) {
 
@@ -96,7 +95,13 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             var paramIndex = 0
             
             filter.locale?.let {
-                append("&wpsolr_fq[$paramIndex]=lang_str:")
+                append(
+					buildString {
+						append("&wpsolr_fq[")
+						append(paramIndex)
+						append("]=lang_str:")
+					}
+				)
                 append(getLanguageForFilter(it))
                 paramIndex++
             }
@@ -104,7 +109,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             if (filter.tags.isNotEmpty()) {
                 filter.tags.forEach { tag ->
                     append("&wpsolr_fq[$paramIndex]=")
-                    append("tags:${tag.key}")
+                    append("genre_str:${tag.key}")
                     paramIndex++
                 }
             }
@@ -126,7 +131,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
         return parseMangaList(doc)
     }
 
-    private suspend fun parseMangaList(doc: Document): List<Manga> {
+    private fun parseMangaList(doc: Document): List<Manga> {
         return doc.select("div.results-by-facets div[id*=res]").map { element ->
             val titleElement = element.selectFirst("a") ?: element.parseFailed("No title element found")
             val thumbnailElement = element.selectFirst("img")
@@ -160,14 +165,13 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
                     source = source,
                 )
             }
-        
-        val basicDescription = title
+
         val scanlatedBy = doc.select(".entry-terms:has(a[href*=group])")
             .firstOrNull()?.select("a[href*=group]")
             ?.joinToString(prefix = "Scanlated by: ") { it.text() }
         val extendedDescription = doc.select(".entry-content p:not(p:containsOwn(|)):not(.chapter-class + p)")
             .joinToString("\n") { it.text() }
-        val description = listOfNotNull(basicDescription, scanlatedBy, extendedDescription).joinToString("\n").trim()
+        val description = listOfNotNull(title, scanlatedBy, extendedDescription).joinToString("\n").trim()
         
         val state = when (doc.select("a[href*=status]").firstOrNull()?.text()) {
             "Ongoing" -> MangaState.ONGOING
@@ -193,7 +197,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             .mapNotNull { findImageSrc(it) }
             .distinct()
         
-        return images.mapIndexed { i, url ->
+        return images.mapIndexed { _, url ->
             MangaPage(
                 id = generateUid(url),
                 url = url,
@@ -203,18 +207,35 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
         }
     }
 
-    private suspend fun fetchTags(): Set<MangaTag> {
-        val doc = webClient.httpGet("https://${domain}").parseHtml()
-        return doc.select(".tagcloud a[href*=/genre/]").mapToSet {
-            MangaTag(
-                title = it.text().toTitleCase(),
-                key = it.attr("href").substringAfterLast("/").substringBefore("/"),
-                source = source,
-            )
-        }
-    }
+	private suspend fun fetchTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://${domain}/search-6/").parseHtml()
 
-    private val titleRegex = Pattern.compile("""\[[^]]*]""")
+		return doc.select("div.select_opt").mapNotNull { element ->
+			val dataAttr = element.attr("data-wpsolr-facet-data")
+			val itemValue = dataAttr
+				.takeIf { it.isNotBlank() }
+				?.let { json ->
+					try {
+						val js = JSONObject(json)
+						val id = js.getString("id")
+						if (id != "genre_str") return@mapNotNull null
+							else js.getString("item_value")
+					} catch (e: Exception) {
+						null
+					}
+				}
+
+			itemValue?.let { value ->
+				MangaTag(
+					title = value,
+					key = value,
+					source = source,
+				)
+			}
+		}.toSet()
+	}
+
+	private val titleRegex = Pattern.compile("""\[[^]]*]""")
     private val imgRegex = Pattern.compile("""\.(jpg|png|jpeg|webp)""")
 
     private fun findImageSrc(element: Element?): String? {
