@@ -104,7 +104,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             if (filter.tags.isNotEmpty()) {
                 filter.tags.forEach { tag ->
                     append("&wpsolr_fq[$paramIndex]=")
-                    append("tags:${tag.key}")
+                    append("genre_str:${tag.key}")
                     paramIndex++
                 }
             }
@@ -206,9 +206,10 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
     private suspend fun fetchTags(): Set<MangaTag> {
         val doc = webClient.httpGet("https://${domain}").parseHtml()
         return doc.select(".tagcloud a[href*=/genre/]").mapToSet {
+			val tag = it.text().toTitleCase()
             MangaTag(
-                title = it.text().toTitleCase(),
-                key = it.attr("href").substringAfterLast("/").substringBefore("/"),
+                title = tag,
+                key = tag,
                 source = source,
             )
         }
