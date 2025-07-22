@@ -12,9 +12,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.regex.Pattern
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // TODO: Fix tags, genres
 @MangaSourceParser("MYREADINGMANGA", "MyReadingManga")
 internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 20) {
 
@@ -97,7 +95,13 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             var paramIndex = 0
             
             filter.locale?.let {
-                append("&wpsolr_fq[$paramIndex]=lang_str:")
+                append(
+					buildString {
+						append("&wpsolr_fq[")
+						append(paramIndex)
+						append("]=lang_str:")
+					}
+				)
                 append(getLanguageForFilter(it))
                 paramIndex++
             }
@@ -127,7 +131,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
         return parseMangaList(doc)
     }
 
-    private suspend fun parseMangaList(doc: Document): List<Manga> {
+    private fun parseMangaList(doc: Document): List<Manga> {
         return doc.select("div.results-by-facets div[id*=res]").map { element ->
             val titleElement = element.selectFirst("a") ?: element.parseFailed("No title element found")
             val thumbnailElement = element.selectFirst("img")
@@ -161,14 +165,13 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
                     source = source,
                 )
             }
-        
-        val basicDescription = title
+
         val scanlatedBy = doc.select(".entry-terms:has(a[href*=group])")
             .firstOrNull()?.select("a[href*=group]")
             ?.joinToString(prefix = "Scanlated by: ") { it.text() }
         val extendedDescription = doc.select(".entry-content p:not(p:containsOwn(|)):not(.chapter-class + p)")
             .joinToString("\n") { it.text() }
-        val description = listOfNotNull(basicDescription, scanlatedBy, extendedDescription).joinToString("\n").trim()
+        val description = listOfNotNull(title, scanlatedBy, extendedDescription).joinToString("\n").trim()
         
         val state = when (doc.select("a[href*=status]").firstOrNull()?.text()) {
             "Ongoing" -> MangaState.ONGOING
@@ -194,7 +197,7 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
             .mapNotNull { findImageSrc(it) }
             .distinct()
         
-        return images.mapIndexed { i, url ->
+        return images.mapIndexed { _, url ->
             MangaPage(
                 id = generateUid(url),
                 url = url,
