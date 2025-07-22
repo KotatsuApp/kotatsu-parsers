@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.all
 
+import org.json.JSONObject
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -203,19 +204,32 @@ internal class MyReadingManga(context: MangaLoaderContext) : PagedMangaParser(co
         }
     }
 
-    private suspend fun fetchTags(): Set<MangaTag> {
-        val doc = webClient.httpGet("https://${domain}").parseHtml()
-        return doc.select(".tagcloud a[href*=/genre/]").mapToSet {
-			val tag = it.text().toTitleCase()
-            MangaTag(
-                title = tag,
-                key = tag,
-                source = source,
-            )
-        }
-    }
+	private suspend fun fetchTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://${domain}/search-6/").parseHtml()
 
-    private val titleRegex = Pattern.compile("""\[[^]]*]""")
+		return doc.select("div.select_opt").mapNotNull { element ->
+			val dataAttr = element.attr("data-wpsolr-facet-data")
+			val itemValue = dataAttr
+				.takeIf { it.isNotBlank() }
+				?.let { json ->
+					try {
+						JSONObject(json).getString("item_value")
+					} catch (e: Exception) {
+						null
+					}
+				}
+
+			itemValue?.let { value ->
+				MangaTag(
+					title = value,
+					key = value,
+					source = source,
+				)
+			}
+		}.toSet()
+	}
+
+	private val titleRegex = Pattern.compile("""\[[^]]*]""")
     private val imgRegex = Pattern.compile("""\.(jpg|png|jpeg|webp)""")
 
     private fun findImageSrc(element: Element?): String? {
