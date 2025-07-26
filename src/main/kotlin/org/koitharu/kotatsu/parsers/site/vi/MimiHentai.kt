@@ -52,8 +52,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
         	SortOrder.POPULARITY,
         	SortOrder.POPULARITY_TODAY,
 			SortOrder.POPULARITY_WEEK,
-			// not available
-        	// SortOrder.POPULARITY_MONTH,
+			SortOrder.POPULARITY_MONTH,
         	SortOrder.RATING,
     )
 
@@ -109,11 +108,10 @@ internal class MimiHentai(context: MangaLoaderContext) :
                     when (order) {
                         SortOrder.UPDATED -> "updated_at"
                         SortOrder.ALPHABETICAL -> "title"
-                        SortOrder.POPULARITY, 
-                        SortOrder.POPULARITY_TODAY, 
-                        SortOrder.POPULARITY_WEEK -> "views"
-						// not available
-                        // SortOrder.POPULARITY_MONTH
+                        SortOrder.POPULARITY -> "follows"
+                        SortOrder.POPULARITY_TODAY,
+                        SortOrder.POPULARITY_WEEK,
+						SortOrder.POPULARITY_MONTH -> "views"
                         SortOrder.RATING -> "likes"
                         else -> ""
                     }
@@ -125,11 +123,10 @@ internal class MimiHentai(context: MangaLoaderContext) :
                     when (order) {
                         SortOrder.UPDATED -> "/tatcatruyen?page=$page&sort=updated_at"
                         SortOrder.ALPHABETICAL -> "/tatcatruyen?page=$page&sort=title"
-                        SortOrder.POPULARITY -> "/tatcatruyen?page=$page&sort=views"
-                        SortOrder.POPULARITY_TODAY -> "/top-manga?page=$page&timeType=1&limit=18"
-                        SortOrder.POPULARITY_WEEK -> "/top-manga?page=$page&timeType=2&limit=18"
-						// not available
-                        // SortOrder.POPULARITY_MONTH -> "/top-manga?page=$page&timeType=3&limit=18"
+                        SortOrder.POPULARITY -> "/tatcatruyen?page=$page&sort=follows"
+                        SortOrder.POPULARITY_TODAY -> "/tatcatruyen?page=$page&sort=views"
+                        SortOrder.POPULARITY_WEEK -> "/top-manga?page=$page&timeType=1&limit=18"
+						SortOrder.POPULARITY_MONTH -> "/top-manga?page=$page&timeType=2&limit=18"
                         SortOrder.RATING -> "/tatcatruyen?page=$page&sort=likes"
                         else -> "/tatcatruyen?page=$page&sort=updated_at" // default
                     }
