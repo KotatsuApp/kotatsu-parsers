@@ -10,7 +10,7 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
-@MangaSourceParser("ELEEEDTURKIYE", "Eleceed Türkiye", "tr")
+@MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
 internal class EleceedTurkiye(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.ELEEEDTURKIYE) {
 
     override val configKeyDomain = ConfigKey.Domain("eleceedturkiye.com")
