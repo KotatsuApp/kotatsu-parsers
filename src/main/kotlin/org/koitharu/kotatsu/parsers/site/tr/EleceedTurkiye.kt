@@ -14,6 +14,8 @@ import java.util.*
 internal class EleceedTurkiye(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.ELEEEDTURKIYE) {
 
     override val configKeyDomain = ConfigKey.Domain("eleceedturkiye.com")
+	private val domain = "eleceedturkiye.com"
+	private val source = MangaParserSource.ELEEEDTURKIYE
     private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr"))
 
     override suspend fun getDetails(manga: Manga): Manga {
