@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.MangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -11,11 +12,11 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
-internal class EleceedTurkiye(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.ELEEEDTURKIYE) {
+internal class EleceedTurkiye(context: MangaLoaderContext) : MangaParser(context, MangaParserSource.ELECEEDTURKIYE) {
 
     override val configKeyDomain = ConfigKey.Domain("eleceedturkiye.com")
 	private val domain = "eleceedturkiye.com"
-	private val source = MangaParserSource.ELEEEDTURKIYE
+	private val source = MangaParserSource.ELECEEDTURKIYE
     private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr"))
 
     override suspend fun getDetails(manga: Manga): Manga {
