@@ -18,6 +18,18 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	private val apiSuffix = "api/v1/manga"
 	override val configKeyDomain = ConfigKey.Domain("mimihentai.com", "hentaihvn.com")
 
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://raw.githubusercontent.com/dragonx943/plugin-sdk/refs/heads/sources/mimihentai/app/src/main/ic_launcher-playstore.png",
+					512,
+					null),
+			),
+			domain,
+		)
+	}
+
 	private val preferredServerKey = ConfigKey.PreferredImageServer(
 		presetValues = mapOf(
 			"original" to "Server ảnh gốc (Original)",
