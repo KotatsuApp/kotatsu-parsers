@@ -8,7 +8,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.absoluteValue
 import org.koitharu.kotatsu.parsers.Broken
 
 @Broken("Fix chapter number + Remove unused functions")
@@ -59,15 +58,15 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 				MangaTag("Komedi", "", source),
 				MangaTag("Süper Güçler", "", source)
 			),
-			chapters = doc.select("div.eph-num").map { a ->
-				val href = a.attrAsRelativeUrl("href")
+			chapters = doc.select("div.eph-num").map { div ->
+				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				val title = div.selectFirst("span.chapternum").text()
 				MangaChapter(
 					id = generateUid(href),
-					title = a.selectFirst("span.chapternum")?.text()
-						?: "Bölüm ${parseChapterNumberFromUrl(href)}",
-					number = parseChapterNumberFromUrl(href).toFloat(),
+					title = title,
+					number = Regex("\\d+").find(title)?.value?.toFloatOrNull() ?: 0f,
 					url = href,
-					uploadDate = parseChapterDate(a.selectFirst("span.chapterdate")?.text()),
+					uploadDate = parseChapterDate(div.selectFirst("span.chapterdate")?.text()),
 					scanlator = null,
 					branch = null,
 					source = source,
@@ -101,15 +100,5 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 				0
 			}
 		} ?: 0
-	}
-
-	private fun parseChapterNumberFromUrl(url: String): Int {
-		return try {
-			url.substringAfterLast('-')
-				.substringBefore('/')
-				.toInt()
-		} catch (e: Exception) {
-			url.hashCode().absoluteValue
-		}
 	}
 }
