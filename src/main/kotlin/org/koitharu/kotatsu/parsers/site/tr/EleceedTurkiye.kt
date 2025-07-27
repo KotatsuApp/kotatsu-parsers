@@ -11,7 +11,7 @@ import java.util.*
 import kotlin.math.absoluteValue
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken("Wrong CSS parse")
+@Broken("Fix chapter number + Remove unused functions")
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
 internal class EleceedTurkiye(context: MangaLoaderContext):
 	SinglePageMangaParser(context, MangaParserSource.ELECEEDTURKIYE) {
@@ -53,23 +53,21 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 		val doc = webClient.httpGet(manga.url).parseHtml()
 		return manga.copy(
 			description = doc.selectFirst("div.entry-content")?.html(),
-			state = MangaState.ONGOING,
-			authors = setOf("Son Jae Ho & ZHENA"),
 			tags = setOf(
-				MangaTag("aksiyon", "Aksiyon", source),
-				MangaTag("drama", "Drama", source),
-				MangaTag("komedi", "Komedi", source),
-				MangaTag("süper-güçler", "Süper Güçler", source)
+				MangaTag("Aksiyon", "", source),
+				MangaTag("Drama", "", source),
+				MangaTag("Komedi", "", source),
+				MangaTag("Süper Güçler", "", source)
 			),
-			chapters = doc.select("div.episode-list > ul > li > a").map { a ->
+			chapters = doc.select("div.eph-num").map { a ->
 				val href = a.attrAsRelativeUrl("href")
 				MangaChapter(
 					id = generateUid(href),
-					title = a.selectFirst("span.episode-name")?.text()
+					title = a.selectFirst("span.chapternum")?.text()
 						?: "Bölüm ${parseChapterNumberFromUrl(href)}",
 					number = parseChapterNumberFromUrl(href).toFloat(),
 					url = href,
-					uploadDate = parseChapterDate(a.selectFirst("span.episode-date")?.text()),
+					uploadDate = parseChapterDate(a.selectFirst("span.chapterdate")?.text()),
 					scanlator = null,
 					branch = null,
 					source = source,
@@ -81,7 +79,6 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-
 		return doc.select("div.reading-content > img").map { img ->
 			val src = img.attr("src").ifEmpty { img.attr("data-src") }
 			MangaPage(
