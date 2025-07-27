@@ -58,7 +58,7 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 				MangaTag("Süper Güçler", "", source)
 			),
 			chapters = doc.select("div.eph-num").map { div ->
-				val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				val href = div.selectFirstOrThrow("a").attr("href")
 				val title = div.selectFirst("span.chapternum").text()
 				MangaChapter(
 					id = generateUid(href),
