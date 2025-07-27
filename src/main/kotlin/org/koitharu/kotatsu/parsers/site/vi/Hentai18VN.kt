@@ -216,6 +216,6 @@ internal class Hentai18VN(context: MangaLoaderContext) :
 	}
 
 	private fun parseChapterDate(date: String?): Long {
-		return SimpleDateFormat("dd/MM/yyyy", Locale.US).tryParse(date)
+		return SimpleDateFormat("dd/MM/yyyy", Locale.US).parseSafe(date)
 	}
 }

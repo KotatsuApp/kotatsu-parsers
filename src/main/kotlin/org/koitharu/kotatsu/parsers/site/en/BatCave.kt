@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.en
 
 import org.json.JSONObject
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -130,7 +129,7 @@ internal class BatCave(context: MangaLoaderContext) :
 				url = "/reader/$newsId/$chapterId",
 				number = chapter.getFloatOrDefault("posi", 0f),
 				title = chapter.getStringOrNull("title"),
-				uploadDate = dateFormat.tryParse(chapter.getStringOrNull("date")),
+				uploadDate = dateFormat.parseSafe(chapter.getStringOrNull("date")),
 				source = source,
 				scanlator = null,
 				branch = null,

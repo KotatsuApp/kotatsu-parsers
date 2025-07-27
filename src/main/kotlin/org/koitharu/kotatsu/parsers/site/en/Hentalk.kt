@@ -233,7 +233,7 @@ internal class Hentalk(context: MangaLoaderContext) :
 		}
 
 		val dateFormat = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US)
-		val parseTime = dateFormat.tryParse(createdAt)
+		val parseTime = dateFormat.parseSafe(createdAt)
 		val chapter = MangaChapter(
 			id = generateUid("/g/$mangaId/read/1"),
 			url = "/g/$mangaId/read/1/__data.json?x-sveltekit-invalidated=011",

@@ -96,7 +96,7 @@ internal abstract class GalleryParser(
 					volume = 0,
 					url = relUrl,
 					scanlator = null,
-					uploadDate = df.tryParse(time),
+					uploadDate = df.parseSafe(time),
 					branch = null,
 					source = source,
 				)

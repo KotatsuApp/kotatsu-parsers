@@ -30,7 +30,7 @@ import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.src
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.parseSafe
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -250,7 +250,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 					volume = 0,
 					url = manga.url,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(uploadDateString),
+					uploadDate = dateFormat.parseSafe(uploadDateString),
 					branch = "English",
 					source = source,
 				)

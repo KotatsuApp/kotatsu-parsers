@@ -78,7 +78,7 @@ internal class HentaiUkrParser(context: MangaLoaderContext) : AbstractMangaParse
 					volume = 0,
 					url = manga.url,
 					scanlator = null,
-					uploadDate = date.tryParse(jsonDeferred.await().getString("add_date")),
+					uploadDate = date.parseSafe(jsonDeferred.await().getString("add_date")),
 					branch = null,
 					source = source,
 				),

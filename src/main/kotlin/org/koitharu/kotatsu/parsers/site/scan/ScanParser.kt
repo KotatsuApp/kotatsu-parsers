@@ -97,7 +97,7 @@ internal abstract class ScanParser(
 				id = generateUid(href),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
-				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", "").orEmpty(),
+				coverUrl = div.selectFirst("img")?.attr("data-src")?.replace("\t", ""),
 				title = div.selectFirst(".link-series h3, .item-title")?.text().orEmpty(),
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
@@ -116,10 +116,10 @@ internal abstract class ScanParser(
 
 	protected suspend fun getOrCreateTagMap(): Map<String, MangaTag> = mutex.withLock {
 		tagCache?.let { return@withLock it }
-		val tagMap = ArrayMap<String, MangaTag>()
 		val tagElements = webClient.httpGet("https://$domain$listUrl").parseHtml()
 			.requireElementById("filter-wrapper")
 			.select(".form-filters div.form-check, .form-filters div.custom-control")
+		val tagMap = ArrayMap<String, MangaTag>(tagElements.size)
 		for (el in tagElements) {
 			val name = el.selectFirstOrThrow("label").text()
 			if (name.isEmpty()) continue
@@ -130,7 +130,7 @@ internal abstract class ScanParser(
 			)
 		}
 		tagCache = tagMap
-		return@withLock tagMap
+		tagMap
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
@@ -162,7 +162,7 @@ internal abstract class ScanParser(
 						volume = 0,
 						url = href,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(doc.selectFirst("h5 div")?.text()),
+						uploadDate = dateFormat.parseSafe(doc.selectFirst("h5 div")?.text()),
 						branch = null,
 						source = source,
 					)

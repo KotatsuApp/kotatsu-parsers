@@ -590,7 +590,7 @@ internal class HitomiLaParser(context: MangaLoaderContext) : AbstractMangaParser
 					volume = 0,
 					branch = json.getString("language_localname"),
 					source = source,
-					uploadDate = dateFormat.tryParse(json.getString("date").substringBeforeLast("-")),
+					uploadDate = dateFormat.parseSafe(json.getString("date").substringBeforeLast("-")),
 				),
 			),
 		)

@@ -80,12 +80,12 @@ internal class SadScans(context: MangaLoaderContext) :
 					val url = "/" + a.attrAsRelativeUrl("href")
 					MangaChapter(
 						id = generateUid(url),
-						title = a.text(),
+						title = a.textOrNull(),
 						number = i + 1f,
 						volume = 0,
 						url = url,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(div.select(".detail span").last()?.text()),
+						uploadDate = dateFormat.parseSafe(div.select(".detail span").last()?.text()),
 						branch = null,
 						source = source,
 					)

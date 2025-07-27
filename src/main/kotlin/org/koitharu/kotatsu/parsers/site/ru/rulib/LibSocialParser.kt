@@ -320,7 +320,7 @@ internal abstract class LibSocialParser(
 						}
 					},
 					scanlator = team,
-					uploadDate = dateFormat.tryParse(bjo.getStringOrNull("created_at")),
+					uploadDate = dateFormat.parseSafe(bjo.getStringOrNull("created_at")),
 					branch = if (useBranching) team else null,
 					source = source,
 				)

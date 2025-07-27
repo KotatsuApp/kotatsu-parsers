@@ -310,9 +310,9 @@ internal abstract class WpComicsParser(
 				} else {
 					it
 				}
-			}.let { dateFormat.tryParse(it.joinToString(" ")) }
+			}.let { dateFormat.parseSafe(it.joinToString(" ")) }
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

@@ -318,7 +318,7 @@ internal class WeebCentral(context: MangaLoaderContext) : AbstractMangaParser(co
 					"#d8b4fe" -> "Official"
 					else -> null
 				},
-				uploadDate = dateFormat.tryParse(
+				uploadDate = dateFormat.parseSafe(
 					element.selectFirst("time[datetime]")?.attr("datetime"),
 				),
 				branch = null,

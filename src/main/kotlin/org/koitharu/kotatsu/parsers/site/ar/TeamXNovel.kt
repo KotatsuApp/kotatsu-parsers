@@ -200,7 +200,7 @@ internal class TeamXNovel(context: MangaLoaderContext) :
 					volume = 0,
 					url = url,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(li.selectFirstOrThrow(".epl-date").text()),
+					uploadDate = dateFormat.parseSafe(li.selectFirstOrThrow(".epl-date").text()),
 					branch = null,
 					source = source,
 				)

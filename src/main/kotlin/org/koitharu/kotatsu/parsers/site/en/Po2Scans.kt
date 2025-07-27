@@ -84,7 +84,7 @@ internal class Po2Scans(context: MangaLoaderContext) :
 						volume = 0,
 						url = url,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(div.select(".detail span").last()?.text()),
+						uploadDate = dateFormat.parseSafe(div.select(".detail span").last()?.text()),
 						branch = null,
 						source = source,
 					)

@@ -80,7 +80,7 @@ internal class HoneyMangaParser(context: MangaLoaderContext) :
 					volume = volume,
 					url = jo.optString("chapterResourcesId"),
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(jo.getString("lastUpdated")),
+					uploadDate = dateFormat.parseSafe(jo.getString("lastUpdated")),
 					branch = null,
 					source = source,
 				)

@@ -251,7 +251,7 @@ internal class HentaiVNParser(context: MangaLoaderContext) : AbstractMangaParser
 				volume = 0,
 				url = titleEl.attrAsRelativeUrl("href"),
 				scanlator = null,
-				uploadDate = chapterDateFormat.tryParse(dateStr),
+				uploadDate = chapterDateFormat.parseSafe(dateStr),
 				branch = null,
 				source = source,
 			)

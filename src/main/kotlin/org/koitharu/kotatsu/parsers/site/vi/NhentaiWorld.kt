@@ -1,7 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import okhttp3.Headers
-import okio.ByteString.Companion.encode
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -188,7 +187,7 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 			val chapter = vnArray.getJSONObject(i)
 			val name = chapter.optString("name", null) ?: continue
 			val uploadDateStr = chapter.optString("createdAt", null)
-			val uploadDate = chapterDateFormat.tryParse(uploadDateStr)
+			val uploadDate = chapterDateFormat.parseSafe(uploadDateStr)
 			val href = "${idManga}/${name}?lang=VI"
 			chapters.add(
 				MangaChapter(
@@ -224,7 +223,7 @@ internal class NhentaiWorld(context: MangaLoaderContext) :
 			val chapter = enArray.getJSONObject(i)
 			val name = chapter.optString("name", null) ?: continue
 			val uploadDateStr = chapter.optString("createdAt", null)
-			val uploadDate = chapterDateFormat.tryParse(uploadDateStr)
+			val uploadDate = chapterDateFormat.parseSafe(uploadDateStr)
 			val href = "${idManga}/${name}?lang=EN"
 			chapters.add(
 				MangaChapter(

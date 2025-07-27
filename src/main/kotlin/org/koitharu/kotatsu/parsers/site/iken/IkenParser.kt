@@ -5,7 +5,6 @@ import org.json.JSONObject
 import org.json.JSONArray
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.exception.ParseException
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -156,7 +155,7 @@ internal abstract class IkenParser(
 					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(it.getString("createdAt").substringBefore("T")),
+					uploadDate = dateFormat.parseSafe(it.getString("createdAt").substringBefore("T")),
 					branch = null,
 					source = source,
 				)

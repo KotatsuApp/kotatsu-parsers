@@ -184,7 +184,7 @@ internal class LugnicaScans(context: MangaLoaderContext) :
 					volume = 0,
 					url = url,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(date),
+					uploadDate = dateFormat.parseSafe(date),
 					branch = null,
 					source = source,
 				)

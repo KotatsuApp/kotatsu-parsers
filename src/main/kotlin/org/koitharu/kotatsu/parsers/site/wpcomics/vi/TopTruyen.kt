@@ -3,7 +3,6 @@ package org.koitharu.kotatsu.parsers.site.wpcomics.vi
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -206,7 +205,7 @@ internal class TopTruyen(context: MangaLoaderContext) :
 
 			absoluteTimePattern.matches(dateText) -> {
 				val formatter = SimpleDateFormat("dd-MM-yyyy", Locale.getDefault())
-				formatter.tryParse(dateText)
+				formatter.parseSafe(dateText)
 			}
 
 			else -> 0L

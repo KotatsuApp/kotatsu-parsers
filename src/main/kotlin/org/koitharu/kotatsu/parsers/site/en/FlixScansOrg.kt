@@ -186,7 +186,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 				number = i + 1f,
 				volume = 0,
 				branch = null,
-				uploadDate = dateFormat.tryParse(date),
+				uploadDate = dateFormat.parseSafe(date),
 				scanlator = null,
 				source = source,
 			)

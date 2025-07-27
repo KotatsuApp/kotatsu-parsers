@@ -90,14 +90,14 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 				url = href,
 				publicUrl = a.attrAsAbsoluteUrl("href"),
 				title = div.selectLast(".item-name")?.text().orEmpty(),
-				coverUrl = div.selectFirst("img")?.src().orEmpty(),
+				coverUrl = div.selectFirst("img")?.src(),
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),
 				description = null,
 				state = null,
 				authors = emptySet(),
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+				contentRating = sourceContentRating,
 				source = source,
 			)
 		}
@@ -119,7 +119,7 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 				description = null,
 				state = null,
 				authors = emptySet(),
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+				contentRating = sourceContentRating,
 				source = source,
 			)
 		}
@@ -152,7 +152,8 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 		val tags = doc.select("P.card-text .bg-success").mapNotNullToSet { tagMap[it.text()] }
 		return manga.copy(
 			description = doc.selectFirst("p.card-text")?.html()?.substringAfterLast("<br>"),
-			coverUrl = doc.selectFirst("div.align-items-center div.align-items-center img")?.src().orEmpty(),
+			coverUrl = doc.selectFirst("div.align-items-center div.align-items-center img")?.src()
+				?: manga.coverUrl,
 			tags = tags,
 			chapters = doc.requireElementById("sonyuklemeler").select("tbody tr")
 				.mapChapters(reversed = true) { i, tr ->
@@ -165,7 +166,7 @@ internal class MangaAy(context: MangaLoaderContext) : PagedMangaParser(context, 
 						volume = 0,
 						url = href,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(tr.selectFirstOrThrow("time").attr("datetime")),
+						uploadDate = dateFormat.parseSafe(tr.selectFirstOrThrow("time").attr("datetime")),
 						branch = null,
 						source = source,
 					)

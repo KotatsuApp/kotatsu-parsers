@@ -145,7 +145,7 @@ internal class MangaInUaParser(context: MangaLoaderContext) : PagedMangaParser(
 					} else {
 						DEF_BRANCH_NAME
 					},
-					uploadDate = dateFormat.tryParse(item.selectFirst("div.ltcright")?.text()),
+					uploadDate = dateFormat.parseSafe(item.selectFirst("div.ltcright")?.text()),
 					source = source,
 				)
 			},

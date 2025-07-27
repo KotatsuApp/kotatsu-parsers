@@ -159,7 +159,7 @@ internal class ElderManga(context: MangaLoaderContext):
                     volume = 0,
                     url = href,
                     scanlator = null,
-                    uploadDate = el.selectFirst("span")?.text()?.let { dateFormat.tryParse(it) } ?: 0L,
+                    uploadDate = el.selectFirst("span")?.text()?.let { dateFormat.parseSafe(it) } ?: 0L,
                     branch = null,
                     source = source,
                 )

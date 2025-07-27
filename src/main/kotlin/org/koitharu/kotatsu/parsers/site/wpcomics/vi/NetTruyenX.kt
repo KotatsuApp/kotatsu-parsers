@@ -4,7 +4,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.wpcomics.WpComicsParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -68,7 +67,7 @@ internal class NetTruyenX(context: MangaLoaderContext) :
 				volume = 0,
 				url = chapterUrl,
 				scanlator = null,
-				uploadDate = df.tryParse(jo.getString("updated_at")),
+				uploadDate = df.parseSafe(jo.getString("updated_at")),
 				branch = null,
 				source = source,
 			)

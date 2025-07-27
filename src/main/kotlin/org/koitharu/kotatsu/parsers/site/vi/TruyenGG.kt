@@ -169,7 +169,7 @@ internal class TruyenGG(context: MangaLoaderContext) : PagedMangaParser(context,
 					volume = 0,
 					url = href,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(dateText),
+					uploadDate = dateFormat.parseSafe(dateText),
 					branch = null,
 					source = source,
 				)

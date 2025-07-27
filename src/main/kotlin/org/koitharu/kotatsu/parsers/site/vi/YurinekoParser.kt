@@ -113,7 +113,7 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 						volume = 0,
 						scanlator = null,
 						url = "/read/$mangaId/$chapterId",
-						uploadDate = df.tryParse(jo.getString("date")),
+						uploadDate = df.parseSafe(jo.getString("date")),
 						branch = null,
 						source = source,
 					)

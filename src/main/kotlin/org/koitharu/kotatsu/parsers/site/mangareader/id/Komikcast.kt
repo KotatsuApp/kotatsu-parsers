@@ -197,7 +197,7 @@ internal class Komikcast(context: MangaLoaderContext) :
 				parseRelativeDate(date)
 			}
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

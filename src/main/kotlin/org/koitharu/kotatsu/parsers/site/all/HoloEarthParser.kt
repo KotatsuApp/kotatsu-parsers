@@ -5,11 +5,10 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.parseSafe
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -99,7 +98,7 @@ internal class HoloEarthParser(context: MangaLoaderContext) :
 			val url = li.selectFirstOrThrow(".manga-detail__list-link").attr("href")
 			val title = li.selectFirstOrThrow(".manga-detail__list-title").text()
 			val dateStr = li.selectFirstOrThrow(".manga-detail__list-date").text()
-			val uploadDate = dateFormat.tryParse(dateStr) ?: 0L
+			val uploadDate = dateFormat.parseSafe(dateStr) ?: 0L
 			val scanlator = root.selectFirst(".manga-detail__person")?.text()
 
 			MangaChapter(

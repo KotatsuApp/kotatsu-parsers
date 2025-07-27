@@ -155,7 +155,7 @@ internal abstract class HotComicsParser(
 						volume = 0,
 						url = url,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(li.selectFirst("time")?.attr("datetime")),
+						uploadDate = dateFormat.parseSafe(li.selectFirst("time")?.attr("datetime")),
 						branch = null,
 						source = source,
 					)

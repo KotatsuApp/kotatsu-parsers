@@ -106,7 +106,7 @@ internal class LuratoonScansParser(context: MangaLoaderContext) :
 						volume = 0,
 						url = href,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(span.nextElementSibling()?.text()),
+						uploadDate = dateFormat.parseSafe(span.nextElementSibling()?.text()),
 						branch = null,
 						source = source,
 					)

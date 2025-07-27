@@ -202,7 +202,7 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 			val name = titleElement.text()
 			val relativeUrl = titleElement.attrAsRelativeUrl("href")
 			val id = relativeUrl.substringAfter('/').substringBefore('/')
-			val uploadDate = dateFormat.tryParse(element.select("span.publishedDate").text())
+			val uploadDate = dateFormat.parseSafe(element.select("span.publishedDate").text())
 			MangaChapter(
 				id = generateUid(id),
 				title = name,

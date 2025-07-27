@@ -85,7 +85,7 @@ internal class LectorHentai(context: MangaLoaderContext) :
 				number = index + 1f,
 				volume = 0,
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(docs.selectFirst("time")?.text()),
+				uploadDate = dateFormat.parseSafe(docs.selectFirst("time")?.text()),
 				branch = null,
 				source = source,
 			)

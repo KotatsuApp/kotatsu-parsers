@@ -118,7 +118,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 					number = i + 1f,
 					url = href,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(dateText),
+					uploadDate = dateFormat.parseSafe(dateText),
 					branch = null,
 					source = source,
 					volume = 0,

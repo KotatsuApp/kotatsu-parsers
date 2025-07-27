@@ -298,7 +298,7 @@ internal class MangaMana(context: MangaLoaderContext) :
 					volume = 0,
 					url = href,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(dateText),
+					uploadDate = dateFormat.parseSafe(dateText),
 					branch = null,
 					source = source,
 				)

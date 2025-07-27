@@ -160,7 +160,7 @@ internal class ScantradUnion(context: MangaLoaderContext) :
 						volume = 0,
 						url = href,
 						scanlator = null,
-						uploadDate = dateFormat.tryParse(date),
+						uploadDate = dateFormat.parseSafe(date),
 						branch = null,
 						source = source,
 					)

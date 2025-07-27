@@ -133,7 +133,7 @@ internal abstract class HeanCmsAlt(
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.startsWith("hace ") || d.endsWith(" antes") -> parseRelativeDate(date)
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

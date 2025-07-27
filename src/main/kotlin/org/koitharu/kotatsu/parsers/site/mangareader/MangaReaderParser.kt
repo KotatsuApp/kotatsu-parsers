@@ -186,7 +186,7 @@ internal abstract class MangaReaderParser(
 				number = index + 1f,
 				volume = 0,
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(element.selectFirst(".chapterdate")?.text()),
+				uploadDate = dateFormat.parseSafe(element.selectFirst(".chapterdate")?.text()),
 				branch = null,
 				source = source,
 			)

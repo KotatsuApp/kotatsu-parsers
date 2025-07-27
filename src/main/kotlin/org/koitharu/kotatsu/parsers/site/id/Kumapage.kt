@@ -151,7 +151,7 @@ internal class Kumapage(context: MangaLoaderContext) :
                 volume = 0,
                 url = row.select("td:nth-child(4) a").attr("href"),
                 scanlator = null,
-                uploadDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").tryParse(row.select("td:nth-child(3)").text()),
+                uploadDate = SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parseSafe(row.select("td:nth-child(3)").text()),
                 branch = null,
                 source = source,
             )

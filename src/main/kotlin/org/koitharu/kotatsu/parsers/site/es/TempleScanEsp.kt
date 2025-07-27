@@ -104,7 +104,7 @@ internal class TempleScanEsp(context: MangaLoaderContext) :
 				parseRelativeDate(d)
 			}
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

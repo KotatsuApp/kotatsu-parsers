@@ -86,7 +86,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 				number = index + 1f,
 				volume = 0,
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(element.selectFirst(".chapter-date")?.text()),
+				uploadDate = dateFormat.parseSafe(element.selectFirst(".chapter-date")?.text()),
 				branch = null,
 				source = source,
 			)

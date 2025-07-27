@@ -87,8 +87,7 @@ public fun concatUrl(host: String, path: String): String {
 }
 
 @InternalParsersApi
-public fun DateFormat.tryParse(str: String?): Long = if (str.isNullOrEmpty()) {
-//	assert(false) { "Date string is null or empty" }
+public fun DateFormat.parseSafe(str: String?): Long = if (str.isNullOrEmpty()) {
 	0L
 } else {
 	runCatching {

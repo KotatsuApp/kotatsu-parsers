@@ -149,7 +149,7 @@ internal class ManhwasMen(context: MangaLoaderContext) :
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" ago") -> parseRelativeDate(date)
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

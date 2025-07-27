@@ -65,7 +65,7 @@ internal class EleceedTurkiye(context: MangaLoaderContext) :
 					title = title,
 					number = title?.let { Regex("\\d+").find(it)?.value?.toFloatOrNull() } ?: 0f,
 					url = href,
-					uploadDate = dateFormat.tryParse(div.selectFirst("span.chapterdate")?.text()),
+					uploadDate = dateFormat.parseSafe(div.selectFirst("span.chapterdate")?.text()),
 					scanlator = null,
 					branch = null,
 					source = source,

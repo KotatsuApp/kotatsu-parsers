@@ -251,7 +251,7 @@ internal abstract class OtakuSanctuaryParser(
 				parseRelativeDate(d)
 			}
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

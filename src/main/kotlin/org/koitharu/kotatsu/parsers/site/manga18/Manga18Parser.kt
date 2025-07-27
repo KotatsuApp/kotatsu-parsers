@@ -191,7 +191,7 @@ internal abstract class Manga18Parser(
 				number = i + 1f,
 				volume = 0,
 				url = href,
-				uploadDate = dateFormat.tryParse(dateText),
+				uploadDate = dateFormat.parseSafe(dateText),
 				source = source,
 				scanlator = null,
 				branch = null,

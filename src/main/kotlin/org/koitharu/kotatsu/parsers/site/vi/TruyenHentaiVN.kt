@@ -122,7 +122,7 @@ internal class TruyenHentaiVN(context: MangaLoaderContext) :
 				val name = div.selectFirst("a .name")?.text() ?: ""
 				val dateStr = div.selectFirst("a span:last-child")?.text()
 
-				val uploadDate = dateFormat.tryParse(dateStr)
+				val uploadDate = dateFormat.parseSafe(dateStr)
 
 				MangaChapter(
 					id = generateUid(url),

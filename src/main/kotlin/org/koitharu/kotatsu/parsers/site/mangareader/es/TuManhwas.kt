@@ -137,7 +137,7 @@ internal class TuManhwas(context: MangaLoaderContext) :
 		return when {
 			d.startsWith("hace") -> parseRelativeDate(date)
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

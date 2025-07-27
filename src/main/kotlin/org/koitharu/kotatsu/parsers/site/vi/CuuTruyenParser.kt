@@ -197,7 +197,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					volume = 0,
 					url = "/api/v2/chapters/$chapterId",
 					scanlator = team,
-					uploadDate = chapterDateFormat.tryParse(jo.getStringOrNull("created_at")),
+					uploadDate = chapterDateFormat.parseSafe(jo.getStringOrNull("created_at")),
 					branch = null,
 					source = source,
 				)

@@ -20,7 +20,7 @@ internal class HotComics(context: MangaLoaderContext) :
 			val url = element.attr("onclick").substringAfter("popupLogin('").substringBefore("'")
 			val name = element.selectFirst(".cell-num")?.text() ?: "Unknown"
 			val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-			val dateUpload = dateFormat.tryParse(element.selectFirst(".cell-time")?.text())
+			val dateUpload = dateFormat.parseSafe(element.selectFirst(".cell-time")?.text())
 			val chapterNum = element.selectFirst(".num")?.text()?.toFloat() ?: (i + 1f)
 			MangaChapter(
 				id = generateUid(url),

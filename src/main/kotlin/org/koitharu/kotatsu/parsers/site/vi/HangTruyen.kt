@@ -153,7 +153,7 @@ internal class HangTruyen(context: MangaLoaderContext) : PagedMangaParser(contex
 					number = chapter.getDouble("index").toFloat(),
 					url = chapterUrl,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(chapter.getString("releasedAt")),
+					uploadDate = dateFormat.parseSafe(chapter.getString("releasedAt")),
 					branch = null,
 					source = source,
 					volume = 0

@@ -58,7 +58,7 @@ internal class NetTruyenVie(context: MangaLoaderContext) :
 				volume = 0,
 				url = chapterUrl,
 				scanlator = null,
-				uploadDate = df.tryParse(jo.getString("updated_at")),
+				uploadDate = df.parseSafe(jo.getString("updated_at")),
 				branch = null,
 				source = source,
 			)

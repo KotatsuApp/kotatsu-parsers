@@ -94,7 +94,7 @@ internal class CMangaParser(context: MangaLoaderContext) :
 						number = chapterNumber,
 						volume = 0,
 						url = "/album/$slug/chapter-$mangaId-$chapterId",
-						uploadDate = df.tryParse(info.getString("last_update")),
+						uploadDate = df.parseSafe(info.getString("last_update")),
 						branch = null,
 						scanlator = null,
 						source = source,

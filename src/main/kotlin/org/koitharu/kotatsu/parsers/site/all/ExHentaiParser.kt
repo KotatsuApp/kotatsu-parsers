@@ -202,7 +202,7 @@ internal class ExHentaiParser(
 		val uploadDate = gd3
 			?.selectFirst("tr:contains(Posted)")
 			?.selectFirst(".gdt2")?.ownTextOrNull()
-			.let { SimpleDateFormat("yyyy-MM-dd HH:mm", sourceLocale).tryParse(it) }
+			.let { SimpleDateFormat("yyyy-MM-dd HH:mm", sourceLocale).parseSafe(it) }
 		val uploader = gd3
 			?.getElementsByAttributeValueContaining("href", "/uploader/")
 			?.firstOrNull()

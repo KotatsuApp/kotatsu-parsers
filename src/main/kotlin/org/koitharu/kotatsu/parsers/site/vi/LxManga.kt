@@ -186,7 +186,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 						volume = 0,
 						url = href,
 						scanlator = scanlator,
-						uploadDate = chapterDateFormat.tryParse(dateText),
+						uploadDate = chapterDateFormat.parseSafe(dateText),
 						branch = null,
 						source = source,
 					)

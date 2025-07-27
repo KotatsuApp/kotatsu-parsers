@@ -148,7 +148,7 @@ internal abstract class FoolSlideParser(
 				volume = 0,
 				url = href,
 				uploadDate = if (div.selectFirst(selectDate)?.text()?.contains(", ") == true) {
-					dateFormat.tryParse(dateText)
+					dateFormat.parseSafe(dateText)
 				} else {
 					0
 				},

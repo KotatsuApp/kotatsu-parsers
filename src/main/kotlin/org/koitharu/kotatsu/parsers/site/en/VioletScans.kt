@@ -17,7 +17,7 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.urlEncoded
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.parseSafe
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -199,7 +199,7 @@ internal class VioletScans(context: MangaLoaderContext) :
 		}
 
 		val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-		val date = dateFormat.tryParse(dateString) ?: 0L
+		val date = dateFormat.parseSafe(dateString) ?: 0L
 
 		val chaptersList = root.selectFirstOrThrow("#chapterlist ul")
 		val chapters = chaptersList.select("li")

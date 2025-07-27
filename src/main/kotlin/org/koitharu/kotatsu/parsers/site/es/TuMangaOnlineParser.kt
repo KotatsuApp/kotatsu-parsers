@@ -216,7 +216,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
-			uploadDate = chapterDateFormat.tryParse(element.select("span.badge.badge-primary.p-2").first()?.text()),
+			uploadDate = chapterDateFormat.parseSafe(element.select("span.badge.badge-primary.p-2").first()?.text()),
 			source = source,
 		)
 	}
@@ -233,7 +233,7 @@ internal class TuMangaOnlineParser(context: MangaLoaderContext) : PagedMangaPars
 			url = href,
 			scanlator = element.select("div.col-md-6.text-truncate").text(),
 			branch = null,
-			uploadDate = chapterDateFormat.tryParse(element.select("span.badge.badge-primary.p-2").first()?.text()),
+			uploadDate = chapterDateFormat.parseSafe(element.select("span.badge.badge-primary.p-2").first()?.text()),
 			source = source,
 		)
 	}

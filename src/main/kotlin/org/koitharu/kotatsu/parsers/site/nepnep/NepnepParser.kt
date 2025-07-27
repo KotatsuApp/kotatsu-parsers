@@ -236,7 +236,7 @@ internal abstract class NepnepParser(
 					volume = 0,
 					url = url,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(date),
+					uploadDate = dateFormat.parseSafe(date),
 					branch = null,
 					source = source,
 				)

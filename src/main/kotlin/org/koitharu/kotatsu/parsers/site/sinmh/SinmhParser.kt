@@ -174,7 +174,7 @@ internal abstract class SinmhParser(
 			val href = a.attrAsRelativeUrl("href")
 			MangaChapter(
 				id = generateUid(href),
-				title = a.text(),
+				title = a.textOrNull(),
 				number = i + 1f,
 				volume = 0,
 				url = href,

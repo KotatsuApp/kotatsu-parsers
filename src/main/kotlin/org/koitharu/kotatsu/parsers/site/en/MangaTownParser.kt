@@ -249,7 +249,7 @@ internal class MangaTownParser(context: MangaLoaderContext) :
 			date.isNullOrEmpty() -> 0L
 			date.contains("Today") -> Calendar.getInstance().timeInMillis
 			date.contains("Yesterday") -> Calendar.getInstance().apply { add(Calendar.DAY_OF_MONTH, -1) }.timeInMillis
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

@@ -94,7 +94,7 @@ internal class WaMangaParser(
 					volume = it.getIntOrDefault("volume", 0),
 					title = it.getStringOrNull("full_title"),
 					scanlator = it.getJSONArray("teams").getJSONObject(0)?.getStringOrNull("name"),
-					uploadDate = dateFormat.tryParse(it.getStringOrNull("published_on")),
+					uploadDate = dateFormat.parseSafe(it.getStringOrNull("published_on")),
 					branch = null,
 				)
 			},

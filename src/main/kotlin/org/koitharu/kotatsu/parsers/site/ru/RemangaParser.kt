@@ -176,7 +176,7 @@ internal class RemangaParser(
 					number = jo.getIntOrDefault("index", chapters.size - i).toFloat(),
 					volume = 0,
 					title = name.nullIfEmpty(),
-					uploadDate = dateFormat.tryParse(jo.getString("upload_date")),
+					uploadDate = dateFormat.parseSafe(jo.getString("upload_date")),
 					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
 					source = MangaParserSource.REMANGA,
 					branch = null,
@@ -192,7 +192,7 @@ internal class RemangaParser(
 		val pages = content.optJSONArray("pages")
 		if (pages == null) {
 			val pubDate = content.getStringOrNull("pub_date")?.let {
-				SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).tryParse(it)
+				SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US).parseSafe(it)
 			}
 			if (pubDate != null && pubDate > System.currentTimeMillis()) {
 				val at = SimpleDateFormat.getDateInstance(DateFormat.LONG).format(Date(pubDate))

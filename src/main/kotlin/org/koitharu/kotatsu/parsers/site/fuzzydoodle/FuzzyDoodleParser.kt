@@ -297,7 +297,7 @@ internal abstract class FuzzyDoodleParser(
 				parseRelativeDate(d)
 			}
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

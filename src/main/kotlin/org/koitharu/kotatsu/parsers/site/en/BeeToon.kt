@@ -125,7 +125,7 @@ internal class BeeToon(context: MangaLoaderContext) :
 					url = url,
 					scanlator = null,
 					uploadDate = SimpleDateFormat("MM/dd/yyyy HH:mm:ss", Locale.ENGLISH)
-						.tryParse(a.selectFirst(".chapter-date")?.attr("title") ?: "0"),
+						.parseSafe(a.selectFirst(".chapter-date")?.attr("title") ?: "0"),
 					branch = null,
 					source = source,
 				)

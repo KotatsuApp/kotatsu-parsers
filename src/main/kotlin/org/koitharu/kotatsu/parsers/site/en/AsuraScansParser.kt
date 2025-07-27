@@ -185,7 +185,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 					url = url,
 					scanlator = null,
 					uploadDate = SimpleDateFormat("MMMM d yyyy", Locale.US)
-						.tryParse(cleanDate),
+						.parseSafe(cleanDate),
 					branch = null,
 					source = source,
 				)

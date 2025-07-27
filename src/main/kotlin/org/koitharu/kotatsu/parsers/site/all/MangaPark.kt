@@ -252,7 +252,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 				}.timeInMillis
 			}
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

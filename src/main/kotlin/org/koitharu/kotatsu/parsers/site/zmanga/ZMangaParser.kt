@@ -311,9 +311,9 @@ internal abstract class ZMangaParser(
 				} else {
 					it
 				}
-			}.let { dateFormat.tryParse(it.joinToString(" ")) }
+			}.let { dateFormat.parseSafe(it.joinToString(" ")) }
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

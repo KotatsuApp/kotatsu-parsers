@@ -204,7 +204,7 @@ internal abstract class MangaWorldParser(
 						url = "$url?style=list",
 						scanlator = null,
 						uploadDate =
-							SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).tryParse(
+							SimpleDateFormat("dd MMMM yyyy", Locale.ITALIAN).parseSafe(
 								a.selectFirst(".chap-date")?.text(),
 							),
 						branch = null,

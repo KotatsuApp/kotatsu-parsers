@@ -144,7 +144,7 @@ internal class LerManga(context: MangaLoaderContext) : PagedMangaParser(context,
 					volume = 0,
 					url = href,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(div.selectFirstOrThrow("small small").text()),
+					uploadDate = dateFormat.parseSafe(div.selectFirstOrThrow("small small").text()),
 					branch = null,
 					source = source,
 				)

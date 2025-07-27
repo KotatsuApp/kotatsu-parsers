@@ -164,7 +164,7 @@ internal abstract class HeanCms(
 					volume = 0,
 					url = chapterUrl,
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(it.getString("created_at").substringBefore("T")),
+					uploadDate = dateFormat.parseSafe(it.getString("created_at").substringBefore("T")),
 					branch = null,
 					source = source,
 				)

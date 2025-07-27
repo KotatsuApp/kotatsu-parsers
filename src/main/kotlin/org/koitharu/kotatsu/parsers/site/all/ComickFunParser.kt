@@ -230,7 +230,7 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 				url = jo.getString("hid"),
 				scanlator = jo.optJSONArray("group_name")?.asTypedList<String>()?.joinToString()
 					?.takeUnless { it.isBlank() },
-				uploadDate = dateFormat.tryParse(jo.getString("created_at").substringBefore('T')),
+				uploadDate = dateFormat.parseSafe(jo.getString("created_at").substringBefore('T')),
 				branch = branch,
 				source = source,
 			)

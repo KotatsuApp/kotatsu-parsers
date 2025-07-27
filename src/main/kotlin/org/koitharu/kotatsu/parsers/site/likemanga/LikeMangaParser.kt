@@ -292,7 +292,7 @@ internal abstract class LikeMangaParser(
 				set(Calendar.MILLISECOND, 0)
 			}.timeInMillis
 
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 }

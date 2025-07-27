@@ -299,7 +299,7 @@ internal abstract class ZeistMangaParser(
 				number = i + 1f,
 				volume = 0,
 				branch = null,
-				uploadDate = dateFormat.tryParse(dateText),
+				uploadDate = dateFormat.parseSafe(dateText),
 				scanlator = null,
 				source = source,
 			)

@@ -141,7 +141,7 @@ internal class YugenMangas(context: MangaLoaderContext) :
 		val d = date?.lowercase() ?: return 0
 		return when {
 			d.endsWith(" atrás") -> parseRelativeDate(date)
-			else -> dateFormat.tryParse(date)
+			else -> dateFormat.parseSafe(date)
 		}
 	}
 

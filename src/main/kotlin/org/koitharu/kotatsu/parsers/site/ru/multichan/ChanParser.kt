@@ -99,7 +99,7 @@ internal abstract class ChanParser(
 					url = href,
 					scanlator = null,
 					branch = null,
-					uploadDate = dateFormat.tryParse(tr.selectFirst("div.date")?.text()),
+					uploadDate = dateFormat.parseSafe(tr.selectFirst("div.date")?.text()),
 					source = source,
 				)
 			},

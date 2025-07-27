@@ -489,7 +489,7 @@ internal class MangaDexParser(context: MangaLoaderContext) : FlexibleMangaParser
 				volume = volume,
 				url = id,
 				scanlator = team,
-				uploadDate = dateFormat.tryParse(attrs.getString("publishAt")),
+				uploadDate = dateFormat.parseSafe(attrs.getString("publishAt")),
 				branch = branch,
 				source = source,
 			)

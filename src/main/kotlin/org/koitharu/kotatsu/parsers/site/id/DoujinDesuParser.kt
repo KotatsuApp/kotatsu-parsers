@@ -166,7 +166,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 						volume = 0,
 						url = url,
 						scanlator = null,
-						uploadDate = chapterDateFormat.tryParse(element.select(".epsleft > .date").text()),
+						uploadDate = chapterDateFormat.parseSafe(element.select(".epsleft > .date").text()),
 						branch = null,
 						source = source,
 					)

@@ -25,7 +25,7 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.src
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.tryParse
+import org.koitharu.kotatsu.parsers.util.parseSafe
 import org.koitharu.kotatsu.parsers.util.urlDecode
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
@@ -177,7 +177,7 @@ internal class HentaiNexus(context: MangaLoaderContext) :
 					volume = 0,
 					url = manga.url,
 					scanlator = doc.select(selectPublisher).text().replace(Regex(" \\([\\d,]+\\)")) { "" },
-					uploadDate = format.tryParse(doc.select(selectPublishedDate).text()),
+					uploadDate = format.parseSafe(doc.select(selectPublishedDate).text()),
 					branch = "English",
 					source = source,
 				),

@@ -214,7 +214,7 @@ internal class MangaWtfParser(
 					volume = volume,
 					url = jo.getString("id"),
 					scanlator = null,
-					uploadDate = dateFormat.tryParse(jo.getString("createdAt")),
+					uploadDate = dateFormat.parseSafe(jo.getString("createdAt")),
 					branch = branches.getOrPut(branchId) { getBranchName(branchId) },
 					source = source,
 				)

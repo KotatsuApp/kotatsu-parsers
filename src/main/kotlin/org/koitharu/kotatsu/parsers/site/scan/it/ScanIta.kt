@@ -50,7 +50,7 @@ internal class ScanIta(context: MangaLoaderContext) :
 				volume = 0,
 				url = href,
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(doc.selectFirstOrThrow("h5 div").text()),
+				uploadDate = dateFormat.parseSafe(doc.selectFirstOrThrow("h5 div").text()),
 				branch = null,
 				source = source,
 			)

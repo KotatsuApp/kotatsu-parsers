@@ -170,7 +170,7 @@ internal class Mangaowl(context: MangaLoaderContext) :
 					number = i + 1f,
 					volume = 0,
 					url = url,
-					uploadDate = dateFormat.tryParse(date),
+					uploadDate = dateFormat.parseSafe(date),
 					source = source,
 					scanlator = null,
 					branch = null,

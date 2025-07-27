@@ -295,7 +295,7 @@ internal abstract class MangaFireParser(
 				},
 				url = "${branch.type}/${it.attr("data-id")}",
 				scanlator = null,
-				uploadDate = dateFormat.tryParse(it.attr("upload-date")),
+				uploadDate = dateFormat.parseSafe(it.attr("upload-date")),
 				branch = "${branch.langTitle} ${branch.type.toTitleCase()}",
 				source = source,
 			)
