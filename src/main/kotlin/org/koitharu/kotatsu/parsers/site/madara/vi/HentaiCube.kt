@@ -4,23 +4,11 @@ import org.jsoup.nodes.Element
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
-import org.koitharu.kotatsu.parsers.model.ContentType
-import org.koitharu.kotatsu.parsers.model.MangaChapter
-import org.koitharu.kotatsu.parsers.model.MangaPage
-import org.koitharu.kotatsu.parsers.model.MangaTag
-import org.koitharu.kotatsu.parsers.model.MangaListFilter
-import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
-import org.koitharu.kotatsu.parsers.model.MangaParserSource
-import org.koitharu.kotatsu.parsers.model.Manga
-import org.koitharu.kotatsu.parsers.model.MangaState
-import org.koitharu.kotatsu.parsers.model.ContentRating
-import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.getOrNull
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
-import java.util.*
 
 // Do not use "hentaicb.sbs" domain, may cause duplicate tags!
 @MangaSourceParser("HENTAICUBE", "CBHentai", "vi", ContentType.HENTAI)
@@ -29,116 +17,117 @@ internal class HentaiCube(context: MangaLoaderContext) :
 
 	override val datePattern = "dd/MM/yyyy"
 	override val postReq = true
-    override val authorSearchSupported = true
+	override val authorSearchSupported = true
 	override val postDataReq = "action=manga_views&manga="
 
-    private val availableTags = suspendLazy(initializer = ::fetchTags)
-	
+	private val availableTags = suspendLazy(initializer = ::fetchTags)
+
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = availableTags.get(),
 	)
 
-    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val pages = page + 1
 
-        val url = buildString {
-            if (!filter.author.isNullOrEmpty()) {
-                clear()
-                append("https://")
-                append(domain)
-                append("/tacgia/")
-                append(filter.author.lowercase().replace(" ", "-"))
-                
-                if (pages > 1) {
-                    append("/page/")
-                    append(pages.toString())
-                }
-                
-                append("/?m_orderby=")
-                when (order) {
-                    SortOrder.POPULARITY -> append("views")
-                    SortOrder.UPDATED -> append("latest")
-                    SortOrder.NEWEST -> append("new-manga")
-                    SortOrder.ALPHABETICAL -> {}
-                    SortOrder.RATING -> append("trending")
-                    SortOrder.RELEVANCE -> {}
-                    else -> append("latest") // default
-                }
-                return@buildString
-            }
+		val url = buildString {
+			if (!filter.author.isNullOrEmpty()) {
+				clear()
+				append("https://")
+				append(domain)
+				append("/tacgia/")
+				append(filter.author.lowercase().replace(" ", "-"))
 
-            append("https://")
-            append(domain)
+				if (pages > 1) {
+					append("/page/")
+					append(pages.toString())
+				}
 
-            if (pages > 1) {
-                append("/page/")
-                append(pages.toString())
-            }
-            
-            append("/?s=")
+				append("/?m_orderby=")
+				when (order) {
+					SortOrder.POPULARITY -> append("views")
+					SortOrder.UPDATED -> append("latest")
+					SortOrder.NEWEST -> append("new-manga")
+					SortOrder.ALPHABETICAL -> {}
+					SortOrder.RATING -> append("trending")
+					SortOrder.RELEVANCE -> {}
+					else -> append("latest") // default
+				}
+				return@buildString
+			}
 
-            filter.query?.let {
-                append(filter.query.urlEncoded())
-            }
+			append("https://")
+			append(domain)
 
-            append("&post_type=wp-manga")
+			if (pages > 1) {
+				append("/page/")
+				append(pages.toString())
+			}
 
-            if (filter.tags.isNotEmpty()) {
-                filter.tags.forEach {
-                    append("&genre[]=")
-                    append(it.key)
-                }
-            }
+			append("/?s=")
 
-            filter.states.forEach {
-                append("&status[]=")
-                when (it) {
-                    MangaState.ONGOING -> append("on-going")
-                    MangaState.FINISHED -> append("end")
-                    MangaState.ABANDONED -> append("canceled")
-                    MangaState.PAUSED -> append("on-hold")
-                    MangaState.UPCOMING -> append("upcoming")
-                }
-            }
+			filter.query?.let {
+				append(filter.query.urlEncoded())
+			}
 
-            filter.contentRating.oneOrThrowIfMany()?.let {
-                append("&adult=")
-                append(
-                    when (it) {
-                        ContentRating.SAFE -> "0"
-                        ContentRating.ADULT -> "1"
-                        else -> ""
-                    },
-                )
-            }
+			append("&post_type=wp-manga")
 
-            if (filter.year != 0) {
-                append("&release=")
-                append(filter.year.toString())
-            }
+			if (filter.tags.isNotEmpty()) {
+				filter.tags.forEach {
+					append("&genre[]=")
+					append(it.key)
+				}
+			}
 
-            append("&m_orderby=")
-            when (order) {
-                SortOrder.POPULARITY -> append("views")
-                SortOrder.UPDATED -> append("latest")
-                SortOrder.NEWEST -> append("new-manga")
-                SortOrder.ALPHABETICAL -> append("alphabet")
-                SortOrder.RATING -> append("rating")
-                SortOrder.RELEVANCE -> {}
-                else -> {}
-            }
-        }
-        return parseMangaList(webClient.httpGet(url).parseHtml())
-    }
+			filter.states.forEach {
+				append("&status[]=")
+				when (it) {
+					MangaState.ONGOING -> append("on-going")
+					MangaState.FINISHED -> append("end")
+					MangaState.ABANDONED -> append("canceled")
+					MangaState.PAUSED -> append("on-hold")
+					MangaState.UPCOMING -> append("upcoming")
+					else -> throw IllegalArgumentException("$it not supported")
+				}
+			}
+
+			filter.contentRating.oneOrThrowIfMany()?.let {
+				append("&adult=")
+				append(
+					when (it) {
+						ContentRating.SAFE -> "0"
+						ContentRating.ADULT -> "1"
+						else -> ""
+					},
+				)
+			}
+
+			if (filter.year != 0) {
+				append("&release=")
+				append(filter.year.toString())
+			}
+
+			append("&m_orderby=")
+			when (order) {
+				SortOrder.POPULARITY -> append("views")
+				SortOrder.UPDATED -> append("latest")
+				SortOrder.NEWEST -> append("new-manga")
+				SortOrder.ALPHABETICAL -> append("alphabet")
+				SortOrder.RATING -> append("rating")
+				SortOrder.RELEVANCE -> {}
+				else -> {}
+			}
+		}
+		return parseMangaList(webClient.httpGet(url).parseHtml())
+	}
 
 	override suspend fun createMangaTag(a: Element): MangaTag? {
-        val allTags = availableTags.getOrNull().orEmpty()
-        val title = a.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim to remove space
-        // compare to avoid duplicate tags with the same title
-        return allTags.find { 
-            it.title.trim().equals(title, ignoreCase = true) // try to search with trim
-        }
-    }
+		val allTags = availableTags.getOrNull().orEmpty()
+		val title = a.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim to remove space
+		// compare to avoid duplicate tags with the same title
+		return allTags.find {
+			it.title.trim().equals(title, ignoreCase = true) // try to search with trim
+		}
+	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -157,17 +146,17 @@ internal class HentaiCube(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
-        val doc = webClient.httpGet("https://$domain/the-loai-genres").parseHtml()
-        val elements = doc.select("ul.list-unstyled li a")
-        return elements.mapToSet { element ->
-            val href = element.attr("href")
-            val key = href.substringAfter("/theloai/").removeSuffix("/")
-            val title = element.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim
-            MangaTag(
-                key = key,
-                title = title,
-                source = source,
-            )
-        }.toSet()
-    }
+		val doc = webClient.httpGet("https://$domain/the-loai-genres").parseHtml()
+		val elements = doc.select("ul.list-unstyled li a")
+		return elements.mapToSet { element ->
+			val href = element.attr("href")
+			val key = href.substringAfter("/theloai/").removeSuffix("/")
+			val title = element.text().replace(Regex("\\(\\d+\\)"), "").trim() // force trim
+			MangaTag(
+				key = key,
+				title = title,
+				source = source,
+			)
+		}.toSet()
+	}
 }

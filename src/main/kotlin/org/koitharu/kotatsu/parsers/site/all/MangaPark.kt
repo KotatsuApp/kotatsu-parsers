@@ -53,7 +53,13 @@ internal class MangaPark(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tagsMap.get().values.toSet(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 		availableContentRating = EnumSet.of(ContentRating.SAFE),
 		availableLocales = setOf(
 			Locale("af"), Locale("sq"), Locale("am"), Locale("ar"), Locale("hy"),
@@ -120,6 +126,7 @@ internal class MangaPark(context: MangaLoaderContext) :
 						MangaState.PAUSED -> "hiatus"
 						MangaState.ABANDONED -> "cancelled"
 						MangaState.UPCOMING -> "pending"
+						else -> throw IllegalArgumentException("$it not supported")
 					},
 				)
 			}

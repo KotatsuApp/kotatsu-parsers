@@ -90,6 +90,7 @@ internal class MangaWtfParser(
 								MangaState.ABANDONED -> ""
 								MangaState.PAUSED -> "FROZEN"
 								MangaState.UPCOMING -> "ANNOUNCE"
+								else -> throw IllegalArgumentException("$it not supported")
 							}
 						},
 					)

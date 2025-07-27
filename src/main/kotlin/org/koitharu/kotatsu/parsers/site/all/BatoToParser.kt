@@ -69,7 +69,13 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 		availableContentRating = EnumSet.of(ContentRating.SAFE),
 		availableLocales = setOf(
 			Locale.CHINESE, Locale.ENGLISH, Locale.US, Locale.FRENCH, Locale.GERMAN, Locale.ITALIAN, Locale.JAPANESE,
@@ -153,6 +159,7 @@ internal class BatoToParser(context: MangaLoaderContext) : PagedMangaParser(
 								MangaState.ABANDONED -> "cancelled"
 								MangaState.PAUSED -> "hiatus"
 								MangaState.UPCOMING -> "pending"
+								else -> throw IllegalArgumentException("$it not supported")
 							},
 						)
 					}

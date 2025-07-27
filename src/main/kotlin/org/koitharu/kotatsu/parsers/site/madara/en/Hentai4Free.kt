@@ -74,6 +74,7 @@ internal class Hentai4Free(context: MangaLoaderContext) :
 								MangaState.ABANDONED -> append("canceled")
 								MangaState.PAUSED -> append("on-hold")
 								MangaState.UPCOMING -> append("upcoming")
+								else -> throw IllegalArgumentException("$it not supported")
 							}
 						}
 

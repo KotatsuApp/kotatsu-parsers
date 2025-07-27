@@ -34,7 +34,7 @@ internal abstract class MadaraParser(
 
 	// Change these values only if the site does not support manga listings via ajax
 	protected open val withoutAjax = false
-    protected open val authorSearchSupported = false
+	protected open val authorSearchSupported = false
 
 	override val availableSortOrders: Set<SortOrder> = setupAvailableSortOrders()
 
@@ -72,12 +72,18 @@ internal abstract class MadaraParser(
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 			isYearSupported = true,
-			isAuthorSearchSupported = authorSearchSupported
+			isAuthorSearchSupported = authorSearchSupported,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.ADULT),
 	)
 
@@ -256,6 +262,7 @@ internal abstract class MadaraParser(
 						MangaState.ABANDONED -> append("canceled")
 						MangaState.PAUSED -> append("on-hold")
 						MangaState.UPCOMING -> append("upcoming")
+						else -> throw IllegalArgumentException("$it not supported")
 					}
 				}
 
@@ -275,13 +282,13 @@ internal abstract class MadaraParser(
 					append(filter.year.toString())
 				}
 
-                if (!filter.author.isNullOrEmpty()) {
-                    filter.author.let {
-                        append("&author=")
-                        // should be like "minamida-usuke"
-                        append(it.lowercase().replace(" ", "-"))
-                    }
-                }
+				if (!filter.author.isNullOrEmpty()) {
+					filter.author.let {
+						append("&author=")
+						// should be like "minamida-usuke"
+						append(it.lowercase().replace(" ", "-"))
+					}
+				}
 
 				// Support artist
 				//filter.artist?.let {
@@ -435,6 +442,7 @@ internal abstract class MadaraParser(
 						MangaState.ABANDONED -> "canceled"
 						MangaState.PAUSED -> "on-hold"
 						MangaState.UPCOMING -> "upcoming"
+						else -> throw IllegalArgumentException("$it not supported")
 					}
 			}
 
@@ -462,12 +470,12 @@ internal abstract class MadaraParser(
 			doc.select("div.page-item-detail")
 		}
 
-        // Avoid "Content not found or removed" errors
+		// Avoid "Content not found or removed" errors
 		if (elements.isEmpty()) {
 			return emptyList()
 		}
-		
-        return elements.map { div ->
+
+		return elements.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 			val summary = div.selectFirst(".tab-summary") ?: div.selectFirst(".item-summary")
 			val author = summary?.selectFirst(".mg_author")?.selectFirst("a")?.ownText()

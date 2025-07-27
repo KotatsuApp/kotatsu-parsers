@@ -32,7 +32,13 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 		availableContentRating = EnumSet.of(ContentRating.ADULT),
 	)
 
@@ -67,6 +73,7 @@ internal class FlixScansOrg(context: MangaLoaderContext) :
 								MangaState.ABANDONED -> "droped"
 								MangaState.PAUSED -> "onhold"
 								MangaState.UPCOMING -> "soon"
+								else -> throw IllegalArgumentException("$it not supported")
 							},
 						)
 					}

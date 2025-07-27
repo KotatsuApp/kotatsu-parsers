@@ -44,7 +44,13 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getOrCreateTagMap().values.toSet(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
@@ -78,6 +84,7 @@ internal class AsuraScansParser(context: MangaLoaderContext) :
 						MangaState.ABANDONED -> "4"
 						MangaState.PAUSED -> "2"
 						MangaState.UPCOMING -> "6"
+						else -> throw IllegalArgumentException("$it not supported")
 					},
 				)
 			}

@@ -76,7 +76,13 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = tags.get().values.toSet(),
-		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.ABANDONED,
+			MangaState.PAUSED,
+			MangaState.UPCOMING,
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -105,13 +111,14 @@ internal class MangaReaderToParser(context: MangaLoaderContext) :
 					addQueryParameter("genres", filter.tags.joinToString(",") { it.key })
 					addQueryParameter(
 						name = "status",
-						value = when (filter.states.oneOrThrowIfMany()) {
+						value = when (val state = filter.states.oneOrThrowIfMany()) {
 							MangaState.ONGOING -> "2"
 							MangaState.FINISHED -> "1"
 							MangaState.ABANDONED -> "4"
 							MangaState.PAUSED -> "3"
 							MangaState.UPCOMING -> "5"
 							null -> ""
+							else -> throw IllegalArgumentException("$state not supported")
 						},
 					)
 				}

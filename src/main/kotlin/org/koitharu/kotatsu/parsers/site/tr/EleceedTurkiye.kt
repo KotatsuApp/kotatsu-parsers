@@ -11,12 +11,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
-internal class EleceedTurkiye(context: MangaLoaderContext):
+internal class EleceedTurkiye(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.ELECEEDTURKIYE) {
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"eleceedturkiye.com",
-		"www.eleceedturkiye.com"
+		"www.eleceedturkiye.com",
 	)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
@@ -42,8 +42,8 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 				authors = setOf("Son Jae Ho", "ZHENA"),
 				state = MangaState.ONGOING,
 				source = source,
-				contentRating = ContentRating.ADULT
-			)
+				contentRating = ContentRating.ADULT,
+			),
 		)
 	}
 
@@ -55,23 +55,23 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 				MangaTag("Aksiyon", "", source),
 				MangaTag("Drama", "", source),
 				MangaTag("Komedi", "", source),
-				MangaTag("Süper Güçler", "", source)
+				MangaTag("Süper Güçler", "", source),
 			),
-			chapters = doc.select("div.eph-num").map { div ->
+			chapters = doc.select("div.eph-num").mapChapters(reversed = true) { _, div ->
 				val href = div.selectFirstOrThrow("a").attr("href")
-				val title = div.selectFirst("span.chapternum").text()
+				val title = div?.selectFirst("span.chapternum")?.textOrNull()
 				MangaChapter(
 					id = generateUid(href),
 					title = title,
-					number = Regex("\\d+").find(title)?.value?.toFloatOrNull() ?: 0f,
+					number = title?.let { Regex("\\d+").find(it)?.value?.toFloatOrNull() } ?: 0f,
 					url = href,
-					uploadDate = parseChapterDate(div.selectFirst("span.chapterdate")?.text()),
+					uploadDate = dateFormat.tryParse(div.selectFirst("span.chapterdate")?.text()),
 					scanlator = null,
 					branch = null,
 					source = source,
 					volume = 0,
 				)
-			}.reversed()
+			},
 		)
 	}
 
@@ -104,14 +104,4 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 
 	private val mangaId = "eleceed"
 	private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr"))
-
-	private fun parseChapterDate(dateString: String?): Long {
-		return dateString?.let {
-			try {
-				dateFormat.parse(it)?.time ?: 0
-			} catch (e: Exception) {
-				0
-			}
-		} ?: 0
-	}
 }
