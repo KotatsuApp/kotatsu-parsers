@@ -9,7 +9,9 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.absoluteValue
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken("Wrong CSS parse")
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
 internal class EleceedTurkiye(context: MangaLoaderContext):
 	SinglePageMangaParser(context, MangaParserSource.ELECEEDTURKIYE) {
@@ -27,12 +29,28 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 	override suspend fun getFilterOptions() = MangaListFilterOptions()
 
 	override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
-		return listOf(getMangaDetails())
+		val raw = webClient.httpGet("https://$domain").parseHtml()
+		val coverUrl = raw.select("div.thumb img").attr("src")
+		return listOf(
+			Manga(
+				id = generateUid(mangaId),
+				url = "https://$domain/",
+				publicUrl = "https://$domain/",
+				coverUrl = coverUrl,
+				title = "Eleceed",
+				altTitles = emptySet(),
+				rating = RATING_UNKNOWN,
+				tags = emptySet(),
+				authors = setOf("Son Jae Ho", "ZHENA"),
+				state = MangaState.ONGOING,
+				source = source,
+				contentRating = ContentRating.ADULT
+			)
+		)
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-
+		val doc = webClient.httpGet(manga.url).parseHtml()
 		return manga.copy(
 			description = doc.selectFirst("div.entry-content")?.html(),
 			state = MangaState.ONGOING,
@@ -45,7 +63,6 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 			),
 			chapters = doc.select("div.episode-list > ul > li > a").map { a ->
 				val href = a.attrAsRelativeUrl("href")
-
 				MangaChapter(
 					id = generateUid(href),
 					title = a.selectFirst("span.episode-name")?.text()
@@ -78,23 +95,6 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 
 	private val mangaId = "eleceed"
 	private val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale("tr"))
-
-	private fun getMangaDetails(): Manga {
-		return Manga(
-			id = generateUid(mangaId),
-			url = "/eleeced-bolum-$mangaId",
-			publicUrl = "https://$domain/eleceed/$mangaId",
-			coverUrl = "https://$domain/wp-content/uploads/eleceed-cover.jpg",
-			title = "Eleceed",
-			altTitles = emptySet(),
-			rating = RATING_UNKNOWN,
-			tags = emptySet(),
-			authors = setOf("Son Jae Ho", "ZHENA"),
-			state = MangaState.ONGOING,
-			source = source,
-			contentRating = ContentRating.ADULT
-		)
-	}
 
 	private fun parseChapterDate(dateString: String?): Long {
 		return dateString?.let {
