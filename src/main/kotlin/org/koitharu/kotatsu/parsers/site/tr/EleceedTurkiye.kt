@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.tr
 
+import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -8,9 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken("Fix chapter number + Remove unused functions")
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
 internal class EleceedTurkiye(context: MangaLoaderContext):
 	SinglePageMangaParser(context, MangaParserSource.ELECEEDTURKIYE) {
@@ -72,17 +71,31 @@ internal class EleceedTurkiye(context: MangaLoaderContext):
 					source = source,
 					volume = 0,
 				)
-			}.sortedByDescending { it.number }
+			}.reversed()
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div.reading-content > img").map { img ->
-			val src = img.attr("src").ifEmpty { img.attr("data-src") }
+		val doc = webClient.httpGet(chapter.url).parseHtml()
+		val scriptData = doc.select("script")
+			.firstOrNull { it.data().contains("ts_reader.run(") }
+			?.data()
+			?.substringAfter("ts_reader.run(")
+			?.substringBeforeLast(");")
+			?: error("Script data not found")
+
+		val json = JSONObject(scriptData)
+		val sources = json.getJSONArray("sources")
+		if (sources.length() == 0) error("No sources found")
+
+		val firstSource = sources.getJSONObject(0)
+		val images = firstSource.getJSONArray("images")
+
+		return List(images.length()) { index ->
+			val imageUrl = images.getString(index)
 			MangaPage(
-				id = generateUid(src),
-				url = src.toAbsoluteUrl(domain),
+				id = generateUid(imageUrl),
+				url = imageUrl.toAbsoluteUrl(domain),
 				preview = null,
 				source = source,
 			)
