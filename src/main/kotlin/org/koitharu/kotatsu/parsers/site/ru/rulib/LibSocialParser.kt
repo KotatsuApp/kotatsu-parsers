@@ -165,7 +165,7 @@ internal abstract class LibSocialParser(
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-		val chapters = async { fetchChapters(manga) }
+		val chaptersDeferred = async { fetchChapters(manga) }
 		val url = HttpUrl.Builder()
 			.scheme(SCHEME_HTTPS)
 			.host(apiHost)
@@ -176,6 +176,7 @@ internal abstract class LibSocialParser(
 			.addQueryParameter("fields[]", "genres")
 			.addQueryParameter("fields[]", "tags")
 			.addQueryParameter("fields[]", "authors")
+			.addQueryParameter("fields[]", "close_view")
 			.build()
 		val json = webClient.httpGet(url).parseJson().getJSONObject("data")
 		val genres = json.getJSONArray("genres").mapJSON { jo ->
@@ -184,14 +185,27 @@ internal abstract class LibSocialParser(
 		val tags = json.getJSONArray("tags").mapJSON { jo ->
 			MangaTag(title = jo.getString("name"), key = "t" + jo.getInt("id"), source = source)
 		}
-		val author = json.getJSONArray("authors").optJSONObject(0)?.getStringOrNull("name")
+		val authors = json.getJSONArray("authors").mapJSONNotNullToSet {
+			it.getStringOrNull("name")
+		}
+		val chapters = chaptersDeferred.await()
+		val isRestricted = json.getIntOrDefault("close_view", 0) > 0
 		manga.copy(
 			title = json.getStringOrNull("rus_name") ?: manga.title,
 			altTitles = setOfNotNull(json.getStringOrNull("name")),
 			tags = tagsSetOf(tags, genres),
-			authors = setOfNotNull(author),
+			state = if (chapters.isEmpty() && isRestricted) {
+				MangaState.RESTRICTED
+			} else {
+				manga.state
+			},
+			authors = authors,
+			contentRating = json.optJSONObject("ageRestriction")?.let {
+				val id = it.getIntOrDefault("id", -1)
+				if (id >= 4) ContentRating.SUGGESTIVE else sourceContentRating
+			} ?: manga.contentRating,
 			description = json.getString("summary").nl2br(),
-			chapters = chapters.await(),
+			chapters = chapters,
 		)
 	}
 
@@ -258,7 +272,7 @@ internal abstract class LibSocialParser(
 			publicUrl = "https://$domain/ru/manga/" + jo.getString("slug_url"),
 			rating = jo.optJSONObject("rating")
 				?.getFloatOrDefault("average", RATING_UNKNOWN * 10f)?.div(10f) ?: RATING_UNKNOWN,
-			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+			contentRating = sourceContentRating,
 			coverUrl = cover.getString("thumbnail"),
 			tags = setOf(),
 			state = statesMap[jo.optJSONObject("status")?.getIntOrDefault("id", -1) ?: -1],
@@ -300,6 +314,12 @@ internal abstract class LibSocialParser(
 			val branches = jo.getJSONArray("branches")
 			for (j in 0 until branches.length()) {
 				val bjo = branches.getJSONObject(j)
+				val isRestricted = bjo.optJSONObject("restricted_view")?.let {
+					!it.getBooleanOrDefault("is_open", true)
+				} ?: false
+				if (isRestricted) {
+					continue
+				}
 				val id = bjo.getLong("id")
 				val branchId = bjo.getLongOrDefault("branch_id", 0L)
 				val team = bjo.getJSONArray("teams").optJSONObject(0)?.getStringOrNull("name")
