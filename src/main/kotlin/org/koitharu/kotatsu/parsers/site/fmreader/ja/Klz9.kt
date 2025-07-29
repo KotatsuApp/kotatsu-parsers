@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fmreader.ja
 
+import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -13,7 +14,7 @@ import java.text.SimpleDateFormat
 internal class Klz9(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaParserSource.KLZ9, "klz9.com") {
 
-	override val selectDesc = "div.row:contains(Description)"
+	override val selectDesc = "div.row:contains(Description) p"
 	override val selectState = "ul.manga-info li:contains(Status) a"
 	override val selectAlt = "ul.manga-info li:contains(Other name (s))"
 	override val selectTag = "ul.manga-info li:contains(Genre(s)) a"
@@ -46,7 +47,7 @@ internal class Klz9(context: MangaLoaderContext) :
 	private val chapterListSelector = "div#list-chapters p, table.table tr, .list-chapters > a"
 
 	private fun generateRandomStr(): String {
-		return (1..25).map { toPathCharacters.random() }.joinToString("")
+		return (1..30).map { toPathCharacters.random() }.joinToString("")
 	}
 
 	private val toPathCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
@@ -83,8 +84,18 @@ internal class Klz9(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val cid = doc.selectFirstOrThrow("#chapter").attr("value")
-		val docLoad = webClient.httpGet("https://$domain/app/manga/controllers/cont.listImg.php?cid=$cid").parseHtml()
-		return docLoad.select(selectPage).map { img ->
+		val dynamicPath = generateRandomStr()
+		val imageUrlListUrl = "https://$domain/$dynamicPath.iog?cid=$cid"
+		val headers = Headers.headersOf("Referer" , fullUrl)
+		val docLoad = webClient.httpGet(imageUrlListUrl,  headers).parseHtml()
+
+		val allImages = docLoad.select(selectPage)
+		//remove page with ads
+		val actualPages = allImages.filter { element ->
+			element.attr("alt").startsWith("Page", ignoreCase = true)
+		}
+
+		return actualPages.map { img ->
 			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
@@ -94,5 +105,4 @@ internal class Klz9(context: MangaLoaderContext) :
 			)
 		}
 	}
-
 }
