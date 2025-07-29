@@ -6,6 +6,8 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.Favicon
+import org.koitharu.kotatsu.parsers.model.Favicons
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
@@ -43,6 +45,16 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 		super.onCreateConfig(keys)
 		keys.remove(configKeyDomain)
 		keys.remove(userAgentKey)
+	}
+
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://otruyen.cc/favicon.ico", 32, null),
+			),
+			domain,
+		)
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.NEWEST)
