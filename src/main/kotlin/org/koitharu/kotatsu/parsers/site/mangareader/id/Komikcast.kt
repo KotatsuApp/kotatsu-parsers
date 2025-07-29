@@ -1,9 +1,12 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.id
 
-import org.json.JSONObject
+import kotlinx.coroutines.delay
+import okhttp3.Interceptor
+import okhttp3.Response
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
@@ -13,21 +16,59 @@ import java.util.*
 
 @MangaSourceParser("KOMIKCAST", "KomikCast", "id")
 internal class Komikcast(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast02.com", pageSize = 60, searchPageSize = 28) {
+	MangaReaderParser(context, MangaParserSource.KOMIKCAST, "komikcast.li", pageSize = 60, searchPageSize = 28) {
+
+	override val userAgentKey = ConfigKey.UserAgent(
+		"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
+	)
+
+	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+		.add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+		.add("Accept-Language", "en-US,en;q=0.5")
+		.add("Cache-Control", "no-cache")
+		.add("Pragma", "no-cache")
+		.build()
+
+	override fun intercept(chain: Interceptor.Chain): Response {
+		val request = chain.request()
+		val newRequest = when {
+			request.url.pathSegments.contains("chapter") -> {
+				// Add referer for chapter pages
+				val mangaSlug = request.url.toString()
+					.substringAfter("/chapter/")
+					.substringBefore("-chapter-")
+					.substringBefore("-ch-")
+				request.newBuilder()
+					.header("Referer", "https://$domain/komik/$mangaSlug/")
+					.build()
+			}
+			else -> {
+				request.newBuilder()
+					.header("Referer", "https://$domain/")
+					.build()
+			}
+		}
+		return chain.proceed(newRequest)
+	}
 
 	override val listUrl = "/daftar-komik"
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val availableSortOrders: Set<SortOrder> =
-		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL)
+		EnumSet.of(SortOrder.UPDATED, SortOrder.POPULARITY, SortOrder.ALPHABETICAL, SortOrder.ALPHABETICAL_DESC)
 
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(
-			isTagsExclusionSupported = false,
+			isTagsExclusionSupported = false
 		)
 
 	override suspend fun getFilterOptions() = super.getFilterOptions().copy(
 		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+		),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -48,16 +89,28 @@ internal class Komikcast(context: MangaLoaderContext) :
 					append(listUrl)
 					append("/page/")
 					append(page.toString())
-					append("/?type=")
+					append("/?")
+
+					filter.types.oneOrThrowIfMany()?.let { contentType ->
+						append("type=")
+						append(when (contentType) {
+							ContentType.MANGA -> "manga"
+							ContentType.MANHWA -> "manhwa"
+							ContentType.MANHUA -> "manhua"
+							else -> ""
+						})
+						append("&")
+					}
+
 					append(
 						when (order) {
-							SortOrder.ALPHABETICAL -> "&orderby=titleasc"
-							SortOrder.ALPHABETICAL_DESC -> "&orderby=titledesc"
-							SortOrder.POPULARITY -> "&orderby=popular"
-							SortOrder.UPDATED -> "" // To get the Updated list, you don't need "orderby" in the url.
-							else -> ""
-						},
+							SortOrder.ALPHABETICAL -> "orderby=titleasc"
+							SortOrder.ALPHABETICAL_DESC -> "orderby=titledesc"
+							SortOrder.POPULARITY -> "orderby=popular"
+							else -> "orderby=update"
+						}
 					)
+
 					val tagKey = "genre[]".urlEncoded()
 					val tagQuery =
 						if (filter.tags.isEmpty()) ""
@@ -67,11 +120,13 @@ internal class Komikcast(context: MangaLoaderContext) :
 					if (filter.states.isNotEmpty()) {
 						filter.states.oneOrThrowIfMany()?.let {
 							append("&status=")
-							when (it) {
-								MangaState.ONGOING -> append("Ongoing")
-								MangaState.FINISHED -> append("Completed")
-								else -> append("")
-							}
+							append(
+								when (it) {
+									MangaState.ONGOING -> "Ongoing"
+									MangaState.FINISHED -> "Completed"
+									else -> ""
+								}
+							)
 						}
 					}
 				}
@@ -82,53 +137,68 @@ internal class Komikcast(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val docs = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
-		val chapters = docs.select("#chapter-wrapper > li").mapChapters(reversed = true) { index, element ->
-			val url = element.selectFirst("a.chapter-link-item")?.attrAsRelativeUrl("href") ?: return@mapChapters null
-			MangaChapter(
-				id = generateUid(url),
-				title = element.selectFirst("a.chapter-link-item")?.ownTextOrNull(),
-				url = url,
-				number = index + 1f,
-				volume = 0,
-				scanlator = null,
-				uploadDate = parseChapterDate(
-					dateFormat,
-					element.selectFirst("div.chapter-link-time")?.text(),
-				),
-				branch = null,
-				source = source,
-			)
+		val mangaUrl = manga.url.toAbsoluteUrl(domain)
+
+		repeat(3) { attempt ->
+			if (attempt > 0) {
+				delay(1500)
+			}
+
+			val docs = webClient.httpGet(mangaUrl).parseHtml()
+			val chapterElements = docs.select("#chapter-wrapper > li")
+			val dateFormat = SimpleDateFormat(datePattern, sourceLocale)
+
+			val chapters = chapterElements.mapChapters(reversed = true) { index, element ->
+				val url = element.selectFirst("a.chapter-link-item")?.attrAsRelativeUrl("href")
+					?: return@mapChapters null
+				MangaChapter(
+					id = generateUid(url),
+					title = element.selectFirst("a.chapter-link-item")?.ownTextOrNull(),
+					url = url,
+					number = index + 1f,
+					volume = 0,
+					scanlator = null,
+					uploadDate = parseChapterDate(
+						dateFormat,
+						element.selectFirst("div.chapter-link-time")?.text(),
+					),
+					branch = null,
+					source = source,
+				)
+			}
+
+			if (chapters.isNotEmpty()) {
+				return parseInfo(docs, manga, chapters)
+			}
 		}
-		return parseInfo(docs, manga, chapters)
+
+		throw Exception("Failed to get manga details after 3 attempts for: $mangaUrl")
 	}
 
 	override suspend fun parseInfo(docs: Document, manga: Manga, chapters: List<MangaChapter>): Manga {
 		val tagMap = getOrCreateTagMap()
 		val tags = docs.select(".komik_info-content-genre > a").mapNotNullToSet { tagMap[it.text()] }
 		val state = docs.selectFirst(".komik_info-content-meta span:contains(Status)")?.html()
-		val mangaState = if (state!!.contains("Ongoing")) {
+		val mangaState = if (state?.contains("Ongoing") == true) {
 			MangaState.ONGOING
 		} else {
 			MangaState.FINISHED
 		}
 		val author = docs.selectFirst(".komik_info-content-meta span:contains(Author)")
 			?.lastElementChild()?.textOrNull()
-		val nsfw =
-			docs.selectFirst(".restrictcontainer") != null || docs.selectFirst(".info-right .alr") != null || docs.selectFirst(
-				".postbody .alr",
-			) != null
+		val nsfw = docs.select("div")
+			.any { it.text().contains("Peringatan", ignoreCase = true) && it.text().contains("konten", ignoreCase = true) }
+
+		val title = docs.selectFirst("h1.komik_info-content-body-title")?.text()!!
+			.replace(" Bahasa Indonesia", "").trim()
+		val description = docs.selectFirst("div.komik_info-description-sinopsis")?.text()
 
 		return manga.copy(
-			description = docs.selectFirst("div.komik_info-description-sinopsis")?.text(),
+			title = title,
+			description = description,
 			state = mangaState,
 			authors = setOfNotNull(author),
-			contentRating = if (manga.isNsfw || nsfw) {
-				ContentRating.ADULT
-			} else {
-				ContentRating.SAFE
-			},
+			contentRating = if (isNsfwSource || nsfw || manga.contentRating == ContentRating.ADULT) ContentRating.ADULT else ContentRating.SAFE,
 			tags = tags,
 			chapters = chapters,
 		)
@@ -157,37 +227,58 @@ internal class Komikcast(context: MangaLoaderContext) :
 		}
 	}
 
+
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
-		val docs = webClient.httpGet(chapterUrl).parseHtml()
-		val test = docs.select("script:containsData(ts_reader)")
-		if (test.isNullOrEmpty()) {
-			return docs.select("div#chapter_body img").map { img ->
-				val url = img.requireSrc().toRelativeUrl(domain)
-				MangaPage(
-					id = generateUid(url),
-					url = url,
-					preview = null,
-					source = source,
-				)
+
+		repeat(3) { attempt ->
+			if (attempt > 0) {
+				delay(500)
 			}
-		} else {
-			val script = docs.selectFirstOrThrow("script:containsData(ts_reader)")
-			val images = JSONObject(script.data().substringAfter('(').substringBeforeLast(')')).getJSONArray("sources")
-				.getJSONObject(0).getJSONArray("images")
-			val pages = ArrayList<MangaPage>(images.length())
-			for (i in 0 until images.length()) {
-				pages.add(
+
+			val docs = webClient.httpGet(chapterUrl).parseHtml()
+			val pages = extractPages(docs)
+
+			if (pages.isNotEmpty()) {
+				return pages
+			}
+		}
+		return emptyList()
+	}
+
+	private fun extractPages(docs: Document): List<MangaPage> {
+		val imageSelectors = listOf(
+			"div#chapter_body img",
+			"img[src*='.jpg'], img[src*='.png'], img[src*='.jpeg'], img[src*='.webp']",
+		)
+
+		for (selector in imageSelectors) {
+			val chapterImages = docs.select(selector)
+			if (chapterImages.isNotEmpty()) {
+				val pages = chapterImages.mapNotNull { img ->
+					val src = img.attr("src").takeIf { it.isNotEmpty() }
+						?: img.attr("data-src").takeIf { it.isNotEmpty() }
+						?: img.attr("data-lazy-src").takeIf { it.isNotEmpty() }
+						?: img.attr("data-original").takeIf { it.isNotEmpty() }
+						?: return@mapNotNull null
+
+					if (src.contains("loading") || src.contains("spinner") || src.contains("placeholder") || src.contains("logo")) {
+						return@mapNotNull null
+					}
+
 					MangaPage(
-						id = generateUid(images.getString(i)),
-						url = images.getString(i),
+						id = generateUid(src),
+						url = if (src.startsWith("http")) src else src.toAbsoluteUrl(domain),
 						preview = null,
 						source = source,
-					),
-				)
+					)
+				}
+				if (pages.isNotEmpty()) {
+					return pages
+				}
 			}
-			return pages
 		}
+		return emptyList()
 	}
 
 	private fun parseChapterDate(dateFormat: DateFormat, date: String?): Long {
