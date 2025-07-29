@@ -26,7 +26,6 @@ internal class InovaScanManga(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
-			isTagsExclusionSupported = false,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
 		)
@@ -74,8 +73,6 @@ internal class InovaScanManga(context: MangaLoaderContext) :
 				)
 			)
 		}
-		println("Fetched ${genres.size} genres from InovaScanManga")
-		println("Genres: $genres")
 		genreCache = genres
 		return genres
 	}
