@@ -14,7 +14,7 @@ import java.text.SimpleDateFormat
 internal class Klz9(context: MangaLoaderContext) :
 	FmreaderParser(context, MangaParserSource.KLZ9, "klz9.com") {
 
-	override val selectDesc = "div.row:contains(Description)"
+	override val selectDesc = "div.row:contains(Description) p"
 	override val selectState = "ul.manga-info li:contains(Status) a"
 	override val selectAlt = "ul.manga-info li:contains(Other name (s))"
 	override val selectTag = "ul.manga-info li:contains(Genre(s)) a"
