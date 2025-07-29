@@ -37,6 +37,7 @@ private const val NOTHING_FOUND = "Ничего не найдено"
 private const val MIN_IMAGE_SIZE = 1024L
 private const val HEADER_ACCEPT = "Accept"
 private const val RELATED_TITLE = "Связанные произведения"
+private const val COPYRIGHT_ALERT = "Запрещена публикация произведения"
 private const val NO_CHAPTERS = "В этой манге еще нет ни одной главы"
 
 internal abstract class GroupleParser(
@@ -130,8 +131,13 @@ internal abstract class GroupleParser(
 		}
 		val newSource = getSource(response.request.url)
 		val chaptersList = root.getElementById("chapters-list")
+		var isRestricted = false
 		if (chaptersList == null && root.getElementsContainingOwnText(NO_CHAPTERS).isEmpty()) {
-			root.parseFailed("No chapters found")
+			if (root.getElementsContainingOwnText(COPYRIGHT_ALERT).isNotEmpty()) {
+				isRestricted = true
+			} else {
+				root.parseFailed("No chapters found")
+			}
 		}
 		val hashRegex = Regex("window.user_hash\\s*=\\s*\'([^\']+)\'")
 		val userHash = doc.select("script").firstNotNullOfOrNull { it.html().findGroupValue(hashRegex) }
@@ -155,6 +161,11 @@ internal abstract class GroupleParser(
 						source = source,
 					)
 				},
+			state = if (isRestricted) {
+				MangaState.RESTRICTED
+			} else {
+				manga.state
+			},
 			authors = root.select(".elem_author,.elem_illustrator,.elem_screenwriter")
 				.select("a.person-link")
 				.mapNotNullToSet { it.textOrNull() } + manga.authors,
