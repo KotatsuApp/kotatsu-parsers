@@ -66,7 +66,7 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
 		return MangaListFilterOptions(
-			availableTags = emptySet(),
+			availableTags = fetchTags(),
 			availableStates = EnumSet.of(
 				MangaState.ONGOING,
 				MangaState.FINISHED,
@@ -217,6 +217,22 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 				url = imgUrl,
 				preview = null,
 				source = source
+			)
+		}
+	}
+
+	private suspend fun fetchTags(): Set<MangaTag> {
+		val url = "https://$domain/v1/api/the-loai"
+		val items = webClient.httpGet(url)
+			.parseJson()
+			.getJSONObject("data")
+			.getJSONArray("items")
+
+		return items.mapJSONToSet { jo ->
+			MangaTag(
+				title = jo.getString("name"),
+				key = jo.getString("slug"),
+				source = source,
 			)
 		}
 	}
