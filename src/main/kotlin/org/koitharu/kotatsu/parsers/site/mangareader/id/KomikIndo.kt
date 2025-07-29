@@ -11,9 +11,9 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.EnumSet
 
-@MangaSourceParser("KOMIKINDO_ORG", "KomikIndo.org", "id", ContentType.HENTAI)
+@MangaSourceParser("KOMIKINDO_MOE", "KomikIndo.org", "id", ContentType.HENTAI)
 internal class KomikIndo(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.KOMIKINDO_ORG, "komikindo.org", pageSize = 30, searchPageSize = 30) {
+	MangaReaderParser(context, MangaParserSource.KOMIKINDO_MOE, "komikindo.org", pageSize = 30, searchPageSize = 30) {
 
 	override val listUrl = "/daftar-manga"
 	override val selectMangaList = "div.animepost"
