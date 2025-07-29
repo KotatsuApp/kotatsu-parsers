@@ -59,7 +59,7 @@ internal class EleceedTurkiye(context: MangaLoaderContext) :
 			),
 			chapters = doc.select("div.eph-num").mapChapters(reversed = true) { _, div ->
 				val href = div.selectFirstOrThrow("a").attr("href")
-				val title = div?.selectFirst("span.chapternum")?.textOrNull()
+				val title = div.selectFirst("span.chapternum")?.text() ?: "Not found"
 				MangaChapter(
 					id = generateUid(href),
 					title = title,
