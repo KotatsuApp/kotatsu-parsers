@@ -12,7 +12,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
-import java.util.*
+import java.util.EnumSet
 import java.util.concurrent.TimeUnit
 
 @MangaSourceParser("FLAMECOMICS", "FlameComics", "en")
@@ -123,6 +123,8 @@ internal class FlameComics(context: MangaLoaderContext) :
 		.addQueryParameter(
 			"url",
 			urlBuilder("cdn")
+				.addPathSegment("uploads")
+				.addPathSegment("images")
 				.addPathSegment("series")
 				.addPathSegment(seriesId.toString())
 				.addPathSegments(url)
