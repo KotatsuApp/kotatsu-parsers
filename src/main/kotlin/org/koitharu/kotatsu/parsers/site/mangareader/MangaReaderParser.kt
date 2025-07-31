@@ -4,10 +4,8 @@ import androidx.collection.ArrayMap
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
-import okhttp3.Cookie
+import okhttp3.*
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Interceptor
-import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import org.json.JSONObject
 import org.jsoup.nodes.Document
@@ -17,7 +15,8 @@ import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Base64
+import java.util.EnumSet
 
 internal abstract class MangaReaderParser(
 	context: MangaLoaderContext,
@@ -272,11 +271,20 @@ internal abstract class MangaReaderParser(
 			|| docs.selectFirst(".info-right .alr") != null
 			|| docs.selectFirst(".postbody .alr") != null
 
+		val title = docs.selectFirst("h1.entry-title")?.text()
+			?: docs.selectFirst("h1")?.text()
+			?: docs.selectFirst(".entry-title")?.text()
+			?: docs.selectFirst(".seriestucontent h1")?.text()
+			?: docs.selectFirst(".postbody h1")?.text()
+			?: docs.selectFirst("title")?.text()?.substringBefore(" - ")?.trim()
+			?: manga.title
+
 		return manga.copy(
+			title = title,
 			description = docs.selectFirst(detailsDescriptionSelector)?.text(),
 			state = mangaState,
 			authors = setOfNotNull(author),
-			contentRating = if (manga.isNsfw || nsfw) {
+			contentRating = if (manga.contentRating == ContentRating.ADULT || nsfw) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
@@ -293,6 +301,7 @@ internal abstract class MangaReaderParser(
 	protected open val encodedSrc = false
 	protected open val selectScript = "div.wrapper script"
 	protected open val selectPage = "div#readerarea img"
+
 	protected open val selectTestScript = "script:containsData(ts_reader)"
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val chapterUrl = chapter.url.toAbsoluteUrl(domain)
@@ -395,4 +404,12 @@ internal abstract class MangaReaderParser(
 			Cookie.parse(baseUri().toHttpUrl(), it)
 		}
 	}.getOrNull()
+
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val mangaSlug = link.pathSegments[1].nullIfEmpty() ?: return null
+		val url = "/manga/$mangaSlug/"
+		return resolver.resolveManga(
+			this, url, generateUid(url),
+		)
+	}
 }
