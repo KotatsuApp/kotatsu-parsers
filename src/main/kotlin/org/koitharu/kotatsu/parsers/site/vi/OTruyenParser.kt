@@ -32,9 +32,7 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 import java.util.TimeZone
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
 @MangaSourceParser("OTRUYEN", "Ổ Truyện", "vi")
 internal class OTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.OTRUYEN, 24) {
@@ -132,16 +130,10 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 				url = jo.getString("slug"),
 				publicUrl = "https://otruyen.cc/truyen-tranh/${jo.getString("slug")}",
 				title = jo.getString("name"),
-				altTitles = jo.getJSONArray("origin_name").mapJSONToSet { it.toString() },
+				altTitles = emptySet(),
 				coverUrl = "https://img.otruyenapi.com/uploads/comics/${jo.getString("thumb_url")}",
-				authors = jo.getJSONArray("author").mapJSONToSet { it.toString() },
-				tags = jo.getJSONArray("category").mapJSONToSet { category ->
-					MangaTag(
-						title = category.getString("name"),
-						key = category.getString("slug"),
-						source = source,
-					)
-				},
+				authors = emptySet(),
+				tags = emptySet(),
 				state = when (jo.getString("status")) {
 					"ongoing" -> MangaState.ONGOING
 					"coming_soon" -> MangaState.UPCOMING
