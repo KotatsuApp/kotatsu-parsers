@@ -176,8 +176,12 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 			}
 
 		return manga.copy(
-			altTitles = item.getJSONArray("origin_name").mapJSONToSet { it.toString() },
-			authors = item.getJSONArray("author").mapJSONToSet { it.toString() },
+			altTitles = item.getJSONArray("origin_name").let { jsonArray ->
+				(0 until jsonArray.length()).mapTo(mutableSetOf()) { jsonArray.getString(it) }
+			},
+			authors = item.getJSONArray("author").let { jsonArray ->
+				(0 until jsonArray.length()).mapTo(mutableSetOf()) { jsonArray.getString(it) }
+			},
 			tags = item.optJSONArray("category").mapJSONToSet { jo ->
 				MangaTag(
 					title = jo.optString("name"),
