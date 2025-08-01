@@ -8,7 +8,8 @@ import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
+import java.util.Locale
 
 @MangaSourceParser("ELECEEDTURKIYE", "Eleceed Türkiye", "tr")
 internal class EleceedTurkiye(context: MangaLoaderContext) :
@@ -32,7 +33,7 @@ internal class EleceedTurkiye(context: MangaLoaderContext) :
 		return listOf(
 			Manga(
 				id = generateUid(mangaId),
-				url = "https://$domain/",
+				url = "$domain/",
 				publicUrl = "https://$domain/",
 				coverUrl = coverUrl,
 				title = "Eleceed",
@@ -42,36 +43,46 @@ internal class EleceedTurkiye(context: MangaLoaderContext) :
 				authors = setOf("Son Jae Ho", "ZHENA"),
 				state = MangaState.ONGOING,
 				source = source,
-				contentRating = ContentRating.ADULT,
+				contentRating = ContentRating.SAFE,
 			),
 		)
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val doc = webClient.httpGet(manga.url).parseHtml()
+		val doc = webClient.httpGet("https://${manga.url}").parseHtml()
+		val description = doc.selectFirst("div.entry-content.entry-content-single")?.html()
+		val tags = doc.select("span.mgen a").mapToSet { a ->
+			MangaTag(
+				key = a.attr("href").substringAfterLast("/").removeSuffix("/"),
+				title = a.text(),
+				source = source,
+			)
+		}
+		val chapters = doc.select("div.eplister ul li").mapChapters(reversed = true) { _, li ->
+			val chapterDiv = li.selectFirstOrThrow("div.eph-num")
+			val link = chapterDiv.selectFirstOrThrow("a")
+			val href = link.attr("href")
+
+			val chapterTitle = link.selectFirst("span.chapternum")?.text() ?: ""
+			val chapterNumber = chapterTitle.substringAfter("Bölüm ").toFloatOrNull() ?: 0f
+
+			MangaChapter(
+				id = generateUid(href),
+				title = chapterTitle,
+				number = chapterNumber,
+				url = href,
+				uploadDate = dateFormat.parseSafe(li.selectFirst("span.chapterdate")?.text()),
+				scanlator = null,
+				branch = null,
+				source = source,
+				volume = 0,
+			)
+		}
+
 		return manga.copy(
-			description = doc.selectFirst("div.entry-content")?.html(),
-			tags = setOf(
-				MangaTag("Aksiyon", "", source),
-				MangaTag("Drama", "", source),
-				MangaTag("Komedi", "", source),
-				MangaTag("Süper Güçler", "", source),
-			),
-			chapters = doc.select("div.eph-num").mapChapters(reversed = true) { _, div ->
-				val href = div.selectFirstOrThrow("a").attr("href")
-				val title = div.selectFirst("span.chapternum")?.text() ?: "Not found"
-				MangaChapter(
-					id = generateUid(href),
-					title = title,
-					number = title?.let { Regex("\\d+").find(it)?.value?.toFloatOrNull() } ?: 0f,
-					url = href,
-					uploadDate = dateFormat.parseSafe(div.selectFirst("span.chapterdate")?.text()),
-					scanlator = null,
-					branch = null,
-					source = source,
-					volume = 0,
-				)
-			},
+			description = description,
+			tags = tags,
+			chapters = chapters,
 		)
 	}
 
