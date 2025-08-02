@@ -223,7 +223,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 
 					// Author (using artist ID for search)
 					if (!filter.author.isNullOrEmpty()) {
-						val authorId = getAuthorId(filter.author!!)
+						val authorId = getAuthorId(filter.author)
 						if (authorId != null) {
 							queries.add("artists[]=$authorId")
 						}
