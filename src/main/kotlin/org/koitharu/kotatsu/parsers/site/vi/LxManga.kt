@@ -34,7 +34,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = availableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -43,7 +43,6 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 			append(domain)
 
 			when {
-
 				!filter.query.isNullOrEmpty() -> {
 					append("/tim-kiem")
 					append("?filter[name]=")
@@ -111,9 +110,10 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 				filter.states.forEach {
 					append(
 						when (it) {
-							MangaState.ONGOING -> "2,"
-							MangaState.FINISHED -> "1,"
-							else -> "1,2"
+							MangaState.ONGOING -> "ongoing,"
+							MangaState.FINISHED -> "completed,"
+							MangaState.PAUSED -> "paused,"
+							else -> "ongoing,completed,paused"
 						},
 					)
 				}
@@ -177,7 +177,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					val href = a.attrAsRelativeUrl("href")
 					val name = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
 					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime").orEmpty()
-					val scanlator = root.selectFirst("div.mt-2:contains(Nhóm dịch) span a")?.textOrNull()
+					val scanlator = root.selectFirst("div.mt-2:contains(Thực hiện) span")?.textOrNull()
 
 					MangaChapter(
 						id = generateUid(href),
