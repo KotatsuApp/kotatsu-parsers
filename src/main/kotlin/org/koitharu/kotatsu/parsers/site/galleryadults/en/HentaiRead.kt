@@ -18,6 +18,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
 import org.koitharu.kotatsu.parsers.model.YEAR_UNKNOWN
 import org.koitharu.kotatsu.parsers.site.galleryadults.GalleryAdultsParser
@@ -57,6 +58,18 @@ internal class HentaiRead(context: MangaLoaderContext) :
 			isTagsExclusionSupported = true,
 			isSearchWithFiltersSupported = true,
 		)
+
+	override suspend fun getFilterOptions(): MangaListFilterOptions {
+		return MangaListFilterOptions(
+			availableTags = getOrCreateTagMap().values.toSet(),
+			availableContentTypes = setOf(
+				ContentType.DOUJINSHI,
+				ContentType.HENTAI,
+				ContentType.COMICS,
+				ContentType.ARTIST_CG,
+			),
+		)
+	}
 
 	private var tagCache: Map<String, MangaTag>? = null
 	private val tagMutex = Mutex()
@@ -113,18 +126,6 @@ internal class HentaiRead(context: MangaLoaderContext) :
 		tagMap
 	}
 
-	override suspend fun getFilterOptions(): MangaListFilterOptions {
-		return MangaListFilterOptions(
-			availableTags = getOrCreateTagMap().values.toSet(),
-			availableContentTypes = setOf(
-				ContentType.DOUJINSHI,
-				ContentType.HENTAI,
-				ContentType.COMICS,
-				ContentType.ARTIST_CG
-			),
-		)
-	}
-
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.UPDATED_ASC,
@@ -146,9 +147,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 	override val selectUrlChapter = ""
 	override val selectTotalPage = "[data-page]"
 
-	val selectGalleryDetails = ".manga-item__detail div"
-	val selectGalleryTags = ".manga-item__tags span"
-	val selectGalleryRating = ".manga-item__rating span"
+	val selectDetailsRating = ".rating__current"
 
 	val selectAltTitle = ".manga-titles h2"
 	val selectParody = "div.text-primary:contains(Parody:)"
@@ -315,16 +314,13 @@ internal class HentaiRead(context: MangaLoaderContext) :
 	override fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select(selectGallery).map { div ->
 			val href = div.selectFirstOrThrow(selectGalleryLink).attrAsRelativeUrl("href")
-			val ratingText = div.selectFirst(selectGalleryRating)?.text() ?: "0"
-			val rating = ratingText.toFloatOrNull() ?: 0f
-
 			Manga(
 				id = generateUid(href),
 				title = div.select(selectGalleryTitle).text().cleanupTitle(),
 				altTitles = emptySet(),
 				url = href,
 				publicUrl = href.toAbsoluteUrl(domain),
-				rating = rating,
+				rating = RATING_UNKNOWN,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 				coverUrl = div.selectFirst(selectGalleryImg)?.src(),
 				tags = emptySet(),
@@ -366,6 +362,7 @@ internal class HentaiRead(context: MangaLoaderContext) :
 			contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			largeCoverUrl = doc.selectFirst("#mangaSummary a.image--hover img")!!.src(),
 			tags = tags,
+			rating = doc.selectFirstOrThrow(selectDetailsRating).text().toFloatOrNull()?.div(5f) ?: 0f,
 			authors = authors,
 			description = description,
 			chapters = listOf(
