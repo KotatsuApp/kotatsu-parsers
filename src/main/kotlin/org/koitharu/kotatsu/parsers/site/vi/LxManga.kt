@@ -177,7 +177,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 					val href = a.attrAsRelativeUrl("href")
 					val name = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
 					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime").orEmpty()
-					val scanlator = root.selectFirst("div.mt-2:contains(Thực hiện) span")?.textOrNull()
+					val scanlator = root.selectFirst("div.mt-2:has(span:first-child:contains(Thực hiện:)) span:last-child")?.textOrNull()
 
 					MangaChapter(
 						id = generateUid(href),
