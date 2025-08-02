@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.arraySetOf
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -9,6 +8,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
+import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
 import java.util.*
 
 @MangaSourceParser("GOCTRUYENTRANH", "Góc Truyện Tranh", "vi")
@@ -64,7 +64,7 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 				append("&categories=")
 				append(
 					filter.tags.joinToString(",") { tag ->
-						availableTags().find { it.title == tag.title }?.key ?: tag.key
+						tag.key
 					},
 				)
 			}
@@ -231,76 +231,16 @@ internal class GocTruyenTranh(context: MangaLoaderContext) :
 		}
 	}
 
-	private fun availableTags() = arraySetOf(
-		MangaTag("Action", "1", source),
-		MangaTag("Adventure", "2", source),
-		MangaTag("Fantasy", "3", source),
-		MangaTag("Manhua", "4", source),
-		MangaTag("Chuyển Sinh", "5", source),
-		MangaTag("Truyện Màu", "6", source),
-		MangaTag("Xuyên Không", "7", source),
-		MangaTag("Manhwa", "8", source),
-		MangaTag("Drama", "9", source),
-		MangaTag("Historical", "10", source),
-		MangaTag("Manga", "11", source),
-		MangaTag("Seinen", "12", source),
-		MangaTag("Comedy", "13", source),
-		MangaTag("Martial Arts", "14", source),
-		MangaTag("Mystery", "15", source),
-		MangaTag("Romance", "16", source),
-		MangaTag("Shounen", "17", source),
-		MangaTag("Sports", "18", source),
-		MangaTag("Supernatural", "19", source),
-		MangaTag("Harem", "20", source),
-		MangaTag("Webtoon", "21", source),
-		MangaTag("School Life", "22", source),
-		MangaTag("Psychological", "23", source),
-		MangaTag("Cổ Đại", "24", source),
-		MangaTag("Ecchi", "25", source),
-		MangaTag("Gender Bender", "26", source),
-		MangaTag("Shoujo", "27", source),
-		MangaTag("Slice of Life", "28", source),
-		MangaTag("Ngôn Tình", "29", source),
-		MangaTag("Horror", "30", source),
-		MangaTag("Sci-fi", "31", source),
-		MangaTag("Tragedy", "32", source),
-		MangaTag("Mecha", "33", source),
-		MangaTag("Comic", "34", source),
-		MangaTag("One shot", "35", source),
-		MangaTag("Shoujo Ai", "36", source),
-		MangaTag("Anime", "37", source),
-		MangaTag("Josei", "38", source),
-		MangaTag("Smut", "39", source),
-		MangaTag("Shounen Ai", "40", source),
-		MangaTag("Mature", "41", source),
-		MangaTag("Soft Yuri", "42", source),
-		MangaTag("Adult", "43", source),
-		MangaTag("Doujinshi", "44", source),
-		MangaTag("Live action", "45", source),
-		MangaTag("Trinh Thám", "46", source),
-		MangaTag("Việt Nam", "47", source),
-		MangaTag("Truyện scan", "48", source),
-		MangaTag("Cooking", "49", source),
-		MangaTag("Tạp chí truyện tranh", "50", source),
-		MangaTag("16+", "51", source),
-		MangaTag("Thiếu Nhi", "52", source),
-		MangaTag("Soft Yaoi", "53", source),
-		MangaTag("Đam Mỹ", "54", source),
-		MangaTag("BoyLove", "55", source),
-		MangaTag("Yaoi", "56", source),
-		MangaTag("18+", "57", source),
-		MangaTag("Người Thú", "58", source),
-		MangaTag("ABO", "59", source),
-		MangaTag("Mafia", "60", source),
-		MangaTag("Isekai", "61", source),
-		MangaTag("Hệ Thống", "62", source),
-		MangaTag("NTR", "63", source),
-		MangaTag("Yuri", "64", source),
-		MangaTag("Girl Love", "65", source),
-		MangaTag("Demons", "66", source),
-		MangaTag("Huyền Huyễn", "67", source),
-		MangaTag("Detective", "68", source),
-		MangaTag("Trọng Sinh", "69", source),
-		MangaTag("Magic", "70", source),
-	)
+	private suspend fun availableTags(): Set<MangaTag> {
+		val url = "https://$domain/baseapi/categories/getCategories"
+		val response = webClient.httpGet(url).parseJson()
+		val arr = response.getJSONArray("categories")
+		return arr.mapJSONToSet { jo ->
+			MangaTag(
+				title = jo.getString("name"),
+				key = jo.getLong("id").toString(),
+				source = source,
+			)
+		}
+	}
 }
