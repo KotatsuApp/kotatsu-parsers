@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.json.JSONObject
 import org.jsoup.nodes.Document
+import org.jsoup.parser.Parser
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -87,7 +88,7 @@ internal class LangGeekParser(context: MangaLoaderContext):
 				id = generateUid(href),
 				url = href,
 				publicUrl = href,
-				title = item.getString("value"),
+				title = Parser.unescapeEntities(item.getString("value"), false),
 				altTitles = emptySet(),
 				authors = emptySet(),
 				tags = emptySet(),
