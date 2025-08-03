@@ -146,12 +146,12 @@ internal class LangGeekParser(context: MangaLoaderContext):
 			)
 		}
 
-		val chapters = root.select("div.list_issues > div.row-issue").map { row ->
-			val a = row.selectFirst("a")
+		val chapters = root.select("div.list_issues > div.row-issue:not(.row-header)").map { row ->
+		val a = row.selectFirst("div.col:first-child a")
 				?: throw ParseException("Cant fetch chapter list", manga.url)
 			val href = a.attrAsRelativeUrl("href")
 			val name = a.text()
-			val num = name.substringAfter("#").toFloat()
+			val num = name.substringAfter("#").toFloatOrNull() ?: 0f
 			val dateText = row.selectFirst("div.col:last-child")?.text().orEmpty()
 
 			MangaChapter(
