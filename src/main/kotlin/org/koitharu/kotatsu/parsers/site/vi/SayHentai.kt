@@ -125,7 +125,7 @@ internal class SayHentai(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.selectOrThrow("div.page-break img").mapIndexed { i, img ->
+		return doc.selectOrThrow("div.page-break img").mapIndexed { _, img ->
 			val url = img.src().orEmpty()
 			MangaPage(
 				id = generateUid(url),

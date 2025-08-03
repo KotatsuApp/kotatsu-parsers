@@ -55,7 +55,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 
 			else -> {
 				buildString {
-					append(apiSuffix + "/posts")
+					append("$apiSuffix/posts")
 					append("?language=vi")
 					
 					append("&order=")
@@ -140,7 +140,7 @@ internal class TruyenHentai18(context: MangaLoaderContext):
 		if (responseStart == -1) throw Exception("Không tìm thấy object 'response' trong script")
 
 		val jsonStr = extractJsonString(cleanedScript, responseStart)
-		val responseObj = org.json.JSONObject(jsonStr)
+		val responseObj = JSONObject(jsonStr)
 		val dataArray = responseObj.getJSONObject("response").optJSONArray("data")
 			?: throw Exception("Không tìm thấy trường 'data' trong object 'response'")
 

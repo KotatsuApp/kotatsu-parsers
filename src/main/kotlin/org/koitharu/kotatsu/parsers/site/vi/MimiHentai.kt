@@ -74,7 +74,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
     	val url = buildString {
             append("https://")
-            append(domain + "/" + apiSuffix)
+            append("$domain/$apiSuffix")
                 
             if (!filter.query.isNullOrEmpty() || !filter.author.isNullOrEmpty() || filter.tags.isNotEmpty()) {
                 append("/advance-search?page=")

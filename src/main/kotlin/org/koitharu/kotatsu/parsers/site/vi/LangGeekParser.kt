@@ -9,6 +9,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
@@ -33,7 +34,7 @@ import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
 
-@MangaSourceParser("LANGGEEK", "Làng Geek", "vi")
+@MangaSourceParser("LANGGEEK", "Làng Geek", "vi", ContentType.COMICS)
 internal class LangGeekParser(context: MangaLoaderContext):
 	PagedMangaParser(context, MangaParserSource.LANGGEEK, 20, 100) {
 
@@ -163,6 +164,8 @@ internal class LangGeekParser(context: MangaLoaderContext):
 			)
 		}
 
+		val rows = root.select("div.list_issues > div.row-issue:not(.row-header)")
+		val total = rows.size
 		val chapters = root.select("div.list_issues > div.row-issue:not(.row-header)")
 			.mapIndexed { i, row ->
 				val a = row.selectFirst("div.col:first-child a")
@@ -173,7 +176,7 @@ internal class LangGeekParser(context: MangaLoaderContext):
 				MangaChapter(
 					id = generateUid(href),
 					title = a.text(),
-					number = (i + 1).toFloat(),
+					number = (total - i).toFloat(),
 					volume = 0,
 					url = href,
 					scanlator = scanlator,

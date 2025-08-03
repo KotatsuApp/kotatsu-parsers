@@ -230,10 +230,10 @@ internal class CMangaParser(context: MangaLoaderContext) :
 	private fun JSONObject.isLocked() = opt("lock") != null
 
 	private fun containsAdsUrl(url: String): Boolean {
-            val ADS_URL = "https://img.cmangapi.com/data-image/index.php"
+            val adsUrl = "https://img.cmangapi.com/data-image/index.php"
             val cleanUrl = url.replace("\\", "")
             return when {
-                  cleanUrl.startsWith(ADS_URL) -> true
+                  cleanUrl.startsWith(adsUrl) -> true
                   cleanUrl.contains("?v=12&data=") -> true
                   else -> false
             }
