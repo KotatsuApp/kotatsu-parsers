@@ -8,14 +8,30 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
-import java.text.SimpleDateFormat
-import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.exception.ParseException
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.parseSafe
+import org.koitharu.kotatsu.parsers.util.requireSrc
+import org.koitharu.kotatsu.parsers.util.textOrNull
+import org.koitharu.kotatsu.parsers.util.urlEncoded
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import java.text.SimpleDateFormat
+import java.util.EnumSet
+import java.util.Locale
 
-@Broken("Debugging...")
 @MangaSourceParser("LANGGEEK", "Làng Geek", "vi")
 internal class LangGeekParser(context: MangaLoaderContext):
 	PagedMangaParser(context, MangaParserSource.LANGGEEK, 20, 100) {
@@ -69,7 +85,7 @@ internal class LangGeekParser(context: MangaLoaderContext):
 				val url = buildString {
 					append("https://")
 					append(domain)
-					// SortOrder.POPULARITY, only 1 page
+					// SortOrder.POPULARITY, only has 1 page
 					append("/top-truyen/")
 				}
 
@@ -146,26 +162,25 @@ internal class LangGeekParser(context: MangaLoaderContext):
 			)
 		}
 
-		val chapters = root.select("div.list_issues > div.row-issue:not(.row-header)").map { row ->
-		val a = row.selectFirst("div.col:first-child a")
-				?: throw ParseException("Cant fetch chapter list", manga.url)
-			val href = a.attrAsRelativeUrl("href")
-			val name = a.text()
-			val num = name.substringAfter("#").toFloatOrNull() ?: 0f
-			val dateText = row.selectFirst("div.col:last-child")?.text().orEmpty()
+		val chapters = root.select("div.list_issues > div.row-issue:not(.row-header)")
+			.mapIndexed { i, row ->
+				val a = row.selectFirst("div.col:first-child a")
+					?: throw ParseException("Cant fetch chapter list", manga.url)
+				val href = a.attrAsRelativeUrl("href")
+				val dateText = row.selectFirst("div.col:last-child")?.text().orEmpty()
 
-			MangaChapter(
-				id = generateUid(href),
-				title = name,
-				number = num,
-				volume = 0,
-				url = href,
-				scanlator = scanlator,
-				uploadDate = chapterDateFormat.parseSafe(dateText),
-				branch = null,
-				source = source,
-			)
-		}.reversed()
+				MangaChapter(
+					id = generateUid(href),
+					title = a.text(),
+					number = (i + 1).toFloat(),
+					volume = 0,
+					url = href,
+					scanlator = scanlator,
+					uploadDate = chapterDateFormat.parseSafe(dateText),
+					branch = null,
+					source = source,
+				)
+			}.reversed()
 
 		return manga.copy(
 			tags = tags,
@@ -176,23 +191,15 @@ internal class LangGeekParser(context: MangaLoaderContext):
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.text-center div.lazy")
-			.mapNotNull { div ->
-				val url = div.attr("data-src")
-				if (url.endsWith(".jpg", ignoreCase = true) ||
-					url.endsWith(".png", ignoreCase = true)
-				) {
-					MangaPage(
-						id = generateUid(url),
-						url = url,
-						preview = null,
-						source = source,
-					)
-				} else {
-					null
-				}
-			}
+		val doc = webClient.httpGet(chapter.url.toHttpUrl()).parseHtml()
+		return doc.select("div.list-images img.lazy").mapNotNull { img ->
+			val url = img.attr("src")
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		}
 	}
 }
