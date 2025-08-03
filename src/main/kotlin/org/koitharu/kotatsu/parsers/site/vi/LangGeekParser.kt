@@ -13,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
 import java.util.*
 import org.koitharu.kotatsu.parsers.Broken
+import org.koitharu.kotatsu.parsers.exception.ParseException
 
 @Broken("Debugging...")
 @MangaSourceParser("LANGGEEK", "Làng Geek", "vi")
@@ -127,50 +128,50 @@ internal class LangGeekParser(context: MangaLoaderContext):
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-		val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
-			timeZone = TimeZone.getTimeZone("GMT+7")
+		val root = webClient.httpGet(manga.url).parseHtml()
+		val chapterDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ROOT)
+
+		val author = root.selectFirst("li:has(span:contains(Tác giả)) a")?.textOrNull()
+		val scanlator = root.selectFirst("li:has(span:contains(Nhóm dịch)) a")?.textOrNull()
+
+		val description = root.selectFirst("li:has(strong:contains(Giới thiệu)) p")?.textOrNull()
+
+		val tags = root.select("li:has(span:contains(Thể Loại)) a").mapToSet { a ->
+			val href = a.attr("href")
+			val key = href.substringAfter("/the-loai/").removeSuffix("/")
+			MangaTag(
+				key = key,
+				title = a.text(),
+				source = source,
+			)
 		}
-		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
-		val altTitles = root.selectFirst("div.grow div:contains(Tên khác)")
-			?.select("span a")?.mapToSet { it.text() }
-			?: emptySet()
+
+		val chapters = root.select("div.list_issues > div.row-issue").map { row ->
+			val a = row.selectFirst("a")
+				?: throw ParseException("Cant fetch chapter list", manga.url)
+			val href = a.attrAsRelativeUrl("href")
+			val name = a.text()
+			val num = name.substringAfter("#").toFloat()
+			val dateText = row.selectFirst("div.col:last-child")?.text().orEmpty()
+
+			MangaChapter(
+				id = generateUid(href),
+				title = name,
+				number = num,
+				volume = 0,
+				url = href,
+				scanlator = scanlator,
+				uploadDate = chapterDateFormat.parseSafe(dateText),
+				branch = null,
+				source = source,
+			)
+		}.reversed()
 
 		return manga.copy(
-			altTitles = altTitles,
-			state = when (root.selectFirst("div.mt-2:contains(Tình trạng) span.text-blue-500")?.text()) {
-				"Đang tiến hành" -> MangaState.ONGOING
-				"Đã hoàn thành" -> MangaState.FINISHED
-				else -> null
-			},
-			tags = root.selectFirst("div.mt-2:contains(Thể loại)")?.select("a.bg-gray-500")?.mapToSet { a ->
-				MangaTag(
-					key = a.attr("href").removeSuffix('/').substringAfterLast('/'),
-					title = a.text(),
-					source = source,
-				)
-			} ?: emptySet(),
+			tags = tags,
 			authors = setOfNotNull(author),
-			description = root.selectFirst("meta[name=description]")?.attrOrNull("content"),
-			chapters = root.select("div.justify-between ul.overflow-y-auto.overflow-x-hidden a")
-				.mapChapters(reversed = true) { i, a ->
-					val href = a.attrAsRelativeUrl("href")
-					val name = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
-					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime").orEmpty()
-					val scanlator = root.selectFirst("div.mt-2:has(span:first-child:contains(Thực hiện:)) span:last-child")?.textOrNull()
-
-					MangaChapter(
-						id = generateUid(href),
-						title = name,
-						number = (i + 1).toFloat(),
-						volume = 0,
-						url = href,
-						scanlator = scanlator,
-						uploadDate = chapterDateFormat.parseSafe(dateText),
-						branch = null,
-						source = source,
-					)
-				},
+			description = description,
+			chapters = chapters,
 		)
 	}
 
