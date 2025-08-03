@@ -100,7 +100,7 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 		return parseMangaList(doc)
 	}
 
-	private suspend fun parseMangaList(doc: Document): List<Manga> {
+	private fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical")
 			.map { element ->
 				val mainA = element.selectFirstOrThrow("div.relative a")

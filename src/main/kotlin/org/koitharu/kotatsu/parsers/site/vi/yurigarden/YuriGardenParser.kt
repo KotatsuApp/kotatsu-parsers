@@ -174,7 +174,7 @@ internal abstract class YuriGardenParser(
 		manga.copy(
 			altTitles = altTitles,
 			authors = authors,
-			chapters = chaptersDeferred.await().mapChapters() { _, jo ->
+			chapters = chaptersDeferred.await().mapChapters { _, jo ->
 				val chapId = jo.getLong("id")
 				MangaChapter(
 					id = generateUid(chapId),

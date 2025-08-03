@@ -144,7 +144,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 			).closeQuietly()
 		}
 
-		return doc.select(".content_view_chap img").mapIndexed { i, img ->
+		return doc.select(".content_view_chap img").mapIndexed { _, img ->
 			val url = img.absUrl("data-original")
 			MangaPage(
 				id = generateUid(url),
