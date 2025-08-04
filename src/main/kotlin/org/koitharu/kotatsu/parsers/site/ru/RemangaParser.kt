@@ -1,11 +1,11 @@
 package org.koitharu.kotatsu.parsers.site.ru
 
 import okhttp3.Headers
+import okhttp3.HttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import okhttp3.internal.closeQuietly
 import org.json.JSONArray
-import org.json.JSONException
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
@@ -21,9 +21,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-private const val PAGE_SIZE = 30
-private const val STATUS_ONGOING = 1
-private const val STATUS_FINISHED = 0
+private const val PAGE_SIZE = 20
 private const val TOO_MANY_REQUESTS = 429
 
 @MangaSourceParser("REMANGA", "Реманга", "ru")
@@ -38,7 +36,7 @@ internal class RemangaParser(
 
 	override fun getRequestHeaders() = getApiHeaders()
 
-	override val configKeyDomain = ConfigKey.Domain("remanga.me", "remanga.org", "реманга.орг")
+	override val configKeyDomain = ConfigKey.Domain("remanga.org", "реманга.орг", "remanga.me")
 
 	override val authUrl: String
 		get() = "https://${domain}"
@@ -62,10 +60,14 @@ internal class RemangaParser(
 		get() = MangaListFilterCapabilities(
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
+			isYearRangeSupported = true,
+			isTagsExclusionSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.allOf(MangaState::class.java),
+		availableContentRating = EnumSet.of(ContentRating.SAFE, ContentRating.SUGGESTIVE),
 	)
 
 	override fun intercept(chain: Interceptor.Chain): Response {
@@ -81,114 +83,93 @@ internal class RemangaParser(
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		copyCookies()
 		val domain = domain
-		val urlBuilder = StringBuilder()
-			.append("https://api.")
-			.append(domain)
+		val urlBuilder = urlBuilder(subdomain = "api")
+			.addPathSegment("api")
+			.addPathSegment("v2")
+			.addPathSegment("search")
+			.addQueryParameter("page", page.toString())
+			.addQueryParameter("count", PAGE_SIZE.toString())
+			.addQueryParameter("ordering", getSortKey(order))
 		if (!filter.query.isNullOrEmpty()) {
-			urlBuilder.append("/api/search/?query=")
-				.append(filter.query.urlEncoded())
+			urlBuilder.addQueryParameter("query", filter.query)
 		} else {
-			urlBuilder.append("/api/search/catalog/?ordering=")
-				.append(getSortKey(order))
-			filter.tags.forEach { tag ->
-				urlBuilder.append("&genres=")
-				urlBuilder.append(tag.key)
+			urlBuilder.addPathSegment("catalog")
+		}
+		for (tag in filter.tags) {
+			urlBuilder.addQueryParameter("genres", tag.key)
+		}
+		for (tag in filter.tagsExclude) {
+			urlBuilder.addQueryParameter("exclude_genres", tag.key)
+		}
+		if (filter.yearFrom != YEAR_UNKNOWN) {
+			urlBuilder.addQueryParameter("issue_year_gte", filter.yearFrom.toString())
+		}
+		if (filter.yearTo != YEAR_UNKNOWN) {
+			urlBuilder.addQueryParameter("issue_year_lte", filter.yearFrom.toString())
+		}
+		for (age in filter.contentRating) {
+			when (age) {
+				ContentRating.SAFE -> urlBuilder.addQueryParameter("age_limit", "0")
+				ContentRating.SUGGESTIVE -> {
+					urlBuilder.addQueryParameter("age_limit", "1")
+					urlBuilder.addQueryParameter("age_limit", "2")
+				}
+
+				else -> Unit
 			}
 		}
-		urlBuilder
-			.append("&page=")
-			.append(page)
-			.append("&count=")
-			.append(PAGE_SIZE)
-		val content = webClient.httpGet(urlBuilder.toString()).parseJson()
-			.getJSONArray("content")
-		return content.mapJSON { jo ->
-			val url = "/manga/${jo.getString("dir")}"
-			val img = jo.getJSONObject("img")
-			Manga(
-				id = generateUid(url),
-				url = url,
-				publicUrl = "https://$domain$url",
-				title = jo.getString("rus_name"),
-				altTitles = setOfNotNull(jo.getStringOrNull("en_name")),
-				rating = jo.getString("avg_rating").toFloatOrNull()?.div(10f) ?: RATING_UNKNOWN,
-				coverUrl = img.getStringOrNull("mid")?.toAbsoluteUrl("api.$domain"),
-				largeCoverUrl = img.getStringOrNull("high")?.toAbsoluteUrl("api.$domain"),
-				authors = emptySet(),
-				contentRating = null,
-				state = null,
-				tags = jo.optJSONArray("genres")?.mapJSONToSet { g ->
-					MangaTag(
-						title = g.getString("name").toTitleCase(),
-						key = g.getInt("id").toString(),
-						source = MangaParserSource.REMANGA,
-					)
-				}.orEmpty(),
-				source = MangaParserSource.REMANGA,
+		for (state in filter.states) {
+			urlBuilder.addQueryParameter(
+				"status",
+				when (state) {
+					MangaState.ONGOING -> "2"
+					MangaState.FINISHED -> "1"
+					MangaState.ABANDONED -> "4"
+					MangaState.PAUSED -> "3"
+					MangaState.UPCOMING -> "5"
+					MangaState.RESTRICTED -> "6"
+				},
 			)
+		}
+		val content = webClient.httpGet(urlBuilder.build()).parseJson()
+			.getJSONArray("results")
+		return content.mapJSON { jo ->
+			parseManga(jo)
 		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		copyCookies()
-		val domain = domain
-		val slug = manga.url.find(regexLastUrlPath)
+		val slug = manga.url.find(regexLastUrlPath)?.removePrefix("/")
 			?: throw ParseException("Cannot obtain slug from ${manga.url}", manga.publicUrl)
-		val data = webClient.httpGet(
-			url = "https://api.$domain/api/titles$slug/",
+		return getDetails(slug, manga.publicUrl)
+	}
+
+	override suspend fun resolveLink(resolver: LinkResolver, link: HttpUrl): Manga? {
+		val slug = link.pathSegments.getOrNull(1) ?: return super.resolveLink(resolver, link)
+		return getDetails(slug, link.toString())
+	}
+
+	override suspend fun getRelatedManga(seed: Manga): List<Manga> {
+		copyCookies()
+		val slug = seed.url.find(regexLastUrlPath)?.removePrefix("/")
+			?: throw ParseException("Cannot obtain slug from ${seed.url}", seed.publicUrl)
+		val json = webClient.httpGet(
+			// https://api.remanga.org/api/v2/titles/the_beginning_after_the_end/relations/
+			urlBuilder(subdomain = "api")
+				.addPathSegment("api")
+				.addPathSegment("v2")
+				.addPathSegment("titles")
+				.addPathSegment(slug)
+				.addPathSegment("relations")
+				.build(),
 		).parseJson()
-		val content = try {
-			data.getJSONObject("content")
-		} catch (e: JSONException) {
-			throw ParseException(data.getStringOrNull("msg"), manga.publicUrl, e)
-		}
-		val branchId = content.getJSONArray("branches").optJSONObject(0)
-			?.getLong("id") ?: throw ParseException("No branches found", manga.publicUrl)
-		val chapters = grabChapters(domain, branchId)
-		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
-		return manga.copy(
-			description = content.getString("description"),
-			state = when (content.optJSONObject("status")?.getInt("id")) {
-				STATUS_ONGOING -> MangaState.ONGOING
-				STATUS_FINISHED -> MangaState.FINISHED
-				else -> null
-			},
-			tags = content.getJSONArray("genres").mapJSONToSet { g ->
-				MangaTag(
-					title = g.getString("name").toTitleCase(),
-					key = g.getInt("id").toString(),
-					source = MangaParserSource.REMANGA,
-				)
-			},
-			chapters = chapters.mapChapters { i, jo ->
-				if (
-					jo.getBooleanOrDefault("is_paid", false) &&
-					!jo.getBooleanOrDefault("is_bought", false)
-				) {
-					return@mapChapters null
-				}
-				val id = jo.getLong("id")
-				val name = jo.getString("name").toTitleCase(Locale.ROOT)
-				val publishers = jo.optJSONArray("publishers")
-				MangaChapter(
-					id = generateUid(id),
-					url = "/api/titles/chapters/$id/",
-					number = jo.getIntOrDefault("index", chapters.size - i).toFloat(),
-					volume = 0,
-					title = name.nullIfEmpty(),
-					uploadDate = dateFormat.parseSafe(jo.getString("upload_date")),
-					scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
-					source = MangaParserSource.REMANGA,
-					branch = null,
-				)
-			}.asReversed(),
-		)
+			.optJSONArray("titles") ?: return emptyList()
+		return json.mapJSON { jo -> parseManga(jo) }
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val content = webClient.httpGet(chapter.url.toAbsoluteUrl(getDomain("api")))
 			.parseJson()
-			.getJSONObject("content")
 		val pages = content.optJSONArray("pages")
 		if (pages == null) {
 			val pubDate = content.getStringOrNull("pub_date")?.let {
@@ -213,7 +194,6 @@ internal class RemangaParser(
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val domain = domain
 		val content = webClient.httpGet("https://api.$domain/api/forms/titles/?get=genres")
 			.parseJson().getJSONObject("content").getJSONArray("genres")
 		return content.mapJSONToSet { jo ->
@@ -235,6 +215,115 @@ internal class RemangaParser(
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
+	}
+
+	private suspend fun getDetails(slug: String, publicUrl: String): Manga {
+		copyCookies()
+		val jo = webClient.httpGet(
+			url = "https://api.$domain/api/v2/titles/$slug/",
+		).parseJson()
+		jo.optJSONObject("detail")?.getStringOrNull("message")?.let { msg ->
+			throw ParseException(msg, publicUrl)
+		}
+		val url = "/manga/${jo.getString("dir")}"
+		val cover = jo.getJSONObject("cover")
+		val branches = jo.getJSONArray("branches").mapJSONToSet {
+			it.getLong("id") to it.optJSONObject("publishers")?.getStringOrNull("name")
+		}
+		val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.US)
+		return Manga(
+			id = generateUid(url),
+			url = url,
+			publicUrl = "https://$domain$url/main",
+			title = jo.getString("main_name"),
+			altTitles = jo.getStringOrNull("another_name")?.split(" / ")
+				?.toSet().orEmpty() + setOfNotNull(jo.getStringOrNull("secondary_name")),
+			rating = jo.getFloatOrDefault("avg_rating", -10f) / 10f,
+			coverUrl = cover.getStringOrNull("mid")?.toAbsoluteUrl("api.$domain"),
+			largeCoverUrl = cover.getStringOrNull("high")?.toAbsoluteUrl("api.$domain"),
+			authors = emptySet(),
+			contentRating = when (jo.optJSONObject("age_limit")?.getIntOrDefault("id", -1)) {
+				0 -> ContentRating.SAFE
+				1, 2 -> ContentRating.SUGGESTIVE
+				else -> null
+			},
+			state = when (jo.optJSONObject("status")?.getIntOrDefault("id", -1) ?: -1) {
+				1 -> MangaState.FINISHED
+				2 -> MangaState.ONGOING
+				3 -> MangaState.PAUSED
+				4 -> MangaState.ABANDONED
+				5 -> MangaState.UPCOMING
+				6 -> MangaState.RESTRICTED
+				else -> null
+			},
+			tags = jo.optJSONArray("genres")?.mapJSONToSet { g ->
+				MangaTag(
+					title = g.getString("name").toTitleCase(sourceLocale),
+					key = g.getInt("id").toString(),
+					source = source,
+				)
+			}.orEmpty(),
+			description = jo.getStringOrNull("description"),
+			chapters = branches.flatMap { (branchId, branchName) ->
+				grabChapters(branchId).mapChapters(reversed = true) { _, cjo ->
+					if (
+						cjo.getBooleanOrDefault("is_paid", false) &&
+						!jo.getBooleanOrDefault("is_bought", false)
+					) {
+						return@mapChapters null
+					}
+					val id = jo.getLong("id")
+					val name = jo.getStringOrNull("name")?.toTitleCase(Locale.ROOT)
+					val publishers = jo.optJSONArray("publishers")
+					MangaChapter(
+						id = generateUid(id),
+						url = "/api/v2/titles/chapters/$id/",
+						number = cjo.getFloatOrDefault("chapter", 0f),
+						volume = cjo.getIntOrDefault("tome", 0),
+						title = name,
+						uploadDate = dateFormat.parseSafe(jo.getStringOrNull("upload_date")),
+						scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
+						source = source,
+						branch = branchName,
+					)
+				}
+			},
+			source = source,
+		)
+	}
+
+	private fun parseManga(jo: JSONObject): Manga {
+		val url = "/manga/${jo.getString("dir")}"
+		val cover = jo.getJSONObject("cover")
+		return Manga(
+			id = generateUid(url),
+			url = url,
+			publicUrl = "https://$domain$url/main",
+			title = jo.getString("main_name"),
+			altTitles = setOfNotNull(jo.getStringOrNull("secondary_name")),
+			rating = jo.getFloatOrDefault("avg_rating", -10f) / 10f,
+			coverUrl = cover.getStringOrNull("mid")?.toAbsoluteUrl("api.$domain"),
+			largeCoverUrl = cover.getStringOrNull("high")?.toAbsoluteUrl("api.$domain"),
+			authors = emptySet(),
+			contentRating = null,
+			state = when (jo.optJSONObject("status")?.getIntOrDefault("id", -1) ?: -1) {
+				1 -> MangaState.FINISHED
+				2 -> MangaState.ONGOING
+				3 -> MangaState.PAUSED
+				4 -> MangaState.ABANDONED
+				5 -> MangaState.UPCOMING
+				6 -> MangaState.RESTRICTED
+				else -> null
+			},
+			tags = jo.optJSONArray("genres")?.mapJSONToSet { g ->
+				MangaTag(
+					title = g.getString("name").toTitleCase(sourceLocale),
+					key = g.getInt("id").toString(),
+					source = source,
+				)
+			}.orEmpty(),
+			source = source,
+		)
 	}
 
 	private fun getApiHeaders(): Headers {
@@ -267,13 +356,13 @@ internal class RemangaParser(
 		source = source,
 	)
 
-	private suspend fun grabChapters(domain: String, branchId: Long): List<JSONObject> {
+	private suspend fun grabChapters(branchId: Long): List<JSONObject> {
 		val result = ArrayList<JSONObject>(100)
 		var page = 1
 		while (true) {
 			val content = webClient.httpGet(
-				url = "https://api.$domain/api/titles/chapters/?branch_id=$branchId&page=$page&count=500",
-			).parseJson().getJSONArray("content")
+				url = "https://api.$domain/api/v2/titles/chapters/?branch_id=$branchId&page=$page&count=500",
+			).parseJson().getJSONArray("results")
 			val len = content.length()
 			if (len == 0) {
 				break
