@@ -268,20 +268,20 @@ internal class RemangaParser(
 				grabChapters(branchId).mapChapters(reversed = true) { _, cjo ->
 					if (
 						cjo.getBooleanOrDefault("is_paid", false) &&
-						!jo.getBooleanOrDefault("is_bought", false)
+						!cjo.getBooleanOrDefault("is_bought", false)
 					) {
 						return@mapChapters null
 					}
-					val id = jo.getLong("id")
-					val name = jo.getStringOrNull("name")?.toTitleCase(Locale.ROOT)
-					val publishers = jo.optJSONArray("publishers")
+					val id = cjo.getLong("id")
+					val name = cjo.getStringOrNull("name")?.toTitleCase(Locale.ROOT)
+					val publishers = cjo.optJSONArray("publishers")
 					MangaChapter(
 						id = generateUid(id),
 						url = "/api/v2/titles/chapters/$id/",
 						number = cjo.getFloatOrDefault("chapter", 0f),
 						volume = cjo.getIntOrDefault("tome", 0),
 						title = name,
-						uploadDate = dateFormat.parseSafe(jo.getStringOrNull("upload_date")),
+						uploadDate = dateFormat.parseSafe(cjo.getStringOrNull("upload_date")),
 						scanlator = publishers?.optJSONObject(0)?.getStringOrNull("name"),
 						source = source,
 						branch = branchName,
