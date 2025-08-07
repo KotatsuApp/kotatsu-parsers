@@ -29,6 +29,7 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.src
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.EnumSet
@@ -61,7 +62,7 @@ internal class KdtScans(context: MangaLoaderContext) :
 			val label = li.selectFirst("label") ?: return@mapNotNullToSet null
 			MangaTag(
 				key = input.attr("value"),
-				title = label.text().trim(),
+				title = label.text().trim().toTitleCase(),
 				source = source,
 			)
 		}
