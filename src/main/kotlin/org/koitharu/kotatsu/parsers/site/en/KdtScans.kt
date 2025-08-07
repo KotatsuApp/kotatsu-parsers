@@ -29,7 +29,6 @@ import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import org.koitharu.kotatsu.parsers.util.src
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
 import java.util.EnumSet
@@ -56,32 +55,19 @@ internal class KdtScans(context: MangaLoaderContext) :
 	)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
-		val doc = webClient.httpGet("https://$domain/manga/").parseHtml()
-		val tags = doc.select("ul.genrez li").mapNotNullToSet { li ->
-			val input = li.selectFirst("input") ?: return@mapNotNullToSet null
-			val label = li.selectFirst("label") ?: return@mapNotNullToSet null
-			MangaTag(
-				key = input.attr("value"),
-				title = label.text().trim().toTitleCase(),
-				source = source,
-			)
-		}
-
-		return MangaListFilterOptions(
-			availableTags = tags,
-			availableStates = EnumSet.of(
-				MangaState.ONGOING,
-				MangaState.FINISHED,
-				MangaState.PAUSED,
-			),
-			availableContentTypes = EnumSet.of(
-				ContentType.MANGA,
-				ContentType.MANHWA,
-				ContentType.MANHUA,
-				ContentType.COMICS,
-				ContentType.NOVEL,
-			),
-		)
+		availableTags = fetchAvailableTags(),
+		availableStates = EnumSet.of(
+			MangaState.ONGOING,
+			MangaState.FINISHED,
+			MangaState.PAUSED,
+		),
+		availableContentTypes = EnumSet.of(
+			ContentType.MANGA,
+			ContentType.MANHWA,
+			ContentType.MANHUA,
+			ContentType.COMICS,
+			ContentType.NOVEL,
+		),
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -236,15 +222,16 @@ internal class KdtScans(context: MangaLoaderContext) :
 		return doc.select("#readerarea img").map { img ->
 			val url = img.attr("data-src").ifEmpty { img.src().orEmpty() }
 			MangaPage(
-				id = generateUid(url), url, source = source,
+				id = generateUid(url),
+				url = url,
 				preview = null,
+				source = source,
 			)
 		}
 	}
 
 	private fun parseStatus(status: String?): MangaState? {
 		return when {
-			status == null -> null
 			status.contains("ongoing", ignoreCase = true) -> MangaState.ONGOING
 			status.contains("completed", ignoreCase = true) -> MangaState.FINISHED
 			status.contains("hiatus", ignoreCase = true) -> MangaState.PAUSED
@@ -255,11 +242,23 @@ internal class KdtScans(context: MangaLoaderContext) :
 	}
 
 	private fun parseChapterDate(date: String?): Long {
-		if (date.isNullOrBlank()) return 0L
 		return try {
-			SimpleDateFormat("MMMM dd, yyyy", sourceLocale).parse(date.trim())?.time ?: 0L
+			SimpleDateFormat("MMMM dd, yyyy", sourceLocale).parse(date?.trim()).time
 		} catch (_: Exception) {
 			0L
+		}
+	}
+
+	private suspend fun fetchAvailableTags(): Set<MangaTag> {
+		val doc = webClient.httpGet("https://$domain/manga/").parseHtml()
+		return doc.select("ul.genrez li").mapNotNullToSet { li ->
+			val key = li.selectFirst("input").attr("value") ?: return@mapNotNullToSet null
+			val title = li.selectFirst("label").text().toTitleCase() ?: return@mapNotNullToSet null
+			MangaTag(
+				key = key,
+				title = title,
+				source = source,
+			)
 		}
 	}
 }
