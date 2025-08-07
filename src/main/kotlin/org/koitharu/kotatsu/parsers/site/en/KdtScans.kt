@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.madara.all
+package org.koitharu.kotatsu.parsers.site.en
 
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
