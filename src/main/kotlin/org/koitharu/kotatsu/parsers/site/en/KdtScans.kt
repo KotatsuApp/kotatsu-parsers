@@ -56,19 +56,21 @@ internal class KdtScans(context: MangaLoaderContext) :
 	)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
-		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(
-			MangaState.ONGOING,
-			MangaState.FINISHED,
-			MangaState.PAUSED,
-		),
-		availableContentTypes = EnumSet.of(
-			ContentType.MANGA,
-			ContentType.MANHWA,
-			ContentType.MANHUA,
-			ContentType.COMICS,
-			ContentType.NOVEL,
-		),
+		return MangaListFilterOptions(
+			availableTags = fetchAvailableTags(),
+			availableStates = EnumSet.of(
+				MangaState.ONGOING,
+				MangaState.FINISHED,
+				MangaState.PAUSED,
+			),
+			availableContentTypes = EnumSet.of(
+				ContentType.MANGA,
+				ContentType.MANHWA,
+				ContentType.MANHUA,
+				ContentType.COMICS,
+				ContentType.NOVEL,
+			),
+		)
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
