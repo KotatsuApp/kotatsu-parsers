@@ -157,7 +157,7 @@ internal class KdtScans(context: MangaLoaderContext) :
 				rating = rating,
 				tags = emptySet(),
 				authors = emptySet(),
-				state = parseStatus(div.selectFirst(".status")?.text()),
+				state = parseStatus(div.selectFirst(".status")?.text().orEmpty()),
 				source = source,
 				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
 			)
@@ -214,7 +214,7 @@ internal class KdtScans(context: MangaLoaderContext) :
 				.mapToSet { it.text() },
 			description = infoElement.select(".desc, .entry-content[itemprop=description]")
 				.joinToString("\n") { it.text() },
-			state = parseStatus(statusText),
+			state = parseStatus(statusText.orEmpty()),
 			tags = allTags,
 			chapters = chapters,
 		)
@@ -233,7 +233,7 @@ internal class KdtScans(context: MangaLoaderContext) :
 		}
 	}
 
-	private fun parseStatus(status: String?): MangaState? {
+	private fun parseStatus(status: String): MangaState? {
 		return when {
 			status.contains("ongoing", ignoreCase = true) -> MangaState.ONGOING
 			status.contains("completed", ignoreCase = true) -> MangaState.FINISHED
@@ -256,7 +256,7 @@ internal class KdtScans(context: MangaLoaderContext) :
 		val doc = webClient.httpGet("https://$domain/manga/").parseHtml()
 		return doc.select("ul.genrez li").mapNotNullToSet { li ->
 			val key = li.selectFirst("input").attr("value") ?: return@mapNotNullToSet null
-			val title = li.selectFirst("label").text().toTitleCase() ?: return@mapNotNullToSet null
+			val title = li.selectFirst("label").text().toTitleCase()
 			MangaTag(
 				key = key,
 				title = title,
