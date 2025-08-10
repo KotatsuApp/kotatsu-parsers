@@ -10,16 +10,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository 🌏
+      - name: Checkout + Set-up enviroment 🌏
         uses: actions/checkout@v4
-
-      - name: Set up enviroment 🔧
         uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+          cache: 'gradle'
 
-      - name: Compile latest parsers 🚀
-        run: |
-          chmod +x ./gradlew
-          ./gradlew compileKotlin
+      - name: Compile parsers 🚀
+        run: ./gradlew compileKotlin

@@ -1,4 +1,4 @@
-name: Parsers test
+name: Parsers test for PRs
 
 on:
     workflow_dispatch:
@@ -13,10 +13,13 @@ jobs:
     build-and-test:
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v3
-            -   uses: actions/setup-java@v3
-                with:
-                    java-version: '11'
+        - name: Checkout + Set-up enviroment 🌏
+            uses: actions/checkout@v3
+            uses: actions/setup-java@v3
+            with:
+                    java-version: '17'
                     distribution: 'temurin'
                     cache: 'gradle'
-            -   run: ./gradlew assemble
+
+        -   name: Compile parsers 🚀
+            run: ./gradlew assemble
