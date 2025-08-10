@@ -30,7 +30,7 @@ import java.util.EnumSet
 import java.util.Locale
 import java.util.regex.Pattern
 
-@MangaSourceParser("MYREADINGMANGA", "MyReadingManga", "en", ContentType.HENTAI)
+@MangaSourceParser("MYREADINGMANGA", "MyReadingManga", type = ContentType.HENTAI)
 internal class MyReadingManga(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 18) {
 
@@ -44,6 +44,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+			isOriginalLocaleSupported = true,
 		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -57,44 +58,153 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 			MangaState.FINISHED,
 		),
 		availableContentRating = EnumSet.of(ContentRating.ADULT),
+		availableLocales = setOf(
+			Locale.ENGLISH,
+			Locale.FRENCH,
+			Locale.JAPANESE,
+			Locale.CHINESE,
+			Locale.GERMAN,
+			Locale.ITALIAN,
+			Locale.KOREAN,
+			Locale.TRADITIONAL_CHINESE,
+			Locale("es"), // Spanish
+			Locale("pt"), // Portuguese
+			Locale("ru"), // Russian
+			Locale("tr"), // Turkish
+			Locale("vi"), // Vietnamese
+			Locale("ar"), // Arabic
+			Locale("id"), // Indonesian (Bahasa)
+			Locale("th"), // Thai
+			Locale("pl"), // Polish
+			Locale("sv"), // Swedish
+			Locale("nl"), // Dutch (Flemish Dutch)
+			Locale("hu"), // Hungarian
+			Locale("hi"), // Hindi
+			Locale("he"), // Hebrew
+			Locale("el"), // Greek
+			Locale("fi"), // Finnish
+			Locale("fil"), // Filipino
+			Locale("da"), // Danish
+			Locale("cs"), // Czech
+			Locale("hr"), // Croatian
+			Locale("bg"), // Bulgarian
+			Locale("zh", "HK"), // Cantonese
+			Locale("fa"), // Persian
+			Locale("sk"), // Slovak
+			Locale("ro"), // Romanian
+			Locale("no"), // Norwegian
+			Locale("ms"), // Malay
+			Locale("lt"), // Lithuanian
+		),
 	)
+
+	private fun getLanguageSlug(locale: Locale?): String? {
+		if (locale == null || locale == Locale.ENGLISH) return null
+
+		return when {
+			locale.language == "fr" -> "french"
+			locale.language == "ja" -> "jp"
+			locale.language == "zh" && locale.country == "TW" -> "traditional-chinese"
+			locale.language == "zh" && locale.country == "HK" -> "cantonese"
+			locale.language == "zh" -> "chinese"
+			locale.language == "de" -> "german"
+			locale.language == "it" -> "italian"
+			locale.language == "ko" -> "korean"
+			locale.language == "es" -> "spanish"
+			locale.language == "pt" -> "portuguese"
+			locale.language == "ru" -> "russian"
+			locale.language == "tr" -> "turkish"
+			locale.language == "vi" -> "vietnamese"
+			locale.language == "ar" -> "arabic"
+			locale.language == "id" -> "bahasa"
+			locale.language == "th" -> "thai"
+			locale.language == "pl" -> "polish"
+			locale.language == "sv" -> "swedish"
+			locale.language == "nl" -> "flemish-dutch"
+			locale.language == "hu" -> "hungarian"
+			locale.language == "hi" -> "hindi"
+			locale.language == "he" -> "hebrew"
+			locale.language == "el" -> "greek"
+			locale.language == "fi" -> "finnish"
+			locale.language == "fil" -> "filipino"
+			locale.language == "da" -> "danish"
+			locale.language == "cs" -> "czech"
+			locale.language == "hr" -> "croatian"
+			locale.language == "bg" -> "bulgarian"
+			locale.language == "fa" -> "persian"
+			locale.language == "sk" -> "slovak"
+			locale.language == "ro" -> "romanian"
+			locale.language == "no" -> "norwegian-bokmal"
+			locale.language == "ms" -> "malay"
+			locale.language == "lt" -> "lithuanian"
+			else -> null //all
+		}
+	}
+
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 
+			// Add language path if specified
+			val langSlug = getLanguageSlug(filter.locale)
+			if (langSlug != null) {
+				append("/lang/")
+				append(langSlug)
+			}
+
 			when {
 				!filter.query.isNullOrEmpty() -> {
-					append("/page/")
-					append(page)
+					// Search with language: /lang/french/page/2/?s=example
+					if (page > 1) {
+						append("/page/")
+						append(page)
+					}
 					append("/?s=")
 					append(filter.query.urlEncoded())
 				}
 
 				filter.tags.isNotEmpty() -> {
-					append("/genre/")
-					append(filter.tags.first().key)
-					append("/page/")
-					append(page)
-					append("/")
+					// Genre filtering doesn't work with language, so we ignore language for genre
+					if (langSlug == null) {
+						append("/genre/")
+						append(filter.tags.first().key)
+						append("/page/")
+						append(page)
+						append("/")
+					} else {
+						// If both language and genre are selected, just use language
+						append("/page/")
+						append(page)
+						append("/")
+					}
 				}
 
 				filter.states.isNotEmpty() -> {
-					append("/status/")
-					append(
-						when (filter.states.first()) {
-							MangaState.ONGOING -> "ongoing"
-							MangaState.FINISHED -> "completed"
-							else -> "ongoing"
-						},
-					)
-					append("/page/")
-					append(page)
-					append("/")
+					// Status filtering doesn't work with language either
+					if (langSlug == null) {
+						append("/status/")
+						append(
+							when (filter.states.first()) {
+								MangaState.ONGOING -> "ongoing"
+								MangaState.FINISHED -> "completed"
+								else -> "ongoing"
+							},
+						)
+						append("/page/")
+						append(page)
+						append("/")
+					} else {
+						// If both language and status are selected, just use language
+						append("/page/")
+						append(page)
+						append("/")
+					}
 				}
 
 				else -> {
+					// Regular browsing with or without language
 					append("/page/")
 					append(page)
 					append("/")
