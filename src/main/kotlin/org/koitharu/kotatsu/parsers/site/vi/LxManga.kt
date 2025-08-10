@@ -210,7 +210,7 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 						source = source,
 					)
 				} else {
-					null
+					throw Exception("Bạn cần phải nạp LXCoin mua code VIP để xem nội dung này trên trang Web!")
 				}
 			}
 	}
