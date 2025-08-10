@@ -99,44 +99,42 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 	)
 
 	private fun getLanguageSlug(locale: Locale?): String? {
-		if (locale == null || locale == Locale.ENGLISH) return null
-
 		return when {
-			locale.language == "fr" -> "french"
-			locale.language == "ja" -> "jp"
-			locale.language == "zh" && locale.country == "TW" -> "traditional-chinese"
-			locale.language == "zh" && locale.country == "HK" -> "cantonese"
-			locale.language == "zh" -> "chinese"
-			locale.language == "de" -> "german"
-			locale.language == "it" -> "italian"
-			locale.language == "ko" -> "korean"
-			locale.language == "es" -> "spanish"
-			locale.language == "pt" -> "portuguese"
-			locale.language == "ru" -> "russian"
-			locale.language == "tr" -> "turkish"
-			locale.language == "vi" -> "vietnamese"
-			locale.language == "ar" -> "arabic"
-			locale.language == "id" -> "bahasa"
-			locale.language == "th" -> "thai"
-			locale.language == "pl" -> "polish"
-			locale.language == "sv" -> "swedish"
-			locale.language == "nl" -> "flemish-dutch"
-			locale.language == "hu" -> "hungarian"
-			locale.language == "hi" -> "hindi"
-			locale.language == "he" -> "hebrew"
-			locale.language == "el" -> "greek"
-			locale.language == "fi" -> "finnish"
-			locale.language == "fil" -> "filipino"
-			locale.language == "da" -> "danish"
-			locale.language == "cs" -> "czech"
-			locale.language == "hr" -> "croatian"
-			locale.language == "bg" -> "bulgarian"
-			locale.language == "fa" -> "persian"
-			locale.language == "sk" -> "slovak"
-			locale.language == "ro" -> "romanian"
-			locale.language == "no" -> "norwegian-bokmal"
-			locale.language == "ms" -> "malay"
-			locale.language == "lt" -> "lithuanian"
+			locale?.language == "fr" -> "french"
+			locale?.language == "ja" -> "jp"
+			locale?.language == "zh" && locale.country == "TW" -> "traditional-chinese"
+			locale?.language == "zh" && locale.country == "HK" -> "cantonese"
+			locale?.language == "zh" -> "chinese"
+			locale?.language == "de" -> "german"
+			locale?.language == "it" -> "italian"
+			locale?.language == "ko" -> "korean"
+			locale?.language == "es" -> "spanish"
+			locale?.language == "pt" -> "portuguese"
+			locale?.language == "ru" -> "russian"
+			locale?.language == "tr" -> "turkish"
+			locale?.language == "vi" -> "vietnamese"
+			locale?.language == "ar" -> "arabic"
+			locale?.language == "id" -> "bahasa"
+			locale?.language == "th" -> "thai"
+			locale?.language == "pl" -> "polish"
+			locale?.language == "sv" -> "swedish"
+			locale?.language == "nl" -> "flemish-dutch"
+			locale?.language == "hu" -> "hungarian"
+			locale?.language == "hi" -> "hindi"
+			locale?.language == "he" -> "hebrew"
+			locale?.language == "el" -> "greek"
+			locale?.language == "fi" -> "finnish"
+			locale?.language == "fil" -> "filipino"
+			locale?.language == "da" -> "danish"
+			locale?.language == "cs" -> "czech"
+			locale?.language == "hr" -> "croatian"
+			locale?.language == "bg" -> "bulgarian"
+			locale?.language == "fa" -> "persian"
+			locale?.language == "sk" -> "slovak"
+			locale?.language == "ro" -> "romanian"
+			locale?.language == "no" -> "norwegian-bokmal"
+			locale?.language == "ms" -> "malay"
+			locale?.language == "lt" -> "lithuanian"
 			else -> null //all
 		}
 	}
@@ -265,7 +263,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 			while (nextElement != null && nextElement.tagName() == "p" &&
 				!nextElement.hasClass("chapter-class") && !nextElement.hasClass("alt-title-class")
 			) {
-				val text = nextElement.text().trim()
+				val text = nextElement.text()
 				if (text.isNotEmpty()) {
 					descParts.add(text)
 				}
@@ -292,7 +290,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 		doc.select("span.entry-terms:has(span:contains(Genres)) a").forEach {
 			genres.add(
 				MangaTag(
-					title = it.text().trim(),
+					title = it.text(),
 					key = it.attr("href").substringAfterLast("/genre/").substringBefore("/"),
 					source = source,
 				),
