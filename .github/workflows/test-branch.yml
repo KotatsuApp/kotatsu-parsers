@@ -1,0 +1,25 @@
+name: Check & Test latest parsers
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository 🌏
+        uses: actions/checkout@v4
+
+      - name: Set up enviroment 🔧
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Compile latest parsers 🚀
+        run: |
+          chmod +x ./gradlew
+          ./gradlew compileKotlin
