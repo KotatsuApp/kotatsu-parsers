@@ -196,8 +196,8 @@ internal class LangGeekParser(context: MangaLoaderContext):
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div.list-images img.lazy").mapNotNull { img ->
-			val url = img.attr("src")
+		return doc.select("img.lazy").mapNotNull { img ->
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,
