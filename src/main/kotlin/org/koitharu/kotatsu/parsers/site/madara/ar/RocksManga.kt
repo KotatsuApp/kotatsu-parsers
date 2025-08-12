@@ -250,8 +250,6 @@ internal class RocksManga(context: MangaLoaderContext) :
 			val href = a.attr("href").toRelativeUrl(domain)
 			val link = href + stylePage
 
-			val chapterNumber = li.attr("data-number").toFloatOrNull() ?: (i + 1f)
-
 			val chapterText = a.attr("title").takeIf { it.isNotBlank() }
 				?: a.selectFirst("span.contain-zeb")?.text()
 				?: a.ownText()
@@ -265,7 +263,7 @@ internal class RocksManga(context: MangaLoaderContext) :
 				id = generateUid(href),
 				url = link,
 				title = name,
-				number = chapterNumber,
+				number = i + 1f,
 				volume = 0,
 				branch = null,
 				uploadDate = parseRelativeDate(dateText),
@@ -310,7 +308,6 @@ internal class RocksManga(context: MangaLoaderContext) :
 		val cleanText = dateText.replace("منذ", "").trim()
 		val cal = Calendar.getInstance()
 
-		// Specific word-based cases first for singular/dual forms without digits
 		if (cleanText.startsWith("لحظات") || cleanText.startsWith("لحظة")) return System.currentTimeMillis()
 		if (cleanText.startsWith("ساعة")) return cal.apply { add(Calendar.HOUR_OF_DAY, -1) }.timeInMillis
 		if (cleanText.contains("يومين")) return cal.apply { add(Calendar.DAY_OF_MONTH, -2) }.timeInMillis
@@ -319,7 +316,6 @@ internal class RocksManga(context: MangaLoaderContext) :
 		if (cleanText.startsWith("شهر")) return cal.apply { add(Calendar.MONTH, -1) }.timeInMillis
 		if (cleanText.startsWith("سنة")) return cal.apply { add(Calendar.YEAR, -1) }.timeInMillis
 
-		// Generic number-based cases
 		val number = Regex("""(\d+)""").find(cleanText)?.value?.toIntOrNull() ?: return 0
 
 		return when {
