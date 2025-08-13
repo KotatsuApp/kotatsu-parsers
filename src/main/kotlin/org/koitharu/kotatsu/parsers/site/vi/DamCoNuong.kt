@@ -107,14 +107,13 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 
 	private fun parseMangaList(doc: Document): List<Manga> {
 		return doc.select(
-			"div.border.rounded-xl.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical.overflow-hidden"
+			"div.border.rounded-xl.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue"
 		).map { element ->
-				val mainA = element.selectFirstOrThrow("div.relative a")
+				val mainA = element.selectFirstOrThrow("a")
 				val href = mainA.attrAsRelativeUrl("href")
-				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "Không có tiêu đề"
-				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.let { img ->
-					img.attr("data-src").takeUnless { it.isNullOrEmpty() } ?: img.requireSrc()
-				}
+				val title = mainA.attr("alt")
+					?: (element.selectFirst("h3.text-base.font-semibold.mb-2.truncate a")?.text() ?: "Không có tiêu đề")
+				val coverUrl = mainA.attr("data-src") ?: mainA.requireSrc()
 
 				Manga(
 					id = generateUid(href),
