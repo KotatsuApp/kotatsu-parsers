@@ -109,27 +109,30 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 		return doc.select(
 			"div.border.rounded-xl.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue"
 		).map { element ->
-				val mainA = element.selectFirstOrThrow("a")
-				val href = mainA.attrAsRelativeUrl("href")
-				val title = mainA.attr("alt")
-					?: (element.selectFirst("h3.text-base.font-semibold.mb-2.truncate a")?.text() ?: "Không có tiêu đề")
-				val coverUrl = mainA.attr("data-src") ?: mainA.requireSrc()
+			val mainA = element.selectFirstOrThrow("div.relative a")
+			val href = mainA.attrAsRelativeUrl("href")
+			val title = mainA.selectFirst("div.cover-frame img")?.attr("alt")
+				?.takeIf { it.isNotBlank() }
+				?: element.selectFirst("div.p-3 h3 a")?.text()?.takeIf { it.isNotBlank() }
+				?: "Không có tiêu đề"
+			val coverUrl = mainA.select("div.cover-frame img").attr("data-src").takeIf { it.isNotBlank() }
+				?: mainA.select("div.cover-frame img").attr("src")
 
-				Manga(
-					id = generateUid(href),
-					title = title,
-					altTitles = emptySet(),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(domain),
-					rating = RATING_UNKNOWN,
-					contentRating = ContentRating.ADULT,
-					coverUrl = coverUrl,
-					tags = emptySet(),
-					state = null,
-					authors = emptySet(),
-					source = source,
-				)
-			}
+			Manga(
+				id = generateUid(href),
+				title = title,
+				altTitles = emptySet(),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				rating = RATING_UNKNOWN,
+				contentRating = ContentRating.ADULT,
+				coverUrl = coverUrl,
+				tags = emptySet(),
+				state = null,
+				authors = emptySet(),
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
