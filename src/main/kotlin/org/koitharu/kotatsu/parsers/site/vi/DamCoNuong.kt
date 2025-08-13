@@ -75,8 +75,8 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 				filter.states.forEach {
 					append(
 						when (it) {
-							MangaState.ONGOING -> "2"
-							MangaState.FINISHED -> "1"
+							MangaState.ONGOING -> "2,"
+							MangaState.FINISHED -> "1,"
 							else -> "2,1"
 						},
 					)
@@ -93,6 +93,11 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 				append(filter.query.urlEncoded())
 			}
 
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&filter[reject_genres]=")
+				append(filter.tagsExclude.joinTo(this, ",") { it.key })
+			}
+
 			append("&page=$page")
 		}
 
@@ -101,30 +106,33 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	}
 
 	private fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical")
-			.map { element ->
-				val mainA = element.selectFirstOrThrow("div.relative a")
-				val href = mainA.attrAsRelativeUrl("href")
-				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "No name"
-				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.let { img ->
-					img.attr("data-src").takeUnless { it.isNullOrEmpty() } ?: img.requireSrc()
-				}
+		return doc.select(
+			"div.border.rounded-xl.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue"
+		).map { element ->
+			val mainA = element.selectFirstOrThrow("div.relative a")
+			val href = mainA.attrAsRelativeUrl("href")
+			val title = mainA.selectFirst("div.cover-frame img")?.attr("alt")
+				?.takeIf { it.isNotBlank() }
+				?: element.selectFirst("div.p-3 h3 a")?.text()?.takeIf { it.isNotBlank() }
+				?: "Không có tiêu đề"
+			val coverUrl = mainA.select("div.cover-frame img").attr("data-src").takeIf { it.isNotBlank() }
+				?: mainA.select("div.cover-frame img").attr("src")
 
-				Manga(
-					id = generateUid(href),
-					title = title,
-					altTitles = emptySet(),
-					url = href,
-					publicUrl = href.toAbsoluteUrl(domain),
-					rating = RATING_UNKNOWN,
-					contentRating = ContentRating.ADULT,
-					coverUrl = coverUrl,
-					tags = emptySet(),
-					state = null,
-					authors = emptySet(),
-					source = source,
-				)
-			}
+			Manga(
+				id = generateUid(href),
+				title = title,
+				altTitles = emptySet(),
+				url = href,
+				publicUrl = href.toAbsoluteUrl(domain),
+				rating = RATING_UNKNOWN,
+				contentRating = ContentRating.ADULT,
+				coverUrl = coverUrl,
+				tags = emptySet(),
+				state = null,
+				authors = emptySet(),
+				source = source,
+			)
+		}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
