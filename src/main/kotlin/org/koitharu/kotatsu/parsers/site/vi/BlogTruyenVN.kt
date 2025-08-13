@@ -32,6 +32,18 @@ internal class BlogTruyenVN(context: MangaLoaderContext) :
 		keys.add(userAgentKey)
 	}
 
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT1MKIvvFICwuLFZsQTCo2rX-oHRHHn3b48Dw&s",
+					225,
+					null),
+			),
+			domain,
+		)
+	}
+
 	override val availableSortOrders: Set<SortOrder>
 		get() = EnumSet.of(SortOrder.UPDATED)
 

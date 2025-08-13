@@ -24,6 +24,18 @@ internal class BlogTruyenParser(context: MangaLoaderContext) :
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxz-0zH1Hyf0IHExw4Cj2skdI9kvEfeo-5aGQAxWoRhaZDKAZ5xfUZrv-Kn8BvQBbQ5ig&usqp=CAU",
+					225,
+					null),
+			),
+			domain,
+		)
+	}
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

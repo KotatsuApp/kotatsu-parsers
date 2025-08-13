@@ -22,7 +22,6 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
 		"www.mehentaivn.xyz",
 		"www.hentaivnx.autos",
-		"www.hentaivnx.com"
 	)
 
 	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()

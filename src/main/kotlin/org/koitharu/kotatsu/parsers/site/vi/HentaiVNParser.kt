@@ -25,6 +25,18 @@ internal class HentaiVNParser(context: MangaLoaderContext) : AbstractMangaParser
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaihvn.tv")
 
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://raw.githubusercontent.com/dragonx943/listcaidaubuoi/refs/heads/main/hentaivn.png",
+					512,
+					null),
+			),
+			domain,
+		)
+	}
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)

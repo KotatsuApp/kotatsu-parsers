@@ -22,6 +22,18 @@ internal class YurinekoParser(context: MangaLoaderContext) :
 	override val configKeyDomain: ConfigKey.Domain
 		get() = ConfigKey.Domain("yurineko.site")
 
+	override suspend fun getFavicons(): Favicons {
+		return Favicons(
+			listOf(
+				Favicon(
+					"https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRfUxNlUMOVvHwG0-uNB-Nm72qYvgRKB7L08A&s",
+					224,
+					null),
+			),
+			domain,
+		)
+	}
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
