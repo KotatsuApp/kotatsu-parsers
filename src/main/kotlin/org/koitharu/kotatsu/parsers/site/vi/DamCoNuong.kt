@@ -75,8 +75,8 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 				filter.states.forEach {
 					append(
 						when (it) {
-							MangaState.ONGOING -> "2"
-							MangaState.FINISHED -> "1"
+							MangaState.ONGOING -> "2,"
+							MangaState.FINISHED -> "1,"
 							else -> "2,1"
 						},
 					)
@@ -93,6 +93,11 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 				append(filter.query.urlEncoded())
 			}
 
+			if (filter.tagsExclude.isNotEmpty()) {
+				append("&filter[reject_genres]=")
+				append(filter.tagsExclude.joinTo(this, ",") { it.key })
+			}
+
 			append("&page=$page")
 		}
 
@@ -101,11 +106,12 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	}
 
 	private fun parseMangaList(doc: Document): List<Manga> {
-		return doc.select("div.border.rounded-lg.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical")
-			.map { element ->
+		return doc.select(
+			"div.border.rounded-xl.border-gray-300.dark\\:border-dark-blue.bg-white.dark\\:bg-fire-blue.manga-vertical.overflow-hidden"
+		).map { element ->
 				val mainA = element.selectFirstOrThrow("div.relative a")
 				val href = mainA.attrAsRelativeUrl("href")
-				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "No name"
+				val title = element.selectFirst("div.latest-chapter a.text-white.capitalize")?.textOrNull() ?: "Không có tiêu đề"
 				val coverUrl = element.selectFirst("img.rounded-t-lg.cover.lazyload")?.let { img ->
 					img.attr("data-src").takeUnless { it.isNullOrEmpty() } ?: img.requireSrc()
 				}
