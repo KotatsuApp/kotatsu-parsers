@@ -6,21 +6,41 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.model.ContentType
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.WordSet
+import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.json.getFloatOrDefault
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import org.koitharu.kotatsu.parsers.util.json.mapJSONToSet
+import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.parseSafe
+import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.DateFormat
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Calendar
+import java.util.EnumSet
 
 @MangaSourceParser("PHENIXSCANS", "PhenixScans", "fr")
 internal class PhenixscansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.PHENIXSCANS, 18) {
 
 	override val configKeyDomain = ConfigKey.Domain("phenix-scans.com")
+
+	private val apiBaseUrl = "https://phenix-scans.com/api"
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -42,7 +62,7 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = fetchAvailableTags(),
-		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.ABANDONED),
+		availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED, MangaState.PAUSED),
 		availableContentTypes = EnumSet.of(
 			ContentType.MANGA,
 			ContentType.MANHWA,
@@ -69,12 +89,13 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 					append("?page=")
 					append(page.toString())
 					append("&limit=18&sort=")
-					when (order) {
-						SortOrder.POPULARITY -> append("rating")
-						SortOrder.UPDATED -> append("updatedAt")
-						SortOrder.ALPHABETICAL -> append("title")
-						else -> append("updatedAt")
-					}
+					append(
+						when (order) {
+							SortOrder.POPULARITY -> "rating"
+							SortOrder.ALPHABETICAL -> "title"
+							else -> "updatedAt"
+						},
+					)
 
 					if (filter.tags.isNotEmpty()) {
 						append("&genre=")
@@ -108,7 +129,6 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 				}
 			}
 		}
-
 		return parseMangaList(webClient.httpGet(url).parseJson().getJSONArray("mangas"))
 	}
 
@@ -119,17 +139,17 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 				id = generateUid(j.getString("_id")),
 				title = j.getString("title"),
 				altTitles = emptySet(),
-				url = slug,
+				url = "/manga/$slug",
 				publicUrl = "https://$domain/manga/$slug",
 				rating = j.getFloatOrDefault("averageRating", RATING_UNKNOWN * 10f) / 10f,
 				contentRating = null,
 				description = j.getStringOrNull("synopsis"),
-				coverUrl = "https://cdn.phenix-scans.com/?url=https://api.phenix-scans.com/" + j.getString("coverImage") + "&output=webp&w=400&ll",
+				coverUrl = "$apiBaseUrl/${j.getString("coverImage")}",
 				tags = emptySet(),
 				state = when (j.getStringOrNull("status")) {
 					"Ongoing" -> MangaState.ONGOING
 					"Completed" -> MangaState.FINISHED
-					"Hiatus" -> MangaState.FINISHED
+					"Hiatus" -> MangaState.PAUSED
 					else -> null
 				},
 				authors = emptySet(),
@@ -138,48 +158,89 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 		}
 	}
 
-	private val dateFormat = SimpleDateFormat("d MMM yyyy", sourceLocale)
+	private val dateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", sourceLocale)
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-		val mangaUrl = "https://$domain/manga/${manga.url}"
-		val doc = webClient.httpGet(mangaUrl).parseHtml()
+		val apiUrl = "$apiBaseUrl/front${manga.url}"
+		val response = webClient.httpGet(apiUrl).parseJson()
+		val mangaData = response.getJSONObject("manga")
+		val chaptersArray = response.optJSONArray("chapters") ?: JSONArray()
+
+		val coverImage = mangaData.getString("coverImage")
+		val coverUrl = "$apiBaseUrl/$coverImage"
+
+		val chaptersMap = LinkedHashMap<String, Pair<Long, MangaChapter>>(chaptersArray.length())
+
+		for (i in 0 until chaptersArray.length()) {
+			val chapterJson = chaptersArray.getJSONObject(i)
+			val number = chapterJson.optString("number")
+			val createdAt = chapterJson.optString("createdAt")
+			val uploadDate = parseChapterDate(dateFormat, createdAt)
+
+			val chapter = MangaChapter(
+				id = generateUid(chapterJson.getString("_id")),
+				title = "Chapitre $number",
+				number = number.toFloatOrNull() ?: (i + 1f),
+				volume = 0,
+				url = "${manga.url}/$number",
+				scanlator = null,
+				uploadDate = uploadDate,
+				branch = null,
+				source = source,
+			)
+
+			// Keep the most recent version of duplicate chapters
+			val existing = chaptersMap[number]
+			if (existing == null || uploadDate > existing.first) {
+				chaptersMap[number] = uploadDate to chapter
+			}
+		}
+
+		val uniqueChapters = chaptersMap.values
+			.map { it.second }
+			.sortedBy { it.number }
 
 		manga.copy(
-			tags = doc.select("div.project__content-tags a").mapToSet { a ->
+			title = mangaData.getString("title"),
+			altTitles = mangaData.optJSONArray("alternativeTitles")?.let { altArray ->
+				(0 until altArray.length()).mapTo(mutableSetOf()) { altArray.getString(it) }
+			} ?: emptySet(),
+			tags = mangaData.optJSONArray("genres").mapJSONToSet { genreJson ->
 				MangaTag(
-					key = a.attr("href").removeSuffix('/').substringAfterLast("tag="),
-					title = a.text().toTitleCase(),
+					key = genreJson.getString("_id"),
+					title = genreJson.getString("name").toTitleCase(),
 					source = source,
 				)
 			},
-			chapters = doc.select(" div.project__chapters a.project__chapter")
-				.mapChapters(reversed = true) { i, a ->
-					val href = a.attrAsRelativeUrl("href")
-					val name = a.selectFirst(".project__chapter-title")?.textOrNull()
-					val dateText = a.selectFirst(".project__chapter-date")?.textOrNull()
-					MangaChapter(
-						id = generateUid(href),
-						title = name,
-						number = i.toFloat(),
-						volume = 0,
-						url = href,
-						scanlator = null,
-						uploadDate = parseChapterDate(
-							dateFormat,
-							dateText,
-						),
-						branch = null,
-						source = source,
-					)
-				},
+			description = mangaData.getStringOrNull("synopsis"),
+			rating = mangaData.getFloatOrDefault("averageRating", RATING_UNKNOWN * 10f) / 10f,
+			coverUrl = coverUrl,
+			state = when (mangaData.getStringOrNull("status")) {
+				"Ongoing" -> MangaState.ONGOING
+				"Completed" -> MangaState.FINISHED
+				"Hiatus" -> MangaState.PAUSED
+				else -> null
+			},
+			authors = mangaData.optJSONArray("authors")?.let { authorsArray ->
+				(0 until authorsArray.length()).mapTo(mutableSetOf()) { authorsArray.getString(it) }
+			} ?: emptySet(),
+			chapters = uniqueChapters,
 		)
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.chapter-images img.chapter-image").map { img ->
-			val url = img.requireSrc()
+		val slug = chapter.url.substringAfterLast("manga/").substringBeforeLast("/")
+		val chapterNumber = chapter.url.substringAfterLast("/")
+
+		val apiUrl = "$apiBaseUrl/front/manga/$slug/chapter/$chapterNumber"
+		val response = webClient.httpGet(apiUrl).parseJson()
+
+		val chapterData = response.getJSONObject("chapter")
+		val imagesArray = chapterData.getJSONArray("images")
+		println(imagesArray)
+		return (0 until imagesArray.length()).map { i ->
+			val imageUrl = imagesArray.getString(i)
+			val url = "/api/$imageUrl"
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -190,8 +251,8 @@ internal class PhenixscansParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
-		val json = webClient.httpGet("https://api.$domain/front/manga?page=1&limit=18&sort=updatedAt").parseJson()
-			.getJSONArray("genres")
+		val json = webClient.httpGet("$apiBaseUrl/genres").parseJson()
+			.getJSONArray("data")
 		return json.mapJSONToSet {
 			MangaTag(
 				key = it.getString("_id"),
