@@ -337,7 +337,6 @@ internal class SussyScan(context: MangaLoaderContext) : PagedMangaParser(
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val url = "$apiUrl/tags".toHttpUrl().newBuilder()
-			.addQueryParameter("limite", "500")
 			.build()
 
 		val response = webClient.httpGet(url, apiHeaders).parseJson()
