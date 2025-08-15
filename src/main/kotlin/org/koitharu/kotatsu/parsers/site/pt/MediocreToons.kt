@@ -34,8 +34,7 @@ import java.util.EnumSet
 internal class MediocreToons(context: MangaLoaderContext) : PagedMangaParser(
 	context,
 	source = MangaParserSource.MEDIOCRETOONS,
-	pageSize = 24,
-	searchPageSize = 15,
+	pageSize = 20,
 ) {
 	override val configKeyDomain = ConfigKey.Domain("mediocretoons.com")
 	private val apiUrl = "https://api.mediocretoons.com"
