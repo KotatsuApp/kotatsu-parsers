@@ -38,7 +38,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
-		keys.add(userAgentKey)
+		keys.remove(userAgentKey)
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
