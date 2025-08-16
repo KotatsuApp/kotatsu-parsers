@@ -5,6 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
@@ -17,6 +18,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 	private val apiSuffix = "api/v1/manga"
 	override val configKeyDomain = ConfigKey.Domain("mimihentai.com", "hentaihvn.com")
+	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override suspend fun getFavicons(): Favicons {
 		return Favicons(
@@ -44,6 +46,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(preferredServerKey)
+		keys.remove(userAgentKey)
 	}
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -76,32 +79,33 @@ internal class MimiHentai(context: MangaLoaderContext) :
             append("https://")
             append("$domain/$apiSuffix")
                 
-            if (!filter.query.isNullOrEmpty() || !filter.author.isNullOrEmpty() || filter.tags.isNotEmpty()) {
+            if (!filter.query.isNullOrEmpty() ||
+				!filter.author.isNullOrEmpty() ||
+				filter.tags.isNotEmpty()
+			) {
                 append("/advance-search?page=")
                 append(page)
                 append("&max=18") // page size, avoid rate limit
-                                
-                when {
-                	!filter.query.isNullOrEmpty() -> {
-                    	append("&name=")
-                        append(filter.query.urlEncoded())
-                    }
 
-                    !filter.author.isNullOrEmpty() -> {
-                        append("&author=")
-                        append(filter.author.urlEncoded())
-                    }
+				if (!filter.query.isNullOrEmpty()) {
+					append("&name=")
+					append(filter.query.urlEncoded())
+				}
 
-                    filter.tags.isNotEmpty() -> {
-                        append("&genre=")
-                        append(filter.tags.joinToString(",") { it.key })
-                    }
+                if (!filter.author.isNullOrEmpty()) {
+                    append("&author=")
+                    append(filter.author.urlEncoded())
+				}
 
-			  		filter.tagsExclude.isNotEmpty() -> {
-						append("&ex=")
-						append(filter.tagsExclude.joinToString(",") { it.key })
-			  		}
-                }
+                if (filter.tags.isNotEmpty()) {
+                    append("&genre=")
+                    append(filter.tags.joinToString(",") { it.key })
+				}
+
+				if (filter.tagsExclude.isNotEmpty()) {
+					append("&ex=")
+					append(filter.tagsExclude.joinToString(",") { it.key })
+				}
                                 
                 append("&sort=")
                 append(
