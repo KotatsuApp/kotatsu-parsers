@@ -11,15 +11,51 @@ import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.AbstractMangaParser
-import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.ContentRating.SAFE
 import org.koitharu.kotatsu.parsers.model.ContentRating.SUGGESTIVE
-import org.koitharu.kotatsu.parsers.model.ContentType.*
-import org.koitharu.kotatsu.parsers.model.MangaState.*
-import org.koitharu.kotatsu.parsers.model.SortOrder.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.model.ContentType.COMICS
+import org.koitharu.kotatsu.parsers.model.ContentType.MANGA
+import org.koitharu.kotatsu.parsers.model.ContentType.MANHUA
+import org.koitharu.kotatsu.parsers.model.ContentType.MANHWA
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState.ABANDONED
+import org.koitharu.kotatsu.parsers.model.MangaState.FINISHED
+import org.koitharu.kotatsu.parsers.model.MangaState.ONGOING
+import org.koitharu.kotatsu.parsers.model.MangaState.PAUSED
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED
+import org.koitharu.kotatsu.parsers.model.SortOrder.ADDED_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL
+import org.koitharu.kotatsu.parsers.model.SortOrder.ALPHABETICAL_DESC
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY
+import org.koitharu.kotatsu.parsers.model.SortOrder.POPULARITY_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.RATING
+import org.koitharu.kotatsu.parsers.model.SortOrder.RATING_ASC
+import org.koitharu.kotatsu.parsers.model.SortOrder.RELEVANCE
+import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED
+import org.koitharu.kotatsu.parsers.model.SortOrder.UPDATED_ASC
+import org.koitharu.kotatsu.parsers.util.LinkResolver
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrlOrNull
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.getCookies
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.mapToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.parseSafe
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.EnumSet
+import java.util.Locale
 
 @MangaSourceParser("WEEBCENTRAL", "Weeb Central", "en")
 internal class WeebCentral(context: MangaLoaderContext) : AbstractMangaParser(context, MangaParserSource.WEEBCENTRAL),
@@ -66,9 +102,9 @@ internal class WeebCentral(context: MangaLoaderContext) : AbstractMangaParser(co
 		val document = webClient.httpGet("https://$domain/search")
 			.parseHtml()
 
-		val tags = document.select("section[x-show=show_filter] div:contains(tags) ~ fieldset label").mapToSet {
+		val tags = document.select("section[x-show=show_filter] div:contains(tags) fieldset label").mapToSet {
 			MangaTag(
-				title = it.selectFirstOrThrow(".label-text").text(),
+				title = it.selectFirstOrThrow("span").text(),
 				key = it.selectFirstOrThrow("input[id$=value]").attr("value"),
 				source = source,
 			)
