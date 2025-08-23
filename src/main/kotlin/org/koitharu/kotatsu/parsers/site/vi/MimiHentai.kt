@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -12,6 +13,7 @@ import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken("Request from site owner: Open webview to read")
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
 internal class MimiHentai(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MIMIHENTAI, 18) {
@@ -32,20 +34,8 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		)
 	}
 
-	private val preferredServerKey = ConfigKey.PreferredImageServer(
-		presetValues = mapOf(
-			"original" to "Server ảnh gốc (Original)",
-			"600" to "Nén xuống 600x",
-			"800" to "Nén xuống 800x",
-			"1200" to "Nén xuống 1200x",
-			"1600" to "Nén xuống 1600x",
-		),
-		defaultValue = "original",
-	)
-
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
-		keys.add(preferredServerKey)
 		keys.remove(userAgentKey)
 	}
 
@@ -286,23 +276,12 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val json = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseJson()
-		val imageUrls = json.getJSONArray("pages").asTypedList<String>()
-		val server = config[preferredServerKey] ?: "original"
-		return imageUrls.map { url ->
-			val finalUrl = when (server) {
-				"original" -> url
-				else -> {
-					val cleanUrl = url.removePrefix("http://").removePrefix("https://")
-					"https://i0.wp.com/$cleanUrl?w=$server"
-				}
-			}
-			MangaPage(
-				id = generateUid(url),
-				url = finalUrl,
-				preview = null,
-				source = source,
-			)
-		}
+
+		val info = json.getJSONObject("info")
+		val manga = info.getJSONObject("manga")
+
+		val chapterUrl = "https://$domain/g/${manga.getInt("id")}/chapter/${info.getString("title")}-${info.getInt("id")}"
+		context.requestBrowserAction(this, chapterUrl)
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
