@@ -76,16 +76,14 @@ internal abstract class LibSocialParser(
 		),
 	)
 
-	override fun intercept(chain: Interceptor.Chain): Response {
+	final override fun intercept(chain: Interceptor.Chain): Response {
 		val token = runBlocking { getAuthData() }?.optJSONObject("token")?.getStringOrNull("access_token")
-		return if (!token.isNullOrEmpty()) {
-			val request = chain.request().newBuilder()
-				.header("Authorization", "Bearer $token")
-				.build()
-			chain.proceed(request)
-		} else {
-			super.intercept(chain)
+		val requestBuilder = chain.request().newBuilder()
+		if (!token.isNullOrEmpty()) {
+			requestBuilder.header("Authorization", "Bearer $token")
 		}
+		requestBuilder.header("Site-Id", siteId.toString())
+		return chain.proceed(requestBuilder.build())
 	}
 
 	private val statesMap = intObjectMapOf(
