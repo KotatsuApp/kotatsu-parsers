@@ -10,7 +10,7 @@ internal class CartelDeManhwas(context: MangaLoaderContext) :
 	MangaReaderParser(
 		context,
 		MangaParserSource.CARTELDEMANHWAS,
-		"carteldemanhwas.com",
+		"carteldemanhwas.net",
 		pageSize = 20,
 		searchPageSize = 20,
 	) {

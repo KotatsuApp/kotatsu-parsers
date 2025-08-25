@@ -16,7 +16,7 @@ internal class WaMangaParser(
 	context: MangaLoaderContext,
 ) : SinglePageMangaParser(context, MangaParserSource.WAMANGA) {
 
-	override val configKeyDomain = ConfigKey.Domain("wamanga.me")
+	override val configKeyDomain = ConfigKey.Domain("wamanga.ru")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.ALPHABETICAL)
 

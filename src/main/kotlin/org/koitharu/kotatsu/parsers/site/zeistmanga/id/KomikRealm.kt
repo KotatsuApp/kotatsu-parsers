@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 
 @MangaSourceParser("KOMIKREALM", "KomikRealm", "id")
 internal class KomikRealm(context: MangaLoaderContext) :
-	ZeistMangaParser(context, MangaParserSource.KOMIKREALM, "www.komikrealm.my.id")
+	ZeistMangaParser(context, MangaParserSource.KOMIKREALM, "komikrealm.org")
