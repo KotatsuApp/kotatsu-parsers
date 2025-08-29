@@ -184,18 +184,34 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-		return doc.select("div.text-center img.max-w-full.my-0.mx-auto").map { img ->
-			val url = img.attr("src") ?: img.attr("data-src")
-				?: throw ParseException("Image src not found!", chapter.url)
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
-	}
+    val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+
+    val scriptContent = doc.selectFirst("script:containsData(window.encryptionConfig)")
+        ?.data()
+        ?: throw ParseException("Không tìm thấy script 'window.encryptionConfig'.", chapter.url)
+
+    val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?\])""")
+    val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1)
+        ?: throw ParseException("Không tìm thấy mảng 'fallbackUrls' trong script.", chapter.url)
+
+    val urlRegex = Regex("""(https?:\\?/\\?[^"]+\.(?:jpg|jpeg|png|webp|gif))""")
+    val imageUrls = urlRegex.findAll(arrayString).map {
+        it.groupValues[1].replace("\\/", "/")
+    }.toList()
+
+    if (imageUrls.isEmpty()) {
+        throw ParseException("Không tìm thấy URL ảnh hợp lệ nào trong 'fallbackUrls'.", chapter.url)
+    }
+
+    return imageUrls.map { url ->
+        MangaPage(
+            id = generateUid(url),
+            url = url,
+            preview = null,
+            source = source,
+        )
+      }
+    }
 
 	private fun parseChapterDate(date: String?): Long {
 		if (date == null) return 0
