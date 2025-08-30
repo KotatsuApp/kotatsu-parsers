@@ -96,7 +96,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 					)
 				}
 
-				return@buildString
+				return@buildString // end of buildString
 			}
 
 			append("https://")
