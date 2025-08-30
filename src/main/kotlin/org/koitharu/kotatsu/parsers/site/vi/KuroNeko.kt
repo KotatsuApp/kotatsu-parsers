@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -12,6 +15,14 @@ import java.util.*
 internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("vi-hentai.moe")
+
+	companion object {
+		private const val REQUEST_DELAY_MS = 1500L
+		private const val SEARCH_RESULT_LIMIT = 24
+	}
+
+	private val requestMutex = Mutex()
+	private var lastRequestTime = 0L
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -41,6 +52,15 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		requestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastRequestTime
+			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
+				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastRequestTime = System.currentTimeMillis()
+		}
+
 		val url = buildString {
 			if (!filter.author.isNullOrEmpty()) {
 				clear()
@@ -76,7 +96,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 					)
 				}
 
-				return@buildString // end of buildString
+				return@buildString
 			}
 
 			append("https://")
@@ -129,30 +149,41 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 
 		val doc = webClient.httpGet(url).parseHtml()
 
-		return doc.select("div.grid div.relative").map { div ->
-			val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
-				?: div.parseFailed("Không thể tìm thấy nguồn ảnh của Manga này!")
-			val coverUrl = div.selectFirst("div.cover")?.attr("style")
-				?.substringAfter("url('")?.substringBefore("')")
+		return doc.select("div.grid div.relative")
+			.take(SEARCH_RESULT_LIMIT)
+			.map { div ->
+				val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
+					?: div.parseFailed("Không thể tìm thấy nguồn ảnh của Manga này!")
+				val coverUrl = div.selectFirst("div.cover")?.attr("style")
+					?.substringAfter("url('")?.substringBefore("')")
 
-			Manga(
-				id = generateUid(href),
-				title = div.select("div.p-2 a.text-ellipsis").text(),
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				rating = RATING_UNKNOWN,
-				contentRating = ContentRating.ADULT,
-				coverUrl = coverUrl.orEmpty(),
-				tags = setOf(),
-				state = null,
-				authors = emptySet(),
-				source = source,
-			)
-		}
+				Manga(
+					id = generateUid(href),
+					title = div.select("div.p-2 a.text-ellipsis").text(),
+					altTitles = emptySet(),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					contentRating = ContentRating.ADULT,
+					coverUrl = coverUrl.orEmpty(),
+					tags = setOf(),
+					state = null,
+					authors = emptySet(),
+					source = source,
+				)
+			}
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
+		requestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastRequestTime
+			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
+				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastRequestTime = System.currentTimeMillis()
+		}
+
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
@@ -197,8 +228,9 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
-		return doc.select("div.text-center img.lazy").mapNotNull { img ->
-			val url = img.requireSrc()
+
+		return doc.select("div.text-center img.max-w-full").mapNotNull { img ->
+			val url = img.attrOrNull("src") ?: return@mapNotNull null
 			MangaPage(
 				id = generateUid(url),
 				url = url,
