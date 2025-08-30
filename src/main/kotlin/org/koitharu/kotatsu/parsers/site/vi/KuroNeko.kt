@@ -229,11 +229,20 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		return doc.select("div.text-center img.max-w-full").mapNotNull { img ->
+		return doc.select("div.text-center img").mapNotNull { img ->
 			val url = img.attrOrNull("src") ?: return@mapNotNull null
+			
+			val finalUrl = if (url.isBlank() && !img.attr("data-src").isNullOrBlank()) {
+				img.attr("data-src")
+			} else {
+				url
+			}
+			
+			if(finalUrl.isBlank()) return@mapNotNull null
+
 			MangaPage(
-				id = generateUid(url),
-				url = url,
+				id = generateUid(finalUrl),
+				url = finalUrl,
 				preview = null,
 				source = source,
 			)
