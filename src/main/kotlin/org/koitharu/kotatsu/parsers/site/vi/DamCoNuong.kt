@@ -186,39 +186,37 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
     val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 
-    val scriptImages = doc.selectFirst("script:containsData(window.encryptionConfig)")?.data()?.let { scriptContent ->
+    doc.selectFirst("script:containsData(window.encryptionConfig)")?.data()?.let { scriptContent ->
         val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?\])""")
-        val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1) ?: return@let null
-
+        val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1) ?: return@let
         val urlRegex = Regex("""(https?:\\?/\\?[^"]+\.(?:jpg|jpeg|png|webp|gif))""")
-        urlRegex.findAll(arrayString).map {
+        val scriptImages = urlRegex.findAll(arrayString).map {
             it.groupValues[1].replace("\\/", "/")
-        }.toList().takeIf { it.isNotEmpty() }
-    }
+        }.toList()
 
-    if (scriptImages != null) {
-        return scriptImages.map { url ->
-            MangaPage(
-                id = generateUid(url),
-                url = url,
-                preview = null,
-                source = source,
-            )
+        if (scriptImages.isNotEmpty()) {
+            return scriptImages.map { url ->
+                MangaPage(id = generateUid(url), url = url, preview = null, source = source)
+            }
         }
     }
 
-    val tagImages = doc.select("div#chapter-content img[src]")
-    if (tagImages.isNotEmpty()) {
-        return tagImages.map { imgElement ->
-            val imageUrl = imgElement.attr("abs:src").trim()
-            MangaPage(
-                id = generateUid(imageUrl),
-                url = imageUrl,
-                preview = null,
-                source = source,
-            )
+    val tagImagePages = doc.select("div#chapter-content img").mapNotNull { img ->
+        val imageUrl = (img.attr("abs:src").takeIf { it.isNotBlank() }
+            ?: img.attr("abs:data-src").takeIf { it.isNotBlank() })
+            ?.trim()
+
+        imageUrl?.let {
+            MangaPage(id = generateUid(it), url = it, preview = null, source = source)
         }
     }
+
+    if (tagImagePages.isNotEmpty()) {
+        return tagImagePages
+    }
+
+    throw ParseException("Không tìm thấy bất kỳ nguồn ảnh nào (đã thử cả script và thẻ img).", chapter.url)
+}
 
 	private fun parseChapterDate(date: String?): Long {
 		if (date == null) return 0
