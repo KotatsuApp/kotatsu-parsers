@@ -186,31 +186,38 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
     val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 
-    val scriptContent = doc.selectFirst("script:containsData(window.encryptionConfig)")
-        ?.data()
-        ?: throw ParseException("Không tìm thấy script 'window.encryptionConfig'.", chapter.url)
+    val scriptImages = doc.selectFirst("script:containsData(window.encryptionConfig)")?.data()?.let { scriptContent ->
+        val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?\])""")
+        val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1) ?: return@let null
 
-    val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?\])""")
-    val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1)
-        ?: throw ParseException("Không tìm thấy mảng 'fallbackUrls' trong script.", chapter.url)
-
-    val urlRegex = Regex("""(https?:\\?/\\?[^"]+\.(?:jpg|jpeg|png|webp|gif))""")
-    val imageUrls = urlRegex.findAll(arrayString).map {
-        it.groupValues[1].replace("\\/", "/")
-    }.toList()
-
-    if (imageUrls.isEmpty()) {
-        throw ParseException("Không tìm thấy URL ảnh hợp lệ nào trong 'fallbackUrls'.", chapter.url)
+        val urlRegex = Regex("""(https?:\\?/\\?[^"]+\.(?:jpg|jpeg|png|webp|gif))""")
+        urlRegex.findAll(arrayString).map {
+            it.groupValues[1].replace("\\/", "/")
+        }.toList().takeIf { it.isNotEmpty() }
     }
 
-    return imageUrls.map { url ->
-        MangaPage(
-            id = generateUid(url),
-            url = url,
-            preview = null,
-            source = source,
-        )
-      }
+    if (scriptImages != null) {
+        return scriptImages.map { url ->
+            MangaPage(
+                id = generateUid(url),
+                url = url,
+                preview = null,
+                source = source,
+            )
+        }
+    }
+
+    val tagImages = doc.select("div#chapter-content img[src]")
+    if (tagImages.isNotEmpty()) {
+        return tagImages.map { imgElement ->
+            val imageUrl = imgElement.attr("abs:src").trim()
+            MangaPage(
+                id = generateUid(imageUrl),
+                url = imageUrl,
+                preview = null,
+                source = source,
+            )
+        }
     }
 
 	private fun parseChapterDate(date: String?): Long {
