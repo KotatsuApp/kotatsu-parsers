@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -13,6 +16,14 @@ import java.util.*
 internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("truyenqqgo.com")
+
+	companion object {
+		private const val REQUEST_DELAY_MS = 1500L
+		private const val SEARCH_RESULT_LIMIT = 24
+	}
+
+	private val requestMutex = Mutex()
+	private var lastRequestTime = 0L
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
@@ -44,6 +55,15 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+		requestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastRequestTime
+			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
+				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastRequestTime = System.currentTimeMillis()
+		}
+
 		val url = when {
 			!filter.query.isNullOrEmpty() -> {
 				buildString {
@@ -117,23 +137,25 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 			}
 		}
 		val doc = webClient.httpGet(url).parseHtml()
-		return doc.requireElementById("main_homepage").select("li").map { li ->
-			val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
-			Manga(
-				id = generateUid(href),
-				title = li.selectFirst(".book_name")?.text().orEmpty(),
-				altTitles = emptySet(),
-				url = href,
-				publicUrl = href.toAbsoluteUrl(domain),
-				rating = RATING_UNKNOWN,
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-				coverUrl = li.selectFirst("img")?.src().orEmpty(),
-				tags = emptySet(),
-				state = null,
-				authors = emptySet(),
-				source = source,
-			)
-		}
+		return doc.requireElementById("main_homepage").select("li")
+			.take(SEARCH_RESULT_LIMIT)
+			.map { li ->
+				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
+				Manga(
+					id = generateUid(href),
+					title = li.selectFirst(".book_name")?.text().orEmpty(),
+					altTitles = emptySet(),
+					url = href,
+					publicUrl = href.toAbsoluteUrl(domain),
+					rating = RATING_UNKNOWN,
+					contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+					coverUrl = li.selectFirst("img")?.src().orEmpty(),
+					tags = emptySet(),
+					state = null,
+					authors = emptySet(),
+					source = source,
+				)
+			}
 	}
 
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
@@ -148,6 +170,15 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
+		requestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastRequestTime
+			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
+				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastRequestTime = System.currentTimeMillis()
+		}
+
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 		val author = doc.selectFirst("li.author a")?.text()
