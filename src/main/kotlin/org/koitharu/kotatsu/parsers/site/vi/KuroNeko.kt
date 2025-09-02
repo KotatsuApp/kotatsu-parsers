@@ -20,6 +20,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		private const val PAGES_REQUEST_DELAY_MS = 5000L
 		private val pagesRequestMutex = Mutex()
 		private var lastPagesRequestTime = 0L
+		const val PATH = "AxsAEQdJWk4YDUkHDgcVEwxaBQoHShIXHwYbD1seHAwHOwAKCAYFFw==\n"
 	}
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
@@ -207,21 +208,21 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-    val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
+		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 
-    return doc.select("div.text-center img").mapNotNull { img ->
-        val url = img.attr("src").takeIf { it.isNotBlank() } 
-            ?: img.attr("data-src").takeIf { it.isNotBlank() }
-            ?: return@mapNotNull null
+		return doc.select("div.text-center img").mapNotNull { img ->
+			val url = img.attr("src").takeIf { it.isNotBlank() }
+				?: img.attr("data-src").takeIf { it.isNotBlank() }
+				?: return@mapNotNull null
 
-        MangaPage(
-            id = generateUid(url),
-            url = url,
-            preview = null,
-            source = source,
-        )
-      }
-    }
+			MangaPage(
+				id = generateUid(url),
+				url = url,
+				preview = null,
+				source = source,
+			)
+		}
+	}
 
 	private suspend fun availableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/tim-kiem").parseHtml()
@@ -254,7 +255,4 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		calendar.timeInMillis
 	}.getOrDefault(0L)
 
-	companion object {
-		const val PATH = "AxsAEQdJWk4YDUkHDgcVEwxaBQoHShIXHwYbD1seHAwHOwAKCAYFFw==\n"
-	}
 }
