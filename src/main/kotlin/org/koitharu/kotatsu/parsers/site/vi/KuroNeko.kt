@@ -238,4 +238,8 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		)
 		calendar.timeInMillis
 	}.getOrDefault(0L)
+
+	companion object {
+		const val PATH = "AxsAEQdJWk4YDUkHDgcVEwxaBQoHShIXHwYbD1seHAwHOwAKCAYFFw==\n"
+	}
 }
