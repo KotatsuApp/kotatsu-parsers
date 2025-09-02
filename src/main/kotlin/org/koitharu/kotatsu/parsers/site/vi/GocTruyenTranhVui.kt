@@ -18,7 +18,11 @@ import java.util.*
 @MangaSourceParser("GOCTRUYENTRANHVUI", "Góc Truyện Tranh Vui", "vi")
 internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.GOCTRUYENTRANHVUI, 50) {
 
-    override val configKeyDomain = ConfigKey.Domain("goctruyentranhvui17.com")
+    init {
+        setFirstPage(0)
+	}
+	
+	override val configKeyDomain = ConfigKey.Domain("goctruyentranhvui17.com")
     private val apiUrl by lazy { "https://$domain/api/v2" }
     
 
@@ -57,9 +61,9 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
         enforceRateLimit()
-        val url = buildString {
-            append(apiUrl)
-            append("/search?p=${page - 1}")
+         val url = buildString {
+          append(apiUrl)
+          append("/search?p=$page")
             if (!filter.query.isNullOrBlank()) {
                 append("&searchValue=${filter.query.urlEncoded()}")
             }
