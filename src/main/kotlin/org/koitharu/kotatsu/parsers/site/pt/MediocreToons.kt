@@ -188,7 +188,7 @@ internal class MediocreToons(context: MangaLoaderContext) : PagedMangaParser(
 
 		val chapters = response.optJSONArray("capitulos")?.mapJSON { chapterJson ->
 			parseChapter(chapterJson)
-		} ?: emptyList()
+		}?.sortedBy { it.number } ?: emptyList()
 
 		return manga.copy(
 			title = response.optString("nome", manga.title),
@@ -204,7 +204,7 @@ internal class MediocreToons(context: MangaLoaderContext) : PagedMangaParser(
 		val chapterName = json.getString("nome")
 		val chapterDate = json.optString("criado_em")
 
-		val chapterNumber = json.optString("numero", "0").toFloatOrNull() ?: 0f
+		val chapterNumber = json.optString("numero").toFloat()
 
 		return MangaChapter(
 			id = generateUid(chapterId.toLong()),
