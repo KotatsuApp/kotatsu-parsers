@@ -280,7 +280,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val url = context.decodeBase64(KuroNeko.PATH)
-			.decodeXorCipher(PWD)
+			.decodeXorCipher()
 			.toString(Charsets.UTF_8) + "/" + chapter.url
 		val json = webClient.httpGet(url).parseJson()
 		return json.getJSONArray("pages").mapJSON { jo ->
@@ -426,8 +426,9 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		return result
 	}
 
-	private fun ByteArray.decodeXorCipher(key: String): ByteArray {
-		val k = key.toByteArray(Charsets.UTF_8)
+	private fun ByteArray.decodeXorCipher(): ByteArray {
+		val k = "kotatsuanddokiarethebest"
+			.toByteArray(Charsets.UTF_8)
 
 		return this.mapIndexed { i, b ->
 			(b.toInt() xor k[i % k.size].toInt()).toByte()
@@ -448,6 +449,5 @@ internal class MimiHentai(context: MangaLoaderContext) :
 
 	companion object {
 		private const val GT = "gt="
-		private const val PWD = "kotatsuanddokiarethebest"
 	}
 }
