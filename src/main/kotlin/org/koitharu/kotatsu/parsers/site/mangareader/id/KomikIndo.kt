@@ -6,11 +6,13 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.Broken
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.EnumSet
 
+@Broken
 @MangaSourceParser("KOMIKINDO_MOE", "KomikIndo.org", "id", ContentType.HENTAI)
 internal class KomikIndo(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.KOMIKINDO_MOE, "komikindo.ch", pageSize = 30, searchPageSize = 30) {

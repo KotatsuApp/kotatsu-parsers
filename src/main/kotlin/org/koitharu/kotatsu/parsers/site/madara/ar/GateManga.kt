@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // Website closed
 @MangaSourceParser("GATEMANGA", "GateManga", "ar")
 internal class GateManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.GATEMANGA, "gatemanga.com") {

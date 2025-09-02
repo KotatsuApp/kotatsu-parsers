@@ -4,8 +4,10 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.Broken
 import java.util.*
 
+@Broken
 @MangaSourceParser("MANHUAKEY", "ManhuaKey", "th")
 internal class Manhuakey(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANHUAKEY, "www.manhuakey.com", 10) {
