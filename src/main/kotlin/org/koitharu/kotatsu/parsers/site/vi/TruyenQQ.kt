@@ -1,5 +1,8 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -10,7 +13,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @MangaSourceParser("TRUYENQQ", "TruyenQQ", "vi")
-internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
+internal class TruyenQQ(context: MangaLoaderContext):
+	PagedMangaParser(context, MangaParserSource.TRUYENQQ, 42) {
 
 	override val configKeyDomain = ConfigKey.Domain("truyenqqgo.com")
 
@@ -189,6 +193,15 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		// Apply rate limiting specifically for fetching pages
+		pagesRequestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastPagesRequestTime
+			if (timeSinceLastRequest < PAGES_REQUEST_DELAY_MS) {
+				delay(PAGES_REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastPagesRequestTime = System.currentTimeMillis()
+		}
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow(".chapter_content")
@@ -202,5 +215,11 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 				source = source,
 			)
 		}
+	}
+
+	companion object {
+		private const val PAGES_REQUEST_DELAY_MS = 5000L
+		private val pagesRequestMutex = Mutex()
+		private var lastPagesRequestTime = 0L
 	}
 }
