@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("SOLOOSCAN", "SolooScan", "pt")
 internal class SolooScan(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.SOLOOSCAN, "solooscan.blogspot.com") {

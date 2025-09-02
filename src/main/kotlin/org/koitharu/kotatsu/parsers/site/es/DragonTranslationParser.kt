@@ -6,8 +6,10 @@ import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.Broken
 import java.util.*
 
+@Broken // Website closed
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {
 

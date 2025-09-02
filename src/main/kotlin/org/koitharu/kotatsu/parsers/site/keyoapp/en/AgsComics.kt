@@ -7,7 +7,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.keyoapp.KeyoappParser
 import org.koitharu.kotatsu.parsers.util.styleValueOrNull
 import org.koitharu.kotatsu.parsers.util.cssUrl
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // It seems like the site is dead.
 @MangaSourceParser("AGSCOMICS", "AgsComics", "en")
 internal class AgsComics(context: MangaLoaderContext) :
 	KeyoappParser(context, MangaParserSource.AGSCOMICS, "agrcomics.com") {

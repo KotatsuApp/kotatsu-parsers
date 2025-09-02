@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // Host error
 @MangaSourceParser("STICKHORSE", "StickHorse", "es")
 internal class Stickhorse(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.STICKHORSE, "www.stickhorse.cl") {

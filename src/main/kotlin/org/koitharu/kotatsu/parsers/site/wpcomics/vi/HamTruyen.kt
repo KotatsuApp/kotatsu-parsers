@@ -13,7 +13,9 @@ import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.textOrNull
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken // The website is not responding, it may be closed.
 @MangaSourceParser("HAMTRUYEN", "Ham Truyện", "vi")
 internal class HamTruyen(context: MangaLoaderContext) :
 	WpComicsParser(context, MangaParserSource.HAMTRUYEN, "hamtruyen1.com", 44) {

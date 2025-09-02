@@ -12,9 +12,11 @@ import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrlOrNull
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.mapChapters
 import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.Broken
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken // Seems closed
 @MangaSourceParser("HENTAIZONE", "HentaiZone", "fr", ContentType.HENTAI)
 internal class Hentaizone(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HENTAIZONE, "hentaizone.xyz", pageSize = 10) {

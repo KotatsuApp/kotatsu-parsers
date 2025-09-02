@@ -7,9 +7,11 @@ import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.Broken
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken // The website is broken, it seems to be closed already.
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
 internal class ComicExtra(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.COMICEXTRA, 36) {
