@@ -299,14 +299,20 @@ internal class SussyScan(context: MangaLoaderContext) : PagedMangaParser(
 		val mangaId = chapterData.optJSONObject("obra")?.optInt("obr_id")
 			?: throw Exception("Manga ID not found")
 
-		val chapterNumber = chapterData.optDouble("cap_numero").let {
-			if (it > 0) {
-				if (it % 1 == 0.0) it.toInt().toString() else it.toString()
-			} else {
-				chapterData.optString("cap_nome", "")
-					.substringAfter("Capítulo ", "")
-					.substringBefore(" ")
-					.replace(",", ".")
+		val chapterNumber = chapterData.optDouble("cap_numero").let { num ->
+			when {
+				num > 0 -> {
+					if (num % 1 == 0.0) num.toInt().toString() else num.toString().replace(".", "_")
+				}
+
+				else -> {
+					chapterData.optString("cap_nome", "")
+						.substringAfter("Capítulo ", "")
+						.substringBefore(" ")
+						.replace(",", ".")
+						.replace(".", "_")
+						.ifEmpty { "0" }
+				}
 			}
 		}
 
@@ -318,12 +324,15 @@ internal class SussyScan(context: MangaLoaderContext) : PagedMangaParser(
 			val imageUrl = when {
 				// Already a full URL
 				pageSrc.startsWith("http") -> pageSrc
-				// WordPress manga path (starts with /)
-				pageSrc.startsWith("/") && pageSrc.contains("/") -> "$cdnUrl/wp-content/uploads/WP-manga/data$pageSrc"
-				// Legacy WordPress path
+				// WordPress manga path, looks like: "manga_.../hash/001.webp"
+				pageSrc.startsWith("manga_") -> "$cdnUrl/wp-content/uploads/WP-manga/data/$pageSrc"
+				// WordPress legacy path: "wp-content/uploads/..."
 				pageSrc.startsWith("wp-content") -> "$cdnUrl/$pageSrc"
 				// Simple filename (like "001.webp")
-				else -> "$cdnUrl/scans/$scanId/obras/$mangaId/capitulos/$chapterNumber/$pageSrc"
+				else -> {
+					val safeChapterNumber = chapterNumber.replace(".", "_")
+					"$cdnUrl/scans/$scanId/obras/$mangaId/capitulos/$safeChapterNumber/$pageSrc"
+				}
 			}
 
 			MangaPage(
