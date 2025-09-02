@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -9,7 +10,8 @@ import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
 @MangaSourceParser("KURONEKO", "Kuro Neko / vi-Hentai", "vi", type = ContentType.HENTAI)
-internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.KURONEKO, 60) {
+internal class KuroNeko(context: MangaLoaderContext):
+	PagedMangaParser(context, MangaParserSource.KURONEKO, 30) {
 
 	override val configKeyDomain = ConfigKey.Domain("vi-hentai.moe")
 
@@ -127,7 +129,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 			}
 		}
 
-		val doc = webClient.httpGet(url).parseHtml()
+		val doc = parseHttp(url) { it }
 
 		return doc.select("div.grid div.relative").map { div ->
 			val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
@@ -153,7 +155,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
+		val root = parseHttp(manga.url.toAbsoluteUrl(domain)) { it }
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 
 		return manga.copy(
@@ -195,10 +197,12 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
+		val doc = parseHttp(chapter.url.toAbsoluteUrl(domain)) { it }
 		return doc.select("div.text-center img.lazy").mapNotNull { img ->
-			val url = img.requireSrc()
+			val url = img.attr("src").takeIf { it.isNotBlank() }
+				?: img.attr("data-src").takeIf { it.isNotBlank() }
+				?: return@mapNotNull null
+
 			MangaPage(
 				id = generateUid(url),
 				url = url,
@@ -238,6 +242,14 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		)
 		calendar.timeInMillis
 	}.getOrDefault(0L)
+
+	private suspend fun <T> parseHttp(url: String, block: (Document) -> T): T {
+		// 15 reqs / minute
+		kotlinx.coroutines.delay(4000L)
+		val doc = webClient.httpGet(url).parseHtml()
+		return block(doc)
+	}
+
 
 	companion object {
 		const val PATH = "AxsAEQdJWk4YDUkHDgcVEwxaBQoHShIXHwYbD1seHAwHOwAKCAYFFw==\n"
