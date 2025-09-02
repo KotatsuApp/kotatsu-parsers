@@ -18,12 +18,10 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	override val configKeyDomain = ConfigKey.Domain("truyenqqgo.com")
 
 	companion object {
-		private const val REQUEST_DELAY_MS = 1500L
-		private const val SEARCH_RESULT_LIMIT = 24
+		private const val PAGES_REQUEST_DELAY_MS = 5000L
+		private val pagesRequestMutex = Mutex()
+		private var lastPagesRequestTime = 0L
 	}
-
-	private val requestMutex = Mutex()
-	private var lastRequestTime = 0L
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(
@@ -55,15 +53,6 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	)
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		requestMutex.withLock {
-			val currentTime = System.currentTimeMillis()
-			val timeSinceLastRequest = currentTime - lastRequestTime
-			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
-				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
-			}
-			lastRequestTime = System.currentTimeMillis()
-		}
-
 		val url = when {
 			!filter.query.isNullOrEmpty() -> {
 				buildString {
@@ -138,7 +127,6 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 		val doc = webClient.httpGet(url).parseHtml()
 		return doc.requireElementById("main_homepage").select("li")
-			.take(SEARCH_RESULT_LIMIT)
 			.map { li ->
 				val href = li.selectFirstOrThrow("a").attrAsRelativeUrl("href")
 				Manga(
@@ -170,15 +158,6 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga {
-		requestMutex.withLock {
-			val currentTime = System.currentTimeMillis()
-			val timeSinceLastRequest = currentTime - lastRequestTime
-			if (timeSinceLastRequest < REQUEST_DELAY_MS) {
-				delay(REQUEST_DELAY_MS - timeSinceLastRequest)
-			}
-			lastRequestTime = System.currentTimeMillis()
-		}
-
 		val doc = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
 		val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.ENGLISH)
 		val author = doc.selectFirst("li.author a")?.text()
@@ -220,6 +199,16 @@ internal class TruyenQQ(context: MangaLoaderContext) : PagedMangaParser(context,
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+		// Apply rate limiting specifically for fetching pages
+		pagesRequestMutex.withLock {
+			val currentTime = System.currentTimeMillis()
+			val timeSinceLastRequest = currentTime - lastPagesRequestTime
+			if (timeSinceLastRequest < PAGES_REQUEST_DELAY_MS) {
+				delay(PAGES_REQUEST_DELAY_MS - timeSinceLastRequest)
+			}
+			lastPagesRequestTime = System.currentTimeMillis()
+		}
+
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 		val root = doc.body().selectFirstOrThrow(".chapter_content")
