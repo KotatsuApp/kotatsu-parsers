@@ -187,7 +187,7 @@ internal class DamCoNuong(context: MangaLoaderContext) :
     val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 
     doc.selectFirst("script:containsData(window.encryptionConfig)")?.data()?.let { scriptContent ->
-        val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?\])""")
+        val fallbackUrlsRegex = Regex(""""fallbackUrls"\s*:\s*(\[.*?])""")
         val arrayString = fallbackUrlsRegex.find(scriptContent)?.groupValues?.get(1) ?: return@let
         val urlRegex = Regex("""(https?:\\?/\\?[^"]+\.(?:jpg|jpeg|png|webp|gif))""")
         val scriptImages = urlRegex.findAll(arrayString).map {
