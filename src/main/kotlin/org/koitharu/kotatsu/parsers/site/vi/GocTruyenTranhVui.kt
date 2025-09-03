@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import androidx.collection.arraySetOf
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -44,7 +45,7 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
     )
 
     override suspend fun getFilterOptions() = MangaListFilterOptions(
-        availableTags = GTT_GENRES.map { MangaTag(key = it.second, title = it.first, source = source) }.distinctBy { it.key }.toSet(),
+        availableTags = availableTags(),
         availableStates = EnumSet.of(MangaState.ONGOING, MangaState.FINISHED)
     )
 
@@ -89,8 +90,8 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
             val tags = item.optJSONArray("category")?.let { arr ->
                 (0 until arr.length()).mapNotNullTo(mutableSetOf()) { index ->
                     val tagName = arr.getString(index)
-                    GTT_GENRES.find { it.first.equals(tagName, ignoreCase = true) }?.let { genrePair ->
-                        MangaTag(key = genrePair.second, title = genrePair.first, source = source)
+                    availableTags().find { it.title.equals(tagName, ignoreCase = true) }?.let { genrePair ->
+                        MangaTag(key = genrePair.key, title = genrePair.title, source = source)
                     }
                 }
             } ?: emptySet()
@@ -151,8 +152,8 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
         val doc = webClient.httpGet(manga.publicUrl).parseHtml()
 
         val detailTags = doc.select(".group-content > .v-chip-link").mapNotNullTo(mutableSetOf()) { el ->
-            GTT_GENRES.find { it.first.equals(el.text(), ignoreCase = true) }?.let {
-                MangaTag(key = it.second, title = it.first, source = source)
+            availableTags().find { it.title.equals(el.text(), ignoreCase = true) }?.let {
+                MangaTag(key = it.key, title = it.title, source = source)
             }
         }
 
@@ -221,56 +222,56 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
         }
     }
 
-    private val GTT_GENRES = listOf(
-        "Anime" to "ANI",
-        "Drama" to "DRA",
-        "Josei" to "JOS",
-        "Manhwa" to "MAW",
-        "One Shot" to "OSH",
-        "Shounen" to "SHO",
-        "Webtoons" to "WEB",
-        "Shoujo" to "SHJ",
-        "Harem" to "HAR",
-        "Ecchi" to "ECC",
-        "Mature" to "MAT",
-        "Slice of life" to "SOL",
-        "Isekai" to "ISE",
-        "Manga" to "MAG",
-        "Manhua" to "MAU",
-        "Hành Động" to "ACT",
-        "Phiêu Lưu" to "ADV",
-        "Hài Hước" to "COM",
-        "Võ Thuật" to "MAA",
-        "Huyền Bí" to "MYS",
-        "Lãng Mạn" to "ROM",
-        "Thể Thao" to "SPO",
-        "Học Đường" to "SCL",
-        "Lịch Sử" to "HIS",
-        "Kinh Dị" to "HOR",
-        "Siêu Nhiên" to "SUN",
-        "Bi Kịch" to "TRA",
-        "Trùng Sinh" to "RED",
-        "Game" to "GAM",
-        "Viễn Tưởng" to "FTS",
-        "Khoa Học" to "SCF",
-        "Truyện Màu" to "COI",
-        "Người Lớn" to "ADU",
-        "BoyLove" to "BBL",
-        "Hầm Ngục" to "DUN",
-        "Săn Bắn" to "HUNT",
-        "Ngôn Từ Nhạy Cảm" to "NTNC",
-        "Doujinshi" to "DOU",
-        "Bạo Lực" to "BLM",
-        "Ngôn Tình" to "NTT",
-        "Nữ Cường" to "NCT",
-        "Gender Bender" to "GDB",
-        "Murim" to "MRR",
-        "Leo Tháp" to "LTT",
-        "Nấu Ăn" to "COO"
+    private fun availableTags() = arraySetOf(
+        MangaTag("Anime", "ANI", source),
+        MangaTag("Drama", "DRA", source),
+        MangaTag("Josei", "JOS", source),
+        MangaTag("Manhwa", "MAW", source),
+        MangaTag("One Shot", "OSH", source),
+        MangaTag("Shounen", "SHO", source),
+        MangaTag("Webtoons", "WEB", source),
+        MangaTag("Shoujo", "SHJ", source),
+        MangaTag("Harem", "HAR", source),
+        MangaTag("Ecchi", "ECC", source),
+        MangaTag("Mature", "MAT", source),
+        MangaTag("Slice of life", "SOL", source),
+        MangaTag("Isekai", "ISE", source),
+        MangaTag("Manga", "MAG", source),
+        MangaTag("Manhua", "MAU", source),
+        MangaTag("Hành Động", "ACT", source),
+        MangaTag("Phiêu Lưu", "ADV", source),
+        MangaTag("Hài Hước", "COM", source),
+        MangaTag("Võ Thuật", "MAA", source),
+        MangaTag("Huyền Bí", "MYS", source),
+        MangaTag("Lãng Mạn", "ROM", source),
+        MangaTag("Thể Thao", "SPO", source),
+        MangaTag("Học Đường", "SCL", source),
+        MangaTag("Lịch Sử", "HIS", source),
+        MangaTag("Kinh Dị", "HOR", source),
+        MangaTag("Siêu Nhiên", "SUN", source),
+        MangaTag("Bi Kịch", "TRA", source),
+        MangaTag("Trùng Sinh", "RED", source),
+        MangaTag("Game", "GAM", source),
+        MangaTag("Viễn Tưởng", "FTS", source),
+        MangaTag("Khoa Học", "SCF", source),
+        MangaTag("Truyện Màu", "COI", source),
+        MangaTag("Người Lớn", "ADU", source),
+        MangaTag("BoyLove", "BBL", source),
+        MangaTag("Hầm Ngục", "DUN", source),
+        MangaTag("Săn Bắn", "HUNT", source),
+        MangaTag("Ngôn Từ Nhạy Cảm", "NTNC", source),
+        MangaTag("Doujinshi", "DOU", source),
+        MangaTag("Bạo Lực", "BLM", source),
+        MangaTag("Ngôn Tình", "NTT", source),
+        MangaTag("Nữ Cường", "NCT", source),
+        MangaTag("Gender Bender", "GDB", source),
+        MangaTag("Murim", "MRR", source),
+        MangaTag("Leo Tháp", "LTT", source),
+        MangaTag("Nấu Ăn", "COO", source)
     )
 
     companion object {
         private const val REQUEST_DELAY_MS = 350L
-        private const val TOKEN_KEY = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBbG9uZSBGb3JldmVyIiwiY29taWNJZHMiOltdLCJyb2xlSWQiOm51bGwsImdyb2VwSWQiOm51bGwsImFkbWluIjpmYWxzZSwicmFuayI6MCwicGVybWlzc2lvbiI6W10sImlkIjoiMDAwMTA4NDQyNSIsInRlYW0iOmZhbHNlLCJpYXQiOjE3NTM2OTgyOTAsImVtYWlsIjoibnVsbCJ9.HT080LGjvzfh6XAPmdDZhf5vhnzUhXI4GU8U6tzwlnXWjgMO4VdYL1jsSFWd-s3NBGt-OAt89XnzaQ03iqDyA"
+        private const val TOKEN_KEY = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJBbG9uZSBGb3JldmVyIiwiY29taWNJZHMiOltdLCJyb2xlSWQiOm51bGwsImdyb3VwSWQiOm51bGwsImFkbWluIjpmYWxzZSwicmFuayI6MCwicGVybWlzc2lvbiI6W10sImlkIjoiMDAwMTA4NDQyNSIsInRlYW0iOmZhbHNlLCJpYXQiOjE3NTM2OTgyOTAsImVtYWlsIjoibnVsbCJ9.HT080LGjvzfh6XAPmdDZhf5vhnzUhXI4GU8U6tzwlnXWjgMO4VdYL1jsSFWd-s3NBGt-OAt89XnzaQ03iqDyA"
     }
 }
