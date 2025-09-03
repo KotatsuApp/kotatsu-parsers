@@ -1,0 +1,29 @@
+[versions]
+kotlin = "2.0.20"
+ksp = "2.0.20-1.0.25"
+coroutines = "1.10.2"
+junit = "5.10.1"
+okhttp = "4.12.0"
+okio = "3.11.0"
+json = "20240303"
+androidx-collection = "1.5.0"
+jsoup = "1.19.1"
+quickjs = "1.1.0"
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+
+[libraries]
+ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
+kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
+junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
+junit-params = { group = "org.junit.jupiter", name = "junit-jupiter-params", version.ref = "junit" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+json = { module = "org.json:json", version.ref = "json" }
+androidx-collection = { module = "androidx.collection:collection", version.ref = "androidx-collection" }
+jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
+quickjs = { module = "io.webfolder:quickjs", version.ref = "quickjs" }
