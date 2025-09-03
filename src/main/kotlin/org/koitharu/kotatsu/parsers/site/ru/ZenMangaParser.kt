@@ -335,7 +335,7 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 
 				MangaPage(
 					id = generateUid(id),
-					url = "$imageUrl?width=1600",
+					url = "$imageUrl&width=1600",
 					preview = null,
 					source = source
 				)
