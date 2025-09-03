@@ -14,7 +14,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.json.JSONObject
 import java.util.*
 
-@MangaSourceParser("GOCTRUYENTRANHVUI", "Goc Truyen Tranh Vui", "vi")
+@MangaSourceParser("GOCTRUYENTRANHVUI", "Góc Truyện Tranh Vui", "vi")
 internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.GOCTRUYENTRANHVUI, 50) {
 
     override val configKeyDomain = ConfigKey.Domain("goctruyentranhvui17.com")
@@ -25,7 +25,7 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
 
     private val apiHeaders by lazy {
         Headers.Builder()
-            .add("Authorization", TOKEN_KEY) // Vẫn truy cập được TOKEN_KEY từ companion object
+            .add("Authorization", TOKEN_KEY)
             .add("Referer", "https://$domain/")
             .add("X-Requested-With", "XMLHttpRequest")
             .build()
