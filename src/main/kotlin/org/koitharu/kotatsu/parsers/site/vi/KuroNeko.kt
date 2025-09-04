@@ -16,6 +16,9 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	override val configKeyDomain = ConfigKey.Domain("vi-hentai.moe")
 
+	private val pagesRequestMutex = Mutex()
+	private var lastPagesRequestTime = 0L
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
@@ -259,8 +262,6 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 
 	companion object {
 		private const val PAGES_REQUEST_DELAY_MS = 5000L
-		private val pagesRequestMutex = Mutex()
-		private var lastPagesRequestTime = 0L
 		const val PATH = "AxsAEQdJWk4YDUkHDgcVEwxaBQoHShIXHwYbD1seHAwHOwAKCAYFFw==\n"
 	}
 }
