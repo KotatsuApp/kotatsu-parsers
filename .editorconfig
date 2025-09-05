@@ -3,12 +3,18 @@ root = true
 [*]
 charset = utf-8
 end_of_line = lf
-indent_style = tab
+indent_style = space
+indent_size = 4
 max_line_length = 120
-tab_width = 4
 insert_final_newline = true
+trim_trailing_whitespace = true
+# noinspection EditorConfigKeyCorrectness
 disabled_rules = no-wildcard-imports, no-unused-imports
 
-[{*.kt,*.kts}]
+[*.{kt,kts}]
 ij_kotlin_allow_trailing_comma = true
 ij_kotlin_allow_trailing_comma_on_call_site = true
+
+[*.md]
+indent_size = 2
+trim_trailing_whitespace = false
