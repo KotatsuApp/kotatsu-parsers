@@ -105,9 +105,7 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 				append("&keyword=")
 				append(filter.query.urlEncoded())
 			}
-
-
-
+			
 			if (page > 1) {
 				append("&page=")
 				append(page)
@@ -136,7 +134,6 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
-
 		return doc.select("div.grid div.relative")
 			.map { div ->
 				val href = div.selectFirst("a[href^=/truyen/]")?.attrOrNull("href")
@@ -187,7 +184,6 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 					val name = a.selectFirst("span.text-ellipsis")?.text().orEmpty()
 					val dateText = a.parent()?.selectFirst("span.timeago")?.attr("datetime").orEmpty()
 					val scanlator = root.selectFirst("div.mt-2:contains(Nhóm dịch) span a")?.textOrNull()
-
 					MangaChapter(
 						id = generateUid(href),
 						title = name,
@@ -214,12 +210,8 @@ internal class KuroNeko(context: MangaLoaderContext) : PagedMangaParser(context,
 		}
 
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
-
 		return doc.select("div.text-center img").mapNotNull { img ->
-			val url = img.attr("src").takeIf { it.isNotBlank() }
-				?: img.attr("data-src").takeIf { it.isNotBlank() }
-				?: return@mapNotNull null
-
+			val url = img.requireSrc()
 			MangaPage(
 				id = generateUid(url),
 				url = url,
