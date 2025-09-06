@@ -8,7 +8,6 @@ import org.json.JSONArray
 import org.json.JSONObject
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
-import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.InternalParsersApi
 import java.text.DateFormat
 
@@ -22,9 +21,9 @@ internal const val SCHEME_HTTPS = "https"
  */
 // TODO suspend
 public fun Response.parseHtml(): Document = use { response ->
-	val body = response.requireBody()
-	val charset = body.contentType()?.charset()?.name()
-	Jsoup.parse(body.byteStream(), charset, response.request.url.toString())
+    val body = response.body
+    val charset = body.contentType()?.charset()?.name()
+    Jsoup.parse(body.byteStream(), charset, response.request.url.toString())
 }
 
 /**
@@ -33,7 +32,7 @@ public fun Response.parseHtml(): Document = use { response ->
  * @see [parseHtml]
  */
 public fun Response.parseJson(): JSONObject = use { response ->
-	JSONObject(response.requireBody().string())
+    JSONObject(response.body.string())
 }
 
 /**
@@ -42,15 +41,15 @@ public fun Response.parseJson(): JSONObject = use { response ->
  * @see [parseHtml]
  */
 public fun Response.parseJsonArray(): JSONArray = use { response ->
-	JSONArray(response.requireBody().string())
+    JSONArray(response.body.string())
 }
 
 public fun Response.parseRaw(): String = use { response ->
-	response.requireBody().string()
+    response.body.string()
 }
 
 public fun Response.parseBytes(): ByteArray = use { response ->
-	response.requireBody().bytes()
+    response.body.bytes()
 }
 
 /**
@@ -58,10 +57,10 @@ public fun Response.parseBytes(): ByteArray = use { response ->
  * @return an url relative to the [domain] or absolute, if domain is mismatching
  */
 public fun String.toRelativeUrl(domain: String): String {
-	if (isEmpty() || startsWith("/")) {
-		return this
-	}
-	return replace(Regex("^[^/]{2,6}://${Regex.escape(domain)}+/", RegexOption.IGNORE_CASE), "/")
+    if (isEmpty() || startsWith("/")) {
+        return this
+    }
+    return replace(Regex("^[^/]{2,6}://${Regex.escape(domain)}+/", RegexOption.IGNORE_CASE), "/")
 }
 
 /**
@@ -69,36 +68,35 @@ public fun String.toRelativeUrl(domain: String): String {
  * @return an absolute url with [domain] if this is relative
  */
 public fun String.toAbsoluteUrl(domain: String): String = when {
-	startsWith("//") -> "$SCHEME_HTTPS:$this"
-	startsWith('/') -> "$SCHEME_HTTPS://$domain$this"
-	REGEX_SCHEME_PREFIX.containsMatchIn(this) -> this
-	else -> "$SCHEME_HTTPS://$domain/$this"
+    startsWith("//") -> "$SCHEME_HTTPS:$this"
+    startsWith('/') -> "$SCHEME_HTTPS://$domain$this"
+    REGEX_SCHEME_PREFIX.containsMatchIn(this) -> this
+    else -> "$SCHEME_HTTPS://$domain/$this"
 }
 
 public fun concatUrl(host: String, path: String): String {
-	val hostWithSlash = host.endsWith('/')
-	val pathWithSlash = path.startsWith('/')
-	val hostWithScheme = if (host.startsWith("//")) "https:$host" else host
-	return when {
-		hostWithSlash && pathWithSlash -> hostWithScheme + path.drop(1)
-		!hostWithSlash && !pathWithSlash -> "$hostWithScheme/$path"
-		else -> hostWithScheme + path
-	}
+    val hostWithSlash = host.endsWith('/')
+    val pathWithSlash = path.startsWith('/')
+    val hostWithScheme = if (host.startsWith("//")) "https:$host" else host
+    return when {
+        hostWithSlash && pathWithSlash -> hostWithScheme + path.drop(1)
+        !hostWithSlash && !pathWithSlash -> "$hostWithScheme/$path"
+        else -> hostWithScheme + path
+    }
 }
 
 @InternalParsersApi
 public fun DateFormat.parseSafe(str: String?): Long = if (str.isNullOrEmpty()) {
-	0L
+    0L
 } else {
-	runCatching {
-		parse(str)?.time ?: 0L
-	}.onFailure {
-		if (javaClass.desiredAssertionStatus()) {
-			throw AssertionError("Cannot parse date $str", it)
-		}
-	}.getOrDefault(0L)
+    runCatching {
+        parse(str)?.time ?: 0L
+    }.onFailure {
+        if (javaClass.desiredAssertionStatus()) {
+            throw AssertionError("Cannot parse date $str", it)
+        }
+    }.getOrDefault(0L)
 }
 
-public fun Response.requireBody(): ResponseBody = requireNotNull(body) {
-	ErrorMessages.RESPONSE_NULL_BODY
-}
+@Deprecated("Useless since OkHttp 5.0", replaceWith = ReplaceWith("body"))
+public fun Response.requireBody(): ResponseBody = body
