@@ -31,7 +31,7 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 		setFirstPage(0)
 	}
 
-	override val configKeyDomain = ConfigKey.Domain("v1.zenmanga.one", "v1.zenmanga.me")
+	override val configKeyDomain = ConfigKey.Domain("zenmanga.io", "v1.zenmanga.one", "v1.zenmanga.me")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,
@@ -54,9 +54,12 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 	override val authUrl: String
 		get() = "https://sso.inuko.me/account/sign-in"
 
+	private val apiDomain = if (domain.startsWith("v1.")) domain.replace("v1.", "api.") else "api.$domain"
+
 	private fun checkAuth(): Boolean {
 		val authCookieName = "__otaku_session"
-		return context.cookieJar.getCookies("v1.zenmanga.one").any { it.name == authCookieName } ||
+		return context.cookieJar.getCookies("zenmanga.io").any { it.name == authCookieName } ||
+			context.cookieJar.getCookies("v1.zenmanga.one").any { it.name == authCookieName } ||
 			context.cookieJar.getCookies("v1.zenmanga.me").any { it.name == authCookieName }
 	}
 
@@ -84,7 +87,6 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 			return getListPageByAuthor(filter.author, page)
 		}
 
-		val apiDomain = domain.replace("v1.", "api.")
 		val urlBuilder = HttpUrl.Builder()
 			.scheme("https")
 			.host(apiDomain)
@@ -140,8 +142,6 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 	}
 
 	private suspend fun getListPageByAuthor(authorQuery: String, page: Int): List<Manga> {
-		val apiDomain = domain.replace("v1.", "api.")
-
 		val authorSearchUrl = HttpUrl.Builder()
 			.scheme("https")
 			.host(apiDomain)
