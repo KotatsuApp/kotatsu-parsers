@@ -26,6 +26,7 @@ import java.util.*
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20) {
 
+    private val apiSuffix = "/api/v2"
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
 	override val configKeyDomain = ConfigKey.Domain(
@@ -52,6 +53,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = MangaListFilterCapabilities(
 			isSearchSupported = true,
+            isSearchWithFiltersSupported = true,
+            isMultipleTagsSupported = true,
 		)
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions {
@@ -64,53 +67,76 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
-			append(domain)
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("/api/v2/mangas/search?q=")
-					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page.toString())
-				}
+			append(domain + apiSuffix)
 
-				else -> {
-					val tag = filter.tags.oneOrThrowIfMany()
-					if (tag != null) {
-						append("/api/v2/tags/")
-						append(tag.key)
-					} else if (filter.states.isNotEmpty()) {
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "/api/v2/tags/dang-tien-hanh"
-									MangaState.FINISHED -> "/api/v2/tags/da-hoan-thanh"
-									else -> "/api/v2/mangas/recently_updated" // if not (default page)
-								}
-							)
-						}
-					} else {
-						append("/api/v2/mangas")
-						when (order) {
-							SortOrder.UPDATED -> append("/recently_updated")
-							SortOrder.POPULARITY -> append("/top?duration=all")
-							SortOrder.POPULARITY_WEEK -> append("/top?duration=week")
-							SortOrder.POPULARITY_MONTH -> append("/top?duration=month")
-							SortOrder.NEWEST -> append("/recently_updated")
-							else -> append("/recently_updated")
-						}
-					}
-					when (order) {
-						SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_MONTH -> {
-							append("&page=")
-							append(page.toString())
-						}
-						else -> {
-							append("?page=")
-							append(page.toString())
-						}
-					}
-				}
-			}
+            if (filter.states.isNotEmpty()) {
+                filter.states.oneOrThrowIfMany()?.let {
+                    append(
+                        when (it) {
+                            MangaState.ONGOING -> "/tags/dang-tien-hanh"
+                            MangaState.FINISHED -> "/tags/da-hoan-thanh"
+                            else -> "/mangas/recently_updated" // if not (default page)
+                        }
+                    )
+                    append("?page=")
+                    append(page.toString())
+                }
+            } else if (!filter.query.isNullOrEmpty() || filter.tags.isNotEmpty()) {
+                append("/mangas/search?q=")
+                if (filter.query.isNullOrEmpty()) {
+                    append(filter.query?.urlEncoded())
+                }
+
+                append("&tags=")
+                if (filter.tags.isNotEmpty()) {
+                    if (filter.states.isNotEmpty()) {
+                        // special case when use both tags + state
+                        val tags = buildList {
+                            addAll(filter.tags.map { "\"${space2plus(it.title.lowercase())}\"" })
+                            addAll(
+                                filter.states.map {
+                                    when (it) {
+                                        MangaState.ONGOING -> "\"đang+tiến+hành\""
+                                        MangaState.FINISHED -> "\"đã+hoàn+thành\""
+                                        else -> "" // should not null = empty
+                                    }
+                                }
+                            )
+                        }
+                        append(tags.joinToString(separator = "+AND+"))
+                    } else {
+                        append(
+                            filter.tags.joinToString(separator = "+AND+") {
+                                "\"${space2plus(it.title.lowercase())}\""
+                            }
+                        )
+                    }
+                }
+
+                append("&page=")
+                append(page.toString())
+            } else {
+                append("/mangas")
+                when (order) {
+                    SortOrder.UPDATED -> append("/recently_updated")
+                    SortOrder.POPULARITY -> append("/top?duration=all")
+                    SortOrder.POPULARITY_WEEK -> append("/top?duration=week")
+                    SortOrder.POPULARITY_MONTH -> append("/top?duration=month")
+                    SortOrder.NEWEST -> append("/recently_updated")
+                    else -> append("/recently_updated")
+                }
+
+                when (order) {
+                    SortOrder.POPULARITY, SortOrder.POPULARITY_WEEK, SortOrder.POPULARITY_MONTH -> {
+                        append("&page=")
+                        append(page.toString())
+                    }
+                    else -> {
+                        append("?page=")
+                        append(page.toString())
+                    }
+                }
+            }
 
 			append("&per_page=")
 			append(pageSize)
@@ -131,7 +157,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			val author = jo.getStringOrNull("author_name")
 			Manga(
 				id = generateUid(jo.getLong("id")),
-				url = "/api/v2/mangas/${jo.getLong("id")}",
+				url = "$apiSuffix/mangas/${jo.getLong("id")}",
 				publicUrl = "https://truycapcuutruyen.pages.dev/mangas/${jo.getLong("id")}",
 				title = jo.getString("name"),
 				altTitles = emptySet(),
@@ -195,7 +221,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 					title = jo.getStringOrNull("name"),
 					number = number,
 					volume = 0,
-					url = "/api/v2/chapters/$chapterId",
+					url = "$apiSuffix/chapters/$chapterId",
 					scanlator = team,
 					uploadDate = chapterDateFormat.parseSafe(jo.getStringOrNull("created_at")),
 					branch = null,
@@ -269,6 +295,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 			(b.toInt() xor k[i % k.size].toInt()).toByte()
 		}.toByteArray()
 	}
+
+    private fun space2plus(input: String): String = input.replace(' ', '+')
 
 	private fun availableTags() = arraySetOf( // big thanks to beer-psi
 		MangaTag("School life", "school-life", source),
