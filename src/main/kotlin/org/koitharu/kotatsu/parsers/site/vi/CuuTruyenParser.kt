@@ -66,9 +66,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
         val url = buildString {
-            append("https://")
-            append(domain + apiSuffix)
-
             if (!filter.query.isNullOrEmpty() || filter.tags.isNotEmpty() || filter.states.isNotEmpty()) {
                 append("/mangas/search?q=")
                 if (!filter.query.isNullOrEmpty()) {
@@ -100,7 +97,11 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
                     SortOrder.POPULARITY -> append("/top?duration=all")
                     SortOrder.POPULARITY_WEEK -> append("/top?duration=week")
                     SortOrder.POPULARITY_MONTH -> append("/top?duration=month")
-                    SortOrder.NEWEST -> append("/recently_updated")
+                    SortOrder.NEWEST -> {
+                        // clear old buildString
+                        clear()
+                        append("/home_a")
+                    }
                     else -> append("/recently_updated")
                 }
 
@@ -121,7 +122,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
         }
 
         val json = try {
-			webClient.httpGet(url).parseJson()
+			webClient.httpGet("https://$domain$apiSuffix$url").parseJson()
 		} catch (e: HttpStatusException) {
 			if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
 				return emptyList()
@@ -129,7 +130,9 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 				throw e
 			}
 		}
-		val data = json.optJSONArray("data") ?: json.getJSONObject("data").getJSONArray("mangas")
+		val data = json.optJSONArray("data")
+            ?: json.getJSONObject("data").getJSONArray("mangas")
+            ?: json.getJSONObject("data").getJSONArray("new_chapter_mangas")
 
 		return data.mapJSON { jo ->
 			val author = jo.getStringOrNull("author_name")
