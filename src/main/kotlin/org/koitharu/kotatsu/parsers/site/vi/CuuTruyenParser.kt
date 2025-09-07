@@ -65,53 +65,31 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain + apiSuffix)
+        val url = buildString {
+            append("https://")
+            append(domain + apiSuffix)
 
-            if (filter.states.isNotEmpty()) {
-                filter.states.oneOrThrowIfMany()?.let {
-                    append(
-                        when (it) {
-                            MangaState.ONGOING -> "/tags/dang-tien-hanh"
-                            MangaState.FINISHED -> "/tags/da-hoan-thanh"
-                            else -> "/mangas/recently_updated" // if not (default page)
-                        }
-                    )
-                    append("?page=")
-                    append(page.toString())
-                }
-            } else if (!filter.query.isNullOrEmpty() || filter.tags.isNotEmpty()) {
+            if (!filter.query.isNullOrEmpty() || filter.tags.isNotEmpty() || filter.states.isNotEmpty()) {
                 append("/mangas/search?q=")
-                if (filter.query.isNullOrEmpty()) {
-                    append(filter.query?.urlEncoded())
+                if (!filter.query.isNullOrEmpty()) {
+                    append(filter.query.urlEncoded())
                 }
 
                 append("&tags=")
-                if (filter.tags.isNotEmpty()) {
-                    if (filter.states.isNotEmpty()) {
-                        // special case when use both tags + state
-                        val tags = buildList {
-                            addAll(filter.tags.map { "\"${space2plus(it.title.lowercase())}\"" })
-                            addAll(
-                                filter.states.map {
-                                    when (it) {
-                                        MangaState.ONGOING -> "\"đang+tiến+hành\""
-                                        MangaState.FINISHED -> "\"đã+hoàn+thành\""
-                                        else -> "" // should not null = empty
-                                    }
-                                }
-                            )
-                        }
-                        append(tags.joinToString(separator = "+AND+"))
-                    } else {
-                        append(
-                            filter.tags.joinToString(separator = "+AND+") {
-                                "\"${space2plus(it.title.lowercase())}\""
+                val tags = buildList {
+                    addAll(filter.tags.map { "\"${space2plus(it.title.lowercase())}\"" })
+                    // trying to do this special case
+                    addAll(
+                        filter.states.map {
+                            when (it) {
+                                MangaState.ONGOING -> "\"đang+tiến+hành\""
+                                MangaState.FINISHED -> "\"đã+hoàn+thành\""
+                                else -> "" // should not null = empty
                             }
-                        )
-                    }
-                }
+                        }
+                    )
+                }.filter { it.isNotEmpty() }
+                append(tags.joinToString(separator = "+AND+"))
 
                 append("&page=")
                 append(page.toString())
@@ -138,11 +116,11 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
                 }
             }
 
-			append("&per_page=")
-			append(pageSize)
-		}
+            append("&per_page=")
+            append(pageSize)
+        }
 
-		val json = try {
+        val json = try {
 			webClient.httpGet(url).parseJson()
 		} catch (e: HttpStatusException) {
 			if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
