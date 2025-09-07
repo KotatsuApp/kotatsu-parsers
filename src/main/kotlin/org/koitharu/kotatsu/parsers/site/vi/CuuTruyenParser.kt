@@ -79,7 +79,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
                             when (it) {
                                 MangaState.ONGOING -> "\"đang+tiến+hành\""
                                 MangaState.FINISHED -> "\"đã+hoàn+thành\""
-                                else -> "" // should not null = empty
+                                // return empty list if null / empty
+                                else -> "\"đang+tiến+hành\"+AND+\"đã+hoàn+thành\""
                             }
                         }
                     )
