@@ -7,6 +7,7 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
+import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
@@ -68,6 +69,15 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
                 append("/mangas/search?q=")
                 if (!filter.query.isNullOrEmpty()) {
                     append(filter.query.urlEncoded())
+                }
+
+                // Bug from API: Select both ONGOING + FINISHED will return empty list for all case
+                val state = listOf(MangaState.ONGOING, MangaState.FINISHED)
+                if (filter.states.containsAll(state)) {
+                    // oneOrThrowIfMany
+                    throw IllegalArgumentException(
+                        ErrorMessages.FILTER_MULTIPLE_STATES_NOT_SUPPORTED
+                    )
                 }
 
                 append("&tags=")
