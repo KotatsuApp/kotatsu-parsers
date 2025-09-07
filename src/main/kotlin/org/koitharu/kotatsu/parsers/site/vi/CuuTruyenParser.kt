@@ -126,8 +126,8 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
         }.getOrNull() ?: return emptyList()
 
         val data = json.optJSONArray("data")
-            ?: json.getJSONObject("data").getJSONArray("mangas")
             ?: json.getJSONObject("data").getJSONArray("new_chapter_mangas")
+            ?: json.getJSONObject("data").getJSONArray("mangas")
 
 		return data.mapJSON { jo ->
 			val author = jo.getStringOrNull("author_name")
