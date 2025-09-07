@@ -7,7 +7,6 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
 import okio.IOException
-import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
@@ -18,7 +17,6 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -121,16 +119,12 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
             append(pageSize)
         }
 
-        val json = try {
-			webClient.httpGet("https://$domain$apiSuffix$url").parseJson()
-		} catch (e: HttpStatusException) {
-			if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
-				return emptyList()
-			} else {
-				throw e
-			}
-		}
-		val data = json.optJSONArray("data")
+        // prevent throw e in app
+        val json = runCatching {
+            webClient.httpGet("https://$domain$apiSuffix$url").parseJson()
+        }.getOrNull() ?: return emptyList()
+
+        val data = json.optJSONArray("data")
             ?: json.getJSONObject("data").getJSONArray("mangas")
             ?: json.getJSONObject("data").getJSONArray("new_chapter_mangas")
 
