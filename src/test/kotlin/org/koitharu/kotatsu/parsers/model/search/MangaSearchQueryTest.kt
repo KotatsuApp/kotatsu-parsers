@@ -12,61 +12,61 @@ import java.util.*
 
 class MangaSearchQueryCapabilitiesTest {
 
-	private val capabilities = MangaSearchQueryCapabilities(
-		capabilities = setOf(
-			SearchCapability(TITLE_NAME, setOf(Match::class), isMultiple = false, isExclusive = true),
-			SearchCapability(TAG, setOf(Include::class, Exclude::class), isMultiple = true, isExclusive = false),
-			SearchCapability(PUBLICATION_YEAR, setOf(Range::class), isMultiple = false, isExclusive = false),
-			SearchCapability(STATE, setOf(Include::class), isMultiple = false, isExclusive = false),
-		),
-	)
+    private val capabilities = MangaSearchQueryCapabilities(
+        capabilities = setOf(
+            SearchCapability(TITLE_NAME, setOf(Match::class), isMultiple = false, isExclusive = true),
+            SearchCapability(TAG, setOf(Include::class, Exclude::class), isMultiple = true, isExclusive = false),
+            SearchCapability(PUBLICATION_YEAR, setOf(Range::class), isMultiple = false, isExclusive = false),
+            SearchCapability(STATE, setOf(Include::class), isMultiple = false, isExclusive = false),
+        ),
+    )
 
-	@Test
-	fun validateValidSingleCriterionQuery() {
-		val query = MangaSearchQuery.Builder()
-			.criterion(Match(TITLE_NAME, "title"))
-			.build()
+    @Test
+    fun validateValidSingleCriterionQuery() {
+        val query = MangaSearchQuery.Builder()
+            .criterion(Match(TITLE_NAME, "title"))
+            .build()
 
-		assertDoesNotThrow { capabilities.validate(query) }
-	}
+        assertDoesNotThrow { capabilities.validate(query) }
+    }
 
-	@Test
-	fun validateUnsupportedFieldThrowsException() {
-		val query = MangaSearchQuery.Builder()
-			.criterion(Include(ORIGINAL_LANGUAGE, setOf(Locale.ENGLISH)))
-			.build()
+    @Test
+    fun validateUnsupportedFieldThrowsException() {
+        val query = MangaSearchQuery.Builder()
+            .criterion(Include(ORIGINAL_LANGUAGE, setOf(Locale.ENGLISH)))
+            .build()
 
-		assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
-	}
+        assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
+    }
 
-	@Test
-	fun validateUnsupportedMultiValueThrowsException() {
-		val query = MangaSearchQuery.Builder()
-			.criterion(Include(STATE, setOf(MangaState.ONGOING, MangaState.FINISHED)))
-			.build()
+    @Test
+    fun validateUnsupportedMultiValueThrowsException() {
+        val query = MangaSearchQuery.Builder()
+            .criterion(Include(STATE, setOf(MangaState.ONGOING, MangaState.FINISHED)))
+            .build()
 
-		assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
-	}
+        assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
+    }
 
-	@Test
-	fun validateMultipleCriteriaWithOtherCriteriaAllowed() {
-		val query = MangaSearchQuery.Builder()
-			.criterion(Include(TAG, setOf(buildTag("tag1"), buildTag("tag2"))))
-			.criterion(Exclude(TAG, setOf(buildTag("tag3"))))
-			.build()
+    @Test
+    fun validateMultipleCriteriaWithOtherCriteriaAllowed() {
+        val query = MangaSearchQuery.Builder()
+            .criterion(Include(TAG, setOf(buildTag("tag1"), buildTag("tag2"))))
+            .criterion(Exclude(TAG, setOf(buildTag("tag3"))))
+            .build()
 
-		assertDoesNotThrow { capabilities.validate(query) }
-	}
+        assertDoesNotThrow { capabilities.validate(query) }
+    }
 
-	@Test
-	fun validateMultipleCriteriaWithStrictCapabilityThrowsException() {
-		val query = MangaSearchQuery.Builder()
-			.criterion(Match(TITLE_NAME, "title"))
-			.criterion(Range(PUBLICATION_YEAR, 1990, 2000))
-			.build()
+    @Test
+    fun validateMultipleCriteriaWithStrictCapabilityThrowsException() {
+        val query = MangaSearchQuery.Builder()
+            .criterion(Match(TITLE_NAME, "title"))
+            .criterion(Range(PUBLICATION_YEAR, 1990, 2000))
+            .build()
 
-		assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
-	}
+        assertThrows(IllegalArgumentException::class.java) { capabilities.validate(query) }
+    }
 
-	private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source = MangaParserSource.DUMMY)
+    private fun buildTag(name: String) = MangaTag(title = name, key = "${name}Key", source = MangaParserSource.MANGADEX)
 }

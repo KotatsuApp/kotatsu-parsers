@@ -98,7 +98,6 @@ class ParserProcessor(
 
         factoryWriter?.write(
             """
-				MangaParserSource.DUMMY -> throw NotImplementedError("Manga parser ${'$'}name cannot be instantiated")
 			}.let {
 				require(it.source == this) {
 					"Cannot instantiate manga parser: ${'$'}name mapped to ${'$'}{it.source}"
@@ -109,7 +108,6 @@ class ParserProcessor(
         )
         sourcesWriter?.write(
             """
-				DUMMY("Dummy", "", ContentType.OTHER, false),
 				;
 			}
 			""".trimIndent(),

@@ -63,12 +63,14 @@ All members of the `MangaParser` class are documented. Pay attention to some pec
 - You can use _asserts_ to check some optional fields. For example, the `Manga.author` field is not required, but if
   your source provides this information, add `assert(it != null)`. This will not have any effect on production but help
   to find issues during unit testing.
+- Your parser may also implement the `Interceptor` interface for additional manipulation of all network requests and
+  responses, including image loading.
 - If your source website (or its API) uses pages for pagination instead of offset you should extend `PagedMangaParser`
   instead of `MangaParser`.
 - If your source website (or its API) does not provide pagination (has only one page of content) you should extend
   `SinglePageMangaParser` instead of `MangaParser` or `PagedMangaParser`.
-- Your parser may also implement the `Interceptor` interface for additional manipulation of all network requests and
-  responses, including image loading.
+
+![parser_classes.png](docs/parser_classes.png)
 
 ## Development process
 

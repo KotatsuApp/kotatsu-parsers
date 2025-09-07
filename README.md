@@ -53,10 +53,8 @@ JVM and Android applications.
    `mangaLoaderContext` is an implementation of the `MangaLoaderContext` class.
    See examples
    of [Android](https://github.com/KotatsuApp/Kotatsu/blob/devel/app/src/main/kotlin/org/koitharu/kotatsu/core/parser/MangaLoaderContextImpl.kt)
-   and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/jvmMain/kotlin/org/koitharu/kotatsu_dl/logic/MangaLoaderContextImpl.kt)
+   and [Non-Android](https://github.com/KotatsuApp/kotatsu-dl/blob/master/src/main/kotlin/org/koitharu/kotatsu/dl/parsers/MangaLoaderContextImpl.kt)
    implementation.
-
-   Note that the `MangaParserSource.DUMMY` parsers cannot be instantiated.
 
 ## Projects that use the library
 
