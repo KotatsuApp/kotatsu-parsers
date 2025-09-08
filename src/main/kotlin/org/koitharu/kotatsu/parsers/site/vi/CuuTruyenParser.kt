@@ -23,7 +23,7 @@ import java.util.*
 
 @MangaSourceParser("CUUTRUYEN", "Cứu Truyện", "vi")
 internal class CuuTruyenParser(context: MangaLoaderContext) :
-	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 20) {
+	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 24) {
 
     private val apiSuffix = "/api/v2"
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
@@ -83,14 +83,12 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
                 append("&tags=")
                 val tags = buildList {
                     addAll(filter.tags.map { "\"${space2plus(it.title.lowercase())}\"" })
-                    // trying to do this special case
                     addAll(
                         filter.states.map {
                             when (it) {
                                 MangaState.ONGOING -> "\"đang+tiến+hành\""
                                 MangaState.FINISHED -> "\"đã+hoàn+thành\""
-                                // return empty list if null / empty
-                                else -> "\"đang+tiến+hành\"+AND+\"đã+hoàn+thành\""
+                                else -> ""
                             }
                         }
                     )
@@ -284,6 +282,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
     private fun space2plus(input: String): String = input.replace(' ', '+')
 
+    // keep old tags list, key in MangaTag is unnecessary
 	private fun availableTags() = arraySetOf( // big thanks to beer-psi
 		MangaTag("School life", "school-life", source),
 		MangaTag("Nsfw", "nsfw", source),
