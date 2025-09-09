@@ -9,6 +9,8 @@ json = "20240303"
 androidx-collection = "1.5.0"
 jsoup = "1.21.2"
 quickjs = "1.1.0"
+korte = "4.0.10"
+simplexml = "2.7.1"
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
@@ -27,3 +29,5 @@ json = { module = "org.json:json", version.ref = "json" }
 androidx-collection = { module = "androidx.collection:collection", version.ref = "androidx-collection" }
 jsoup = { module = "org.jsoup:jsoup", version.ref = "jsoup" }
 quickjs = { module = "io.webfolder:quickjs", version.ref = "quickjs" }
+korte = { module = "com.soywiz.korlibs.korte:korte-jvm", version.ref = "korte" }
+simplexml = { module = "org.simpleframework:simple-xml", version.ref = "simplexml" }
