@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "2.2.10"
+    `kotlin-dsl`
 }
 
 repositories {
@@ -11,8 +11,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(gradleApi())
-    implementation("org.simpleframework:simple-xml:2.7.1")
-    implementation("com.soywiz.korlibs.korte:korte-jvm:4.0.10")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation(libs.korte)
+    implementation(libs.simplexml)
+    implementation(libs.kotlinx.coroutines.core)
 }
