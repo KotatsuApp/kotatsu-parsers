@@ -16,7 +16,7 @@ internal class TruyenTranh3Q(context: MangaLoaderContext) :
 	private val relativeTimePattern = Regex("(\\d+)\\s*(phút|giờ|ngày|tuần) trước")
 	private val absoluteTimePattern = Regex("(\\d{2}-\\d{2}-\\d{4})")
 
-	override val configKeyDomain = ConfigKey.Domain("truyentranh3q.com")
+	override val configKeyDomain = ConfigKey.Domain("truyentranh3qq.com")
 
 	override val availableSortOrders: Set<SortOrder> =
 		EnumSet.of(

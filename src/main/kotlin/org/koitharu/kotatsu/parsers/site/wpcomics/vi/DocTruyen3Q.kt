@@ -11,7 +11,7 @@ import java.util.*
 
 @MangaSourceParser("DOCTRUYEN3Q", "DocTruyen3Q", "vi")
 internal class DocTruyen3Q(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qui12.pro", 36) {
+	WpComicsParser(context, MangaParserSource.DOCTRUYEN3Q, "doctruyen3qui13.pro", 36) {
 
 	override val datePattern = "dd/MM/yyyy"
 
@@ -215,17 +215,17 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 	    val fullUrl = chapter.url.toAbsoluteUrl(domain)
 	    val doc = webClient.httpGet(fullUrl).parseHtml()
-	
+
 	    var urls = doc.select("div.page-chapter img")
 	        .mapNotNull { it.attrAsRelativeUrlOrNull("data-original") }
 	        .filterNot { filterAdsUrls(it) }
-	
+
 	    if (urls.isEmpty()) {
 	        urls = doc.select("div.page-chapter img")
 	            .mapNotNull { it.attrAsRelativeUrlOrNull("src") }
 	            .filterNot { filterAdsUrls(it) }
 	    }
-	
+
 	    return urls.map { url ->
 	        MangaPage(
 	            id = generateUid(url),
@@ -249,7 +249,8 @@ internal class DocTruyen3Q(context: MangaLoaderContext) :
 			url.contains("3qui5_banner.jpg") ||
 			url.contains("dt3qui8.jpg") ||
 			url.contains("3qui10.jpg") ||
-			url.contains("3qui12.jpg")
+			url.contains("3qui12.jpg") ||
+            url.contains("3qui13.jpg")
 	}
 
 	private fun availableTags(): Set<MangaTag> = setOf(

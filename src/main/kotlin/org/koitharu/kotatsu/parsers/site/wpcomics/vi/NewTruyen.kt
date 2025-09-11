@@ -14,7 +14,7 @@ import java.util.*
 
 @MangaSourceParser("NEWTRUYEN", "NewTruyen", "vi")
 internal class NewTruyen(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyentranh1.com", 36) {
+	WpComicsParser(context, MangaParserSource.NEWTRUYEN, "newtruyentranh2.com", 36) {
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
 		availableTags = getAvailableTags(),
