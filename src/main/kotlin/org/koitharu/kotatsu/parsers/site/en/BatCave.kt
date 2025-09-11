@@ -21,6 +21,10 @@ internal class BatCave(context: MangaLoaderContext) :
 
 	override val configKeyDomain = ConfigKey.Domain("batcave.biz")
 
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+        .add("Referer", "https://$domain/")
+        .build()
+
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
