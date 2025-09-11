@@ -16,7 +16,8 @@ import org.json.JSONObject
 import java.util.*
 
 @MangaSourceParser("GOCTRUYENTRANHVUI", "Góc Truyện Tranh Vui", "vi")
-internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.GOCTRUYENTRANHVUI, 50) {
+internal class GocTruyenTranhVui(context: MangaLoaderContext):
+    PagedMangaParser(context, MangaParserSource.GOCTRUYENTRANHVUI, 50) {
 
     override val configKeyDomain = ConfigKey.Domain("goctruyentranhvui17.com")
     private val apiUrl by lazy { "https://$domain/api/v2" }
@@ -144,7 +145,7 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
                     source = source
                 )
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }.reversed()
 
@@ -174,9 +175,7 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext) : PagedMangaParser
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         enforceRateLimit()
-        val responseBody = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).body?.string()
-            ?: throw Exception("Response body is null for chapter page")
-
+        val responseBody = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).body.string()
         val chapterJsonRaw = responseBody.substringAfter("chapterJson: `", "").substringBefore("`", "")
 
         val imageUrls: List<String>
