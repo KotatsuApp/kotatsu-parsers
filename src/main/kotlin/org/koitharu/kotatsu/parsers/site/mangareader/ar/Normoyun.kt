@@ -4,6 +4,7 @@ import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
@@ -111,7 +112,7 @@ internal class Normoyun(context: MangaLoaderContext) :
 			description = docs.selectFirst("span.desc")?.html(),
 			state = mangaState,
 			authors = setOfNotNull(author),
-			contentRating = if (manga.isNsfw || nsfw) {
+			contentRating = if (manga.contentRating == ContentRating.ADULT || nsfw) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE

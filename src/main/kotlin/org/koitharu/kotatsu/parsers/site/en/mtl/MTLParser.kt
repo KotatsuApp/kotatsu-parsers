@@ -1,10 +1,9 @@
-package org.koitharu.kotatsu.parsers.site.en.MTL
+package org.koitharu.kotatsu.parsers.site.en.mtl
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
-import org.koitharu.kotatsu.parsers.model.search.SearchCapability
 import org.koitharu.kotatsu.parsers.model.search.SearchableField
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.util.*
@@ -30,13 +29,7 @@ internal abstract class MTLParser(
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
-	override val searchQueryCapabilities = MangaSearchQueryCapabilities(
-        SearchCapability(
-            field = SearchableField.TITLE_NAME,
-            criteriaTypes = setOf(Match::class),
-            isMultiple = false,
-        ),
-    )
+	override val searchQueryCapabilities = MangaSearchQueryCapabilities()
 
 	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
 		val url = buildString {
@@ -190,7 +183,7 @@ internal abstract class MTLParser(
 					val sdf = SimpleDateFormat("dd MMMM yyyy", Locale.ENGLISH)
 					sdf.timeZone = TimeZone.getTimeZone("UTC")
 					sdf.parse(dateString)?.time ?: 0L
-				} catch (e: Exception) {
+				} catch (_: Exception) {
 					0L
 				}
 			}
