@@ -10,8 +10,8 @@ import kotlin.contracts.contract
 
 public suspend fun Call.await(): Response = suspendCancellableCoroutine { continuation ->
     val callback = ContinuationCallCallback(this, continuation)
-    enqueue(callback)
     continuation.invokeOnCancellation(callback)
+    enqueue(callback)
 }
 
 public val Response.mimeType: String?
