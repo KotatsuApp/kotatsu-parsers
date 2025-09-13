@@ -511,7 +511,12 @@ internal abstract class GroupleParser(
     }
 
     private fun parsePagesV3(data: String, pos: Int): List<MangaPage> {
-        val json = JSONArray(data.substring(pos).substringBetween("(", ")").substringBeforeLast(','))
+        val json = JSONArray(
+            data.substring(pos)
+                .substringBetween("(", ")")
+                .removePrefix("chapterInfo,")
+                .substringBeforeLast(','),
+        )
         return (0 until json.length()).map { i ->
             val ja = json.getJSONArray(i)
             val server = ja.getString(0).ifEmpty { "https://$domain" }
