@@ -56,6 +56,7 @@ dependencies {
     testImplementation(libs.junit.api)
     testImplementation(libs.junit.engine)
     testImplementation(libs.junit.params)
+    testRuntimeOnly(libs.junit.launcher)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.quickjs)
 }
