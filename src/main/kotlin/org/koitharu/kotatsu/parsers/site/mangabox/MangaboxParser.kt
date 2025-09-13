@@ -271,7 +271,7 @@ internal abstract class MangaboxParser(
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		if (doc.select(selectPage).isNullOrEmpty()) {
+		if (doc.select(selectPage).isEmpty()) {
 			val fullUrl2 = chapter.url.toAbsoluteUrl(domain).replace(domain, otherDomain)
 			val doc2 = webClient.httpGet(fullUrl2).parseHtml()
 

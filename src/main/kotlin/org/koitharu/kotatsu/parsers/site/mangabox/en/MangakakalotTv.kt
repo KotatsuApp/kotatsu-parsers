@@ -128,7 +128,7 @@ internal class MangakakalotTv(context: MangaLoaderContext) :
 				url = href,
 				publicUrl = href.toAbsoluteUrl(div.host ?: domain),
 				coverUrl = div.selectFirst("img")?.src(),
-				title = div.selectFirstOrThrow("h3").text().orEmpty(),
+				title = div.selectFirstOrThrow("h3").text(),
 				altTitles = emptySet(),
 				rating = RATING_UNKNOWN,
 				tags = emptySet(),

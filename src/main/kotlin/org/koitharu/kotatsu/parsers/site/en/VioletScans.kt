@@ -9,9 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
 import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
 import org.koitharu.kotatsu.parsers.model.search.SearchCapability
-import org.koitharu.kotatsu.parsers.model.search.QueryCriteria
 import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
-import org.koitharu.kotatsu.parsers.model.search.SearchableField
 import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
@@ -49,20 +47,20 @@ internal class VioletScans(context: MangaLoaderContext) :
 		var searchParameter = ""
 		query.criteria.forEach { criterion ->
 			when (criterion) {
-				is QueryCriteria.Match<*> -> {
-					if (criterion.field == SearchableField.TITLE_NAME) {
+				is Match<*> -> {
+					if (criterion.field == TITLE_NAME) {
 						searchParameter = criterion.value.toString()
 					}
 				}
 
-				is QueryCriteria.Exclude<*> -> null
-				is QueryCriteria.Range<*> -> null
-				is QueryCriteria.Include<*> -> null
+				is Exclude<*> -> null
+				is Range<*> -> null
+				is Include<*> -> null
 			}
 		}
 		// scrapeNonSearchList has considerable less payload as response so this is a optimization
 		return when {
-			!searchParameter.isNullOrEmpty() -> scrapeSearchList(searchParameter, page)
+			searchParameter.isNotEmpty() -> scrapeSearchList(searchParameter, page)
 			else -> scrapeNonSearchList(page)
 		}
 	}
@@ -199,7 +197,7 @@ internal class VioletScans(context: MangaLoaderContext) :
 		}
 
 		val dateFormat = SimpleDateFormat("MMMM d, yyyy", Locale.ENGLISH)
-		val date = dateFormat.parseSafe(dateString) ?: 0L
+		val date = dateFormat.parseSafe(dateString)
 
 		val chaptersList = root.selectFirstOrThrow("#chapterlist ul")
 		val chapters = chaptersList.select("li")
