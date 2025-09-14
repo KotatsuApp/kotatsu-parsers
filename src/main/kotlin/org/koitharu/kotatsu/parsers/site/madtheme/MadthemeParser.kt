@@ -7,6 +7,7 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.model.ContentRating
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.DateFormat
 import java.text.SimpleDateFormat
@@ -141,7 +142,7 @@ internal abstract class MadthemeParser(
 	private suspend fun fetchAvailableTags(): Set<MangaTag> {
 		val doc = webClient.httpGet("https://$domain/$listUrl").parseHtml()
 		return doc.select("div.genres .checkbox").mapNotNullToSet { checkbox ->
-			val key = checkbox.selectFirstOrThrow("input").attr("value") ?: return@mapNotNullToSet null
+			val key = checkbox.selectFirstOrThrow("input").attr("value")
 			val name = checkbox.selectFirst("span.radio__label")?.text() ?: key
 			MangaTag(
 				key = key,
@@ -190,7 +191,7 @@ internal abstract class MadthemeParser(
 			altTitles = setOfNotNull(alt.nullIfEmpty()),
 			state = state,
 			chapters = chaptersDeferred.await(),
-			contentRating = if (nsfw || manga.isNsfw) {
+			contentRating = if (nsfw || manga.contentRating == ContentRating.ADULT) {
 				ContentRating.ADULT
 			} else {
 				ContentRating.SAFE
