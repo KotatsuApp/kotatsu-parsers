@@ -4,13 +4,8 @@ import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
-import org.koitharu.kotatsu.parsers.core.FlexiblePagedMangaParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
-import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
-import org.koitharu.kotatsu.parsers.model.search.SearchCapability
-import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
-import org.koitharu.kotatsu.parsers.model.search.SearchableField.*
 import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
@@ -21,7 +16,12 @@ import java.util.Locale
 
 @MangaSourceParser("VIOLETSCANS", "VioletScans", "en")
 internal class VioletScans(context: MangaLoaderContext) :
-	FlexiblePagedMangaParser(context, MangaParserSource.VIOLETSCANS, 12) {
+	PagedMangaParser(context, MangaParserSource.VIOLETSCANS, 12) {
+
+    override val filterCapabilities: MangaListFilterCapabilities
+        get() = MangaListFilterCapabilities(
+            isSearchSupported = true,
+        )
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("violetscans.com")
 
@@ -32,37 +32,14 @@ internal class VioletScans(context: MangaLoaderContext) :
 
 	override val availableSortOrders: Set<SortOrder> = setOf(SortOrder.NEWEST)
 
-	override val searchQueryCapabilities: MangaSearchQueryCapabilities
-		get() = MangaSearchQueryCapabilities(
-			SearchCapability(
-				field = TITLE_NAME,
-				criteriaTypes = setOf(Match::class),
-				isMultiple = false,
-			),
-		)
-
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
-	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
-		var searchParameter = ""
-		query.criteria.forEach { criterion ->
-			when (criterion) {
-				is Match<*> -> {
-					if (criterion.field == TITLE_NAME) {
-						searchParameter = criterion.value.toString()
-					}
-				}
-
-				is Exclude<*> -> null
-				is Range<*> -> null
-				is Include<*> -> null
-			}
-		}
-		// scrapeNonSearchList has considerable less payload as response so this is a optimization
-		return when {
-			searchParameter.isNotEmpty() -> scrapeSearchList(searchParameter, page)
-			else -> scrapeNonSearchList(page)
-		}
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+        return if (!filter.query.isNullOrEmpty()) {
+            scrapeSearchList(filter.query, page)
+        } else {
+            scrapeNonSearchList(page)
+        }
 	}
 
 	private suspend fun scrapeNonSearchList(page: Int): List<Manga> {
