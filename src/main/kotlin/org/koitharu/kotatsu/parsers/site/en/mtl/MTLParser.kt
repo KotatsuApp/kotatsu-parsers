@@ -2,13 +2,9 @@ package org.koitharu.kotatsu.parsers.site.en.mtl
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.model.search.MangaSearchQuery
-import org.koitharu.kotatsu.parsers.model.search.MangaSearchQueryCapabilities
-import org.koitharu.kotatsu.parsers.model.search.SearchableField
-import org.koitharu.kotatsu.parsers.model.search.QueryCriteria.*
 import org.koitharu.kotatsu.parsers.util.*
-import org.koitharu.kotatsu.parsers.core.FlexiblePagedMangaParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.exception.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,7 +13,7 @@ internal abstract class MTLParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	domain: String,
-) : FlexiblePagedMangaParser(context, source, 24) {
+) : PagedMangaParser(context, source, 24) {
 
 	override val configKeyDomain = ConfigKey.Domain(domain)
 
@@ -29,15 +25,18 @@ internal abstract class MTLParser(
 
 	override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
-	override val searchQueryCapabilities = MangaSearchQueryCapabilities()
+    override val filterCapabilities: MangaListFilterCapabilities
+        get() = MangaListFilterCapabilities(
+            isSearchSupported = true,
+        )
 
-	override suspend fun getListPage(query: MangaSearchQuery, page: Int): List<Manga> {
+	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = buildString {
 			append("https://")
 			append(domain)
 			append("/search")
 			append("?")
-			when (query.order) {
+			when (order) {
 				SortOrder.POPULARITY -> append("sort_by=views")
 				SortOrder.UPDATED -> append("sort_by=recent")
 				else -> append("sort_by=recent")
@@ -46,19 +45,10 @@ internal abstract class MTLParser(
 				append("&page=")
 				append(page)
 			}
-			query.criteria.find { it.field == SearchableField.TITLE_NAME }?.let { criteria ->
-				when (criteria) {
-					is Match -> {
-						append("&q=")
-						append(criteria.value.toString())
-					}
-
-                    is Include,
-                    is Exclude,
-                    is Range,
-                        -> Unit // Not supported for this field
-				}
-			}
+			append("&q=")
+            if (!filter.query.isNullOrEmpty()) {
+                append(filter.query.urlEncoded())
+            }
 		}
 
 		val doc = webClient.httpGet(url).parseHtml()
