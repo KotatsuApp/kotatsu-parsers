@@ -13,8 +13,12 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.Broken
 import java.text.SimpleDateFormat
 import java.util.*
+
+
+@Broken
 
 private const val CHAPTERS_LIMIT = 99999
 
