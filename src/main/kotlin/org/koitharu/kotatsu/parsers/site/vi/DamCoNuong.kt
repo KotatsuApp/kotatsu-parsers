@@ -152,9 +152,8 @@ internal class DamCoNuong(context: MangaLoaderContext) :
 			else -> MangaState.FINISHED
 		}
 
-		val chapterListDiv =
-			doc.selectFirst("div#chapterList.justify-between.border-2.border-gray-100.dark\\:border-dark-blue.p-3.bg-white.dark\\:bg-fire-blue.shadow-md.rounded.dark\\:shadow-gray-900.mb-4")
-				?: throw ParseException("Chapters list not found!", url)
+		val chapterListDiv = doc.selectFirst("ul#chapterList")
+			?: throw ParseException("Chapters list not found!", url)
 
 		val chapterLinks = chapterListDiv.select("a.block")
 		val chapters = chapterLinks.mapChapters(reversed = true) { index, a ->
