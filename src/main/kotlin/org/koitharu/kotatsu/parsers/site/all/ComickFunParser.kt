@@ -5,6 +5,7 @@ import androidx.collection.SparseArrayCompat
 import okhttp3.HttpUrl
 import org.json.JSONArray
 import org.json.JSONObject
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -18,6 +19,7 @@ import java.util.*
 
 private const val CHAPTERS_LIMIT = 99999
 
+@Broken("Original site closed")
 @MangaSourceParser("COMICK_FUN", "ComicK")
 internal class ComickFunParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.COMICK_FUN, 20) {
