@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -13,6 +14,11 @@ import java.util.*
 internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.LXMANGA, 60) {
 
 	override val configKeyDomain = ConfigKey.Domain("lxmanga.my")
+
+	override fun getRequestHeaders(): Headers = Headers.Builder()
+		.add("Referer", "https://$domain/")
+		.add("Origin", "https://$domain")
+		.build()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -148,9 +154,9 @@ internal class LxManga(context: MangaLoaderContext) : PagedMangaParser(context, 
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val root = webClient.httpGet(manga.url.toAbsoluteUrl(domain)).parseHtml()
-        val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
-        	timeZone = TimeZone.getTimeZone("GMT+7")
-        }
+		val chapterDateFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ROOT).apply {
+			timeZone = TimeZone.getTimeZone("GMT+7")
+		}
 		val author = root.selectFirst("div.mt-2:contains(Tác giả) span a")?.textOrNull()
 		val altTitles = root.selectFirst("div.grow div:contains(Tên khác)")
 			?.select("span a")?.mapToSet { it.text() }
