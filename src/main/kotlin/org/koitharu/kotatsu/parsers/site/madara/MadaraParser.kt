@@ -549,7 +549,7 @@ internal abstract class MadaraParser(
 		"div.post-content_item:contains(Status), div.post-content_item:contains(Statut), " +
 			"div.post-content_item:contains(État), div.post-content_item:contains(حالة العمل), div.post-content_item:contains(Estado), div.post-content_item:contains(สถานะ)," +
 			"div.post-content_item:contains(Stato), div.post-content_item:contains(Durum), div.post-content_item:contains(Statüsü), div.post-content_item:contains(Статус)," +
-			"div.post-content_item:contains(状态), div.post-content_item:contains(الحالة)"
+			"div.post-content_item:contains(状态), div.post-content_item:contains(الحالة), div.post-content_item:contains(Tình trạng)"
 	protected open val selectAlt =
 		".post-content_item:contains(Alt) .summary-content, .post-content_item:contains(Nomes alternativos: ) .summary-content"
 
