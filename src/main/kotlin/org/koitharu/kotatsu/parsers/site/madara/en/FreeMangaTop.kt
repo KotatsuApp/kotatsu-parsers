@@ -9,4 +9,8 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 internal class FreeMangaTop(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.FREEMANGATOP, "freemangatop.com") {
 	override val datePattern = "MM/dd/yyyy"
+
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+        .add("Referer", "https://$domain/")
+        .build()
 }
