@@ -19,9 +19,7 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.*
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken("Need to fix getPages, most manga don't have chapter images due to faulty fetch logic")
 @MangaSourceParser("KOHARU", "Schale.network", type = ContentType.HENTAI)
 internal class Koharu(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.KOHARU, 24) {

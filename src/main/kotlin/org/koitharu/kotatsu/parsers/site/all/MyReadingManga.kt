@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.all
 
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -30,6 +31,7 @@ import java.util.EnumSet
 import java.util.Locale
 import java.util.regex.Pattern
 
+@Broken("Need to rewrite getListPage")
 @MangaSourceParser("MYREADINGMANGA", "MyReadingManga", type = ContentType.HENTAI)
 internal class MyReadingManga(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MYREADINGMANGA, 18) {
@@ -145,7 +147,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 			append("https://")
 			append(domain)
 
-			// Add language path if specified
+			// Add language path if specified, need to fix
 			val langSlug = getLanguageSlug(filter.locale)
 			if (langSlug != null) {
 				append("/lang/")
@@ -356,15 +358,15 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 
     private fun findImageSrc(element: Element?): String? {
         element ?: return null
-        
+
         return when {
-            element.hasAttr("data-src") && imgRegex.matcher(element.attr("data-src")).find() -> 
+            element.hasAttr("data-src") && imgRegex.matcher(element.attr("data-src")).find() ->
                 element.absUrl("data-src")
-            element.hasAttr("data-cfsrc") && imgRegex.matcher(element.attr("data-cfsrc")).find() -> 
+            element.hasAttr("data-cfsrc") && imgRegex.matcher(element.attr("data-cfsrc")).find() ->
                 element.absUrl("data-cfsrc")
-            element.hasAttr("src") && imgRegex.matcher(element.attr("src")).find() -> 
+            element.hasAttr("src") && imgRegex.matcher(element.attr("src")).find() ->
                 element.absUrl("src")
-            element.hasAttr("data-lazy-src") -> 
+            element.hasAttr("data-lazy-src") ->
                 element.absUrl("data-lazy-src")
             else -> null
         }
