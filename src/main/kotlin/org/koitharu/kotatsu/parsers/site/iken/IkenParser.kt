@@ -192,8 +192,8 @@ internal abstract class IkenParser(
 			val key = it.attrOrNull("value") ?: return@mapNotNullToSet null
 			MangaTag(
 				key = key,
-				title = (it.text() ?: key).toTitleCase(sourceLocale),
-				source = source,
+                title = it.text().ifBlank { key }.toTitleCase(sourceLocale),
+                source = source,
 			)
 		}
 	}
@@ -201,7 +201,7 @@ internal abstract class IkenParser(
 	protected fun Document.getNextJson(key: String): String {
 		val scripts = select("script")
 		val scriptData = scripts.find { script ->
-			script.data()?.contains(key) == true
+            script.data().contains(key)
 		}?.data() ?: throw Exception("Unable to retrieve NEXT data")
 
 		val keyIndex = scriptData.indexOf(key)
