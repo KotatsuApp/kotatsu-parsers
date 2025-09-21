@@ -15,11 +15,11 @@ jobs:
         -   name: Set up enviroment 🔧
             uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
             with:
-                java-version: '17'
-                distribution: 'temurin'
+                java-version: '21'
+                distribution: 'jetbrains'
 
         -   name: Set up Gradle 📦
             uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
 
         -   name: Compile parsers 🚀
-            run: ./gradlew compileKotlin
+            run: ./gradlew compileKotlin --no-configuration-cache

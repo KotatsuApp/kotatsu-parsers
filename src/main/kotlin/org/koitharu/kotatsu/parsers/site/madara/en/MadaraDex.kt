@@ -9,6 +9,11 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @MangaSourceParser("MADARADEX", "MadaraDex", "en", ContentType.HENTAI)
 internal class MadaraDex(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
+
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+        .add("sec-fetch-site", "same-site")
+        .build()
+
 	override val listUrl = "title/"
 	override val tagPrefix = "genre/"
 	override val postReq = true
