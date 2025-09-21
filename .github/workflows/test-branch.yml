@@ -13,13 +13,11 @@ jobs:
             uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
 
         -   name: Set up enviroment 🔧
-            uses: actions/setup-java@c5195efecf7bdfc987ee8bae7a71cb8b11521c00 # v4.7.1
+            uses: actions/setup-java@dded0888837ed1f317902acf8a20df0ad188d165 # v5.0.0
             with:
                 java-version: '21'
                 distribution: 'jetbrains'
-
-        -   name: Set up Gradle 📦
-            uses: gradle/actions/setup-gradle@017a9effdb900e5b5b2fddfb590a105619dca3c3 # v4.4.2
+                cache: 'gradle'
 
         -   name: Compile parsers 🚀
-            run: ./gradlew compileKotlin --no-configuration-cache
+            run: ./gradlew compileKotlin
