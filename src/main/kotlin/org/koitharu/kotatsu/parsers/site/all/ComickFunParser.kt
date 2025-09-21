@@ -147,8 +147,13 @@ internal class ComickFunParser(context: MangaLoaderContext) :
 			)
 		}
 
-		val ja = webClient.httpGet(url.build()).parseJsonArray()
-		val tagsMap = tagsArray.get()
+        val ja = try {
+            webClient.httpGet(url.build()).parseJsonArray()
+        } catch (_: Exception) {
+            throw IllegalArgumentException("ComicK is down!")
+        }
+
+        val tagsMap = tagsArray.get()
 		return ja.mapJSON { jo ->
 			val slug = jo.getString("slug")
 			Manga(
