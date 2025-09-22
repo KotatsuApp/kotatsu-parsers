@@ -37,12 +37,13 @@ internal class MadaraDex(context: MangaLoaderContext) :
             ?: throw ParseException("No image found, try to log in", fullUrl)
         return root.select(selectPage).flatMap { div ->
             div.selectOrThrow("img").map { img ->
-                val url = img.requireSrc().toRelativeUrl(domain).toHttpUrl().newBuilder()
+                val fragUrl = img.requireSrc().toRelativeUrl(domain).toHttpUrl().newBuilder()
                     .fragment(F_URL + fullUrl)
                     .build()
+                val cleanUrl = fragUrl.newBuilder().fragment(null).build()
                 MangaPage(
-                    id = generateUid(url.toString()),
-                    url = url.newBuilder().fragment(null).build().toString(),
+                    id = generateUid(cleanUrl.toString()),
+                    url = fragUrl.toString(),
                     preview = null,
                     source = source,
                 )
@@ -51,18 +52,20 @@ internal class MadaraDex(context: MangaLoaderContext) :
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val fragment = chain.request().url.fragment
-        return if (fragment != null && fragment.contains(F_URL)) {
+        val req = chain.request()
+        val fragment = req.url.fragment
+        if (fragment != null && fragment.startsWith(F_URL)) {
             val fullUrl = fragment.substringAfter(F_URL)
-            val newReq = chain.request().newBuilder()
+            val cleanUrl = req.url.newBuilder().fragment(null).build()
+            val newReq = req.newBuilder()
                 .header("Referer", fullUrl)
+                .url(cleanUrl)
                 .build()
-            super.intercept(object: Interceptor.Chain by chain {
+            return super.intercept(object : Interceptor.Chain by chain {
                 override fun request() = newReq
             })
-        } else {
-            super.intercept(chain)
         }
+        return super.intercept(chain)
     }
 
     private companion object {
