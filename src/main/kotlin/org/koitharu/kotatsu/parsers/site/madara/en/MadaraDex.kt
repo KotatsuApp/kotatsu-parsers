@@ -11,6 +11,7 @@ internal class MadaraDex(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
 
     override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+        .add("Referer", "https://$domain/")
         .add("sec-fetch-site", "same-site")
         .build()
 
