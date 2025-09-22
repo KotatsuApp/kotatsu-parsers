@@ -49,7 +49,6 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 			isSearchSupported = true,
             isSearchWithFiltersSupported = true,
             isMultipleTagsSupported = true,
-			isOriginalLocaleSupported = true,
 		)
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
@@ -276,10 +275,10 @@ internal class MyReadingManga(context: MangaLoaderContext) :
 
 		val genres = mutableSetOf<MangaTag>()
 
-		doc.select("span.entry-terms:has(span:contains(Genres)) a").forEach {
+		doc.select("span.entry-terms:has(span:contains(Genre:)) a").forEach {
 			genres.add(
 				MangaTag(
-					title = it.text(),
+					title = it.text().removeSuffix(",").trim(),
 					key = it.attr("href").substringAfterLast("/genre/").substringBefore("/"),
 					source = source,
 				),
