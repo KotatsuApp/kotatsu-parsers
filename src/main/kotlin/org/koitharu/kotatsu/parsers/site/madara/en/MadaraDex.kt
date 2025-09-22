@@ -50,21 +50,18 @@ internal class MadaraDex(context: MangaLoaderContext) :
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val response = chain.proceed(chain.request())
-        val fragment = response.request.url.fragment
-
-        if (fragment == null || !fragment.contains(F_URL)) {
-            return response
+        val fragment = chain.request().url.fragment
+        return if (fragment != null && fragment.contains(F_URL)) {
+            val fullUrl = fragment.substringAfter(F_URL)
+            val newReq = chain.request().newBuilder()
+                .header("Referer", fullUrl)
+                .build()
+            super.intercept(object: Interceptor.Chain by chain {
+                override fun request() = newReq
+            })
+        } else {
+            super.intercept(chain)
         }
-
-        val fullUrl = fragment.substringAfter(F_URL)
-        val newReq = chain.request().newBuilder()
-            .header("Referer", fullUrl)
-            .build()
-
-        return super.intercept(object: Interceptor.Chain by chain {
-            override fun request() = newReq
-        })
     }
 
     private companion object {
