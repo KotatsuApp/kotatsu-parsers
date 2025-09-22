@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
+import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -57,10 +58,12 @@ internal class MadaraDex(context: MangaLoaderContext) :
         if (fragment != null && fragment.startsWith(F_URL)) {
             val fullUrl = fragment.substringAfter(F_URL)
             val cleanUrl = req.url.newBuilder().fragment(null).build()
-            val newReq = req.newBuilder()
-                .header("Referer", fullUrl)
-                .url(cleanUrl)
+            val newReq = req.newBuilder().headers(Headers.Builder()
+                .add("sec-fetch-site", "same-site")
+                .add("Referer", fullUrl)
                 .build()
+            ).url(cleanUrl).build()
+
             return super.intercept(object : Interceptor.Chain by chain {
                 override fun request() = newReq
             })
