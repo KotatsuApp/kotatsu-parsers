@@ -38,10 +38,11 @@ internal class MadaraDex(context: MangaLoaderContext) :
         return root.select(selectPage).flatMap { div ->
             div.selectOrThrow("img").map { img ->
                 val url = img.requireSrc().toRelativeUrl(domain).toHttpUrl().newBuilder()
-                    url.fragment(F_URL + fullUrl)
+                    .fragment(F_URL + fullUrl)
+                    .build()
                 MangaPage(
                     id = generateUid(url.toString()),
-                    url = url.build().toString(),
+                    url = url.newBuilder().fragment(null).build().toString(),
                     preview = null,
                     source = source,
                 )
