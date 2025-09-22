@@ -166,8 +166,8 @@ internal class MyReadingManga(context: MangaLoaderContext) :
                 else -> append("")
             }
 
+            append("&s=")
             if (!filter.query.isNullOrEmpty()) {
-                append("&s=")
                 append(filter.query.splitByWhitespace().joinToString(separator = "+"))
             }
 
