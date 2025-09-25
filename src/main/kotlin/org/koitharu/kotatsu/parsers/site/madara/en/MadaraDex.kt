@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.madara.en
 
-import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -12,24 +11,19 @@ import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaPage
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
-import org.koitharu.kotatsu.parsers.util.generateUid
-import org.koitharu.kotatsu.parsers.util.parseHtml
-import org.koitharu.kotatsu.parsers.util.requireSrc
-import org.koitharu.kotatsu.parsers.util.selectOrThrow
-import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
-import org.koitharu.kotatsu.parsers.util.toRelativeUrl
+import org.koitharu.kotatsu.parsers.util.*
 
 @MangaSourceParser("MADARADEX", "MadaraDex", "en", ContentType.HENTAI)
 internal class MadaraDex(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
+    MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
 
     override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
         .add("sec-fetch-site", "same-site")
         .build()
 
-	override val listUrl = "title/"
-	override val tagPrefix = "genre/"
-	override val postReq = true
+    override val listUrl = "title/"
+    override val tagPrefix = "genre/"
+    override val postReq = true
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val fullUrl = chapter.url.toAbsoluteUrl(domain)
@@ -53,22 +47,20 @@ internal class MadaraDex(context: MangaLoaderContext) :
     }
 
     override fun intercept(chain: Interceptor.Chain): Response {
-        val req = chain.request()
-        val fragment = req.url.fragment
-        if (fragment != null && fragment.startsWith(F_URL)) {
-            val fullUrl = fragment.substringAfter(F_URL)
-            val cleanUrl = req.url.newBuilder().fragment(null).build()
-            val newReq = req.newBuilder().headers(Headers.Builder()
-                .add("sec-fetch-site", "same-site")
-                .add("Referer", fullUrl)
+        val request = chain.request()
+        val url = request.url
+        val fullUrl = url.fragment?.substringAfter(F_URL)
+        return if (!fullUrl.isNullOrEmpty()) {
+            val cleanUrl = url.newBuilder().fragment(null).toString()
+            val newReq = request.newBuilder()
+                .header("sec-fetch-site", "same-site")
+                .header("Referer", fullUrl)
+                .url(cleanUrl)
                 .build()
-            ).url(cleanUrl).build()
-
-            return super.intercept(object : Interceptor.Chain by chain {
-                override fun request() = newReq
-            })
+            chain.proceed(newReq)
+        } else {
+            super.intercept(chain)
         }
-        return super.intercept(chain)
     }
 
     private companion object {
