@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.PI
 
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
 internal class MimiHentai(context: MangaLoaderContext) :
@@ -424,38 +425,20 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		return result
 	}
 
-    private fun decodeGt(x: String): String {
-        val a = doubleArrayOf(
-            1.23872913102938, 1.28767913123448, 1.391378192300391, 2.391378192500391,
-            3.391378191230391, 4.391373210965091, 2.847291847392847, 5.192847362847291,
-            3.947382917483921, 1.847392847392847, 6.293847291847382, 4.847291847392847,
-            2.394827394827394, 7.847291847392847, 3.827394827394827, 1.947382947382947,
-            8.293847291847382, 5.847291847392847, 2.738472938472938, 9.847291847392847,
-            4.293847291847382, 6.847291847392847, 3.492847291847392, 1.739482738472938,
-            7.293847291847382, 5.394827394827394, 2.847391847392847, 8.847291847392847,
-            4.738472938472938, 6.293847391847382, 3.847291847392847, 1.492847291847392,
-            9.293847291847382, 5.847291847392847, 2.120381029475602, 7.390481264726194,
-            4.293012462419412, 6.301412704170294, 3.738472938472938, 1.847291847392847,
-            8.213901280149210, 5.394827394827394, 2.201381022038956, 9.310129031284698,
-            10.32131031284698, 1.130712039820147
-        )
+    private fun decodeGt(hexData: String): String {
+        val strategyStr = hexData.takeLast(2)
+        val strategy = strategyStr.toInt(10)
+        val encryptionKey = getFixedEncryptionKey(strategy)
+        val encryptedHex = hexData.dropLast(2)
+        val encryptedBytes = hexToBytes(encryptedHex)
+        val keyBytes = encryptionKey.toByteArray(Charsets.UTF_8)
+        val decrypted = ByteArray(encryptedBytes.size)
 
-        val s = x.takeLast(2).toIntOrNull(16) ?: 0
-        val k = (Math.PI * (if (s in 0..45) a[s] else 1.2309829040349309)).toString()
-
-        val h = x.dropLast(2)
-        val b = ByteArray(h.length / 2)
-        for (i in 0 until h.length step 2) {
-            b[i / 2] = h.substring(i, i + 2).toInt(16).toByte()
+        for (i in encryptedBytes.indices) {
+            decrypted[i] = (encryptedBytes[i].toInt() xor keyBytes[i % keyBytes.size].toInt()).toByte()
         }
 
-        val e = k.toByteArray(Charsets.UTF_8)
-        val d = ByteArray(b.size)
-        for (i in b.indices) {
-            d[i] = (b[i].toInt() xor e[i % e.size].toInt()).toByte()
-        }
-
-        return String(d, Charsets.UTF_8)
+        return decrypted.toString(Charsets.UTF_8)
     }
 
     private suspend fun fetchTags(): Set<MangaTag> {
@@ -469,6 +452,71 @@ internal class MimiHentai(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+    private fun getKeyByStrategy(strategy: Int): Double {
+        return when (strategy) {
+            0 -> 1.23872913102938
+            1 -> 1.28767913123448
+            2 -> 1.391378192300391
+            3 -> 2.391378192500391
+            4 -> 3.391378191230391
+            5 -> 4.391373210965091
+            6 -> 2.847291847392847
+            7 -> 5.192847362847291
+            8 -> 3.947382917483921
+            9 -> 1.847392847291847
+            10 -> 6.293847291847382
+            11 -> 4.847291847392847
+            12 -> 2.394827394827394
+            13 -> 7.847291847392847
+            14 -> 3.827394827394827
+            15 -> 1.947382947382947
+            16 -> 8.293847291847382
+            17 -> 5.847291847392847
+            18 -> 2.738472938472938
+            19 -> 9.847291847392847
+            20 -> 4.293847291847382
+            21 -> 6.847291847392847
+            22 -> 3.492847291847392
+            23 -> 1.739482738472938
+            24 -> 7.293847291847382
+            25 -> 5.394827394827394
+            26 -> 2.847391847392847
+            27 -> 8.847291847392847
+            28 -> 4.738472938472938
+            29 -> 6.293847391847382
+            30 -> 3.847291847392847
+            31 -> 1.492847291847392
+            32 -> 9.293847291847382
+            33 -> 5.847291847392847
+            34 -> 2.120381029475602
+            35 -> 7.390481264726194
+            36 -> 4.293012462419412
+            37 -> 6.301412704170294
+            38 -> 3.738472938472938
+            39 -> 1.847291847392847
+            40 -> 8.213901280149210
+            41 -> 5.394827394827394
+            42 -> 2.201381022038956
+            43 -> 9.310129031284698
+            44 -> 10.32131031284698
+            45 -> 1.130712039820147
+            else -> 1.2309829040349309
+        }
+    }
+
+    private fun getFixedEncryptionKey(strategy: Int): String {
+        val baseKey = getKeyByStrategy(strategy)
+        return (PI * baseKey).toString()
+    }
+
+    private fun hexToBytes(hex: String): ByteArray {
+        val bytes = ByteArray(hex.length / 2)
+        for (i in hex.indices step 2) {
+            bytes[i / 2] = hex.substring(i, i + 2).toInt(16).toByte()
+        }
+        return bytes
+    }
 
 	companion object {
 		private const val GT = "gt="
