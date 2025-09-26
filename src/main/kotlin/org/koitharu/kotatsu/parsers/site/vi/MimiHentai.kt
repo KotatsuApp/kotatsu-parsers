@@ -262,7 +262,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				id = generateUid(jo.getLong("id")),
 				title = jo.getStringOrNull("title"),
 				number = jo.getFloatOrDefault("order", 0f),
-				url = "${jo.getLong("id")}",
+				url = "/$apiSuffix/chapter?id=${jo.getLong("id")}",
 				uploadDate = dateFormat.parse(jo.getString("createdAt"))?.time ?: 0L,
 				source = source,
 				scanlator = uploaderName,
@@ -279,10 +279,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url = context.decodeBase64(KuroNeko.PATH)
-			.decodeXorCipher()
-			.toString(Charsets.UTF_8) + "/" + chapter.url
-		val json = webClient.httpGet(url).parseJson()
+		val json = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseJson()
 		return json.getJSONArray("pages").mapJSON { jo ->
 			val imageUrl = jo.getString("imageUrl")
 			val gt = jo.getStringOrNull("drm")
