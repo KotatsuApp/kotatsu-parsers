@@ -19,8 +19,6 @@ import org.koitharu.kotatsu.parsers.util.*
 internal class MadaraDex(context: MangaLoaderContext) :
     MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
 
-    override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
-
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
         super.onCreateConfig(keys)
         keys.remove(userAgentKey)
@@ -64,7 +62,7 @@ internal class MadaraDex(context: MangaLoaderContext) :
             val newReq = request.newBuilder()
                 .header("sec-fetch-site", "same-site")
                 .header("Referer", fullUrl)
-                .header("User-Agent", userAgentKey.toString())
+                .header("User-Agent", UserAgents.CHROME_DESKTOP)
                 .url(cleanUrl)
                 .build()
             chain.proceed(newReq)
