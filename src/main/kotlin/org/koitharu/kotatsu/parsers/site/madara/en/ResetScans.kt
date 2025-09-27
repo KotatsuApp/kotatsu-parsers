@@ -5,7 +5,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@MangaSourceParser("RESETSCANS", "ReadManhua", "en")
+@MangaSourceParser("RESETSCANS", "Resetscans", "en")
 internal class ResetScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RESETSCANS, "reset-scans.co", 20)
+	MadaraParser(context, MangaParserSource.RESETSCANS, "reset-scans.org", 20)
 

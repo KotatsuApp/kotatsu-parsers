@@ -17,6 +17,7 @@ import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
 import java.text.SimpleDateFormat
 import java.util.*
+import kotlin.math.PI
 
 @MangaSourceParser("MIMIHENTAI", "MimiHentai", "vi", type = ContentType.HENTAI)
 internal class MimiHentai(context: MangaLoaderContext) :
@@ -262,7 +263,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 				id = generateUid(jo.getLong("id")),
 				title = jo.getStringOrNull("title"),
 				number = jo.getFloatOrDefault("order", 0f),
-				url = "${jo.getLong("id")}",
+				url = "/$apiSuffix/chapter?id=${jo.getLong("id")}",
 				uploadDate = dateFormat.parse(jo.getString("createdAt"))?.time ?: 0L,
 				source = source,
 				scanlator = uploaderName,
@@ -279,10 +280,7 @@ internal class MimiHentai(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val url = context.decodeBase64(KuroNeko.PATH)
-			.decodeXorCipher()
-			.toString(Charsets.UTF_8) + "/" + chapter.url
-		val json = webClient.httpGet(url).parseJson()
+		val json = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseJson()
 		return json.getJSONArray("pages").mapJSON { jo ->
 			val imageUrl = jo.getString("imageUrl")
 			val gt = jo.getStringOrNull("drm")
@@ -304,14 +302,15 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		}
 
 		return context.redrawImageResponse(response) { bitmap ->
-			val gt = fragment.substringAfter(GT)
+			val ori = fragment.substringAfter(GT)
 			runBlocking {
-				extractMetadata(bitmap, gt)
+				extractMetadata(bitmap, ori)
 			}
 		}
 	}
 
-	private fun extractMetadata(bitmap: Bitmap, gt: String): Bitmap {
+	private fun extractMetadata(bitmap: Bitmap, ori: String): Bitmap {
+        val gt = decodeGt(ori)
 		val metadata = JSONObject().apply {
 			var sw = 0
 			var sh = 0
@@ -426,16 +425,23 @@ internal class MimiHentai(context: MangaLoaderContext) :
 		return result
 	}
 
-	private fun ByteArray.decodeXorCipher(): ByteArray {
-		val k = "kotatsuanddokiarethebest"
-			.toByteArray(Charsets.UTF_8)
+    private fun decodeGt(hexData: String): String {
+        val strategyStr = hexData.takeLast(2)
+        val strategy = strategyStr.toInt(10)
+        val encryptionKey = getFixedEncryptionKey(strategy)
+        val encryptedHex = hexData.dropLast(2)
+        val encryptedBytes = hexToBytes(encryptedHex)
+        val keyBytes = encryptionKey.toByteArray(Charsets.UTF_8)
+        val decrypted = ByteArray(encryptedBytes.size)
 
-		return this.mapIndexed { i, b ->
-			(b.toInt() xor k[i % k.size].toInt()).toByte()
-		}.toByteArray()
-	}
+        for (i in encryptedBytes.indices) {
+            decrypted[i] = (encryptedBytes[i].toInt() xor keyBytes[i % keyBytes.size].toInt()).toByte()
+        }
 
-	private suspend fun fetchTags(): Set<MangaTag> {
+        return decrypted.toString(Charsets.UTF_8)
+    }
+
+    private suspend fun fetchTags(): Set<MangaTag> {
 		val url = "https://$domain/$apiSuffix/genres"
 		val response = webClient.httpGet(url).parseJsonArray()
 		return response.mapJSONToSet { jo ->
@@ -446,6 +452,71 @@ internal class MimiHentai(context: MangaLoaderContext) :
 			)
 		}
 	}
+
+    private fun getKeyByStrategy(strategy: Int): Double {
+        return when (strategy) {
+            0 -> 1.23872913102938
+            1 -> 1.28767913123448
+            2 -> 1.391378192300391
+            3 -> 2.391378192500391
+            4 -> 3.391378191230391
+            5 -> 4.391373210965091
+            6 -> 2.847291847392847
+            7 -> 5.192847362847291
+            8 -> 3.947382917483921
+            9 -> 1.847392847291847
+            10 -> 6.293847291847382
+            11 -> 4.847291847392847
+            12 -> 2.394827394827394
+            13 -> 7.847291847392847
+            14 -> 3.827394827394827
+            15 -> 1.947382947382947
+            16 -> 8.293847291847382
+            17 -> 5.847291847392847
+            18 -> 2.738472938472938
+            19 -> 9.847291847392847
+            20 -> 4.293847291847382
+            21 -> 6.847291847392847
+            22 -> 3.492847291847392
+            23 -> 1.739482738472938
+            24 -> 7.293847291847382
+            25 -> 5.394827394827394
+            26 -> 2.847391847392847
+            27 -> 8.847291847392847
+            28 -> 4.738472938472938
+            29 -> 6.293847391847382
+            30 -> 3.847291847392847
+            31 -> 1.492847291847392
+            32 -> 9.293847291847382
+            33 -> 5.847291847392847
+            34 -> 2.120381029475602
+            35 -> 7.390481264726194
+            36 -> 4.293012462419412
+            37 -> 6.301412704170294
+            38 -> 3.738472938472938
+            39 -> 1.847291847392847
+            40 -> 8.213901280149210
+            41 -> 5.394827394827394
+            42 -> 2.201381022038956
+            43 -> 9.310129031284698
+            44 -> 10.32131031284698
+            45 -> 1.130712039820147
+            else -> 1.2309829040349309
+        }
+    }
+
+    private fun getFixedEncryptionKey(strategy: Int): String {
+        val baseKey = getKeyByStrategy(strategy)
+        return (PI * baseKey).toString()
+    }
+
+    private fun hexToBytes(hex: String): ByteArray {
+        val bytes = ByteArray(hex.length / 2)
+        for (i in hex.indices step 2) {
+            bytes[i / 2] = hex.substring(i, i + 2).toInt(16).toByte()
+        }
+        return bytes
+    }
 
 	companion object {
 		private const val GT = "gt="

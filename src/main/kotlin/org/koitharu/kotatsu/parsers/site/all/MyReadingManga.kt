@@ -167,6 +167,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
                 else -> append("")
             }
 
+
             // fix order
             append("&s=")
             if (!filter.query.isNullOrEmpty()) {
