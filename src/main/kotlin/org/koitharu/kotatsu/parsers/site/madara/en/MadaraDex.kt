@@ -39,8 +39,7 @@ internal class MadaraDex(context: MangaLoaderContext) :
             ?: throw ParseException("No image found, try to log in", fullUrl)
 
         // random warning
-        val cookie = context.cookieJar.getCookies(fullUrl).toString()
-        if (cookie.length < 16) {
+        if (context.cookieJar.getCookies(fullUrl).toString().length < 16) {
             throw Exception("Please press Sign in from source settings until the homepage is loaded successfully to fix image cannot load error")
         }
 
