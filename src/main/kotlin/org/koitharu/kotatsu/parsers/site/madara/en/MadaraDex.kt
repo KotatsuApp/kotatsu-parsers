@@ -37,6 +37,13 @@ internal class MadaraDex(context: MangaLoaderContext) :
         val doc = webClient.httpGet(fullUrl).parseHtml()
         val root = doc.body().selectFirst(selectBodyPage)
             ?: throw ParseException("No image found, try to log in", fullUrl)
+
+        // random warning
+        val cookie = context.cookieJar.getCookies(fullUrl).toString()
+        if (cookie.length < 16) {
+            throw Exception("Please press Sign in from source settings until the homepage is loaded successfully to fix image cannot load error")
+        }
+
         return root.select(selectPage).flatMap { div ->
             div.selectOrThrow("img").map { img ->
                 val fragUrl = img.requireSrc().toRelativeUrl(domain).toHttpUrl().newBuilder()
