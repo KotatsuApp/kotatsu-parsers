@@ -38,9 +38,11 @@ internal class MadaraDex(context: MangaLoaderContext) :
         val root = doc.body().selectFirst(selectBodyPage)
             ?: throw ParseException("No image found, try to log in", fullUrl)
 
-        // random warning
-        if (context.cookieJar.getCookies(fullUrl).toString().length < 16) {
-            throw Exception("Please press Sign in from source settings until the homepage is loaded successfully to fix image cannot load error")
+        // a random warn about cookie, need to fix ?
+        if (context.cookieJar.getCookies(fullUrl).toString().length < 10) {
+            throw Exception(
+                "Please press Sign in from source settings until Homepage is loaded successfully, then return to Kotatsu!"
+            )
         }
 
         return root.select(selectPage).flatMap { div ->
