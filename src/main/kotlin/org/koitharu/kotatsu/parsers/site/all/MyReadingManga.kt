@@ -159,6 +159,7 @@ internal class MyReadingManga(context: MangaLoaderContext) :
                 append(page)
             }
 
+            // order
             append("/?ep_sort=")
             when (order) {
                 SortOrder.NEWEST -> append("date")
@@ -166,6 +167,8 @@ internal class MyReadingManga(context: MangaLoaderContext) :
                 else -> append("")
             }
 
+
+            // fix order
             append("&s=")
             if (!filter.query.isNullOrEmpty()) {
                 append(filter.query.splitByWhitespace().joinToString(separator = "+"))
