@@ -28,6 +28,15 @@ internal class MadaraDex(context: MangaLoaderContext) :
         .add("sec-fetch-site", "same-site")
         .build()
 
+    override val authUrl: String
+        get() = "https://${domain}"
+
+    override suspend fun isAuthorized(): Boolean {
+        return context.cookieJar.getCookies(domain).any {
+            it.name.contains("cm_uaid")
+        }
+    }
+
     override val listUrl = "title/"
     override val tagPrefix = "genre/"
     override val postReq = true
@@ -37,13 +46,6 @@ internal class MadaraDex(context: MangaLoaderContext) :
         val doc = webClient.httpGet(fullUrl).parseHtml()
         val root = doc.body().selectFirst(selectBodyPage)
             ?: throw ParseException("No image found, try to log in", fullUrl)
-
-        // a random warn about cookie, need to fix ?
-        if (context.cookieJar.getCookies(fullUrl).toString().length < 10) {
-            throw Exception(
-                "Please press Sign in from source settings until Homepage is loaded successfully, then return to Kotatsu!"
-            )
-        }
 
         return root.select(selectPage).flatMap { div ->
             div.selectOrThrow("img").map { img ->
