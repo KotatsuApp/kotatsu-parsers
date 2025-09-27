@@ -63,6 +63,7 @@ internal class MadaraDex(context: MangaLoaderContext) :
                 .header("sec-fetch-site", "same-site")
                 .header("Referer", fullUrl)
                 .header("User-Agent", UserAgents.CHROME_DESKTOP)
+                .header("Cookie", context.cookieJar.getCookies(fullUrl).toString())
                 .url(cleanUrl)
                 .build()
             chain.proceed(newReq)
