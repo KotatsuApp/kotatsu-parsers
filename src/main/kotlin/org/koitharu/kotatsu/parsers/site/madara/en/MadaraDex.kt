@@ -15,9 +15,15 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
+private const val F_URL = "fullUrl="
+
 @MangaSourceParser("MADARADEX", "MadaraDex", "en", ContentType.HENTAI)
 internal class MadaraDex(context: MangaLoaderContext) :
     MadaraParser(context, MangaParserSource.MADARADEX, "madaradex.org") {
+
+    init {
+        context.cookieJar.insertCookies(domain, "wpmanga-adault=1")
+    }
 
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
         super.onCreateConfig(keys)
@@ -25,7 +31,7 @@ internal class MadaraDex(context: MangaLoaderContext) :
     }
 
     override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-        .add("sec-fetch-site", "same-site")
+        .set("User-Agent", UserAgents.CHROME_DESKTOP)
         .build()
 
     override val authUrl: String
@@ -66,14 +72,12 @@ internal class MadaraDex(context: MangaLoaderContext) :
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val url = request.url
-        val fullUrl = url.fragment?.substringAfter(F_URL)
+        val fullUrl = url.fragment?.substringAfter(F_URL, "")
         return if (!fullUrl.isNullOrEmpty()) {
+            copyCookies()
             val cleanUrl = url.newBuilder().fragment(null).toString()
             val newReq = request.newBuilder()
-                .header("sec-fetch-site", "same-site")
                 .header("Referer", fullUrl)
-                .header("User-Agent", UserAgents.CHROME_DESKTOP)
-                .header("Cookie", context.cookieJar.getCookies(fullUrl).toString())
                 .url(cleanUrl)
                 .build()
             chain.proceed(newReq)
@@ -82,7 +86,5 @@ internal class MadaraDex(context: MangaLoaderContext) :
         }
     }
 
-    private companion object {
-        const val F_URL = "fullUrl="
-    }
+    private fun copyCookies() = context.cookieJar.copyCookies(domain, "cdn.$domain")
 }
