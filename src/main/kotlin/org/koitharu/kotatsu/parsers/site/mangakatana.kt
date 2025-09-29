@@ -2,75 +2,63 @@ package org.koitharu.kotatsu.parsers.site.mangakatana
 
 import org.koitharu.kotatsu.parsers.*
 import org.koitharu.kotatsu.parsers.annotation.MangaSourceParser
-import org.koitharu.kotatsu.model.*
+import org.koitharu.kotatsu.parsers.model.*
+import org.jsoup.nodes.Element
 
 @MangaSourceParser(
     name = "mangakatana",
     title = "MangaKatana",
     lang = "en"
 )
-class MangaKatanaParser(context: MangaLoaderContext) : MangaParser(context) {
-    // site domain
+class MangaKatanaParser(context: MangaLoaderContext) : PagedMangaParser(context) {
     override val configKeyDomain: String = "mangakatana.com"
-    override val availableSortOrders: Set<MangaSortOrder> = setOf(MangaSortOrder.Popular, MangaSortOrder.Newest)
+    override val availableSortOrders: Set<MangaSortOrder> = setOf(MangaSortOrder.Popular)
 
-    // Manga list parsing (adapt the URL and selectors as per site's structure)
-    override fun getMangaList(
-        page: Int,
-        sortOrder: MangaSortOrder,
-        query: String?,
-        filters: List<Filter>
-    ): List<Manga> {
+    override fun getMangaList(page: Int, sortOrder: MangaSortOrder, query: String?, filters: List<Filter>): List<Manga> {
         val url = domain("/genre-all?page=$page")
         val document = http.getHtml(url)
-
-        // Inspect site for appropriate selectors for manga blocks
-        val elements = document.select("div.item") // example selector
-        return elements.map {
-            val linkElement = it.selectFirst("a")
+        val elements = document.select("div.item")
+        return elements.map { item: Element ->
+            val link = item.selectFirst("a")
             Manga(
-                id = generateUid(domain, linkElement!!.attr("href")),
-                title = linkElement.attr("title"),
-                thumbnailUrl = it.selectFirst("img")!!.absUrl("src")
+                id = generateUid(link!!.attr("href")),
+                title = link.attr("title"),
+                thumbnailUrl = item.selectFirst("img")!!.absUrl("src")
             )
         }
     }
 
-    // Manga detail parsing
     override fun getMangaDetails(mangaId: String): MangaDetails {
         val document = http.getHtml(domain(mangaId))
         return MangaDetails(
             id = mangaId,
-            title = document.selectFirst("div.panel-info-top h1")!!.text(),
+            title = document.selectFirst("div.panel-info-top h1")?.text() ?: "",
             author = document.selectFirst("div.author")?.text(),
-            description = document.selectFirst("div.story")?.text() ?: "",
-            // Add genres, status, etc., if available
+            description = document.selectFirst("div.story")?.text() ?: ""
+            // Add genres, status, etc., as needed
         )
     }
 
-    // Chapter list parsing
     override fun getChapters(mangaId: String): List<Chapter> {
         val document = http.getHtml(domain(mangaId))
-        return document.select("div.chapter-list a").map {
+        return document.select("div.chapter-list a").map { link: Element ->
             Chapter(
-                id = generateUid(domain, it.attr("href")),
-                title = it.text(),
-                number = extractChapterNumber(it.text())
+                id = generateUid(link.attr("href")),
+                title = link.text(),
+                number = link.text().substringAfter("Chapter ").toFloatOrNull() ?: 0f
             )
         }
     }
 
-    // Page parsing (images for each chapter)
-    override fun getPages(chapterId: String): List<Page> {
+    override fun getPages(chapterId: String): List<MangaPage> {
         val document = http.getHtml(domain(chapterId))
-        return document.select("div.read-page img").mapIndexed { i, img ->
-            Page(i, img.absUrl("src"))
+        return document.select("div.read-page img").mapIndexed { i, img: Element ->
+            MangaPage(
+                id = generateUid(img.absUrl("src")),
+                url = img.absUrl("src"),
+                preview = null,
+                source = source
+            )
         }
-    }
-
-    private fun extractChapterNumber(title: String): Float {
-        // Basic chapter number extraction, can be improved
-        val regex = Regex("""Chapter (\d+(\.\d+)?)""")
-        return regex.find(title)?.groups?.get(1)?.value?.toFloatOrNull() ?: 0f
     }
 }
