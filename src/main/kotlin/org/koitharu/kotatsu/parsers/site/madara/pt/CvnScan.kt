@@ -8,4 +8,4 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("CVNSCAN", "CvnScan", "pt", ContentType.HENTAI)
 internal class CvnScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.CVNSCAN, "cvnscan.com")
+	MadaraParser(context, MangaParserSource.CVNSCAN, "covendasbruxonas.com")

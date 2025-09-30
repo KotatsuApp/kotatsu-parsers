@@ -16,9 +16,11 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.getStringOrNull
 import org.koitharu.kotatsu.parsers.util.json.mapJSON
+import org.koitharu.kotatsu.parsers.Broken
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("ZENMANGA", "ZenManga", "ru")
 internal class ZenMangaParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.ZENMANGA, 30),
@@ -31,7 +33,7 @@ internal class ZenMangaParser(context: MangaLoaderContext) :
 		setFirstPage(0)
 	}
 
-	override val configKeyDomain = ConfigKey.Domain("zenmanga.io", "v1.zenmanga.one", "v1.zenmanga.me")
+	override val configKeyDomain = ConfigKey.Domain("inkstory.me")
 
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.POPULARITY,

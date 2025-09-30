@@ -9,7 +9,7 @@ import java.util.Locale
 
 @MangaSourceParser("CATHARSISWORLD", "CatharsisWorld", "es")
 internal class CatharsisWorld(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.CATHARSISWORLD, "altayscans.com", pageSize = 30, searchPageSize = 10) {
+	MangaReaderParser(context, MangaParserSource.CATHARSISWORLD, "catharsisworld.akan01.com", pageSize = 30, searchPageSize = 10) {
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val filterCapabilities: MangaListFilterCapabilities
 		get() = super.filterCapabilities.copy(

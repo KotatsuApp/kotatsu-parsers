@@ -17,7 +17,6 @@ internal class AllHentaiParser(
 		"20.allhen.online",
 		"z.ahen.me",
 		"24.allhen.online",
-		"z.allhen.online",
 		"2023.allhen.online",
 	)
 
