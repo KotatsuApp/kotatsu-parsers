@@ -75,77 +75,81 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 		)
 	}
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = buildString {
-			append("https://")
-			append(domain)
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					append("/v1/api/tim-kiem?keyword=")
-					append(filter.query.urlEncoded())
-					append("&page=")
-					append(page.toString())
-				}
+	// org/dokiteam/doki/parsers/site/vi/OTruyenParser.kt
 
-				else -> {
-					val tag = filter.tags.oneOrThrowIfMany()
-					if (tag != null) {
-						append("/v1/api/the-loai/")
-						append(tag.key)
-						append("?page=")
-						append(page)
-					} else if (filter.states.isNotEmpty()) {
-						filter.states.oneOrThrowIfMany()?.let {
-							append(
-								when (it) {
-									MangaState.ONGOING -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}"
-									MangaState.FINISHED -> "/v1/api/danh-sach/hoan-thanh?page=${page}"
-									MangaState.UPCOMING -> "/v1/api/danh-sach/sap-ra-mat?page=${page}"
-									else -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}" // default
-								}
-							)
-						}
-					} else {
-						append("/v1/api/danh-sach/truyen-moi") // SortOrder.NEWEST
-						append("?page=${page}")
-					}
-				}
-			}
-		}
+override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+    val url = buildString {
+        append("https://")
+        append(domain)
+        when {
+            !filter.query.isNullOrEmpty() -> {
+                append("/v1/api/tim-kiem?keyword=")
+                append(filter.query.urlEncoded())
+                append("&page=")
+                append(page.toString())
+            }
 
-		val json = try {
-			webClient.httpGet(url).parseJson()
-		} catch (e: HttpStatusException) {
-			if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
-				return emptyList()
-			} else {
-				throw e
-			}
-		}
+            else -> {
+                val tag = filter.tags.oneOrThrowIfMany()
+                if (tag != null) {
+                    append("/v1/api/the-loai/")
+                    append(tag.key)
+                    append("?page=")
+                    append(page)
+                } else if (filter.states.isNotEmpty()) {
+                    filter.states.oneOrThrowIfMany()?.let {
+                        append(
+                            when (it) {
+                                MangaState.ONGOING -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}"
+                                MangaState.FINISHED -> "/v1/api/danh-sach/hoan-thanh?page=${page}"
+                                MangaState.UPCOMING -> "/v1/api/danh-sach/sap-ra-mat?page=${page}"
+                                else -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}" // default
+                            }
+                        )
+                    }
+                } else {
+                    append("/v1/api/danh-sach/truyen-moi") // SortOrder.NEWEST
+                    append("?page=${page}")
+                }
+            }
+        }
+    }
 
-		val items = json.getJSONObject("data").getJSONArray("items")
-		return items.mapJSON { jo ->
-			Manga(
-				id = generateUid(jo.getString("_id").hashCode().toLong()),
-				url = jo.getString("slug"),
-				publicUrl = "https://otruyen.cc/truyen-tranh/${jo.getString("slug")}",
-				title = jo.getString("name"),
-				altTitles = emptySet(),
-				coverUrl = "https://img.otruyenapi.com/uploads/comics/${jo.getString("thumb_url")}",
-				authors = emptySet(),
-				tags = emptySet(),
-				state = when (jo.getString("status")) {
-					"ongoing" -> MangaState.ONGOING
-					"coming_soon" -> MangaState.UPCOMING
-					"completed" -> MangaState.FINISHED
-					else -> null
-				},
-				contentRating = if (isNsfwSource) ContentRating.ADULT else null,
-				source = source,
-				rating = RATING_UNKNOWN,
-			)
-		}
-	}
+    val json = try {
+        webClient.httpGet(url).parseJson()
+    } catch (e: HttpStatusException) {
+        if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
+            return emptyList()
+        } else {
+            throw e
+        }
+    }
+
+    val items = json.getJSONObject("data").getJSONArray("items")
+    return items.mapJSON { jo ->
+        Manga(
+            // LỖI GỐC: jo.getString("_id") -> API tìm kiếm không có trường này.
+            // FIX: Dùng "slug" làm giá trị định danh duy nhất. Nó luôn tồn tại và là duy nhất.
+            id = generateUid(jo.getString("slug").hashCode().toLong()),
+            url = jo.getString("slug"),
+            publicUrl = "https://otruyen.cc/truyen-tranh/${jo.getString("slug")}",
+            title = jo.getString("name"),
+            altTitles = emptySet(),
+            coverUrl = "https://img.otruyenapi.com/uploads/comics/${jo.getString("thumb_url")}",
+            authors = emptySet(),
+            tags = emptySet(),
+            state = when (jo.getString("status")) {
+                "ongoing" -> MangaState.ONGOING
+                "coming_soon" -> MangaState.UPCOMING
+                "completed" -> MangaState.FINISHED
+                else -> null
+            },
+            contentRating = if (isNsfwSource) ContentRating.ADULT else null,
+            source = source,
+            rating = RATING_UNKNOWN,
+        )
+    }
+}
 
 	override suspend fun getDetails(manga: Manga): Manga {
 		val url = "https://$domain/v1/api/truyen-tranh/${manga.url}"
