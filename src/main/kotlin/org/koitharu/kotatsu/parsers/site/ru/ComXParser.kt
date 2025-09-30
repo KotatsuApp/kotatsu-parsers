@@ -20,7 +20,7 @@ import java.util.*
 internal class ComXParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.COMX, 20) {
 
-	override val configKeyDomain = ConfigKey.Domain("comx.life")
+	override val configKeyDomain = ConfigKey.Domain("com-x.life", "comx.life")
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
 	private val cdnImageUrl = "img.com-x.life/comix/"
@@ -184,7 +184,7 @@ internal class ComXParser(context: MangaLoaderContext) :
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
 		val newsId = chapter.url.substringAfter("/reader/").substringBefore("/")
 		context.cookieJar.insertCookies(domain, "adult=$newsId")
-		
+
 		val doc = webClient.httpGet(chapter.url.toAbsoluteUrl(domain)).parseHtml()
 		val data = doc.selectFirst("script:containsData(__DATA__)")?.data()
 			?.substringAfter("=")

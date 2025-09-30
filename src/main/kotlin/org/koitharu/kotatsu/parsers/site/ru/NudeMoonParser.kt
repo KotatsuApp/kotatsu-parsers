@@ -18,7 +18,6 @@ internal class NudeMoonParser(
 
 	override val configKeyDomain = ConfigKey.Domain(
 		"b.nude-moon.fun",
-		"x.nude-moon.fun",
 		"nude-moon.org",
 		"nude-moon.net",
 	)

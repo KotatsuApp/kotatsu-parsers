@@ -25,7 +25,6 @@ internal class DesuMeParser(context: MangaLoaderContext) :
         "desu.city",
         "desu.work",
         "desu.store",
-        "desu.me",
         "desu.win",
     )
 
