@@ -1,6 +1,5 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import org.jsoup.HttpStatusException
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -27,7 +26,6 @@ import org.koitharu.kotatsu.parsers.util.oneOrThrowIfMany
 import org.koitharu.kotatsu.parsers.util.parseJson
 import org.koitharu.kotatsu.parsers.util.parseSafe
 import org.koitharu.kotatsu.parsers.util.urlEncoded
-import java.net.HttpURLConnection
 import java.text.SimpleDateFormat
 import java.util.EnumSet
 import java.util.Locale
@@ -88,20 +86,20 @@ internal class OTruyenParser(context: MangaLoaderContext) :
                 }
 
                 else -> {
-                    val tag = filter.tags.oneOrThrowIfMany()
-                    if (tag != null) {
-                        append("/v1/api/the-loai/")
-                        append(tag.key)
-                        append("?page=")
-                        append(page)
+                    if (!filter.tags.isEmpty()) {
+                        filter.tags.oneOrThrowIfMany()?.let {
+                            append("/v1/api/the-loai/")
+                            append(it.key)
+                            append("?page=")
+                            append(page)
+                        }
                     } else if (filter.states.isNotEmpty()) {
                         filter.states.oneOrThrowIfMany()?.let {
                             append(
                                 when (it) {
-                                    MangaState.ONGOING -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}"
                                     MangaState.FINISHED -> "/v1/api/danh-sach/hoan-thanh?page=${page}"
                                     MangaState.UPCOMING -> "/v1/api/danh-sach/sap-ra-mat?page=${page}"
-                                    else -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}" // default
+                                    else -> "/v1/api/danh-sach/dang-phat-hanh?page=${page}" // ONGOING
                                 }
                             )
                         }
@@ -115,12 +113,8 @@ internal class OTruyenParser(context: MangaLoaderContext) :
 
         val json = try {
             webClient.httpGet(url).parseJson()
-        } catch (e: HttpStatusException) {
-            if (e.statusCode == HttpURLConnection.HTTP_INTERNAL_ERROR) {
-                return emptyList()
-            } else {
-                throw e
-            }
+        } catch (_: Exception) {
+            return emptyList()
         }
 
         val items = json.getJSONObject("data").getJSONArray("items")
