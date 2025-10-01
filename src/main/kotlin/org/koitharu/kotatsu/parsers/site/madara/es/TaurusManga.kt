@@ -7,6 +7,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
 @MangaSourceParser("TAURUSMANGA", "TaurusManga", "es")
 internal class TaurusManga(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TAURUSMANGA, "taurusmanga.com") {
+	MadaraParser(context, MangaParserSource.TAURUSMANGA, "taurus.topmanhuas.org") {
 	override val datePattern = "dd/MM/yyyy"
 }
