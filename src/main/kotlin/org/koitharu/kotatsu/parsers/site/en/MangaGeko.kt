@@ -160,7 +160,12 @@ internal class MangaGeko(context: MangaLoaderContext) :
 		val fullUrl = chapter.url.toAbsoluteUrl(domain)
 		val doc = webClient.httpGet(fullUrl).parseHtml()
 
-		return doc.requireElementById("chapter-reader").select("img").map { img ->
+        // select all <img>
+        val main = doc.requireElementById("chapter-reader")
+        val img1 = main.select("img")
+        val img2 = main.parent()?.select("img").orEmpty()
+
+		return (img1 + img2).map { img ->
 			val url = img.requireSrc().toRelativeUrl(domain)
 			MangaPage(
 				id = generateUid(url),
@@ -168,6 +173,6 @@ internal class MangaGeko(context: MangaLoaderContext) :
 				preview = null,
 				source = source,
 			)
-		}
+		}.distinctBy { it.url } // to avoid duplicated URLs
 	}
 }
