@@ -13,5 +13,5 @@ internal class TempleScan(context: MangaLoaderContext) :
 	override val pathManga = "comic"
 
 	override val apiPath: String
-		get() = "$domain/apiv1"
+		get() = "$domain/api"
 }
