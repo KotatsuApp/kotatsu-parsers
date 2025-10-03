@@ -156,18 +156,21 @@ internal class MangaGeko(context: MangaLoaderContext) :
 			}
 	}
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val fullUrl = chapter.url.toAbsoluteUrl(domain)
-		val doc = webClient.httpGet(fullUrl).parseHtml()
-
-		return doc.requireElementById("chapter-reader").select("img").map { img ->
-			val url = img.requireSrc().toRelativeUrl(domain)
-			MangaPage(
-				id = generateUid(url),
-				url = url,
-				preview = null,
-				source = source,
-			)
-		}
-	}
+    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+        val fullUrl = chapter.url.toAbsoluteUrl(domain)
+        val doc = webClient.httpGet(fullUrl).parseHtml()
+        return doc.select("center img")
+            .mapNotNull { it.attr("src").takeIf { src -> src.isNotBlank() } }
+            // remove all invaild images + credits
+            .filterNot { it.startsWith("data:image") || it.contains("credits-mgeko.png") }
+            .distinct().map { url ->
+                val finalUrl = url.toRelativeUrl(domain)
+                MangaPage(
+                    id = generateUid(finalUrl),
+                    url = finalUrl,
+                    preview = null,
+                    source = source,
+                )
+            }
+    }
 }
