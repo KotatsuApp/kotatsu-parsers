@@ -5,6 +5,7 @@ plugins {
     `maven-publish`
     alias(libs.plugins.kotlin.jvm)
     alias(libs.plugins.ksp)
+    alias(libs.plugins.kotlinPluginSerialization)
 }
 
 group = "org.koitharu"
@@ -45,6 +46,7 @@ publishing {
 
 dependencies {
     implementation(libs.kotlinx.coroutines.core)
+    implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp)
     implementation(libs.okio)
     implementation(libs.json)

@@ -1,7 +1,9 @@
 [versions]
 kotlin = "2.2.10"
 ksp = "2.2.10-2.0.2"
+kotlinPluginSerialization = "2.2.10"
 coroutines = "1.10.2"
+kotlinxserializationjson = "1.9.0"
 junit = "5.10.1"
 okhttp = "5.1.0"
 okio = "3.16.0"
@@ -15,11 +17,13 @@ simplexml = "2.7.1"
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlinPluginSerialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlinPluginSerialization" }
 
 [libraries]
 ksp-symbol-processing-api = { module = "com.google.devtools.ksp:symbol-processing-api", version.ref = "ksp" }
 kotlinx-coroutines-core = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core", version.ref = "coroutines" }
 kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutines" }
+kotlinx-serialization-json = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxserializationjson" }
 junit-launcher = { group = "org.junit.platform", name = "junit-platform-launcher" }
 junit-api = { group = "org.junit.jupiter", name = "junit-jupiter-api", version.ref = "junit" }
 junit-engine = { group = "org.junit.jupiter", name = "junit-jupiter-engine", version.ref = "junit" }
