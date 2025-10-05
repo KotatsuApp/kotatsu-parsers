@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA)
+@MangaSourceParser("MANGAMOINS", "MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA)
 class MangaMoinsParser(context: MangaLoaderContext) :
     PagedMangaParser(context, MangaSource.MANGAMOINS, 20) {
 
