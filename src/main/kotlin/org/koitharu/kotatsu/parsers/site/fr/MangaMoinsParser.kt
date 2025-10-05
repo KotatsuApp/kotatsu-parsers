@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import okhttp3.Headers
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -8,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MANGAMOINS", "MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA, languages = [Language.FRENCH])
+@MangaSourceParser("MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA)
 class MangaMoinsParser(context: MangaLoaderContext) :
     PagedMangaParser(context, MangaSource.MANGAMOINS, 20) {
 
@@ -65,19 +66,19 @@ class MangaMoinsParser(context: MangaLoaderContext) :
         val fullTitle = doc.selectFirst("title")?.text()?.removePrefix("MangaMoins | ") ?: manga.title
         val cleanTitle = fullTitle.substringBefore("#").trim()
 
+        val chapter = MangaChapter(
+            id = manga.id,
+            name = manga.title,
+            url = manga.url,
+            publicUrl = manga.publicUrl,
+            uploadDate = 0L,
+            source = source,
+            scanlator = "MangaMoins",
+        )
+
         return manga.copy(
             title = cleanTitle,
-            chapters = listOf(
-                MangaChapter(
-                    id = manga.id,
-                    name = manga.title,
-                    url = manga.url,
-                    publicUrl = manga.publicUrl,
-                    uploadDate = 0L,
-                    source = source,
-                    scanlator = "MangaMoins",
-                )
-            )
+            chapters = listOf(chapter),
         )
     }
 
@@ -93,8 +94,8 @@ class MangaMoinsParser(context: MangaLoaderContext) :
         }
     }
 
-    override fun getRequestHeaders() = org.jsoup.Connection.Headers().apply {
-        add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
-        add("Referer", "https://mangamoins.shaeishu.co/")
-    }
+    override fun getRequestHeaders() = Headers.Builder()
+        .add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+        .add("Referer", "https://mangamoins.shaeishu.co/")
+        .build()
 }
