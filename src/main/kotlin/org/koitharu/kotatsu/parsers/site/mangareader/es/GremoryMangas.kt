@@ -6,9 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.Broken
-import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
 @Broken // There are no comics on the website at all.
 @MangaSourceParser("GREMORYMANGAS", "GremoryMangas", "es")
 internal class GremoryMangas(context: MangaLoaderContext) :
