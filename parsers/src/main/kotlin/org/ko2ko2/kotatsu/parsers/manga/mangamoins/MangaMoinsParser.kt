@@ -10,7 +10,9 @@ import org.ko2ko2.kotatsu.parsers.utils.*
 
 @MangaSourceParser("MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA, languages = [Language.FRENCH])
 class MangaMoinsParser : HtmlMangaParser() {
-
+    init {
+        println("✅ MangaMoinsParser loaded successfully!")
+    }
     override val config = MangaParserConfiguration(
         sourceDomain = "https://mangamoins.shaeishu.co",
         imageBaseUrl = "https://mangamoins.shaeishu.co",
