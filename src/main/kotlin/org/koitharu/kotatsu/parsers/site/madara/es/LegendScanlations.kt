@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @Broken
 @MangaSourceParser("LEGENDSCANLATIONS", "LegendScanlations", "es")
 internal class LegendScanlations(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.LEGENDSCANLATIONS, "legendscanlations.com", 10) {
+	MadaraParser(context, MangaParserSource.LEGENDSCANLATIONS, "escaneodeleyendas.com", 10) {
 	override val datePattern = "dd/MM/yyyy"
 }

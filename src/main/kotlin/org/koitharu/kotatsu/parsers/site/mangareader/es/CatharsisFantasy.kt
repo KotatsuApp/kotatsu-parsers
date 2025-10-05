@@ -10,7 +10,9 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.ArrayList
 import java.util.Base64
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("CATHARSISFANTASY", "CatharsisFantasy", "es")
 internal class CatharsisFantasy(context: MangaLoaderContext) :
 	MangaReaderParser(
