@@ -1,52 +1,46 @@
-package org.ko2ko2.kotatsu.parsers.manga.mangamoins
+package org.koitharu.kotatsu.parsers.manga.mangamoins
 
-import org.ko2ko2.kotatsu.parsers.common.*
-import org.ko2ko2.kotatsu.parsers.extension.*
-import org.ko2ko2.kotatsu.parsers.model.*
-import org.ko2ko2.kotatsu.parsers.source.Language
-import org.ko2ko2.kotatsu.parsers.source.MangaSource
-import org.ko2ko2.kotatsu.parsers.source.PagedMangaSource
-import org.ko2ko2.kotatsu.parsers.utils.*
+import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
+import org.koitharu.kotatsu.parsers.core.PagedMangaParser
+import org.koitharu.kotatsu.parsers.model.*
+import org.koitharu.kotatsu.parsers.network.UserAgents
+import org.koitharu.kotatsu.parsers.util.*
+import java.util.*
 
-@MangaSourceParser("MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA, languages = [Language.FRENCH])
-class MangaMoinsParser : HtmlMangaParser() {
-    init {
-        println("✅ MangaMoinsParser loaded successfully!")
-    }
-    override val config = MangaParserConfiguration(
-        sourceDomain = "https://mangamoins.shaeishu.co",
-        imageBaseUrl = "https://mangamoins.shaeishu.co",
-        isNsfw = false,
-        isRtl = false,
-        headers = mapOf(
-            "User-Agent" to UserAgents.CHROME_DESKTOP,
-            "Referer" to "https://mangamoins.shaeishu.co/"
-        )
-    )
+@MangaSourceParser("MANGAMOINS", "MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA, languages = [Language.FRENCH])
+internal class MangaMoinsParser(context: MangaLoaderContext) :
+    PagedMangaParser(context, MangaSource.MANGAMOINS, 20) {
+
+    override val configKeyDomain = ConfigKey.Domain("mangamoins.shaeishu.co")
 
     override suspend fun getPopularManga(page: Int): PagedMangaList {
-        val doc = httpClient.get("$sourceUrl?p=$page").parseHtml()
-        val mangas = doc.select("div.sortie").map { el ->
+        val doc = webClient.httpGet("https://mangamoins.shaeishu.co/?p=$page").parseHtml()
+        val mangas = mutableListOf<Manga>()
+
+        for (el in doc.select("div.sortie")) {
             val link = el.selectFirst("a")!!
             val href = link.attr("href")
             val scanId = href.substringAfter("scan=").substringBefore("&").substringBefore("#")
             val titleEl = el.selectFirst("figcaption p")!!
             val title = titleEl.ownText().substringBefore("\n").trim()
             val author = titleEl.selectFirst("span")?.text()?.trim() ?: ""
-            val coverUrl = el.selectFirst("img")!!.attrAsAbsoluteUrl("src")
+            val coverUrl = el.selectFirst("img")!!.src().toAbsoluteUrl(domain)
 
-            Manga(
-                id = generateUid(scanId),
-                title = "$title #$scanId",
-                url = href,
-                publicUrl = "$sourceUrl$href",
-                rating = 0f,
-                isNsfw = false,
-                coverUrl = coverUrl,
-                tags = emptySet(),
-                state = MangaState.ONGOING,
-                author = author,
-                source = source
+            mangas.add(
+                Manga(
+                    id = generateUid(scanId),
+                    title = "$title #$scanId",
+                    url = href,
+                    publicUrl = "https://mangamoins.shaeishu.co$href",
+                    rating = 0f,
+                    isNsfw = false,
+                    coverUrl = coverUrl,
+                    tags = emptySet(),
+                    state = MangaState.ONGOING,
+                    author = author,
+                    source = source
+                )
             )
         }
 
@@ -59,7 +53,7 @@ class MangaMoinsParser : HtmlMangaParser() {
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
-        val doc = httpClient.get(manga.publicUrl).parseHtml()
+        val doc = webClient.httpGet(manga.publicUrl).parseHtml()
         val fullTitle = doc.selectFirst("title")?.text()?.removePrefix("MangaMoins | ") ?: manga.title
         val cleanTitle = fullTitle.substringBefore("#").trim()
 
@@ -80,13 +74,27 @@ class MangaMoinsParser : HtmlMangaParser() {
     }
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        val doc = httpClient.get(chapter.publicUrl).parseHtml()
-        return doc.select("link[rel=preload][as=image]").mapIndexed { index, el ->
-            MangaPage(
-                id = index.toLong(),
-                url = el.attrAsAbsoluteUrl("href"),
-                chapterId = chapter.id
+        val doc = webClient.httpGet(chapter.publicUrl).parseHtml()
+        val pages = mutableListOf<MangaPage>()
+
+        val imageLinks = doc.select("link[rel=preload][as=image]")
+        imageLinks.forEachIndexed { index, el ->
+            val url = el.attr("href").toAbsoluteUrl(domain)
+            pages.add(
+                MangaPage(
+                    id = index.toLong(),
+                    url = url,
+                    preview = null,
+                    source = source
+                )
             )
         }
+
+        return pages
+    }
+
+    override fun getRequestHeaders() = org.jsoup.Connection.Headers().apply {
+        add("User-Agent", UserAgents.CHROME_DESKTOP)
+        add("Referer", "https://mangamoins.shaeishu.co/")
     }
 }
