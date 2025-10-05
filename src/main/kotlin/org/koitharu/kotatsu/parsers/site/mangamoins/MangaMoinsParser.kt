@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.manga.mangamoins
+package org.koitharu.kotatsu.parsers.site.mangamoins
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
