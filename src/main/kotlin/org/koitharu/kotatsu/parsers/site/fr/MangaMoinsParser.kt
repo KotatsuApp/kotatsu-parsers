@@ -1,4 +1,4 @@
-package org.koitharu.kotatsu.parsers.site.mangamoins
+package org.koitharu.kotatsu.parsers.site.fr
 
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.network.UserAgents
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@MangaSourceParser("MANGAMOINS", "MangaMoins", "mangamoins.shaeishu.co", type = ContentType.MANGA, languages = [Language.FRENCH])
+@MangaSourceParser("MANGAMOINS", "MangaMoins", "mangamoins.shaeishu.co", "fr")
 internal class MangaMoinsParser(context: MangaLoaderContext) :
     PagedMangaParser(context, MangaSource.MANGAMOINS, 20) {
 
