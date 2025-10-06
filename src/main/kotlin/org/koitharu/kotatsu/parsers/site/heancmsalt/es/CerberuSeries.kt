@@ -7,4 +7,4 @@ import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 
 @MangaSourceParser("LEGIONSCANS", "CerberusSeries", "es")
 internal class CerberuSeries(context: MangaLoaderContext) :
-	HeanCmsAlt(context, MangaParserSource.LEGIONSCANS, "cerberuseries.xyz")
+	HeanCmsAlt(context, MangaParserSource.LEGIONSCANS, "legionscans.com/wp")
