@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("NEKOSCANS", "NekoScans", "es")
 internal class NekoScans(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.NEKOSCANS, "www.nekoscans.org")
