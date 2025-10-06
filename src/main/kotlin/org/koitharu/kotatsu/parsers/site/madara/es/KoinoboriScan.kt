@@ -9,6 +9,6 @@ import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 @Broken // Not dead but changed template
 @MangaSourceParser("KOINOBORISCAN", "KoinoboriScan", "es")
 internal class KoinoboriScan(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.KOINOBORISCAN, "koinoboriscan.com") {
+	MadaraParser(context, MangaParserSource.KOINOBORISCAN, "visorkoi.com") {
 	override val postReq = true
 }

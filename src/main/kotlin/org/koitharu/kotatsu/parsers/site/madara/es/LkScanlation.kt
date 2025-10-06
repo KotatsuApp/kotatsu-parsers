@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken
+@Broken //Dead
 @MangaSourceParser("LKSCANLATION", "LkScanlation", "es")
 internal class LkScanlation(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.LKSCANLATION, "lkscanlation.com") {

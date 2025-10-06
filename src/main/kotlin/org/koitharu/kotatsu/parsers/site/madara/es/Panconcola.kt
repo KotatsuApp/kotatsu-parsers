@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken
+@Broken //Dead
 @MangaSourceParser("PANCONCOLA", "Panconcola", "es")
 internal class Panconcola(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.PANCONCOLA, "artessupremas.com") {

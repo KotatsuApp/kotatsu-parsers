@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
+@Broken //Dead
 @MangaSourceParser("TECNOPROJECTS", "TecnoProjects", "es")
 internal class TecnoProjects(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.TECNOPROJECTS, "tecnoprojects.com") {
+	MadaraParser(context, MangaParserSource.TECNOPROJECTS, "tecnoprojects.xyz") {
 	override val datePattern = "dd 'de' MMMM 'de' yyyy"
 }
