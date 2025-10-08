@@ -51,7 +51,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
     }
 
     override suspend fun getFavicons(): Favicons = Favicons(
-        listOf(Favicon("https://hentaivn.su/favicon.ico", null, null)),
+        listOf(Favicon("https://hentaivn.su/favicon.ico", 512, null)),
         domain
     )
 
