@@ -26,9 +26,9 @@ private const val PAGE_SIZE = 24
 @Serializable 
 private data class User(val id: Int, val username: String, val displayName: String? = null)
 
-@MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
-internal class HentaiVNParser(context: MangaLoaderContext) :
-    AbstractMangaParser(context, MangaParserSource.HENTAIVN), MangaParserAuthProvider {
+@MangaSourceParser("HENTAIVNS", "HentaiVNS", "vi", type = ContentType.HENTAI)
+internal class HentaiVNSParser(context: MangaLoaderContext) :
+    AbstractMangaParser(context, MangaParserSource.HENTAIVNS), MangaParserAuthProvider {
 
     override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.su")
     private val json = Json { ignoreUnknownKeys = true }
