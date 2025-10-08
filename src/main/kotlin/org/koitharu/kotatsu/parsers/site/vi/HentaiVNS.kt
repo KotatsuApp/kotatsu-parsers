@@ -22,9 +22,9 @@ import java.util.*
 
 private const val PAGE_SIZE = 24
 
-@MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
-internal class HentaiVNParser(context: MangaLoaderContext) :
-    AbstractMangaParser(context, MangaParserSource.HENTAIVN), MangaParserAuthProvider {
+@MangaSourceParser("HENTAIVNS", "HentaiVNS", "vi", type = ContentType.HENTAI)
+internal class HentaiVNSParser(context: MangaLoaderContext) :
+    AbstractMangaParser(context, MangaParserSource.HENTAIVNS), MangaParserAuthProvider {
 
     override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.su")
 
