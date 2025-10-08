@@ -3,9 +3,8 @@ package org.koitharu.kotatsu.parsers.site.vi
 import androidx.collection.ArrayMap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -23,15 +22,11 @@ import java.util.*
 
 private const val PAGE_SIZE = 24
 
-@Serializable 
-private data class User(val id: Int, val username: String, val displayName: String? = null)
-
-@MangaSourceParser("HENTAIVNS", "HentaiVNS", "vi", type = ContentType.HENTAI)
-internal class HentaiVNSParser(context: MangaLoaderContext) :
-    AbstractMangaParser(context, MangaParserSource.HENTAIVNS), MangaParserAuthProvider {
+@MangaSourceParser("HENTAIVN", "HentaiVN", "vi", type = ContentType.HENTAI)
+internal class HentaiVNParser(context: MangaLoaderContext) :
+    AbstractMangaParser(context, MangaParserSource.HENTAIVN), MangaParserAuthProvider {
 
     override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.su")
-    private val json = Json { ignoreUnknownKeys = true }
 
     override val authUrl: String
         get() = domain
@@ -40,14 +35,16 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
         context.cookieJar.getCookies(domain).any { it.name == "id" }
 
     override suspend fun getUsername(): String {
-        val response = webClient.httpGet("/api/user/me".toAbsoluteUrl(domain))
-        if (response.isSuccessful) {
-            val userJson = response.body!!.string()
-            val user = json.decodeFromString<User>(userJson)
-            return user.displayName ?: user.username
-        } else {
-            throw AuthRequiredException(source, IllegalStateException("Failed to get user info: ${response.code}"))
-        }
+    val response = webClient.httpGet("/api/user/me".toAbsoluteUrl(domain))
+    
+    if (response.isSuccessful) {
+        val userJson = response.body!!.string()
+        val userObject = JSONObject(userJson)
+        return userObject.optString("displayName", userObject.getString("username"))
+     } else {
+        // Nếu response không thành công (ví dụ: cookie hết hạn), ném exception mà framework yêu cầu
+        throw AuthRequiredException(source, IllegalStateException("Failed to get user info: ${response.code}"))
+     }
     }
 
     override suspend fun getFavicons(): Favicons = Favicons(
@@ -156,20 +153,21 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
     
     private suspend fun fetchChaptersFromApi(mangaId: String): List<MangaChapter> {
         val apiUrl = "/api/manga/$mangaId/chapters".toAbsoluteUrl(domain)
-        val responseJson = webClient.httpGet(apiUrl).body!!.string()
-        return webClient.httpGet(apiUrl).parseJsonArray().mapJSON { jo ->
-            MangaChapter(
-                id = generateUid(jo.getLong("id")),
-                title = jo.getString("title"),
-                number = jo.getInt("readOrder").toFloat(),
-                url = "/chapter/${jo.getLong("id")}",
-                uploadDate = parseDate(jo.optString("createdAt", null)) ?: 0L,
-                source = source,
-                scanlator = null,
-                volume = 0,
-                branch = null
-            )
-        }
+        return try {
+            webClient.httpGet(apiUrl).parseJsonArray().mapJSON { jo ->
+                MangaChapter(
+                    id = generateUid(jo.getLong("id")),
+                    title = jo.getString("title"),
+                    number = jo.getInt("readOrder").toFloat(),
+                    url = "/chapter/${jo.getLong("id")}",
+                    uploadDate = parseDate(jo.optString("createdAt", null)) ?: 0L,
+                    source = source,
+                    scanlator = null,
+                    volume = 0,
+                    branch = null
+                )
+            }
+        } catch (e: Exception) { emptyList() }
     }
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
