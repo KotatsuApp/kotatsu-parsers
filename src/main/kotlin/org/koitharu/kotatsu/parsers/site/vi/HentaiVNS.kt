@@ -158,7 +158,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
                 MangaChapter(
                     id = generateUid(jo.getLong("id")),
                     title = jo.getString("title"),
-                    number = jo.getInt("readOrder").toFloat(),
+                    number = jo.getFloatOrDefault("readOrder", 0f),
                     url = "/chapter/${jo.getLong("id")}",
                     uploadDate = parseDate(jo.optString("createdAt", null)) ?: 0L,
                     source = source,
