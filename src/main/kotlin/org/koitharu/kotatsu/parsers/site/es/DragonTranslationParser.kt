@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import java.util.*
 
-@Broken("Moved to DragonTranslation.org source")
+@Broken("Redirect to DragonTranslation.org source")
 @MangaSourceParser("DRAGONTRANSLATION", "Dragon Translation", "es")
 internal class DragonTranslationParser(context: MangaLoaderContext) :
     PagedMangaParser(context, MangaParserSource.DRAGONTRANSLATION, 30) {

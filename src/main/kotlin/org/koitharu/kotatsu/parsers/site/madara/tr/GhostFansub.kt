@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken // Redirect to @GRIMELEK
+@Broken("Redirect to @GRIMELEK")
 @MangaSourceParser("GHOSTFANSUB", "GhostFansub", "tr")
 internal class GhostFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.GHOSTFANSUB, "ghostfansub.co", 18)
