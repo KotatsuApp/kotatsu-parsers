@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.Manga
@@ -20,6 +21,7 @@ import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import java.util.EnumSet
 import java.util.Locale
 
+@Broken
 @MangaSourceParser("MANGAMOINS", "MangaMoins", "fr")
 internal class MangaMoins(context: MangaLoaderContext) :
     SinglePageMangaParser(context, MangaParserSource.MANGAMOINS) {
