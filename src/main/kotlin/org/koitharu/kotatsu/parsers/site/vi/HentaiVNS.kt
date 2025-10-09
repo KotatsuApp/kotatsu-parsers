@@ -38,8 +38,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
     val response = webClient.httpGet("/api/user/me".toAbsoluteUrl(domain))
     
     if (response.isSuccessful) {
-        val userJson = response.body!!.string()
-        val userObject = JSONObject(userJson)
+        val userObject = response.parseJson()
         return userObject.optString("displayName", userObject.getString("username"))
      } else {
         // Nếu response không thành công (ví dụ: cookie hết hạn), ném exception mà framework yêu cầu
