@@ -24,7 +24,7 @@ import java.util.Locale
 @MangaSourceParser("MANGAMOINS", "MangaMoins", "fr")
 internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.MANGAMOINS) {
 
-    override val configKeyDomain = ConfigKey.Domain("shaeishu.co")
+    override val configKeyDomain = ConfigKey.Domain("mangamoins.com")
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
     override val filterCapabilities = MangaListFilterCapabilities(isSearchSupported = false)
 
@@ -36,10 +36,10 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
             title = "One Piece",
             altTitles = emptySet(),
             url = "OP",
-            publicUrl = "https://shaeishu.co/",
+            publicUrl = "https://mangamoins.com/",
             rating = RATING_UNKNOWN,
             contentRating = null,
-            coverUrl = "https://shaeishu.co/files/scans/OP1161/thumbnail.png",
+            coverUrl = "https://mangamoins.com/files/scans/OP1161/thumbnail.png",
             tags = emptySet(),
             state = MangaState.ONGOING,
             authors = setOf("Eiichiro Oda"),
@@ -50,10 +50,10 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
             title = "Les Carnets de l'Apothicaire",
             altTitles = emptySet(),
             url = "LCDL",
-            publicUrl = "https://shaeishu.co/",
+            publicUrl = "https://mangamoins.com/",
             rating = RATING_UNKNOWN,
             contentRating = null,
-            coverUrl = "https://shaeishu.co/files/scans/LCDL76.2/thumbnail.png",
+            coverUrl = "https://mangamoins.com/files/scans/LCDL76.2/thumbnail.png",
             tags = emptySet(),
             state = MangaState.ONGOING,
             authors = setOf("Itsuki Nanao", "Nekokurage"),
@@ -64,10 +64,10 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
             title = "Jujutsu Kaisen Modulo",
             altTitles = emptySet(),
             url = "JKM",
-            publicUrl = "https://shaeishu.co/",
+            publicUrl = "https://mangamoins.com/",
             rating = RATING_UNKNOWN,
             contentRating = null,
-            coverUrl = "https://shaeishu.co/files/scans/JKM1/thumbnail.png",
+            coverUrl = "https://mangamoins.com/files/scans/JKM1/thumbnail.png",
             tags = emptySet(),
             state = MangaState.ONGOING,
             authors = setOf("Gege Akutami", "Yuji Iwasaki"),
@@ -78,10 +78,10 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
             title = "One Piece Colo",
             altTitles = emptySet(),
             url = "OPC",
-            publicUrl = "https://shaeishu.co/",
+            publicUrl = "https://mangamoins.com/",
             rating = RATING_UNKNOWN,
             contentRating = null,
-            coverUrl = "https://shaeishu.co/files/scans/OPC1160/thumbnail.png",
+            coverUrl = "https://mangamoins.com/files/scans/OPC1160/thumbnail.png",
             tags = emptySet(),
             state = MangaState.ONGOING,
             authors = setOf("Eiichiro Oda"),
@@ -92,7 +92,7 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
             title = "L'Atelier des Sorciers",
             altTitles = emptySet(),
             url = "LDS",
-            publicUrl = "https://shaeishu.co/",
+            publicUrl = "https://mangamoins.com/",
             rating = RATING_UNKNOWN,
             contentRating = null,
             coverUrl = "https://sceneario.com/wp-content/uploads/2023/05/9782811641344-1.jpg",
@@ -189,12 +189,12 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
     }
 
     private suspend fun checkChapter(prefix: String, chapterNumStr: String, chapterNumFloat: Float): MangaChapter? {
-        val thumbUrl = "https://shaeishu.co/files/scans/$prefix$chapterNumStr/thumbnail.png"
+        val thumbUrl = "https://mangamoins.com/files/scans/$prefix$chapterNumStr/thumbnail.png"
         return try {
             val response = webClient.httpHead(thumbUrl)
             if (response.isSuccessful) {
                 response.close()
-                val chapterUrl = "https://shaeishu.co/?scan=$prefix$chapterNumStr"
+                val chapterUrl = "https://mangamoins.com/?scan=$prefix$chapterNumStr"
                 MangaChapter(
                     id = generateUid(chapterUrl),
                     title = null,
