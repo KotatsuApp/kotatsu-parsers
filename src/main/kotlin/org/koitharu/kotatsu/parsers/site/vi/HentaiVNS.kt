@@ -42,7 +42,8 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
         return userObject.optString("displayName", userObject.getString("username"))
      } else {
         // Nếu response không thành công (ví dụ: cookie hết hạn), ném exception mà framework yêu cầu
-        throw AuthRequiredException(source, IllegalStateException("Failed to get user info: ${response.code}"))
+                 response.close()
+                throw AuthRequiredException(source, IllegalStateException("Failed to get user info: ${response.code}"))
      }
     }
 
