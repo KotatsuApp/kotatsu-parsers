@@ -191,8 +191,7 @@ internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(c
     private suspend fun checkChapter(prefix: String, chapterNumStr: String, chapterNumFloat: Float): MangaChapter? {
         val thumbUrl = "https://shaeishu.co/files/scans/$prefix$chapterNumStr/thumbnail.png"
         return try {
-            val request = Request.Builder().url(thumbUrl).head().build()
-            val response = context.httpClient.newCall(request).execute()
+            val response = webClient.httpHead(thumbUrl)
             if (response.isSuccessful) {
                 response.close()
                 val chapterUrl = "https://shaeishu.co/?scan=$prefix$chapterNumStr"
