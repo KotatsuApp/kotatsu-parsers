@@ -184,7 +184,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
         val apiUrl = "/api/tag/genre".toAbsoluteUrl(domain)
         val genres = webClient.httpGet(apiUrl).parseJsonArray()
         
-        val tagMap = ArrayMap<String, MangaTag>()
+        val tagMap = ArrayMap<String, MangaTag>(genres.length())
         for (i in 0 until genres.length()) {
             val genre = genres.getJSONObject(i)
             val name = genre.getString("name")
