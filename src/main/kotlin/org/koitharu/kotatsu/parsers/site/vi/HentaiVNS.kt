@@ -29,7 +29,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
     override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.su")
 
     override val authUrl: String
-        get() = domain
+        get() = "https://$domain"
 
     override suspend fun isAuthorized(): Boolean =
         context.cookieJar.getCookies(domain).any { it.name == "id" }
