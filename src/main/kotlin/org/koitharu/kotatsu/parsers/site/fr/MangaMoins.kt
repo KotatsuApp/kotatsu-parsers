@@ -28,85 +28,83 @@ internal class MangaMoins(context: MangaLoaderContext) :
 
     override val configKeyDomain = ConfigKey.Domain("mangamoins.com")
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
-    override val filterCapabilities = MangaListFilterCapabilities(isSearchSupported = false)
+    override val filterCapabilities = MangaListFilterCapabilities()
 
     override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions()
 
-    private val mangaList = listOf(
-        Manga(
-            id = generateUid("OP"),
-            title = "One Piece",
-            altTitles = emptySet(),
-            url = "OP",
-            publicUrl = "https://mangamoins.com/",
-            rating = RATING_UNKNOWN,
-            contentRating = null,
-            coverUrl = "https://mangamoins.com/files/scans/OP1161/thumbnail.png",
-            tags = emptySet(),
-            state = MangaState.ONGOING,
-            authors = setOf("Eiichiro Oda"),
-            source = source,
-        ),
-        Manga(
-            id = generateUid("LCDL"),
-            title = "Les Carnets de l'Apothicaire",
-            altTitles = emptySet(),
-            url = "LCDL",
-            publicUrl = "https://mangamoins.com/",
-            rating = RATING_UNKNOWN,
-            contentRating = null,
-            coverUrl = "https://mangamoins.com/files/scans/LCDL76.2/thumbnail.png",
-            tags = emptySet(),
-            state = MangaState.ONGOING,
-            authors = setOf("Itsuki Nanao", "Nekokurage"),
-            source = source,
-        ),
-        Manga(
-            id = generateUid("JKM"),
-            title = "Jujutsu Kaisen Modulo",
-            altTitles = emptySet(),
-            url = "JKM",
-            publicUrl = "https://mangamoins.com/",
-            rating = RATING_UNKNOWN,
-            contentRating = null,
-            coverUrl = "https://mangamoins.com/files/scans/JKM1/thumbnail.png",
-            tags = emptySet(),
-            state = MangaState.ONGOING,
-            authors = setOf("Gege Akutami", "Yuji Iwasaki"),
-            source = source,
-        ),
-        Manga(
-            id = generateUid("OPC"),
-            title = "One Piece Colo",
-            altTitles = emptySet(),
-            url = "OPC",
-            publicUrl = "https://mangamoins.com/",
-            rating = RATING_UNKNOWN,
-            contentRating = null,
-            coverUrl = "https://mangamoins.com/files/scans/OPC1160/thumbnail.png",
-            tags = emptySet(),
-            state = MangaState.ONGOING,
-            authors = setOf("Eiichiro Oda"),
-            source = source,
-        ),
-        Manga(
-            id = generateUid("LDS"),
-            title = "L'Atelier des Sorciers",
-            altTitles = emptySet(),
-            url = "LDS",
-            publicUrl = "https://mangamoins.com/",
-            rating = RATING_UNKNOWN,
-            contentRating = null,
-            coverUrl = "https://sceneario.com/wp-content/uploads/2023/05/9782811641344-1.jpg",
-            tags = emptySet(),
-            state = MangaState.ONGOING,
-            authors = setOf("Kamome Shirahama"),
-            source = source,
-        )
-    )
-
     override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
-        return mangaList
+        return listOf(
+            Manga(
+                id = generateUid("OP"),
+                title = "One Piece",
+                altTitles = emptySet(),
+                url = "OP",
+                publicUrl = "https://mangamoins.com/",
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = "https://mangamoins.com/files/scans/OP1161/thumbnail.png",
+                tags = emptySet(),
+                state = MangaState.ONGOING,
+                authors = setOf("Eiichiro Oda"),
+                source = source,
+            ),
+            Manga(
+                id = generateUid("LCDL"),
+                title = "Les Carnets de l'Apothicaire",
+                altTitles = emptySet(),
+                url = "LCDL",
+                publicUrl = "https://mangamoins.com/",
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = "https://mangamoins.com/files/scans/LCDL76.2/thumbnail.png",
+                tags = emptySet(),
+                state = MangaState.ONGOING,
+                authors = setOf("Itsuki Nanao", "Nekokurage"),
+                source = source,
+            ),
+            Manga(
+                id = generateUid("JKM"),
+                title = "Jujutsu Kaisen Modulo",
+                altTitles = emptySet(),
+                url = "JKM",
+                publicUrl = "https://mangamoins.com/",
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = "https://mangamoins.com/files/scans/JKM1/thumbnail.png",
+                tags = emptySet(),
+                state = MangaState.ONGOING,
+                authors = setOf("Gege Akutami", "Yuji Iwasaki"),
+                source = source,
+            ),
+            Manga(
+                id = generateUid("OPC"),
+                title = "One Piece Colo",
+                altTitles = emptySet(),
+                url = "OPC",
+                publicUrl = "https://mangamoins.com/",
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = "https://mangamoins.com/files/scans/OPC1160/thumbnail.png",
+                tags = emptySet(),
+                state = MangaState.ONGOING,
+                authors = setOf("Eiichiro Oda"),
+                source = source,
+            ),
+            Manga(
+                id = generateUid("LDS"),
+                title = "L'Atelier des Sorciers",
+                altTitles = emptySet(),
+                url = "LDS",
+                publicUrl = "https://mangamoins.com/",
+                rating = RATING_UNKNOWN,
+                contentRating = null,
+                coverUrl = "https://sceneario.com/wp-content/uploads/2023/05/9782811641344-1.jpg",
+                tags = emptySet(),
+                state = MangaState.ONGOING,
+                authors = setOf("Kamome Shirahama"),
+                source = source,
+            )
+        )
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
@@ -219,7 +217,7 @@ internal class MangaMoins(context: MangaLoaderContext) :
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val doc = webClient.httpGet(chapter.url).parseHtml()
-        val pages = doc.select("link[rel=preload][as=image]").map { element ->
+        return doc.select("link[rel=preload][as=image]").map { element ->
             val url = element.attr("href").toAbsoluteUrl(domain)
             MangaPage(
                 id = generateUid(url),
@@ -228,6 +226,5 @@ internal class MangaMoins(context: MangaLoaderContext) :
                 source = source
             )
         }
-        return pages
     }
 }
