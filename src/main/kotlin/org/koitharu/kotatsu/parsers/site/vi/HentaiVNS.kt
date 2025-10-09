@@ -117,7 +117,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
                 url = "/manga/$id",
                 publicUrl = "/manga/$id".toAbsoluteUrl(domain),
                 coverUrl = jo.getString("coverUrl").toAbsoluteUrl(domain),
-                authors = jo.optString("authors", null)?.let { setOf(it) } ?: emptySet(),
+                authors = setOfNotNull(jo.getStringOrNull("authors")),
                 tags = jo.optJSONArray("genres")?.mapJSONToSet { genreJo ->
                     MangaTag(genreJo.getString("name"), genreJo.getString("id"), source)
                 } ?: emptySet(),
