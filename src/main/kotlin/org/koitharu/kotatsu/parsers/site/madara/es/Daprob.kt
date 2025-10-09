@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken //Dead
+@Broken
 @MangaSourceParser("DAPROB", "Daprob", "es")
 internal class Daprob(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.DAPROB, "daprob.com") {

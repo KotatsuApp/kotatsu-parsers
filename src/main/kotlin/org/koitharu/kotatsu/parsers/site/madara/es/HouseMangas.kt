@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken // Not dead but changed template
+@Broken("Not dead, changed template")
 @MangaSourceParser("HOUSEMANGAS", "HouseMangas", "es")
 internal class HouseMangas(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HOUSEMANGAS, "visormanga.com")

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Not dead but changed template
+@Broken("Not dead, changed template")
 @MangaSourceParser("LEGIONSCANS", "CerberusSeries", "es")
 internal class CerberuSeries(context: MangaLoaderContext) :
 	HeanCmsAlt(context, MangaParserSource.LEGIONSCANS, "legionscans.com")

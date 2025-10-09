@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.Locale
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Not dead but changed template
+@Broken("Not dead, changed template")
 @MangaSourceParser("CATHARSISWORLD", "CatharsisWorld", "es")
 internal class CatharsisWorld(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.CATHARSISWORLD, "catharsisworld.dig-it.info", pageSize = 30, searchPageSize = 10) {

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken //Dead
+@Broken
 @MangaSourceParser("LECTORUNM", "Lectorunm.life", "es")
 internal class Lectorunm(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.LECTORUNM, "lectorunm.life") {

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken //Dead
+@Broken
 @MangaSourceParser("ATLANTISSCAN", "AtlantisScan", "es")
 internal class AtlantisScan(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.ATLANTISSCAN, "scansatlanticos.com", pageSize = 50) {

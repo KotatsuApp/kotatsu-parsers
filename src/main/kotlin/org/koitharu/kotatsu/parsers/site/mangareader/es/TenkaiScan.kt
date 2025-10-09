@@ -9,7 +9,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@Broken // Not dead, changed template
+@Broken("Not dead, changed template")
 @MangaSourceParser("TENKAISCAN", "TenkaiScan", "es", ContentType.HENTAI)
 internal class TenkaiScan(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.TENKAISCAN, "falcoscan.net", 20, 10) {

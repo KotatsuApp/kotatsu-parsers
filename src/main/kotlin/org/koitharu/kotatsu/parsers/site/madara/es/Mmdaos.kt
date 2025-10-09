@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken //Dead
+@Broken
 @MangaSourceParser("MMDAOS", "Mmdaos", "es")
 internal class Mmdaos(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MMDAOS, "mmdaos.com")
