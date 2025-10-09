@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.iken.IkenParser
 
-@Broken // Redirect to @VORTEXSCANS
+@Broken("Redirect to VortexScans")
 @MangaSourceParser("MANGAGALAXY", "MangaGalaxy", "en")
 internal class MangaGalaxyParser(context: MangaLoaderContext) :
 	IkenParser(context, MangaParserSource.MANGAGALAXY, "vortexscans.org", 18)

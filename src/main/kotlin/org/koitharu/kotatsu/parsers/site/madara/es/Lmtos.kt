@@ -6,9 +6,9 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken
-@MangaSourceParser("JOBSIBE", "Jobsibe", "es")
-internal class Jobsibe(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.JOBSIBE, "jobsibe.com") {
+@Broken("Not dead, changed template")
+@MangaSourceParser("LMTOS", "Lmtos", "es")
+internal class Lmtos(context: MangaLoaderContext) :
+	MadaraParser(context, MangaParserSource.LMTOS, "lmtos.com") {
 	override val datePattern = "dd/MM"
 }

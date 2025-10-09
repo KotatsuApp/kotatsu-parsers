@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed
+@Broken("Original site closed")
 @MangaSourceParser("DARKNEBULUS", "Darknebulus", "es")
 internal class Darknebulus(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.DARKNEBULUS, "www.darknebulus.com")

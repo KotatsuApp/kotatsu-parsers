@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed and the domain has been sold
+@Broken("Original site closed")
 @MangaSourceParser("GOOFFANSUB", "GoofFansub", "pt", ContentType.HENTAI)
 internal class GoofFansub(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.GOOFFANSUB, "gooffansub.com") {

@@ -8,7 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import java.util.*
 
-@Broken // Redirect to @IKIRU
+@Broken("Redirect to @IKIRU")
 @MangaSourceParser("MANGATALE", "MangaTale", "id")
 internal class MangaTaleParser(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.MANGATALE, "ikiru.one", pageSize = 20, searchPageSize = 10) {

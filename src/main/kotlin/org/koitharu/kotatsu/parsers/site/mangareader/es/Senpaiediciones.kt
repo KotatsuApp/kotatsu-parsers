@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed
+@Broken("Original site closed")
 @MangaSourceParser("SENPAIEDICIONES", "SenpaiEdiciones", "es")
 internal class Senpaiediciones(context: MangaLoaderContext) :
 	MangaReaderParser(

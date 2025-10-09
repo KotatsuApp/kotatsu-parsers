@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.madara.es
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -7,6 +8,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.util.*
 
+@Broken
 @MangaSourceParser("TMOMANGA", "TmoManga", "es")
 internal class TmoManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.TMOMANGA, "tmomanga.com") {
