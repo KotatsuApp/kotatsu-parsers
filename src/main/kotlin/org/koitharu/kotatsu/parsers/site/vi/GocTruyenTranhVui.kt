@@ -271,6 +271,6 @@ internal class GocTruyenTranhVui(context: MangaLoaderContext):
 
     companion object {
         private const val REQUEST_DELAY_MS = 350L
-        private const val TOKEN_KEY = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJEcmFrZW4iLCJjb21pY0lkcyI6W10sInJvbGVJZCI6bnVsbCwiZ3JvdXBJZCI6bnVsbCwiYWRtaW4iOmZhbHNlLCJyYW5rIjowLCJwZXJtaXNzaW9uIjpbXSwiaWQiOiIwMDAxMTE1OTg2IiwidGVhbSI6ZmFsc2UsImlhdCI6MTc1NzU5NjQxMSwiZW1haWwiOiJudWxsIn0.VcGDaVQvyowtvja04CTUpfCP5XiC5qIdPmANZL0Gjz2kjz__PJ8LATQ9s44FpNohMpgLgPQO0TVs67D_YFlLNw"
+        private const val TOKEN_KEY = "Bearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJEcmFrZW4iLCJjb21pY0lkcyI6W10sInJvbGVJZCI6bnVsbCwiZ3JvdXBJZCI6bnVsbCwiYWRtaW4iOmZhbHNlLCJyYW5rIjowLCJwZXJtaXNzaW9uIjpbXSwiaWQiOiIwMDAxMTE1OTg2IiwidGVhbSI6ZmFsc2UsImlhdCI6MTc2MDAzMjU0MiwiZW1haWwiOiJudWxsIn0.DxdOvGgPDCRodAWUosS8N1Ti6oKlTRCGQxpNJukqDyBmd2uq61H-oOEqC76wyF1QECmbzGTYbyqIN4CE26JETQ"
     }
 }
