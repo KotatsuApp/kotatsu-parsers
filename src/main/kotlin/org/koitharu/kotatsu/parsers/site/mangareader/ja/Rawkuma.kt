@@ -9,7 +9,7 @@ import java.util.*
 
 @MangaSourceParser("RAWKUMA", "Rawkuma", "ja")
 internal class Rawkuma(context: MangaLoaderContext) :
-	MangaReaderParser(context, MangaParserSource.RAWKUMA, "rawkuma.com", pageSize = 54, searchPageSize = 54) {
+	MangaReaderParser(context, MangaParserSource.RAWKUMA, "old.rawkuma.com", pageSize = 54, searchPageSize = 54) {
 	override val datePattern = "MMM d, yyyy"
 	override val sourceLocale: Locale = Locale.ENGLISH
 	override val filterCapabilities: MangaListFilterCapabilities
