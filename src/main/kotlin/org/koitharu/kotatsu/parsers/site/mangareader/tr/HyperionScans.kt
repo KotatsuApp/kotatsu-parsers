@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed, domain sold
+@Broken("Original site closed")
 @MangaSourceParser("HYPERIONSCANS", "SeraphManga", "tr")
 internal class HyperionScans(context: MangaLoaderContext) :
 	MangaReaderParser(

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 
-@Broken // Not dead but changed template
+@Broken("Not dead, changed template")
 @MangaSourceParser("MANHWA_FREAK", "ManhwaFreak", "en")
 internal class ManhwaFreak(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.MANHWA_FREAK, "manhwafreak.xyz", pageSize = 30, searchPageSize = 42)

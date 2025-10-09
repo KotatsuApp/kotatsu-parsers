@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed
+@Broken("Original site closed")
 @MangaSourceParser("STKISSMANGA_COM", "1stKissManga.com", "en")
 internal class StkissMangaCom(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.STKISSMANGA_COM, "1stkissmanga.mom", 10) {
