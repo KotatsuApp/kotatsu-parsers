@@ -19,12 +19,12 @@ import java.util.*
 
 @MangaSourceParser("MANGAKAKALOT", "Mangakakalot.gg", "en")
 internal class Mangakakalot(context: MangaLoaderContext) : MangaboxParser(context, MangaParserSource.MANGAKAKALOT) {
-		
+
 	override val configKeyDomain = ConfigKey.Domain(
 		"www.mangakakalot.gg",
 		"mangakakalot.gg",
 	)
-	
+
 	override val availableSortOrders: Set<SortOrder> = EnumSet.of(
 		SortOrder.UPDATED,
 		SortOrder.POPULARITY,
@@ -132,7 +132,7 @@ internal class Mangakakalot(context: MangaLoaderContext) : MangaboxParser(contex
 
 		val doc = webClient.httpGet(titleSearchUrl ?: url).parseHtml()
 
-		return doc.select("div.list-truyen-item-wrap").ifEmpty {
+		return doc.select("div.list-comic-item-wrap").ifEmpty {
 			doc.select("div.story_item")
 		}.map { div ->
 			val href = div.selectFirstOrThrow("a").attrAsRelativeUrl("href")
