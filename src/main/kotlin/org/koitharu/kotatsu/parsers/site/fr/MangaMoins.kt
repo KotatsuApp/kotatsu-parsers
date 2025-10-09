@@ -1,9 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
-import okhttp3.Request
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
-import org.koitharu.kotatsu.parsers.core.PagedMangaParser
 import org.koitharu.kotatsu.parsers.model.Manga
 import org.koitharu.kotatsu.parsers.model.MangaChapter
 import org.koitharu.kotatsu.parsers.model.MangaListFilter
@@ -18,11 +16,13 @@ import org.koitharu.kotatsu.parsers.util.generateUid
 import org.koitharu.kotatsu.parsers.util.parseHtml
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.config.ConfigKey
+import org.koitharu.kotatsu.parsers.core.SinglePageMangaParser
 import java.util.EnumSet
 import java.util.Locale
 
 @MangaSourceParser("MANGAMOINS", "MangaMoins", "fr")
-internal class MangaMoins(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAMOINS, 20) {
+internal class MangaMoins(context: MangaLoaderContext) :
+    SinglePageMangaParser(context, MangaParserSource.MANGAMOINS) {
 
     override val configKeyDomain = ConfigKey.Domain("mangamoins.com")
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
@@ -103,12 +103,12 @@ internal class MangaMoins(context: MangaLoaderContext) : PagedMangaParser(contex
         )
     )
 
-    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-        return if (page == 1) mangaList else emptyList()
+    override suspend fun getList(order: SortOrder, filter: MangaListFilter): List<Manga> {
+        return mangaList
     }
 
     override suspend fun getDetails(manga: Manga): Manga {
-        val doc = webClient.httpGet("https://" + domain).parseHtml()
+        val doc = webClient.httpGet("https://$domain").parseHtml()
         val prefix = manga.url
         val latestSiteChapterNumber = doc.select("div.sortie a").mapNotNull { a ->
             val href = a.attr("href")
@@ -124,7 +124,7 @@ internal class MangaMoins(context: MangaLoaderContext) : PagedMangaParser(contex
         val cachedChapters = manga.chapters
         val lastKnownChapterNumber = cachedChapters?.maxByOrNull { it.number }?.number
 
-        if (lastKnownChapterNumber != null && cachedChapters != null && cachedChapters.isNotEmpty()) {
+        if (lastKnownChapterNumber != null && cachedChapters.isNotEmpty()) {
             // INCREMENTAL SCAN (CACHE EXISTS)
             if (latestSiteChapterNumber <= lastKnownChapterNumber) {
                 return manga.copy(chapters = cachedChapters.sortedBy { it.number })
@@ -210,7 +210,7 @@ internal class MangaMoins(context: MangaLoaderContext) : PagedMangaParser(contex
                 response.close()
                 null
             }
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             null
         }
     }
