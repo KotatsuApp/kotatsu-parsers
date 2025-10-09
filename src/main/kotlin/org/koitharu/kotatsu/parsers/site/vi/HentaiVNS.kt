@@ -143,7 +143,7 @@ internal class HentaiVNSParser(context: MangaLoaderContext) :
         manga.copy(
             altTitles = detailsJson.optJSONArray("alternativeTitles")?.asTypedList<String>()?.toSet() ?: emptySet(),
             authors = detailsJson.optJSONArray("authors")?.mapJSONToSet { it.getString("name") } ?: emptySet(),
-            description = detailsJson.optString("description", ""),
+            description = detailsJson.getStringOrNull("description"),
             tags = detailsJson.optJSONArray("genres")?.mapJSONToSet { genreJo ->
                 MangaTag(genreJo.getString("name"), genreJo.getString("id"), source)
             } ?: emptySet(),
