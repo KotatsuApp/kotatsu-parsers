@@ -22,7 +22,7 @@ import java.util.EnumSet
 import java.util.Locale
 
 @MangaSourceParser("MANGAMOINS", "MangaMoins", "fr")
-internal class MangaMoins(context: MangaLoaderContext) : SinglePageMangaParser(context, MangaParserSource.MANGAMOINS) {
+internal class MangaMoins(context: MangaLoaderContext) : PagedMangaParser(context, MangaParserSource.MANGAMOINS, 20) {
 
     override val configKeyDomain = ConfigKey.Domain("mangamoins.com")
     override val availableSortOrders: Set<SortOrder> = EnumSet.of(SortOrder.UPDATED)
