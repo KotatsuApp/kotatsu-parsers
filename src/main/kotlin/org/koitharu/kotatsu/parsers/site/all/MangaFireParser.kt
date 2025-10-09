@@ -41,6 +41,10 @@ internal abstract class MangaFireParser(
 		SortOrder.RELEVANCE,
 	)
 
+    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
+        .add("Referer", "https://$domain/")
+        .build()
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
 		keys.add(userAgentKey)
