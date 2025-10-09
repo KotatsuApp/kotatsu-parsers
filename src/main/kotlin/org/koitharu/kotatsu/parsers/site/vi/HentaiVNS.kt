@@ -24,7 +24,7 @@ private const val PAGE_SIZE = 24
 
 @MangaSourceParser("HENTAIVNS", "HentaiVNS", "vi", type = ContentType.HENTAI)
 internal class HentaiVNSParser(context: MangaLoaderContext) :
-    AbstractMangaParser(context, MangaParserSource.HENTAIVNS), MangaParserAuthProvider {
+    PagedMangaParser(context, MangaParserSource.HENTAIVNS, PAGE_SIZE), MangaParserAuthProvider {
 
     override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("hentaivn.su")
 
