@@ -45,7 +45,6 @@ import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
 import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
-import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.util.Base64
 import java.util.EnumSet
@@ -144,7 +143,7 @@ internal abstract class MangaFireParser(
                     addEncodedQueryParameter("keyword", encodedQuery)
 
                     // Generate VRF for search query
-                    val searchVrf = VrfGenerator.generate(filter.query)
+                    val searchVrf = VrfGenerator.generate(filter.query.trim())
                     addQueryParameter("vrf", searchVrf)
 
                     addQueryParameter(
@@ -364,9 +363,9 @@ internal abstract class MangaFireParser(
 		val mangas = ArrayList<Manga>(total)
 
 		// "Related Manga"
-		document.select("section.m-related a[href*=/manga/]").map {
-			async {
-				val url = it.attrAsRelativeUrl("href")
+        document.select("section.m-related a[href*=/manga/]").map { element ->
+            async {
+                val url = element.attrAsRelativeUrl("href")
 
 				val mangaDocument = webClient
 					.httpGet(url.toAbsoluteUrl(domain))
@@ -384,7 +383,7 @@ internal abstract class MangaFireParser(
 					id = generateUid(url),
 					url = url,
 					publicUrl = url.toAbsoluteUrl(domain),
-					title = it.ownText(),
+                    title = element.ownText(),
 					coverUrl = mangaDocument.selectFirstOrThrow("div.manga-detail div.poster img")
 						.attrAsAbsoluteUrl("src"),
 					source = source,
@@ -689,8 +688,7 @@ private object VrfGenerator {
     )
 
     fun generate(input: String): String {
-        var bytes = URLEncoder.encode(input, "UTF-8").toByteArray(Charsets.ISO_8859_1)
-
+        var bytes = input.toByteArray()
         // RC4 1
         bytes = rc4(atob(rc4Keys["l"]!!), bytes)
 
