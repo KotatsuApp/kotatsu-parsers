@@ -1,11 +1,9 @@
 package org.koitharu.kotatsu.parsers.site.vi
 
-import androidx.collection.ArrayMap
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
 import org.json.JSONObject
-import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaParserAuthProvider
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -15,16 +13,17 @@ import org.koitharu.kotatsu.parsers.exception.AuthRequiredException
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
 import org.koitharu.kotatsu.parsers.util.json.*
-import java.text.ParseException
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken("Need some tests + Clean code")
 @MangaSourceParser("HENTAIVNSU", "HentaiVN.su", "vi", type = ContentType.HENTAI)
 internal class HentaiVnSU(context: MangaLoaderContext) :
     PagedMangaParser(context, MangaParserSource.HENTAIVNSU, 24), MangaParserAuthProvider {
 
     override val configKeyDomain = ConfigKey.Domain("hentaivn.su")
+
+    private val placeHolderUrl: String
+        get() = "https://$domain/placeholder-error.webp"
 
     override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
         super.onCreateConfig(keys)
@@ -61,12 +60,12 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
     )
 
     override val filterCapabilities: MangaListFilterCapabilities = MangaListFilterCapabilities(
+        isSearchSupported = true,
         isMultipleTagsSupported = true,
-        isSearchSupported = true
     )
 
     override suspend fun getFilterOptions(): MangaListFilterOptions = MangaListFilterOptions(
-        availableTags = getOrCreateTagMap().values.toSet()
+        availableTags = fetchTags(),
     )
 
     override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
@@ -91,7 +90,6 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
                 }
             }
             addQueryParameter("page", page.toString())
-            addQueryParameter("limit", page.toString())
             build()
         }
 
@@ -110,7 +108,8 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
                 title = jo.getString("title"),
                 url = "/manga/$id",
                 publicUrl = "/manga/$id".toAbsoluteUrl(domain),
-                coverUrl = jo.getString("coverUrl").toAbsoluteUrl(domain),
+                coverUrl = jo.getString("coverUrl").toAbsoluteUrl(domain)
+                    .takeIf { it.isNotEmpty() } ?: placeHolderUrl,
                 authors = setOfNotNull(jo.getStringOrNull("authors")),
                 tags = jo.optJSONArray("genres")?.mapJSONToSet { genreJo ->
                     MangaTag(genreJo.getString("name"), genreJo.getString("id"), source)
@@ -126,13 +125,8 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
 
     override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
         val mangaId = manga.url.substringAfterLast('/')
-        val detailsDeferred = async {
-            webClient.httpGet("/api/manga/$mangaId".toAbsoluteUrl(domain)).parseJson()
-        }
-        val chaptersDeferred = async { fetchChapters(mangaId) }
-
-        val detailsJson = detailsDeferred.await()
-        val chapters = chaptersDeferred.await()
+        val detailsJson = webClient.httpGet("/api/manga/$mangaId".toAbsoluteUrl(domain)).parseJson()
+        val chapters = async { fetchChapters(mangaId) }.await()
 
         manga.copy(
             altTitles = detailsJson.optJSONArray("alternativeTitles")?.asTypedList<String>()?.toSet() ?: emptySet(),
@@ -141,7 +135,7 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
             tags = detailsJson.optJSONArray("genres")?.mapJSONToSet { genreJo ->
                 MangaTag(genreJo.getString("name"), genreJo.getString("id"), source)
             } ?: emptySet(),
-            chapters = chapters.map { it.copy(scanlator = detailsJson.optJSONObject("uploader")?.optString("name")) }
+            chapters = chapters.map { it.copy(scanlator = detailsJson.optJSONObject("uploader")?.optString("name")) },
         )
     }
 
@@ -159,31 +153,33 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
                 volume = 0,
                 branch = null
             )
-        }
+        }.takeIf { it.isNotEmpty() } ?: emptyList()
     }
 
     override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
         val chapterId = chapter.url.substringAfterLast('/')
         val apiUrl = "/api/chapter/$chapterId".toAbsoluteUrl(domain)
         val chapterData = webClient.httpGet(apiUrl).parseJson()
-
         return chapterData.getJSONArray("pages").asTypedList<String>().map { imageUrl ->
-            MangaPage(id = generateUid(imageUrl), url = imageUrl.toAbsoluteUrl(domain), source = source, preview = null)
+            MangaPage(
+                id = generateUid(imageUrl),
+                url = imageUrl.toAbsoluteUrl(domain),
+                preview = null,
+                source = source,
+            )
         }
     }
 
-    private suspend fun getOrCreateTagMap(): Map<String, MangaTag> {
-        val apiUrl = "/api/tag/genre".toAbsoluteUrl(domain)
-        val genres = webClient.httpGet(apiUrl).parseJsonArray()
-
-        val tagMap = ArrayMap<String, MangaTag>(genres.length())
-        for (i in 0 until genres.length()) {
-            val genre = genres.getJSONObject(i)
-            val name = genre.getString("name")
-            val id = genre.getString("id")
-            tagMap[name] = MangaTag(title = name, key = id, source = source)
+    private suspend fun fetchTags(): Set<MangaTag> {
+        val url = "/api/tag/genre".toAbsoluteUrl(domain)
+        val response = webClient.httpGet(url).parseJsonArray()
+        return response.mapJSONToSet { jo ->
+            MangaTag(
+                title = jo.getString("name").toTitleCase(sourceLocale),
+                key = jo.getLong("id").toString(),
+                source = source,
+            )
         }
-        return tagMap
     }
 
     private fun parseDate(dateStr: String?): Long? {
@@ -193,12 +189,12 @@ internal class HentaiVnSU(context: MangaLoaderContext) :
 
         return try {
             sdf.parse(dateStr)?.time
-        } catch (_: ParseException) {
+        } catch (_: Exception) {
             try {
                 val simplerSdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US)
                     .apply { timeZone = TimeZone.getTimeZone("UTC") }
                 simplerSdf.parse(dateStr)?.time
-            } catch (_: ParseException) { null }
+            } catch (_: Exception) { null }
         }
     }
 }
