@@ -3,6 +3,7 @@ package org.koitharu.kotatsu.parsers.site.all
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
+import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -14,11 +15,41 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
 import org.koitharu.kotatsu.parsers.core.PagedMangaParser
-import org.koitharu.kotatsu.parsers.model.*
-import org.koitharu.kotatsu.parsers.util.*
+import org.koitharu.kotatsu.parsers.model.ContentRating
+import org.koitharu.kotatsu.parsers.model.Manga
+import org.koitharu.kotatsu.parsers.model.MangaChapter
+import org.koitharu.kotatsu.parsers.model.MangaListFilter
+import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
+import org.koitharu.kotatsu.parsers.model.MangaListFilterOptions
+import org.koitharu.kotatsu.parsers.model.MangaPage
+import org.koitharu.kotatsu.parsers.model.MangaParserSource
+import org.koitharu.kotatsu.parsers.model.MangaState
+import org.koitharu.kotatsu.parsers.model.MangaTag
+import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
+import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
+import org.koitharu.kotatsu.parsers.util.generateUid
+import org.koitharu.kotatsu.parsers.util.getCookies
+import org.koitharu.kotatsu.parsers.util.mapChapters
+import org.koitharu.kotatsu.parsers.util.mapNotNullToSet
+import org.koitharu.kotatsu.parsers.util.nullIfEmpty
+import org.koitharu.kotatsu.parsers.util.ownTextOrNull
+import org.koitharu.kotatsu.parsers.util.parseFailed
+import org.koitharu.kotatsu.parsers.util.parseHtml
+import org.koitharu.kotatsu.parsers.util.parseJson
+import org.koitharu.kotatsu.parsers.util.parseSafe
+import org.koitharu.kotatsu.parsers.util.selectFirstOrThrow
+import org.koitharu.kotatsu.parsers.util.splitByWhitespace
 import org.koitharu.kotatsu.parsers.util.suspendlazy.suspendLazy
+import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
+import org.koitharu.kotatsu.parsers.util.toTitleCase
+import org.koitharu.kotatsu.parsers.util.urlEncoded
+import java.net.URLEncoder
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Base64
+import java.util.EnumSet
+import java.util.Locale
 import kotlin.math.min
 
 private const val PIECE_SIZE = 200
@@ -61,6 +92,16 @@ internal abstract class MangaFireParser(
 			?: body.parseFailed("Cannot find username")
 	}
 
+    override fun getRequestHeaders(): Headers {
+        return super.getRequestHeaders().newBuilder()
+            .add("Referer", "https://$domain/")
+            .add(
+                "User-Agent",
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+            )
+            .build()
+    }
+
 	private val tags = suspendLazy(soft = true) {
 		webClient.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
@@ -90,73 +131,78 @@ internal abstract class MangaFireParser(
 		),
 	)
 
-	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
-		val url = "https://$domain/filter".toHttpUrl().newBuilder().apply {
-			addQueryParameter("page", page.toString())
-			addQueryParameter("language[]", siteLang)
+    override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
+        val url = "https://$domain/filter".toHttpUrl().newBuilder().apply {
+            addQueryParameter("page", page.toString())
+            addQueryParameter("language[]", siteLang)
 
-			when {
-				!filter.query.isNullOrEmpty() -> {
-					val encodedQuery = filter.query.splitByWhitespace().joinToString(separator = "+") { part ->
-						part.urlEncoded()
-					}
-					addEncodedQueryParameter("keyword", encodedQuery)
-					addQueryParameter(
-						name = "sort",
-						value = when (order) {
-							SortOrder.UPDATED -> "recently_updated"
-							SortOrder.POPULARITY -> "most_viewed"
-							SortOrder.RATING -> "scores"
-							SortOrder.NEWEST -> "release_date"
-							SortOrder.ALPHABETICAL -> "title_az"
-							SortOrder.RELEVANCE -> "most_relevance"
-							else -> ""
-						},
-					)
-				}
+            when {
+                !filter.query.isNullOrEmpty() -> {
+                    val encodedQuery = filter.query.splitByWhitespace().joinToString(separator = "+") { part ->
+                        part.urlEncoded()
+                    }
+                    addEncodedQueryParameter("keyword", encodedQuery)
 
-				else -> {
-					filter.tagsExclude.forEach { tag ->
-						addQueryParameter("genre[]", "-${tag.key}")
-					}
-					filter.tags.forEach { tag ->
-						addQueryParameter("genre[]", tag.key)
-					}
-					filter.locale?.let {
-						addQueryParameter("language[]", it.language)
-					}
-					filter.states.forEach { state ->
-						addQueryParameter(
-							name = "status[]",
-							value = when (state) {
-								MangaState.ONGOING -> "releasing"
-								MangaState.FINISHED -> "completed"
-								MangaState.ABANDONED -> "discontinued"
-								MangaState.PAUSED -> "on_hiatus"
-								MangaState.UPCOMING -> "info"
-								else -> throw IllegalArgumentException("$state not supported")
-							},
-						)
-					}
-					addQueryParameter(
-						name = "sort",
-						value = when (order) {
-							SortOrder.UPDATED -> "recently_updated"
-							SortOrder.POPULARITY -> "most_viewed"
-							SortOrder.RATING -> "scores"
-							SortOrder.NEWEST -> "release_date"
-							SortOrder.ALPHABETICAL -> "title_az"
-							SortOrder.RELEVANCE -> "most_relevance"
-							else -> ""
-						},
-					)
-				}
-			}
-		}.build()
+                    // Generate VRF for search query
+                    val searchVrf = VrfGenerator.generate(filter.query)
+                    addQueryParameter("vrf", searchVrf)
 
-		return webClient.httpGet(url)
-			.parseHtml().parseMangaList()
-	}
+                    addQueryParameter(
+                        name = "sort",
+                        value = when (order) {
+                            SortOrder.UPDATED -> "recently_updated"
+                            SortOrder.POPULARITY -> "most_viewed"
+                            SortOrder.RATING -> "scores"
+                            SortOrder.NEWEST -> "release_date"
+                            SortOrder.ALPHABETICAL -> "title_az"
+                            SortOrder.RELEVANCE -> "most_relevance"
+                            else -> ""
+                        },
+                    )
+                }
+
+                else -> {
+                    filter.tagsExclude.forEach { tag ->
+                        addQueryParameter("genre[]", "-${tag.key}")
+                    }
+                    filter.tags.forEach { tag ->
+                        addQueryParameter("genre[]", tag.key)
+                    }
+                    filter.locale?.let {
+                        addQueryParameter("language[]", it.language)
+                    }
+                    filter.states.forEach { state ->
+                        addQueryParameter(
+                            name = "status[]",
+                            value = when (state) {
+                                MangaState.ONGOING -> "releasing"
+                                MangaState.FINISHED -> "completed"
+                                MangaState.ABANDONED -> "discontinued"
+                                MangaState.PAUSED -> "on_hiatus"
+                                MangaState.UPCOMING -> "info"
+                                else -> throw IllegalArgumentException("$state not supported")
+                            },
+                        )
+                    }
+                    addQueryParameter(
+                        name = "sort",
+                        value = when (order) {
+                            SortOrder.UPDATED -> "recently_updated"
+                            SortOrder.POPULARITY -> "most_viewed"
+                            SortOrder.RATING -> "scores"
+                            SortOrder.NEWEST -> "release_date"
+                            SortOrder.ALPHABETICAL -> "title_az"
+                            SortOrder.RELEVANCE -> "most_relevance"
+                            else -> ""
+                        },
+                    )
+                }
+            }
+        }.build()
+
+        return webClient.httpGet(url)
+            .parseHtml().parseMangaList()
+    }
 
 	private fun Document.parseMangaList(): List<Manga> {
 		return select(".original.card-lg .unit .inner").map {
@@ -260,47 +306,52 @@ internal abstract class MangaFireParser(
 		}
 	}
 
-	private suspend fun getChaptersBranch(mangaId: String, branch: ChapterBranch): List<MangaChapter> {
-		val chapterElements = webClient
-			.httpGet("https://$domain/ajax/read/$mangaId/${branch.type}/${branch.langCode}")
-			.parseJson()
-			.getJSONObject("result")
-			.getString("html")
-			.let(Jsoup::parseBodyFragment)
-			.select("ul li a")
+    private suspend fun getChaptersBranch(mangaId: String, branch: ChapterBranch): List<MangaChapter> {
+        val readVrfInput = "$mangaId@${branch.type}@${branch.langCode}"
+        val readVrf = VrfGenerator.generate(readVrfInput)
 
-		if (branch.type == "chapter") {
-			val doc = webClient
-				.httpGet("https://$domain/ajax/manga/$mangaId/${branch.type}/${branch.langCode}")
-				.parseJson()
-				.getString("result")
-				.let(Jsoup::parseBodyFragment)
+        val response = webClient
+            .httpGet("https://$domain/ajax/read/$mangaId/${branch.type}/${branch.langCode}?vrf=$readVrf")
 
-			doc.select("ul li a").withIndex().forEach { (i, it) ->
-				val date = it.select("span")[1].ownText()
-				chapterElements[i].attr("upload-date", date)
-				chapterElements[i].attr("other-title", it.attr("title"))
-			}
-		}
+        val chapterElements = response.parseJson()
+            .getJSONObject("result")
+            .getString("html")
+            .let(Jsoup::parseBodyFragment)
+            .select("ul li a")
 
-		return chapterElements.mapChapters(reversed = true) { _, it ->
-			MangaChapter(
-				id = generateUid(it.attr("href")),
-				title = it.attr("title").ifBlank {
-					"${branch.type.toTitleCase()} ${it.attr("data-number")}"
-				},
-				number = it.attr("data-number").toFloat(),
-				volume = it.attr("other-title").let {
-					volumeNumRegex.find(it)?.groupValues?.getOrNull(2)?.toInt() ?: 0
-				},
-				url = "${branch.type}/${it.attr("data-id")}",
-				scanlator = null,
-				uploadDate = dateFormat.parseSafe(it.attr("upload-date")),
-				branch = "${branch.langTitle} ${branch.type.toTitleCase()}",
-				source = source,
-			)
-		}
-	}
+        if (branch.type == "chapter") {
+            val doc = webClient
+                .httpGet("https://$domain/ajax/manga/$mangaId/${branch.type}/${branch.langCode}")
+                .parseJson()
+                .getString("result")
+                .let(Jsoup::parseBodyFragment)
+
+            doc.select("ul li a").withIndex().forEach { (i, it) ->
+                val date = it.select("span").getOrNull(1)?.ownText() ?: ""
+                chapterElements[i].attr("upload-date", date)
+                chapterElements[i].attr("other-title", it.attr("title"))
+            }
+        }
+
+        return chapterElements.mapChapters(reversed = true) { _, it ->
+            val chapterId = it.attr("data-id")
+            MangaChapter(
+                id = generateUid(it.attr("href")),
+                title = it.attr("title").ifBlank {
+                    "${branch.type.toTitleCase()} ${it.attr("data-number")}"
+                },
+                number = it.attr("data-number").toFloatOrNull() ?: -1f,
+                volume = it.attr("other-title").let { title ->
+                    volumeNumRegex.find(title)?.groupValues?.getOrNull(2)?.toInt() ?: 0
+                },
+                url = "$mangaId/${branch.type}/${branch.langCode}/$chapterId",
+                scanlator = null,
+                uploadDate = dateFormat.parseSafe(it.attr("upload-date")),
+                branch = "${branch.langTitle} ${branch.type.toTitleCase()}",
+                source = source,
+            )
+        }
+    }
 
 	private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.ENGLISH)
 	private val volumeNumRegex = Regex("""vol(ume)?\s*(\d+)""", RegexOption.IGNORE_CASE)
@@ -387,12 +438,15 @@ internal abstract class MangaFireParser(
 		}
 	}
 
-	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-		val images = webClient
-			.httpGet("https://$domain/ajax/read/${chapter.url}")
-			.parseJson()
-			.getJSONObject("result")
-			.getJSONArray("images")
+    override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
+        val chapterId = chapter.url.substringAfterLast('/')
+        val vrf = VrfGenerator.generate("chapter@$chapterId")
+
+        val images = webClient
+            .httpGet("https://$domain/ajax/read/chapter/$chapterId?vrf=$vrf")
+            .parseJson()
+            .getJSONObject("result")
+            .getJSONArray("images")
 
 		val pages = ArrayList<MangaPage>(images.length())
 
@@ -490,4 +544,187 @@ internal abstract class MangaFireParser(
 	@MangaSourceParser("MANGAFIRE_PTBR", "MangaFire Portuguese (Brazil)", "pt")
 	class PortugueseBR(context: MangaLoaderContext) :
 		MangaFireParser(context, MangaParserSource.MANGAFIRE_PTBR, "pt-br")
+}
+
+private object VrfGenerator {
+    private fun atob(data: String): ByteArray = Base64.getDecoder().decode(data)
+
+    private fun btoa(data: ByteArray): String = Base64.getEncoder().encodeToString(data)
+
+    private fun rc4(key: ByteArray, input: ByteArray): ByteArray {
+        val s = IntArray(256) { it }
+        var j = 0
+
+        // KSA
+        for (i in 0..255) {
+            j = (j + s[i] + key[i % key.size].toInt().and(0xFF)) and 0xFF
+            val temp = s[i]
+            s[i] = s[j]
+            s[j] = temp
+        }
+
+        // PRGA
+        val output = ByteArray(input.size)
+        var i = 0
+        j = 0
+        for (y in input.indices) {
+            i = (i + 1) and 0xFF
+            j = (j + s[i]) and 0xFF
+            val temp = s[i]
+            s[i] = s[j]
+            s[j] = temp
+            val k = s[(s[i] + s[j]) and 0xFF]
+            output[y] = (input[y].toInt() xor k).toByte()
+        }
+        return output
+    }
+
+    private fun transform(
+        input: ByteArray,
+        initSeedBytes: ByteArray,
+        prefixKeyBytes: ByteArray,
+        prefixLen: Int,
+        schedule: List<(Int) -> Int>,
+    ): ByteArray {
+        val out = mutableListOf<Byte>()
+        for (i in input.indices) {
+            if (i < prefixLen) {
+                out.add(prefixKeyBytes[i])
+            }
+            val transformed = schedule[i % 10](
+                (input[i].toInt() xor initSeedBytes[i % 32].toInt()) and 0xFF,
+            ) and 0xFF
+            out.add(transformed.toByte())
+        }
+        return out.toByteArray()
+    }
+
+    private val scheduleC = listOf<(Int) -> Int>(
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c xor 241) and 0xFF },
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c xor 8) and 0xFF },
+    )
+
+    private val scheduleY = listOf<(Int) -> Int>(
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+        { c -> (c xor 163) and 0xFF },
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c + 82) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c xor 83) and 0xFF },
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+    )
+
+    private val scheduleB = listOf<(Int) -> Int>(
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c + 82) and 0xFF },
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+        { c -> (c - 48 + 256) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> (c xor 8) and 0xFF },
+        { c -> (c + 82) and 0xFF },
+        { c -> (c xor 163) and 0xFF },
+    )
+
+    private val scheduleJ = listOf<(Int) -> Int>(
+        { c -> (c + 223) and 0xFF },
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> (c xor 83) and 0xFF },
+        { c -> (c - 19 + 256) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> (c + 223) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> (c xor 83) and 0xFF },
+    )
+
+    private val scheduleE = listOf<(Int) -> Int>(
+        { c -> (c + 82) and 0xFF },
+        { c -> (c xor 83) and 0xFF },
+        { c -> (c xor 163) and 0xFF },
+        { c -> (c + 82) and 0xFF },
+        { c -> (c - 170 + 256) and 0xFF },
+        { c -> (c xor 8) and 0xFF },
+        { c -> (c xor 241) and 0xFF },
+        { c -> (c + 82) and 0xFF },
+        { c -> (c + 176) and 0xFF },
+        { c -> ((c shl 4) or (c ushr 4)) and 0xFF },
+    )
+
+    private val rc4Keys = mapOf(
+        "l" to "u8cBwTi1CM4XE3BkwG5Ble3AxWgnhKiXD9Cr279yNW0=",
+        "g" to "t00NOJ/Fl3wZtez1xU6/YvcWDoXzjrDHJLL2r/IWgcY=",
+        "B" to "S7I+968ZY4Fo3sLVNH/ExCNq7gjuOHjSRgSqh6SsPJc=",
+        "m" to "7D4Q8i8dApRj6UWxXbIBEa1UqvjI+8W0UvPH9talJK8=",
+        "F" to "0JsmfWZA1kwZeWLk5gfV5g41lwLL72wHbam5ZPfnOVE=",
+    )
+
+    private val seeds32 = mapOf(
+        "A" to "pGjzSCtS4izckNAOhrY5unJnO2E1VbrU+tXRYG24vTo=",
+        "V" to "dFcKX9Qpu7mt/AD6mb1QF4w+KqHTKmdiqp7penubAKI=",
+        "N" to "owp1QIY/kBiRWrRn9TLN2CdZsLeejzHhfJwdiQMjg3w=",
+        "P" to "H1XbRvXOvZAhyyPaO68vgIUgdAHn68Y6mrwkpIpEue8=",
+        "k" to "2Nmobf/mpQ7+Dxq1/olPSDj3xV8PZkPbKaucJvVckL0=",
+    )
+
+    private val prefixKeys = mapOf(
+        "O" to "Rowe+rg/0g==",
+        "v" to "8cULcnOMJVY8AA==",
+        "L" to "n2+Og2Gth8Hh",
+        "p" to "aRpvzH+yoA==",
+        "W" to "ZB4oBi0=",
+    )
+
+    fun generate(input: String): String {
+        var bytes = URLEncoder.encode(input, "UTF-8").toByteArray(Charsets.ISO_8859_1)
+
+        // RC4 1
+        bytes = rc4(atob(rc4Keys["l"]!!), bytes)
+
+        // Step C1
+        bytes = transform(bytes, atob(seeds32["A"]!!), atob(prefixKeys["O"]!!), 7, scheduleC)
+
+        // RC4 2
+        bytes = rc4(atob(rc4Keys["g"]!!), bytes)
+
+        // Step Y
+        bytes = transform(bytes, atob(seeds32["V"]!!), atob(prefixKeys["v"]!!), 10, scheduleY)
+
+        // RC4 3
+        bytes = rc4(atob(rc4Keys["B"]!!), bytes)
+
+        // Step B
+        bytes = transform(bytes, atob(seeds32["N"]!!), atob(prefixKeys["L"]!!), 9, scheduleB)
+
+        // RC4 4
+        bytes = rc4(atob(rc4Keys["m"]!!), bytes)
+
+        // Step J
+        bytes = transform(bytes, atob(seeds32["P"]!!), atob(prefixKeys["p"]!!), 7, scheduleJ)
+
+        // RC4 5
+        bytes = rc4(atob(rc4Keys["F"]!!), bytes)
+
+        // Step E
+        bytes = transform(bytes, atob(seeds32["k"]!!), atob(prefixKeys["W"]!!), 5, scheduleE)
+
+        // Base64URL encode
+        return btoa(bytes)
+            .replace("+", "-")
+            .replace("/", "_")
+            .replace("=", "")
+    }
 }
