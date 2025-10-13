@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import java.util.*
 
-@Broken // Redirect to @XMANHWA
+@Broken("Redirect to @XMANHWA")
 @MangaSourceParser("INSTAMANHWA", "InstaManhwa", "en", ContentType.HENTAI)
 internal class InstaManhwa(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.INSTAMANHWA, "www.manhwaden.com", 15) {

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zeistmanga.ZeistMangaParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed
+@Broken("Original site closed")
 @MangaSourceParser("SOBATMANKU", "Sobatmanku", "id")
 internal class Sobatmanku(context: MangaLoaderContext) :
 	ZeistMangaParser(context, MangaParserSource.SOBATMANKU, "www.sobatmanku19.cab")

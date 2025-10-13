@@ -23,7 +23,7 @@ import kotlin.math.PI
 internal class MimiHentai(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.MIMIHENTAI, 18) {
 
-	private val apiSuffix = "api/v1/manga"
+	private val apiSuffix = "api/v2/manga"
 	override val configKeyDomain = ConfigKey.Domain("mimihentai.com", "hentaihvn.com")
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 

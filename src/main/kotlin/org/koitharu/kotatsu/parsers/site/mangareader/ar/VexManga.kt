@@ -10,7 +10,7 @@ import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken // Redirect to @VORTEXSCANS
+@Broken("Redirect to @VORTEXSCANS")
 @MangaSourceParser("VEXMANGA", "VexManga", "ar")
 internal class VexManga(context: MangaLoaderContext) :
 	MangaReaderParser(context, MangaParserSource.VEXMANGA, "vortexscans.org", pageSize = 10, searchPageSize = 10) {

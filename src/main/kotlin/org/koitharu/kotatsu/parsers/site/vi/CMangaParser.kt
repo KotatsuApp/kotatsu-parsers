@@ -194,17 +194,14 @@ internal class CMangaParser(context: MangaLoaderContext) :
 			throw IllegalStateException("This chapter is locked, you would need to buy it from website")
 		}
 
-		return pageResponse.getJSONArray("image")
-			.asTypedList<String>()
-			.filterNot(::containsAdsUrl)
-			.map {
-				MangaPage(
-					id = generateUid(it),
-					url = it,
-					source = source,
-					preview = null,
-				)
-			}
+		return pageResponse.getJSONArray("image").asTypedList<String>().map {
+			MangaPage(
+				id = generateUid(it),
+				url = it,
+				source = source,
+				preview = null,
+			)
+		}
 	}
 
 	private suspend fun getTags(): Map<String, MangaTag> {
@@ -223,19 +220,9 @@ internal class CMangaParser(context: MangaLoaderContext) :
 		return tags
 	}
 
+    private fun JSONObject.isLocked() = opt("lock") != null
+
 	private fun JSONObject.parseJson(key: String): JSONObject {
 		return JSONObject(getString(key))
 	}
-
-	private fun JSONObject.isLocked() = opt("lock") != null
-
-	private fun containsAdsUrl(url: String): Boolean {
-        val adsUrl = "https://img.cmangapi.com/data-image/index.php"
-        val cleanUrl = url.replace("\\", "")
-        return when {
-            cleanUrl.startsWith(adsUrl) -> true
-            cleanUrl.contains("?v=12&data=") -> true
-            else -> false
-        }
-    }
 }

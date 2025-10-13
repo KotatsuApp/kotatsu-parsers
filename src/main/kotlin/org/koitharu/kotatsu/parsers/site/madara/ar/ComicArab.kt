@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken // Website closed
+@Broken("Original site closed")
 @MangaSourceParser("COMICARAB", "ComicArab", "ar")
 internal class ComicArab(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.COMICARAB, "comicarab.com", pageSize = 24) {

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.Broken
 
-@Broken
+@Broken("Not dead, changed template")
 @MangaSourceParser("HAREMSCANN", "HaremScann", "es")
 internal class HaremScann(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.HAREMSCANN, "haremscann.es") {

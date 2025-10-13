@@ -8,7 +8,9 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.heancmsalt.HeanCmsAlt
 import org.koitharu.kotatsu.parsers.util.*
 import java.text.SimpleDateFormat
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("BRAKEOUT", "Brakeout", "es")
 internal class Brakeout(context: MangaLoaderContext) :
 	HeanCmsAlt(context, MangaParserSource.BRAKEOUT, "brakeout.xyz", 10) {
