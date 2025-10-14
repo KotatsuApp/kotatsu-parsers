@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.zmanga.ZMangaParser
 
-@Broken // redirect to @MANGASUSUKU
+@Broken("Redirect to @MANGASUSUKU")
 @MangaSourceParser("KOMIKINDO_INFO", "KomikIndo.info", "id", ContentType.HENTAI)
 internal class KomikIndoInfo(context: MangaLoaderContext) :
 	ZMangaParser(context, MangaParserSource.KOMIKINDO_INFO, "mangasusuku.com") {

@@ -6,7 +6,7 @@ import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken // Redirect to @MANGAREAD
+@Broken("Redirect to @MANGAREAD")
 @MangaSourceParser("MANGAEFFECT", "MangaEffect", "en")
 internal class MangaEffect(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MANGAEFFECT, "www.mangaread.org") {

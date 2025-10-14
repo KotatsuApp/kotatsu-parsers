@@ -11,7 +11,7 @@ import org.koitharu.kotatsu.parsers.Broken
 import java.text.SimpleDateFormat
 import java.util.*
 
-@Broken // The website is broken, it seems to be closed already.
+@Broken("Original site closed")
 @MangaSourceParser("COMICEXTRA", "ComicExtra", "en", ContentType.COMICS)
 internal class ComicExtra(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.COMICEXTRA, 36) {

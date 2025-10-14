@@ -7,7 +7,7 @@ import org.koitharu.kotatsu.parsers.model.ContentType
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 
-@Broken // Redirect to @KINGS_MANGA
+@Broken("Redirect to @KINGS_MANGA")
 @MangaSourceParser("NEKOPOST", "NekoPost", "th", ContentType.HENTAI)
 internal class NekoPost(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.NEKOPOST, "www.superdoujin.org") {

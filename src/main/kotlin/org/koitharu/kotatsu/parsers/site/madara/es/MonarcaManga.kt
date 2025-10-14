@@ -4,7 +4,9 @@ import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
+import org.koitharu.kotatsu.parsers.Broken
 
+@Broken
 @MangaSourceParser("MONARCAMANGA", "MonarcaManga", "es")
 internal class MonarcaManga(context: MangaLoaderContext) :
 	MadaraParser(context, MangaParserSource.MONARCAMANGA, "visormonarca.com") {

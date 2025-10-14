@@ -36,8 +36,17 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		"cuutruyen5c844.site",
 	)
 
+    private val preferredServerKey = ConfigKey.PreferredImageServer(
+        presetValues = mapOf(
+            DESKTOP_COVER to "Ảnh bìa chất lượng cao (Desktop)",
+            MOBILE_COVER to "Ảnh bìa chất lượng thấp (Mobile)",
+        ),
+        defaultValue = DESKTOP_COVER,
+    )
+
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
+        keys.add(preferredServerKey)
 		keys.remove(userAgentKey)
 	}
 
@@ -139,14 +148,16 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 
 		return data.mapJSON { jo ->
 			val author = jo.getStringOrNull("author_name")
+            val server = config[preferredServerKey] ?: DESKTOP_COVER
 			Manga(
 				id = generateUid(jo.getLong("id")),
 				url = "$apiSuffix/mangas/${jo.getLong("id")}",
 				publicUrl = "https://truycapcuutruyen.pages.dev/mangas/${jo.getLong("id")}",
 				title = jo.getString("name"),
 				altTitles = emptySet(),
-				coverUrl = jo.getString("cover_mobile_url"),
-				largeCoverUrl = jo.getString("cover_url"),
+				coverUrl = if (server == MOBILE_COVER) jo.getString(MOBILE_COVER)
+                    else jo.getString(DESKTOP_COVER),
+				largeCoverUrl = jo.getString(DESKTOP_COVER),
 				authors = setOfNotNull(author),
 				tags = emptySet(),
 				state = null,
@@ -426,5 +437,7 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	private companion object {
 		const val DRM_DATA_KEY = "drm_data="
 		const val DECRYPTION_KEY = "3141592653589793"
+        const val MOBILE_COVER = "cover_mobile_url"
+        const val DESKTOP_COVER = "cover_url"
 	}
 }
