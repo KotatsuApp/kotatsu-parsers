@@ -17,12 +17,7 @@ import java.util.*
 
 @MangaSourceParser("MEHENTAIVN", "MeHentaiVN", "vi", ContentType.HENTAI)
 internal class MeHentaiVN(context: MangaLoaderContext) :
-	WpComicsParser(context, MangaParserSource.MEHENTAIVN, "www.mehentaivn.xyz", 44) {
-
-	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain(
-		"www.mehentaivn.xyz",
-		"www.hentaivnx.autos",
-	)
+	WpComicsParser(context, MangaParserSource.MEHENTAIVN, "www.hentaivnx.autos", 44) {
 
 	override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
 		.add("referer", "https://$domain/")
@@ -100,7 +95,7 @@ internal class MeHentaiVN(context: MangaLoaderContext) :
 						}
 
 						webClient.httpGet(url) // execute
-						
+
 					} else {
 						val url = buildString {
 							append("https://$domain/")

@@ -9,7 +9,6 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.madara.MadaraParser
 import org.koitharu.kotatsu.parsers.model.*
 import org.koitharu.kotatsu.parsers.util.*
-import java.util.*
 import org.koitharu.kotatsu.parsers.Broken
 
 @Broken
@@ -26,7 +25,7 @@ internal class HentaiZ(context: MangaLoaderContext) :
 
 		val href = doc.selectFirst("head meta[property='og:url']")?.attr("content")?.toRelativeUrl(domain) ?: manga.url
 		val testCheckAsync = doc.select(selectTestAsync)
-		val chaptersDeferred = if (testCheckAsync.isNullOrEmpty()) {
+		val chaptersDeferred = if (testCheckAsync.isEmpty()) {
 			async { loadChapters(href, doc) }
 		} else {
 			async { getChapters(manga, doc) }

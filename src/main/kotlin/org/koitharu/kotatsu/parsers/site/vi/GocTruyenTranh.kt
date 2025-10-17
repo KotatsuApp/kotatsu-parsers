@@ -15,7 +15,7 @@ import java.util.*
 internal class GocTruyenTranh(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.GOCTRUYENTRANH, 30) {
 
-	override val configKeyDomain = ConfigKey.Domain("goctruyentranh.org")
+	override val configKeyDomain = ConfigKey.Domain("goctruyentranh.net")
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)

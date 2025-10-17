@@ -16,7 +16,7 @@ internal class DuaLeoTruyen(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.DUALEOTRUYEN, 60) {
 
 	override val configKeyDomain: ConfigKey.Domain
-		get() = ConfigKey.Domain("dualeotruyeng.com")
+		get() = ConfigKey.Domain("dualeotruyenev.com")
 
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.CHROME_DESKTOP)
 
