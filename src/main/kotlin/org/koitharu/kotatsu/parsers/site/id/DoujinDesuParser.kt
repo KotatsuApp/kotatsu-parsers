@@ -30,6 +30,7 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 			isMultipleTagsSupported = true,
 			isSearchSupported = true,
 			isSearchWithFiltersSupported = true,
+            isAuthorSearchSupported = true,
 		)
 
 	override suspend fun getFilterOptions() = MangaListFilterOptions(
@@ -49,16 +50,24 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 
 	override suspend fun getListPage(page: Int, order: SortOrder, filter: MangaListFilter): List<Manga> {
 		val url = urlBuilder().apply {
-			addPathSegment("manga")
-			addPathSegment("page")
-			addPathSegment("$page/")
+            when {
+                page > 1 -> addPathSegments("manga/page/$page/")
+                else -> addPathSegment("manga/")
+            }
 
-			addQueryParameter(
+            addQueryParameter(
 				"title",
 				filter.query?.let {
 					filter.query
 				},
 			)
+
+            addQueryParameter(
+                name = "author",
+                value = filter.author?.let { it
+                    space2plus(it).lowercase()
+                }
+            )
 
 			addQueryParameter(
 				"order",
@@ -97,14 +106,6 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 					},
 				)
 			}
-
-			// Author
-			// addQueryParameter("author",
-			//	 filter.author?.let {
-			//	 	filter.author
-			//	 }
-			// )
-
 		}.build()
 
 		return webClient.httpGet(url).parseHtml()
@@ -204,4 +205,6 @@ internal class DoujinDesuParser(context: MangaLoaderContext) :
 				)
 			}
 	}
+
+    private fun space2plus(input: String): String = input.replace(' ', '+')
 }
