@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.fr
 
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.ErrorMessages
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
@@ -15,6 +16,7 @@ import org.koitharu.kotatsu.parsers.util.json.mapJSON
 import java.text.SimpleDateFormat
 import java.util.*
 
+@Broken
 @MangaSourceParser("LUGNICASCANS", "LugnicaScans", "fr")
 internal class LugnicaScans(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.LUGNICASCANS, 10) {

@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 
 import org.json.JSONObject
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -32,6 +33,7 @@ import java.util.EnumSet
 import java.util.Locale
 import java.util.TimeZone
 
+@Broken("The source to change structure")
 @MangaSourceParser("POSEIDONSCANS", "Poseidon Scans", "fr")
 internal class PoseidonScans(context: MangaLoaderContext) :
 	SinglePageMangaParser(context, MangaParserSource.POSEIDONSCANS) {

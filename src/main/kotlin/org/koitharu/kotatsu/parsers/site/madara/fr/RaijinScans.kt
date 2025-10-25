@@ -1,6 +1,7 @@
 package org.koitharu.kotatsu.parsers.site.madara.fr
 
 import org.jsoup.nodes.Document
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.ContentRating
@@ -36,9 +37,10 @@ import java.util.Calendar
 import java.util.EnumSet
 import java.util.Locale
 
+@Broken("Needs to be fixed.")
 @MangaSourceParser("RAIJINSCANS", "RaijinScans", "fr")
 internal class RaijinScans(context: MangaLoaderContext) :
-	MadaraParser(context, MangaParserSource.RAIJINSCANS, "raijinscan.co", 21) {
+	MadaraParser(context, MangaParserSource.RAIJINSCANS, "raijin-scans.fr", 21) {
 
 	override val datePattern = "dd/MM/yyyy"
 	override val withoutAjax = true

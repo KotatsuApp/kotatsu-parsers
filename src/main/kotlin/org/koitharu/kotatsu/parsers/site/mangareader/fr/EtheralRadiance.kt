@@ -1,5 +1,6 @@
 package org.koitharu.kotatsu.parsers.site.mangareader.fr
 
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.model.MangaListFilterCapabilities
@@ -7,6 +8,7 @@ import org.koitharu.kotatsu.parsers.model.MangaParserSource
 import org.koitharu.kotatsu.parsers.site.mangareader.MangaReaderParser
 import org.koitharu.kotatsu.parsers.util.insertCookies
 
+@Broken
 @MangaSourceParser("ETHERALRADIANCE", "EtheralRadiance", "fr")
 internal class EtheralRadiance(context: MangaLoaderContext) :
 	MangaReaderParser(

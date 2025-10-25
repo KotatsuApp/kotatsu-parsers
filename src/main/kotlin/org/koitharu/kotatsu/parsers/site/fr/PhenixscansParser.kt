@@ -2,6 +2,7 @@ package org.koitharu.kotatsu.parsers.site.fr
 
 import kotlinx.coroutines.coroutineScope
 import org.json.JSONArray
+import org.koitharu.kotatsu.parsers.Broken
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
 import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -34,6 +35,8 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.EnumSet
 
+
+@Broken ("Website under reconstruction")
 @MangaSourceParser("PHENIXSCANS", "PhenixScans", "fr")
 internal class PhenixscansParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.PHENIXSCANS, 18) {
