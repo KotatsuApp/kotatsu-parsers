@@ -26,6 +26,8 @@ import org.koitharu.kotatsu.parsers.model.MangaState
 import org.koitharu.kotatsu.parsers.model.MangaTag
 import org.koitharu.kotatsu.parsers.model.RATING_UNKNOWN
 import org.koitharu.kotatsu.parsers.model.SortOrder
+import org.koitharu.kotatsu.parsers.network.OkHttpWebClient
+import org.koitharu.kotatsu.parsers.network.WebClient
 import org.koitharu.kotatsu.parsers.util.attrAsAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.attrAsRelativeUrl
 import org.koitharu.kotatsu.parsers.util.generateUid
@@ -45,19 +47,34 @@ import org.koitharu.kotatsu.parsers.util.toAbsoluteUrl
 import org.koitharu.kotatsu.parsers.util.toTitleCase
 import org.koitharu.kotatsu.parsers.util.urlEncoded
 import java.text.SimpleDateFormat
+import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.Base64
 import java.util.EnumSet
 import java.util.Locale
+import javax.net.ssl.SSLContext
+import javax.net.ssl.SSLSocketFactory
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import kotlin.math.min
 
 private const val PIECE_SIZE = 200
 private const val MIN_SPLIT_COUNT = 5
 
+@Suppress("CustomX509TrustManager")
 internal abstract class MangaFireParser(
 	context: MangaLoaderContext,
 	source: MangaParserSource,
 	private val siteLang: String,
 ) : PagedMangaParser(context, source, 30), Interceptor, MangaParserAuthProvider {
+
+    private val client: WebClient by lazy {
+        val newHttpClient = context.httpClient.newBuilder()
+            .sslSocketFactory(SSLUtils.sslSocketFactory!!, SSLUtils.trustManager)
+            .hostnameVerifier { _, _ -> true }
+            .build()
+        OkHttpWebClient(newHttpClient, source)
+    }
 
 	override val configKeyDomain: ConfigKey.Domain = ConfigKey.Domain("mangafire.to")
 
@@ -89,13 +106,13 @@ internal abstract class MangaFireParser(
 	}
 
 	override suspend fun getUsername(): String {
-		val body = webClient.httpGet("https://${domain}/user/profile").parseHtml().body()
+		val body = client.httpGet("https://${domain}/user/profile").parseHtml().body()
 		return body.selectFirst("form.ajax input[name*=username]")?.attr("value")
 			?: body.parseFailed("Cannot find username")
 	}
 
 	private val tags = suspendLazy(soft = true) {
-		webClient.httpGet("https://$domain/filter").parseHtml()
+		client.httpGet("https://$domain/filter").parseHtml()
 			.select(".genres > li").map {
 				MangaTag(
 					title = it.selectFirstOrThrow("label").ownText().toTitleCase(sourceLocale),
@@ -192,7 +209,7 @@ internal abstract class MangaFireParser(
 			}
 		}.build()
 
-		return webClient.httpGet(url)
+		return client.httpGet(url)
 			.parseHtml().parseMangaList()
 	}
 
@@ -302,7 +319,7 @@ internal abstract class MangaFireParser(
         val readVrfInput = "$mangaId@${branch.type}@${branch.langCode}"
         val readVrf = VrfGenerator.generate(readVrfInput)
 
-        val response = webClient
+        val response = client
             .httpGet("https://$domain/ajax/read/$mangaId/${branch.type}/${branch.langCode}?vrf=$readVrf")
 
         val chapterElements = response.parseJson()
@@ -312,7 +329,7 @@ internal abstract class MangaFireParser(
             .select("ul li a")
 
 		if (branch.type == "chapter") {
-			val doc = webClient
+			val doc = client
 				.httpGet("https://$domain/ajax/manga/$mangaId/${branch.type}/${branch.langCode}")
 				.parseJson()
 				.getString("result")
@@ -349,7 +366,7 @@ internal abstract class MangaFireParser(
 	private val volumeNumRegex = Regex("""vol(ume)?\s*(\d+)""", RegexOption.IGNORE_CASE)
 
 	override suspend fun getRelatedManga(seed: Manga): List<Manga> = coroutineScope {
-		val document = webClient.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
+		val document = client.httpGet(seed.url.toAbsoluteUrl(domain)).parseHtml()
 		val total = document.select(
 			"section.m-related a[href*=/manga/], .side-manga:not(:has(.head:contains(trending))) .unit",
 		).size
@@ -360,12 +377,12 @@ internal abstract class MangaFireParser(
 			async {
 				val url = it.attrAsRelativeUrl("href")
 
-				val mangaDocument = webClient
+				val mangaDocument = client
 					.httpGet(url.toAbsoluteUrl(domain))
 					.parseHtml()
 
 				val chaptersInManga = mangaDocument.select(".m-list div.tab-content .list-menu .dropdown-item")
-					.map { it.attr("data-code").lowercase() }
+					.map { i -> i.attr("data-code").lowercase() }
 
 
 				if (!chaptersInManga.contains(siteLang)) {
@@ -423,7 +440,7 @@ internal abstract class MangaFireParser(
 						.addQueryParameter("language[]", siteLang)
 						.build()
 
-					webClient.httpGet(url)
+					client.httpGet(url)
 						.parseHtml().parseMangaList()
 				}
 			}.awaitAll().flatten()
@@ -434,7 +451,7 @@ internal abstract class MangaFireParser(
         val chapterId = chapter.url.substringAfterLast('/')
         val vrf = VrfGenerator.generate("chapter@$chapterId")
 
-        val images = webClient
+        val images = client
             .httpGet("https://$domain/ajax/read/chapter/$chapterId?vrf=$vrf")
             .parseJson()
             .getJSONObject("result")
@@ -537,7 +554,6 @@ internal abstract class MangaFireParser(
 	class PortugueseBR(context: MangaLoaderContext) :
 		MangaFireParser(context, MangaParserSource.MANGAFIRE_PTBR, "pt-br")
 }
-
 
 private object VrfGenerator {
     private fun atob(data: String): ByteArray = Base64.getDecoder().decode(data)
@@ -719,4 +735,19 @@ private object VrfGenerator {
             .replace("/", "_")
             .replace("=", "")
     }
+}
+
+public object SSLUtils {
+    public val trustAllCerts: Array<TrustManager> = arrayOf(@Suppress("CustomX509TrustManager")
+    object : X509TrustManager {
+        override fun getAcceptedIssuers(): Array<X509Certificate> = emptyArray()
+        override fun checkClientTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+        override fun checkServerTrusted(certs: Array<X509Certificate>, authType: String) = Unit
+    })
+
+    public val sslSocketFactory: SSLSocketFactory? = SSLContext.getInstance("SSL").apply {
+        init(null, trustAllCerts, SecureRandom())
+    }.socketFactory
+
+    public val trustManager: X509TrustManager = trustAllCerts[0] as X509TrustManager
 }
