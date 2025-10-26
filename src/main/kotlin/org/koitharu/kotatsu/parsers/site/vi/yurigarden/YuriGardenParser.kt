@@ -134,9 +134,10 @@ internal abstract class YuriGardenParser(
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
-			val altTitles = setOf(jo.optString("anotherName", null))
-				.filterNotNull()
-				.toSet()
+            val altTitles = json.optJSONArray("anotherNames")
+                ?.mapNotNull { it as? String }
+                ?.toSet()
+                ?: emptySet()
 			val tags = fetchTags().let { allTags ->
 				jo.optJSONArray("genres")?.asTypedList<String>()?.mapNotNullToSet { g ->
 					allTags.find { x -> x.key == g }
@@ -177,9 +178,19 @@ internal abstract class YuriGardenParser(
 			jo.getString("name") + " (${jo.getLong("id")})"
 		}.orEmpty()
 
-		val altTitles = setOf(json.getString("anotherName"))
+        val altTitles = json.optJSONArray("anotherNames")
+            ?.mapNotNull { it as? String }
+            ?.toSet()
+            ?: emptySet()
+
 		val description = json.getString("description")
-		val team = json.optJSONArray("teams")?.getJSONObject(0)?.getString("name")
+        val team = json.optJSONArray("groups")?.flatMap { gr ->
+            (gr as? JSONObject)
+                ?.optJSONArray("teams")
+                ?.mapNotNull { team ->
+                    (team as? JSONObject)?.optString("name")
+                } ?: emptyList()
+        } ?.joinToString(", ") ?: ""
 
 		val chaptersDeferred = async {
 			webClient.httpGet("https://$apiSuffix/chapters/comic/${id}").parseJsonArray()
