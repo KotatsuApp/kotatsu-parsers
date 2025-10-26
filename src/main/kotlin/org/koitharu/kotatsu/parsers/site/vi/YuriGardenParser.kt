@@ -1,8 +1,9 @@
-package org.koitharu.kotatsu.parsers.site.vi.yurigarden
+package org.koitharu.kotatsu.parsers.site.vi
 
 import androidx.collection.arraySetOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -12,6 +13,7 @@ import okio.IOException
 import org.json.JSONArray
 import org.json.JSONObject
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
+import org.koitharu.kotatsu.parsers.MangaSourceParser
 import org.koitharu.kotatsu.parsers.bitmap.Bitmap
 import org.koitharu.kotatsu.parsers.bitmap.Rect
 import org.koitharu.kotatsu.parsers.config.ConfigKey
@@ -135,8 +137,8 @@ internal abstract class YuriGardenParser(
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
             val thumbnail = jo.getString("thumbnail")
-            val altTitles = json.optJSONArray("anotherNames")
-                ?.mapNotNull { it as? String }
+            val altTitles = jo.optJSONArray("anotherNames")
+                ?.asTypedList<String>()
                 ?.toSet()
                 ?: emptySet()
 			val tags = fetchTags().let { allTags ->
@@ -151,10 +153,10 @@ internal abstract class YuriGardenParser(
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
 				altTitles = altTitles,
-				coverUrl = if (thumbnail.startsWith("comics"))
-                    "$cdnSuffix/$thumbnail" else thumbnail,
-				largeCoverUrl = if (thumbnail.startsWith("comics"))
-                    "$cdnSuffix/$thumbnail" else thumbnail,
+				coverUrl = if (thumbnail.startsWith("comics/"))
+                    "https://$cdnSuffix/$thumbnail" else thumbnail,
+				largeCoverUrl = if (thumbnail.startsWith("comics/"))
+                    "https://$cdnSuffix/$thumbnail" else thumbnail,
 				authors = emptySet(),
 				tags = tags,
 				state = when(jo.optString("status")) {
@@ -177,23 +179,24 @@ internal abstract class YuriGardenParser(
 		val id = manga.url.substringAfter("/comics/")
 		val json = webClient.httpGet("https://$apiSuffix/comics/${id}").parseJson()
 
-		val authors = json.optJSONArray("authors")?.mapJSONToSet { jo ->
-			jo.getString("name") + " (${jo.getLong("id")})"
-		}.orEmpty()
+        val authors = json.optJSONArray("authors")?.asTypedList<JSONObject>()?.mapTo(HashSet()) { jo ->
+            jo.getString("name") + " (${jo.getLong("id")})"
+        }.orEmpty()
 
         val altTitles = json.optJSONArray("anotherNames")
-            ?.mapNotNull { it as? String }
+            ?.asTypedList<String>()
             ?.toSet()
             ?: emptySet()
 
 		val description = json.getString("description")
-        val team = json.optJSONArray("groups")?.flatMap { gr ->
-            (gr as? JSONObject) // maybe ?
-                ?.optJSONArray("teams")
+        val team = json.optJSONArray("groups")?.asTypedList<JSONObject>()?.flatMap { group ->
+            group.optJSONArray("teams")
+                ?.asTypedList<JSONObject>()
                 ?.mapNotNull { team ->
-                    (team as? JSONObject)?.optString("name")
-                } ?: emptyList()
-        } ?.joinToString(", ") ?: ""
+                    team.optString("name")
+                }
+                ?: emptyList()
+        }?.joinToString(", ").orEmpty()
 
 		val chaptersDeferred = async {
 			webClient.httpGet("https://$apiSuffix/chapters/comic/${id}").parseJsonArray()
@@ -261,9 +264,9 @@ internal abstract class YuriGardenParser(
 		return context.redrawImageResponse(response) { bitmap ->
 			val url = fragment.substringBefore("KEY=")
 			val key = fragment.substringAfter("KEY=")
-			kotlinx.coroutines.runBlocking {
-				unscrambleImage(url, bitmap, key)
-			}
+            runBlocking {
+                unscrambleImage(url, bitmap, key)
+            }
 		}
 	}
 
@@ -303,3 +306,21 @@ internal abstract class YuriGardenParser(
 		}
 	}
 }
+
+@MangaSourceParser("YURIGARDEN", "Yuri Garden", "vi")
+internal class YuriGarden(context: MangaLoaderContext) :
+    YuriGardenParser(
+        context = context,
+        source = MangaParserSource.YURIGARDEN,
+        domain = "yurigarden.com",
+        isR18Enable = false
+    )
+
+@MangaSourceParser("YURIGARDEN_R18", "Yuri Garden (18+)", "vi", type = ContentType.HENTAI)
+internal class YuriGardenR18(context: MangaLoaderContext) :
+    YuriGardenParser(
+        context = context,
+        source = MangaParserSource.YURIGARDEN_R18,
+        domain = "yurigarden.com",
+        isR18Enable = true
+    )
