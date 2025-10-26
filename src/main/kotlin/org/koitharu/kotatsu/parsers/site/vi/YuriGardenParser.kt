@@ -211,7 +211,7 @@ internal abstract class YuriGardenParser(
 					id = generateUid(chapId),
 					title = jo.getString("name"),
 					number = jo.getFloatOrDefault("order", 0f),
-					volume = jo.getInt("volume"),
+					volume = jo.optInt("volume", 0),
 					url = "$chapId",
 					scanlator = team,
 					uploadDate = jo.getLong("lastUpdated"),
