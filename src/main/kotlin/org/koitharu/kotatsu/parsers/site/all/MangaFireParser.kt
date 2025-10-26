@@ -5,7 +5,6 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
-import okhttp3.Response
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.koitharu.kotatsu.parsers.MangaLoaderContext
@@ -72,6 +71,54 @@ internal abstract class MangaFireParser(
         val newHttpClient = context.httpClient.newBuilder()
             .sslSocketFactory(SSLUtils.sslSocketFactory!!, SSLUtils.trustManager)
             .hostnameVerifier { _, _ -> true }
+            .addInterceptor { chain ->
+                val request = chain.request()
+                val response = chain.proceed(request.newBuilder()
+                    .addHeader("Referer", "https://$domain/")
+                    .build())
+
+                if (request.url.fragment?.startsWith("scrambled") == true) {
+                    return@addInterceptor context.redrawImageResponse(response) { bitmap ->
+                        val offset = request.url.fragment!!.substringAfter("_").toInt()
+                        val width = bitmap.width
+                        val height = bitmap.height
+
+                        val result = context.createBitmap(width, height)
+
+                        val pieceWidth = min(PIECE_SIZE, width.ceilDiv(MIN_SPLIT_COUNT))
+                        val pieceHeight = min(PIECE_SIZE, height.ceilDiv(MIN_SPLIT_COUNT))
+                        val xMax = width.ceilDiv(pieceWidth) - 1
+                        val yMax = height.ceilDiv(pieceHeight) - 1
+
+                        for (y in 0..yMax) {
+                            for (x in 0..xMax) {
+                                val xDst = pieceWidth * x
+                                val yDst = pieceHeight * y
+                                val w = min(pieceWidth, width - xDst)
+                                val h = min(pieceHeight, height - yDst)
+
+                                val xSrc = pieceWidth * when (x) {
+                                    xMax -> x // margin
+                                    else -> (xMax - x + offset) % xMax
+                                }
+                                val ySrc = pieceHeight * when (y) {
+                                    yMax -> y // margin
+                                    else -> (yMax - y + offset) % yMax
+                                }
+
+                                val srcRect = Rect(xSrc, ySrc, xSrc + w, ySrc + h)
+                                val dstRect = Rect(xDst, yDst, xDst + w, yDst + h)
+
+                                result.drawBitmap(bitmap, srcRect, dstRect)
+                            }
+                        }
+
+                        result
+                    }
+                }
+
+                response
+            }
             .build()
         OkHttpWebClient(newHttpClient, source)
     }
@@ -86,10 +133,6 @@ internal abstract class MangaFireParser(
 		SortOrder.ALPHABETICAL,
 		SortOrder.RELEVANCE,
 	)
-
-    override fun getRequestHeaders() = super.getRequestHeaders().newBuilder()
-        .add("Referer", "https://$domain/")
-        .build()
 
 	override fun onCreateConfig(keys: MutableCollection<ConfigKey<*>>) {
 		super.onCreateConfig(keys)
@@ -480,53 +523,6 @@ internal abstract class MangaFireParser(
 		}
 
 		return pages
-	}
-
-	override fun intercept(chain: Interceptor.Chain): Response {
-		val request = chain.request()
-		val response = chain.proceed(request)
-
-		if (request.url.fragment?.startsWith("scrambled") != true) {
-			return response
-		}
-
-		return context.redrawImageResponse(response) { bitmap ->
-			val offset = request.url.fragment!!.substringAfter("_").toInt()
-			val width = bitmap.width
-			val height = bitmap.height
-
-			val result = context.createBitmap(width, height)
-
-			val pieceWidth = min(PIECE_SIZE, width.ceilDiv(MIN_SPLIT_COUNT))
-			val pieceHeight = min(PIECE_SIZE, height.ceilDiv(MIN_SPLIT_COUNT))
-			val xMax = width.ceilDiv(pieceWidth) - 1
-			val yMax = height.ceilDiv(pieceHeight) - 1
-
-			for (y in 0..yMax) {
-				for (x in 0..xMax) {
-					val xDst = pieceWidth * x
-					val yDst = pieceHeight * y
-					val w = min(pieceWidth, width - xDst)
-					val h = min(pieceHeight, height - yDst)
-
-					val xSrc = pieceWidth * when (x) {
-						xMax -> x // margin
-						else -> (xMax - x + offset) % xMax
-					}
-					val ySrc = pieceHeight * when (y) {
-						yMax -> y // margin
-						else -> (yMax - y + offset) % yMax
-					}
-
-					val srcRect = Rect(xSrc, ySrc, xSrc + w, ySrc + h)
-					val dstRect = Rect(xDst, yDst, xDst + w, yDst + h)
-
-					result.drawBitmap(bitmap, srcRect, dstRect)
-				}
-			}
-
-			result
-		}
 	}
 
 	private fun Int.ceilDiv(other: Int) = (this + (other - 1)) / other
