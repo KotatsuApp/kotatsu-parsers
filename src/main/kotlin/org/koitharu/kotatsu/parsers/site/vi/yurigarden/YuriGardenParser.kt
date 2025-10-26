@@ -134,6 +134,7 @@ internal abstract class YuriGardenParser(
 
 		return data.mapJSON { jo ->
 			val id = jo.getLong("id")
+            val thumbnail = jo.getString("thumbnail")
             val altTitles = json.optJSONArray("anotherNames")
                 ?.mapNotNull { it as? String }
                 ?.toSet()
@@ -150,8 +151,10 @@ internal abstract class YuriGardenParser(
 				publicUrl = "https://$domain/comic/$id",
 				title = jo.getString("title"),
 				altTitles = altTitles,
-				coverUrl = jo.getString("thumbnail"),
-				largeCoverUrl = jo.getString("thumbnail"),
+				coverUrl = if (thumbnail.startsWith("comics"))
+                    "$cdnSuffix/$thumbnail" else thumbnail,
+				largeCoverUrl = if (thumbnail.startsWith("comics"))
+                    "$cdnSuffix/$thumbnail" else thumbnail,
 				authors = emptySet(),
 				tags = tags,
 				state = when(jo.optString("status")) {
@@ -185,7 +188,7 @@ internal abstract class YuriGardenParser(
 
 		val description = json.getString("description")
         val team = json.optJSONArray("groups")?.flatMap { gr ->
-            (gr as? JSONObject)
+            (gr as? JSONObject) // maybe ?
                 ?.optJSONArray("teams")
                 ?.mapNotNull { team ->
                     (team as? JSONObject)?.optString("name")
@@ -266,7 +269,7 @@ internal abstract class YuriGardenParser(
 
 	private suspend fun unscrambleImage(url: String, bitmap: Bitmap, key: String): Bitmap {
 		val js = """
-			(function(Q0,Q1,Q2){"use strict";const A=(()=>{const L=[49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,74,75,76,77,78,80,81,82,83,84,85,86,87,88,89,90,97,98,99,100,101,102,103,104,105,106,107,109,110,111,112,113,114,115,116,117,118,119,120,121,122];return L.map(c=>String.fromCharCode(c)).join("")})();const F=(()=>{let f=[1];for(let i=1;i<=10;i++)f[i]=f[i-1]*i;return f})();const _I=(E,P)=>{let n=[...Array(P).keys()],r=[];for(let a=P-1;a>=0;a--){let i=F[a],s=Math.floor(E/i);E%=i;r.push(n.splice(s,1)[0])}return r};const _S=str=>{let t=0;for(let ch of str){let r=A.indexOf(ch);if(r<0)throw Error("Invalid Base58 char");t=t*58+r}return t};const _U=(enc,p)=>{if(!/^H[1-9A-HJ-NP-Za-km-z]+${'$'}/.test(enc))throw Error("Bad Base58");let t=enc.slice(1,-1),n=enc.slice(-1),r=_S(t);if(A[r%58]!==n)throw Error("Checksum mismatch");return _I(r,p)};const _P=(h,p)=>{let n=Math.floor(h/p),r=h%p,a=[];for(let i=0;i<p;i++)a.push(n+(i<r?1:0));return a};const _D=e=>{let t=Array(e.length);e.forEach((v,i)=>t[v]=i);return t};const _X=(K,H,P)=>{let e=_U(K.slice(4),P),s=_D(e),u=_P(H-4*(P-1),P),m=e.map(i=>u[i]),pts=[0];for(let i=0;i<m.length;i++)pts[i+1]=pts[i]+m[i];let f=[];for(let i=0;i<m.length;i++)f.push({y:i?pts[i]+4*i:0,h:m[i]});return s.map(i=>f[i])};return _X(Q0,Q1,Q2)})("$key",${bitmap.height},10);
+			(function(Q0,Q1,Q2){"use strict";const A=(()=>{const L=[49,50,51,52,53,54,55,56,57,65,66,67,68,69,70,71,72,74,75,76,77,78,80,81,82,83,84,85,86,87,88,89,90,97,98,99,100,101,102,103,104,105,106,107,109,110,111,112,113,114,115,116,117,118,119,120,121,122];return L.map(c=>String.fromCharCode(c)).join("")})();const F=(()=>{let f=[1];for(let i=1;i<=10;i++)f[i]=f[i-1]*i;return f})();const _I=(E,P)=>{let n=[...Array(P).keys()],r=[];for(let a=P-1;a>=0;a--){let i=F[a],s=Math.floor(E/i);E%=i;r.push(n.splice(s,1)[0])}return r};const _S=str=>{let t=0;for(let ch of str){let r=A.indexOf(ch);if(r<0)throw Error("Invalid Base58 char");t=t*58+r}return t};const _U=(enc,p)=>{if(!/^H[1-9A-HJ-NP-Za-km-z]+$/.test(enc))throw Error("Bad Base58");let t=enc.slice(1,-1),n=enc.slice(-1),r=_S(t);if(A[r%58]!==n)throw Error("Checksum mismatch");return _I(r,p)};const _P=(h,p)=>{let n=Math.floor(h/p),r=h%p,a=[];for(let i=0;i<p;i++)a.push(n+(i<r?1:0));return a};const _D=e=>{let t=Array(e.length);e.forEach((v,i)=>t[v]=i);return t};const _X=(K,H,P)=>{let e=_U(K.slice(4),P),s=_D(e),u=_P(H-4*(P-1),P),m=e.map(i=>u[i]),pts=[0];for(let i=0;i<m.length;i++)pts[i+1]=pts[i]+m[i];let f=[];for(let i=0;i<m.length;i++)f.push({y:i?pts[i]+4*i:0,h:m[i]});return s.map(i=>f[i])};return _X(Q0,Q1,Q2)})("$key",${bitmap.height},10);
 		""".trimIndent()
 
 		val result = context.evaluateJs(url, js)
