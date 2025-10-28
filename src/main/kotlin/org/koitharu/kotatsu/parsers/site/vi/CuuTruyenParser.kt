@@ -3,9 +3,6 @@ package org.koitharu.kotatsu.parsers.site.vi
 import androidx.collection.arraySetOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Interceptor
 import okhttp3.Response
@@ -28,8 +25,6 @@ import java.util.*
 internal class CuuTruyenParser(context: MangaLoaderContext) :
 	PagedMangaParser(context, MangaParserSource.CUUTRUYEN, 24) {
 
-    private val requestMutex = Mutex()
-    private var lastRequestTime = 0L
     private val apiSuffix = "/api/v2"
 	override val userAgentKey = ConfigKey.UserAgent(UserAgents.KOTATSU)
 
@@ -175,7 +170,6 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 	}
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
-        enforceRateLimit()
 		val url = "https://" + domain + manga.url
 		val chapters = async {
 			webClient.httpGet("$url/chapters").parseJson().getJSONArray("data")
@@ -440,22 +434,10 @@ internal class CuuTruyenParser(context: MangaLoaderContext) :
 		MangaTag("Idol", "idol", source),
 	)
 
-    private suspend fun enforceRateLimit() {
-        requestMutex.withLock {
-            val currentTime = System.currentTimeMillis()
-            val timeSinceLastRequest = currentTime - lastRequestTime
-            if (timeSinceLastRequest < DELAY_MS) {
-                delay(DELAY_MS - timeSinceLastRequest)
-            }
-            lastRequestTime = System.currentTimeMillis()
-        }
-    }
-
 	private companion object {
 		const val DRM_DATA_KEY = "drm_data="
 		const val DECRYPTION_KEY = "3141592653589793"
         const val MOBILE_COVER = "cover_mobile_url"
         const val DESKTOP_COVER = "cover_url"
-        const val DELAY_MS = 3000L
 	}
 }

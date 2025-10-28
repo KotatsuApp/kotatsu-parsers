@@ -3,10 +3,7 @@ package org.koitharu.kotatsu.parsers.site.vi
 import androidx.collection.arraySetOf
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 import okhttp3.Headers
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -37,8 +34,6 @@ internal abstract class YuriGardenParser(
 
 	private val availableTags = suspendLazy(initializer = ::fetchTags)
 
-    private val requestMutex = Mutex()
-    private var lastRequestTime = 0L
 	override val configKeyDomain = ConfigKey.Domain(domain)
 	private val apiSuffix = "api.$domain"
 	private val cdnSuffix = "db.$domain/storage/v1/object/public/yuri-garden-store"
@@ -136,7 +131,6 @@ internal abstract class YuriGardenParser(
 			}
 		}
 
-        enforceRateLimit()
 		val json = webClient.httpGet(url).parseJson()
 		val data = json.getJSONArray("comics")
 
@@ -183,7 +177,6 @@ internal abstract class YuriGardenParser(
 
 	override suspend fun getDetails(manga: Manga): Manga = coroutineScope {
 		val id = manga.url.substringAfter("/comics/")
-        enforceRateLimit()
 		val json = webClient.httpGet("https://$apiSuffix/comics/${id}").parseJson()
 
         val authors = json.optJSONArray("authors")?.asTypedList<JSONObject>()?.mapTo(HashSet()) { jo ->
@@ -231,7 +224,6 @@ internal abstract class YuriGardenParser(
 	}
 
 	override suspend fun getPages(chapter: MangaChapter): List<MangaPage> {
-        enforceRateLimit()
 		val json = webClient.httpGet("https://$apiSuffix/chapters/${chapter.url}").parseJson()
 		val pages = json.getJSONArray("pages").asTypedList<JSONObject>()
 
@@ -302,7 +294,6 @@ internal abstract class YuriGardenParser(
 	}
 
 	private suspend fun fetchTags(): Set<MangaTag> {
-        enforceRateLimit()
 		val json = webClient.httpGet("https://$apiSuffix/resources/systems_vi.json").parseJson()
 		val genres = json.getJSONObject("genres")
 		return genres.keys().asSequence().mapTo(arraySetOf()) { key ->
@@ -314,21 +305,6 @@ internal abstract class YuriGardenParser(
 			)
 		}
 	}
-
-    private suspend fun enforceRateLimit() {
-        requestMutex.withLock {
-            val currentTime = System.currentTimeMillis()
-            val timeSinceLastRequest = currentTime - lastRequestTime
-            if (timeSinceLastRequest < DELAY_MS) {
-                delay(DELAY_MS - timeSinceLastRequest)
-            }
-            lastRequestTime = System.currentTimeMillis()
-        }
-    }
-
-    companion object {
-        private const val DELAY_MS = 5000L
-    }
 }
 
 @MangaSourceParser("YURIGARDEN", "Yuri Garden", "vi")
